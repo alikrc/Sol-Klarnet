@@ -289,7 +289,9 @@ const ORN = {
   near: 2,                     // bir parça ana notaya ya da komşuya bu kadar komaya oturmuşsa onun sayılır
   grace: [20, 120], graceIdeal: [40, 80], gapMax: 30, mainMin: 300, mainTol: 1.5,
   tekrar: [20, 80], tekrarDip: 0.3, tekrarMin: 3,
-  mordanTotal: 300
+  mordanTotal: 300,
+  trilSwitch: 6, trilSpan: 3, trilTwoLevel: 0.7, trilEven: 0.2,
+  giris: [80, 400], girisDepth: 3, dusus: [100, 500], dususDepth: 5, along: 0.6
 };
 // Komşu perdenin koması: makam verilmişse makam dizisinde ana perdenin hemen üstü/altı, yoksa yazılı komşu nota
 function ornamentNeighbor(spec){
@@ -391,6 +393,74 @@ function ornamentEval(track, spec){
       if(n.ms > ORN.grace[1] || b.start - a.start > ORN.mordanTotal){ res.tips.push(otip("Mordan yavaş: üç notayı daha hızlı bağla.", "The mordent is slow: join the three notes faster.")); break; }
       if(b.ms < ORN.mainMin){ res.tips.push(otip("Son notayı daha uzun tut.", "Hold the last note longer.")); break; }
       if(!mainCheck(b)) break;
+      res.ok = true;
+      break;
+    }
+    case "tril": {
+      // En uzun ana–komşu almaşık dizisi; her parçanın başı yarım dönüş
+      let best = [], run = [];
+      for(const p of parts){
+        const q = run[run.length-1];
+        if(p.lab !== "other" && q && q.lab !== p.lab && p.start - q.end - hop <= 40) run.push(p);
+        else run = p.lab === "other" ? [] : [p];
+        if(run.length > best.length) best = [...run];
+      }
+      const span = Math.abs(nbC - mainC);
+      const inRun = best.length ? track.filter(f => f.comma !== null && f.t >= best[0].start && f.t <= best[best.length-1].end) : [];
+      const two = inRun.length ? inRun.filter(f => Math.abs(f.comma - mainC) <= ORN.near || Math.abs(f.comma - nbC) <= ORN.near).length/inRun.length : 0;
+      if(best.length - 1 < ORN.trilSwitch || span < ORN.trilSpan || two < ORN.trilTwoLevel){
+        res.tips.push(otip("Tril duyulmadı: ana nota ile " + upW + " nota arasında tek parmakla hızlı ve düzenli git gel.",
+                           "No trill heard: move quickly and evenly between the main note and the " + upE + " note with one finger."));
+        break;
+      }
+      const a = best[0], z = best[best.length-1], body = best.slice(0, -1).map(p => p.ms);
+      res.found = true;
+      res.rate = (best.length - 1)/2/((z.start - a.start)/1000);
+      res.evenness = SLEARN.sd(body)/SLEARN.mean(body);
+      res.durMs = partMs(track, a.start, z.end);
+      res.count = best.length - 1;
+      const nbs = best.filter(p => p.lab === "nb");
+      res.intervalErr = SLEARN.mean(nbs.map(p => p.comma)) - nbC;
+      const fail = [];
+      if(res.evenness > ORN.trilEven) fail.push(otip("Tril düzensiz: iki notada eşit süre kal, önce yavaş ama düzenli çal.", "The trill is uneven: stay equally long on both notes; play slower but even first."));
+      if(Math.abs(res.intervalErr) > ORN.near) fail.push(res.intervalErr < 0 ? otip("Üst nota pes.", "The upper note is flat.") : otip("Üst nota tiz.", "The upper note is sharp."));
+      if(spec.rate && res.rate < spec.rate) fail.push(otip("Biraz daha hızlı: hedef saniyede " + spec.rate + " dönüş.", "A little faster: the target is " + spec.rate + " turns per second."));
+      if(spec.sec && res.durMs < spec.sec*1000) fail.push(otip("Trili daha uzun sürdür: en az " + spec.sec + " sn.", "Keep the trill going longer: at least " + spec.sec + " s."));
+      res.tips.push(...fail);
+      res.ok = !fail.length;
+      break;
+    }
+    case "giris": case "dusus": {
+      const mains = parts.filter(p => p.lab === "main");
+      const m = mains.length ? mains.reduce((a, b) => b.ms > a.ms ? b : a) : null;
+      if(!m){ res.tips.push(otip("Hedef notayı duyamadım.", "I couldn't hear the target note.")); break; }
+      // Ana parçanın hemen öncesindeki (giriş) ya da sonrasındaki (düşüş) kesintisiz perdeli ölçümler
+      const iA = track.findIndex(f => f.t >= m.start), iB = track.findIndex(f => f.t > m.end);
+      const seg = [];
+      if(spec.kind === "giris") for(let i=iA-1; i>=0 && track[i].comma !== null; i--) seg.unshift(track[i]);
+      else if(iB >= 0) for(let i=iB; i<track.length && track[i].comma !== null; i++) seg.push(track[i]);
+      const along = seg.length > 1 ? seg.slice(1).filter((f, k) => spec.kind === "giris" ? f.comma > seg[k].comma : f.comma < seg[k].comma).length/(seg.length - 1) : 0;
+      if(spec.kind === "giris"){
+        const depth = seg.length ? mainC - seg[0].comma : 0, dur = seg.length ? m.start - seg[0].t : 0;
+        if(depth < ORN.girisDepth || along < ORN.along || dur < ORN.giris[0]){
+          res.tips.push(otip("Kayış duyulmadı: notaya birkaç koma pesten başla, parmağı ve dudağı bırakarak yukarı kay.",
+                             "No slide heard: start a few commas below the note and slide up by releasing finger and lips."));
+          break;
+        }
+        res.found = true; res.durMs = dur; res.intervalErr = -depth;
+        if(dur > ORN.giris[1]){ res.tips.push(otip("Kayış çok yavaş: notaya daha çabuk otur.", "The slide is too slow: settle on the note sooner.")); break; }
+      }else{
+        const last = seg[seg.length-1], depth = seg.length ? mainC - last.comma : 0, dur = seg.length ? last.t - m.end : 0;
+        if(depth < ORN.dususDepth || along < ORN.along || dur < ORN.dusus[0]){
+          res.tips.push(otip("Düşüş duyulmadı: notanın sonunda sesi kesmeden aşağı bırak.",
+                             "No fall heard: at the end of the note let the pitch drop without stopping the sound."));
+          break;
+        }
+        res.found = true; res.durMs = dur; res.intervalErr = -depth;
+        if(dur > ORN.dusus[1]){ res.tips.push(otip("Düşüş çok uzun: daha kısa ve kararlı bırak.", "The fall is too long: make it shorter and firmer.")); break; }
+      }
+      if(m.ms < ORN.mainMin){ res.tips.push(otip("Ana notayı daha uzun tut.", "Hold the main note longer.")); break; }
+      if(!mainCheck(m)) break;
       res.ok = true;
       break;
     }

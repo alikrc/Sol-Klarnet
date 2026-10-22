@@ -59,6 +59,27 @@ function run(ok){
     const rep = ev([{ w:69, ms:300 }, { w:71, ms:40 }, { w:69, ms:300 }, { w:71, ms:40 }, { w:69, ms:300 }, { w:71, ms:40 }, { w:69, ms:300 }], { kind:'tekrar', note:69, dir:'up' });
     ok(rep.ok && rep.count === 3, 'carpmali tekrar: 3 bolme', JSON.stringify(rep));
   }
+
+  console.log('\n[30] Tril, giris, dusus');
+  {
+    const trill = (rateHz, n, jitter = 0, seed = 1) => { const segs = [], r = A.rng(seed);
+      for(let i=0;i<n*2;i++) segs.push({ w: i%2 ? 69 : 67, ms: 1000/rateHz/2*(1 + jitter*(r()-0.5)) }); return segs; };
+    const T6 = ev(trill(6, 14), { kind:'tril', note:67, dir:'up', rate:6, sec:2 });
+    ok(T6.ok && Math.abs(T6.rate - 6) <= 0.5, 'duzenli 6/sn tril, hiz hatasi ≤ 0,5', JSON.stringify(T6));
+    for(const hz of [3,4,8,10]){
+      const x = ev(trill(hz, hz*2.5), { kind:'tril', note:67, dir:'up', rate:2, sec:2 });
+      ok(x.found && Math.abs(x.rate - hz) <= 0.5, 'tril hizi ' + hz + '/sn olculuyor', x.rate);
+    }
+    ok(!ev(trill(6, 14, 0.9), { kind:'tril', note:67, dir:'up', rate:4, sec:2 }).ok, 'cok duzensiz tril gecmiyor');
+    ok(!ev(trill(4, 10), { kind:'tril', note:67, dir:'up', rate:6, sec:2 }).ok, 'hedeften yavas tril gecmiyor');
+    let vf = 0;
+    for(let s=0;s<50;s++) if(ev([{ w:67, ms:2500, vib:{ rate: 5 + (s%4), depth:1.5 } }], { kind:'tril', note:67, dir:'up', rate:2, sec:2 }, { seed:200+s }).found) vf++;
+    ok(vf <= 1, 'vibrato (±1,5 koma) tril sayilmiyor', vf);
+    ok(ev([{ comma:4, ms:200, to:9 }, { w:69, ms:500 }], { kind:'giris', note:69 }).ok, 'alttan kayarak giris');
+    ok(!ev([{ w:69, ms:600 }], { kind:'giris', note:69 }).found, 'duz atak giris degil');
+    ok(ev([{ w:69, ms:500 }, { comma:9, ms:250, to:2 }], { kind:'dusus', note:69 }).ok, 'sonda dusus');
+    ok(!ev([{ w:69, ms:600 }], { kind:'dusus', note:69 }).found, 'duz bitis dusus degil');
+  }
 }
 
 module.exports = { run };
