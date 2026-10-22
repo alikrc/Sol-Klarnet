@@ -232,6 +232,8 @@ TRAINERS.piece = function(ctx){
       <div class="pbar"><input id="pcname" type="text" placeholder="${L("Eserin adı", "Name of the piece")}" aria-label="${L("Eserin adı", "Name of the piece")}">
         <label class="tnum"><input id="pctmp" type="number" min="30" max="240" value="80" aria-label="Tempo"> <em>${L("dörtlük/dk", "quarter/min")}</em></label>
         <select id="pcmk" aria-label="Makam"><option value="">${L("Makam yok", "No makam")}</option>${MAKAMS.map(m => `<option value="${m.id}">${m.name}</option>`).join("")}</select></div>
+      <label class="chk"><input type="checkbox" id="pcconcert"> ${L("Piyano (konser) notası: ", "Piano (concert-pitch) score: ") + ctx.esc(SK.inst.name) + L(" için çevir", ": transpose")}
+        <em class="muted">(${L("yazılı = duyulan ", "written = sounding ") + (SK.T >= 0 ? "+" : "−") + Math.abs(SK.T) + L(" yarım ses", " semitones")}${SK.T === 5 ? ", Do(C) → Fa(F)" : ""})</em></label>
       <textarea id="pctext" rows="3" placeholder="Sol4 La4:0.5 Si4:0.5 Do5:2" aria-label="${L("Notalar", "Notes")}"></textarea>
       <div class="pbar"><button class="stopbtn" id="pcsave" type="button">${L("Kaydet", "Save")}</button>
         <button class="stopbtn" id="pcimport" type="button">${L("MusicXML içe aktar", "Import MusicXML")}</button>
@@ -280,8 +282,11 @@ TRAINERS.piece = function(ctx){
     user.push(p); store.set("piece.user", user);
     fillSel("u" + (user.length-1)); store.set("piece.sel", $("pcsel").value); load();
   }
+  $("pcconcert").checked = store.get("piece.concert", false);
+  $("pcconcert").addEventListener("change", () => store.set("piece.concert", $("pcconcert").checked));
+  const written = notes => $("pcconcert").checked ? concertToWritten(notes, SK.T) : notes;
   $("pcsave").addEventListener("click", () => {
-    const { notes, errors } = parseScoreText($("pctext").value);
+    const parsed = parseScoreText($("pctext").value), errors = parsed.errors, notes = written(parsed.notes);
     const bad = notes.filter(n => !n.rest && (n.w < LOW_NOTE || n.w > HIGH_NOTE));
     if(errors.length || bad.length || !notes.some(n => !n.rest)){
       msg(errors.length ? L("Okunamadı: ", "Could not read: ") + errors.join(" ") : bad.length ? L("Aralık dışı: ", "Out of range: ") + bad.map(n => ctx.nn(n.w)).join(" ") + " (Mi3–Mi♭7)" : L("Nota yok.", "No notes."));
@@ -297,6 +302,7 @@ TRAINERS.piece = function(ctx){
     try{
       const xml = /\.mxl$/i.test(f.name) ? await unzipFirstScore(await f.arrayBuffer()) : await f.text();
       const mx = parseMusicXML(xml);
+      mx.notes = written(mx.notes);
       const inR = mx.notes.filter(n => n.rest || (n.w >= LOW_NOTE && n.w <= HIGH_NOTE));
       if(!inR.some(n => !n.rest)){ msg(L("Dosyada çalınabilir nota bulunamadı.", "No playable notes in the file.")); return; }
       const out = mx.notes.length - inR.length;

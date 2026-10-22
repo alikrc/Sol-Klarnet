@@ -61,6 +61,12 @@ function turkishAccidental(c, w){
 // ---- MusicXML ----
 // Yalnızca ilk bölüm (part) okunur; akor notalarının ilki alınır, bağlı (tie) notalar birleştirilir.
 // Koma değeri <alter>'den (kesirli yarım ses) bulunur: SymbTr gibi Türk müziği dosyalarında perdeler böyle yazılır.
+// Kesirli MIDI değerini en yakın AEU perdesine oturtur (0,6 komadan uzaksa perdesiz, tampere): { w, c }
+function snapPerde(midi){
+  const near = RCORE.nearestPerde((midi - 67)*53/12);
+  const c = near && Math.abs(near.delta) <= 0.6 ? near.comma : null;
+  return { w: c !== null ? Math.round(67 + c*12/53) : Math.round(midi), c };
+}
 function xmlTag(s, tag){ const m = new RegExp("<" + tag + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + tag + ">").exec(s); return m ? m[1].trim() : null; }
 function parseMusicXML(xml){
   const title = xmlTag(xml, "work-title") || xmlTag(xml, "movement-title") || null;
@@ -80,16 +86,23 @@ function parseMusicXML(xml){
       if(!(dur > 0)) continue;
       if(/<rest\b/.test(n)){ notes.push({ w:null, c:null, d:dur, rest:true }); continue; }
       const p = xmlTag(n, "pitch"); if(!p) continue;
-      const midi = STEP[xmlTag(p, "step")] + (+(xmlTag(p, "alter") || 0)) + (+xmlTag(p, "octave") + 1)*12;
-      const comma = (midi - 67)*53/12, near = RCORE.nearestPerde(comma);
-      const c = near && Math.abs(near.delta) <= 0.6 ? near.comma : null;
-      const w = c !== null ? Math.round(67 + c*12/53) : Math.round(midi);
+      const { w, c } = snapPerde(STEP[xmlTag(p, "step")] + (+(xmlTag(p, "alter") || 0)) + (+xmlTag(p, "octave") + 1)*12);
       const tieStop = /<tie[^>]*type="stop"/.test(n), prev = notes[notes.length-1];
       if(tieStop && prev && !prev.rest && prev.w === w){ prev.d += dur; continue; }
       notes.push({ w, c, d:dur, rest:false });
     }
   }
   return { title, notes, beats, beatType, tempo };
+}
+
+// ---- Piyano (konser) notası ----
+// Piyano notası duyulan sesi yazar; çalgının yazılı notası t yarım ses tizdir (Sol klarnette tam 4'lü: Do → Fa).
+// Notaların çoğu aralığa sığmazsa bir oktav pesi (Sol klarnette 5'li aşağı) seçilir.
+function concertToWritten(notes, t){
+  const shift = s => notes.map(n => n.rest ? n : { ...n, ...snapPerde((n.c !== null ? 67 + n.c*12/53 : n.w) + s) });
+  const fit = ns => ns.filter(n => !n.rest && n.w >= RCORE.LOW_NOTE && n.w <= RCORE.HIGH_NOTE).length;
+  const up = shift(t), down = shift(t - 12);
+  return fit(down) > fit(up) ? down : up;
 }
 // .mxl (sıkıştırılmış MusicXML): zip içinden kök dosyayı çıkarır. DecompressionStream gerekir (tarayıcı, Node 18+).
 async function unzipFirstScore(buf){
@@ -192,6 +205,6 @@ function etudeNotes(e){
 const etudeById = id => ETUDES.find(e => e.id === id) || null;
 
 if(typeof module !== "undefined") module.exports = {
-  parseScoreText, scoreToText, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore,
+  parseScoreText, scoreToText, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
   alignPerformance, noteTimes, ETUDES, etudeNotes, etudeById
 };

@@ -612,6 +612,12 @@ const R = require('./repertoire.js');
   const zip = Buffer.concat([...parts, cd, eocd]);
   const fromZip = await R.unzipFirstScore(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.length));
   ok(R.parseMusicXML(fromZip).notes.length === 4, '.mxl (sikistirilmis MusicXML) aciliyor');
+  // Piyano notası → Sol klarnet: Do4 Mi4 Sol4 → Fa4 La4 Do5; çok tiz eser bir oktav pes (5'li aşağı) yazılır
+  const cw = R.concertToWritten(R.parseScoreText('Do4 Mi4 - Sol4 Fa♯4').notes, 5);
+  ok(cw.map(n => n.rest ? '-' : n.w).join() === '65,69,-,72,71' && cw[0].c === -9 && cw[3].c === 22,
+     'piyano notasi Sol klarnete: tam 4lu tiz (Do→Fa, Mi→La, Sol→Do, Fa#→Si), perdeler korunuyor', JSON.stringify(cw.map(n => [n.w, n.c])));
+  const hi = R.concertToWritten(R.parseScoreText('Do7 Re7 Mi7').notes, 5);
+  ok(hi.map(n => n.w).join() === '89,91,93', 'aralik disina tasan piyano notasi bir oktav pes yaziliyor', JSON.stringify(hi.map(n => n.w)));
 
   const nt = R.noteTimes(R.parseScoreText('Sol4 La4:2 - Si4').notes, 1000, 500);
   ok(nt.times.length === 3 && nt.times[1].t === 1500 && nt.times[2].t === 3000 && nt.beats === 5, 'notalarin beklenen zamanlari (sus atlanir)');
