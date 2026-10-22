@@ -2,7 +2,7 @@
 // ses kalitesi, dinamik (crescendo/decrescendo), seyir analizi ve kulak eğitimi soru üreticileri.
 // Tarayıcıda lessons.js'ten sonra <script src="skills.js"> ile, Node'da require("./skills.js") ile yüklenir.
 
-const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt };
+const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi };
 const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, mean, sd, commaToWritten, perdeName };
 
 // ---- Nota başı (onset) bulma ----
@@ -240,7 +240,44 @@ function makamPhrase(mk, rng = Math.random){
   return [...up, ...mid, ...down];
 }
 
+// ---- Süsleme ----
+// Canlı ölçüm 40 ms'de bir yapılır; çarpma ve tril notaları bundan kısadır. Deneme bitince ham ses (PCM) 5 ms adımla,
+// kısa pencereyle yeniden çözülür. Komalar canlı "raw" olayıyla aynı ölçekte: Rast'a (yazılı Sol4) göre.
+// opts: { T (aktarım), minHz, maxHz, minRms, hopMs, expectHz (250 Hz üstünde 1024 örneklik pencere) }
+function ornamentTrack(pcm, sampleRate, opts = {}){
+  const T = opts.T == null ? 5 : opts.T, hopMs = opts.hopMs || 5;
+  const win = (opts.expectHz || 0) > 250 ? 1024 : 2048, hop = sampleRate*hopMs/1000;
+  const out = [];
+  for(let k=0; Math.round(k*hop) + win <= pcm.length; k++){
+    const s = Math.round(k*hop);
+    const d = SCORE.detectPitch(pcm.subarray(s, s + win), sampleRate, opts.minHz || 100, opts.maxHz || 2100, opts.minRms || 0.008);
+    out.push({ t: k*hopMs + win/2/sampleRate*1000, freq: d.freq, rms: d.rms, clarity: d.clarity,
+               comma: d.freq > 0 ? (SCORE.freqToMidi(d.freq) + T - 67)*53/12 : null });
+  }
+  return out;
+}
+const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length/2)]; };
+// İzi aynı perdeye oturan parçalara böler: ölçüm parçanın ortancasından tol komadan fazla uzaklaşınca ya da perde
+// kaybolunca yeni parça başlar; minMs'den kısa parçalar atılır.
+function microNotes(track, tol = 2, minMs = 15){
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5, out = [];
+  let cur = null;
+  const close = () => {
+    if(cur){ const ms = cur.end - cur.start + hop; if(ms >= minMs) out.push({ start:cur.start, end:cur.end, ms, comma: median(cur.cs) }); }
+    cur = null;
+  };
+  for(const f of track){
+    if(f.comma === null){ close(); continue; }
+    if(cur && Math.abs(f.comma - median(cur.cs)) <= tol){ cur.cs.push(f.comma); cur.end = f.t; continue; }
+    close();
+    cur = { start:f.t, end:f.t, cs:[f.comma] };
+  }
+  close();
+  return out;
+}
+
 if(typeof module !== "undefined") module.exports = {
+  ornamentTrack, microNotes,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

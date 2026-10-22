@@ -59,4 +59,29 @@ function randomCase(r, k){
   return { buf, srate, f0, written, profile, vib, meta };
 }
 
-module.exports = { rng, PROFILES, highpass, voice, randomCase };
+// Süsleme sesi: art arda, faz sürekli (legato) segmentler. Her segment { w (yazılı) | comma, ms, to? (kayış hedefi,
+// koma), vib? {rate, depth} }. opts: { srate, T (aktarım), profile, breath, hp, gapMs (önde sessizlik), seed }
+function ornamentAudio(segs, opts = {}){
+  const srate = opts.srate || 44100, T = opts.T == null ? 5 : opts.T, r = rng(opts.seed || 1);
+  const amps = PROFILES[opts.profile || "klarino"], breath = opts.breath == null ? 0.02 : opts.breath;
+  const gap = Math.round((opts.gapMs || 0)*srate/1000);
+  const lens = segs.map(s => Math.round(s.ms*srate/1000)), total = lens.reduce((a, b) => a + b, 0);
+  const pcm = new Float32Array(gap + total);
+  const commaOf = s => s.comma != null ? s.comma : (s.w - 67)*53/12;
+  const freqOf = c => midiToFreq(67 - T + c*12/53);
+  let ph = 0, i = gap;
+  segs.forEach((s, k) => {
+    const c0 = commaOf(s), c1 = s.to != null ? s.to : c0, vib = s.vib || { rate:0, depth:0 };
+    for(let j=0;j<lens[k];j++, i++){
+      const c = c0 + (c1 - c0)*j/lens[k] + vib.depth*Math.sin(2*Math.PI*vib.rate*(i-gap)/srate);
+      ph += 2*Math.PI*freqOf(c)/srate;
+      const env = Math.min(1, (i-gap)/(0.01*srate), (pcm.length - i)/(0.01*srate));
+      let v = 0; for(let h=0;h<amps.length;h++) v += amps[h]*Math.sin((h+1)*ph + h*0.7);
+      pcm[i] = 0.3*env*v + breath*(r()-0.5);
+    }
+  });
+  if(opts.hp) highpass(pcm, opts.hp, srate);
+  return { pcm, srate };
+}
+
+module.exports = { rng, PROFILES, highpass, voice, randomCase, ornamentAudio };
