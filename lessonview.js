@@ -159,11 +159,7 @@ TRAINERS.lessons = function(ctx){
     if(st.type === "ornament") return st;
     return { ...st.orn, note: st.notes ? st.notes[0] : commaToWritten(st.commas[0]), comma: st.commas ? st.commas[0] : undefined, makam: st.makam };
   }
-  function playOrn(st){
-    const spec = ornSpec(st), mk = spec.makam ? makamById(spec.makam) : null;
-    const f = c => mk ? mkFreq(mk, c) : ctx.commaFreq(c);
-    return SK.playGlide(ornamentNotes(spec).map(x => ({ freq: f(x.comma), ms: x.ms, toFreq: x.to != null ? f(x.to) : null })));
-  }
+  const playOrn = st => ornamentPlay(ctx, ornSpec(st));
   async function hear(st){
     if(st.type === "ornament" || st.orn){ playToken = null; return playOrn(st); }
     const items = itemsOf(st);

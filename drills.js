@@ -505,6 +505,15 @@ TRAINERS.rec = function(ctx){
 // ======== İlerleme ========
 TRAINERS.progress = function(ctx){
   const { $, store, num, sgn, label, days, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
+  // Süsleme: en iyi tril hızı (düzenli olanlardan) ve son 20 çarpma denemesinde başarı
+  function ornLine(){
+    const best = store.get("orn.trilBest", 0), c = store.get("orn.hist", []).filter(h => h.kind === "carpma").slice(-20);
+    const parts = [];
+    if(best) parts.push(L("en iyi tril ", "best trill ") + "<strong>" + num(best) + L(" dönüş/sn</strong>", " turns/s</strong>"));
+    const pct = c.length ? Math.round(c.filter(h => h.ok).length/c.length*100) : 0;
+    if(c.length) parts.push(L("son " + c.length + " çarpmada başarı %" + pct, "grace notes, last " + c.length + ": " + pct + "%"));
+    return parts.join(" · ") || "—";
+  }
   // İlerleme sayfası: ritim, kulak, seyir ve eser sonuçları
   function moreStats(){
     const rh = store.get("rhythm.hist", []), ear = store.get("ear.best", {}), sy = store.get("seyir.hist", []), pb = store.get("piece.best", {});
@@ -518,6 +527,7 @@ TRAINERS.progress = function(ctx){
       <div class="label">${L("Ritim", "Rhythm")}</div><p>${rh.length ? L("son 10 tur ortalaması ", "last 10 rounds average ") + "<strong>" + avg(last10) + "</strong> · " + L("en iyi ", "best ") + store.get("rhythm.best", 0) + " · " + rh.length + L(" tur", " rounds") : "—"}</p>
       <div class="label">${L("Kulak", "Ear")}</div><p>${ear.pitch != null ? L("ayırt edebildiğin en küçük fark ", "smallest difference you can hear ") + "<strong>" + num(ear.pitch) + L(" koma</strong>", " commas</strong>") : "—"}${ear.makam ? " · " + L("makam tanıma rekoru ", "makam ID record ") + ear.makam : ""}</p>
       <div class="label">${L("Seyir (taksim)", "Seyir (taksim)")}</div><p>${sy.length ? L("son 10 ortalama ", "last 10 average ") + "<strong>" + avg(sy10) + "</strong> · " + Object.entries(syBy).map(([id, v]) => makamById(id).name + " " + v).join(" · ") : "—"}</p>
+      <div class="label">${L("Süsleme", "Ornaments")}</div><p>${ornLine()}</p>
       <div class="label">${L("Eserler (tempolu, en iyi)", "Pieces (in tempo, best)")}</div><p>${Object.entries(pb).map(([id, v]) => { const e = etudeById(id); return (e ? pick(e.name, LANG) : id) + " %" + v; }).join(" · ") || "—"}</p>`;
   }
   const P = $("pp-progress");

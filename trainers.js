@@ -391,6 +391,12 @@ function ornamentAttempt(ctx, spec, holder, onResult){
     stop(){ start = last = null; }
   };
 }
+// Süslemenin örnek sesi (makam varsa seçili akorttaki perdelerle)
+function ornamentPlay(ctx, spec){
+  const mk = spec.makam ? makamById(spec.makam) : null;
+  const f = c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c);
+  return ctx.SK.playGlide(ornamentNotes(spec).map(x => ({ freq: f(x.comma), ms: x.ms, toFreq: x.to != null ? f(x.to) : null })));
+}
 // Hedef cümlesi: "Çarpma: Si4 → La4"
 function ornamentGoal(spec, nn){
   const m = nn(spec.note), n = ORN_NB.includes(spec.kind) ? nn(commaToWritten(ornamentNeighbor(spec))) : "";
@@ -404,6 +410,94 @@ function ornamentGoal(spec, nn){
   }
   return "";
 }
+
+// ======== Süsleme sekmesi ========
+// Tür, nota (makam seçilirse makamın perdeleri), yön ve tril hızı seçilir; sınırsız deneme. Sonuçlar
+// orn.hist (son 200) ve orn.trilBest'e (düzen eşiğini geçen en iyi tril hızı) yazılır.
+TRAINERS.susleme = function(ctx){
+  const { SK, $, store, nn, num, label, needMic } = ctx;
+  const P = $("pp-susleme");
+  const KINDS = [["carpma", L("Çarpma", "Grace note")], ["tekrar", L("Çarpmalı tekrar", "Repeated note")], ["mordan", L("Mordan", "Mordent")],
+                 ["tril", L("Tril", "Trill")], ["giris", L("Kayarak giriş", "Slide-in")], ["dusus", L("Düşüş", "Fall")]];
+  P.innerHTML = `
+    <p class="pdesc">${L("Bir süsleme seç, önce örneği dinle, sonra çal. Her denemeden sonra perde eğrin ve ne yapman gerektiği görünür.",
+      "Pick an ornament, listen to the example, then play. After each attempt you see your pitch curve and what to fix.")}</p>
+    <div class="pbar">
+      <select id="orkind" aria-label="${L("Süsleme", "Ornament")}">${KINDS.map(([k, n]) => `<option value="${k}">${n}</option>`).join("")}</select>
+      <select id="ormk" aria-label="Makam"><option value="">${L("Makamsız", "No makam")}</option>${MAKAMS.map(m => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
+      <select id="ornote" aria-label="${L("Nota", "Note")}"></select>
+      <div class="seg" role="radiogroup" aria-label="${L("Yön", "Direction")}" id="ordir">
+        <button type="button" role="radio" data-d="up">${L("üstten", "upper")}</button><button type="button" role="radio" data-d="down">${L("alttan", "lower")}</button>
+      </div>
+    </div>
+    <div class="pbar" id="orratebar"><label class="small">${L("Tril hedefi", "Trill target")} <input type="range" id="orrate" min="2" max="12" step="1"> <span id="orrateval"></span></label></div>
+    <div class="pbar"><button class="stopbtn" id="orlisten" type="button">${L("Dinle", "Listen")}</button><button class="primary small" id="orgo" type="button">${L("Başla", "Start")}</button></div>
+    <div id="orstage"></div>`;
+  const kindEl = $("orkind"), mkEl = $("ormk"), noteEl = $("ornote"), rateEl = $("orrate"), stage = $("orstage");
+  const st = store.get("orn.opts", { kind:"carpma", mk:"", note:"w:69", dir:"up", rate:4 });
+  let att = null;
+  function fillNotes(){
+    const mk = mkEl.value ? makamById(mkEl.value) : null, opts = [];
+    if(mk){
+      const base = [...new Set([...mk.asc, ...mk.desc].map(c => ((c % 53) + 53) % 53))];
+      const cs = []; for(let k=-2;k<=3;k++) for(const c of base){ const v = c + 53*k, w = commaToWritten(v); if(w >= 64 && w <= 84) cs.push(v); }
+      cs.sort((a, b) => a - b).forEach(c => opts.push([`c:${c}`, perdeName(c) + " · " + nn(commaToWritten(c))]));
+    }else for(let w=64; w<=84; w++) opts.push([`w:${w}`, label(w)]);
+    noteEl.innerHTML = opts.map(([v, n]) => `<option value="${v}">${n}</option>`).join("");
+    if(opts.some(o => o[0] === st.note)) noteEl.value = st.note;
+  }
+  function spec(){
+    const [t, v] = noteEl.value.split(":"), mk = mkEl.value || undefined;
+    const s = { kind: kindEl.value, dir: st.dir, makam: mk, rate: +rateEl.value, sec: 2, n: 1 };
+    if(t === "c"){ s.comma = +v; s.note = commaToWritten(+v); } else s.note = +v;
+    return s;
+  }
+  function sync(){
+    st.kind = kindEl.value; st.mk = mkEl.value; st.note = noteEl.value; st.rate = +rateEl.value;
+    store.set("orn.opts", st);
+    $("ordir").hidden = !ORN_NB.includes(st.kind) || st.kind === "tril";
+    $("orratebar").hidden = st.kind !== "tril";
+    $("orrateval").textContent = st.rate + L(" dönüş/sn", " turns/s");
+    $("ordir").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.d === st.dir ? "true" : "false"));
+    stop();
+  }
+  function stop(){ att = null; stage.innerHTML = ""; $("orgo").textContent = L("Başla", "Start"); }
+  function record(res){
+    if(!res.measured) return;
+    const h = store.get("orn.hist", []); h.push({ kind: res.kind, ok: res.ok, t: Date.now() }); store.set("orn.hist", h.slice(-200));
+    if(res.kind === "tril" && res.found && res.evenness <= ORN.trilEven && res.rate > store.get("orn.trilBest", 0)) store.set("orn.trilBest", Math.round(res.rate*10)/10);
+  }
+  async function start(){
+    if(!(await needMic())) return;
+    const s = spec();
+    stage.innerHTML = `<div class="label">${ornamentGoal(s, nn)}</div><div class="orw"></div><div class="fb orf" aria-live="polite"></div>`;
+    SK.showNote(s.note);
+    const fb = stage.querySelector(".orf");
+    att = ornamentAttempt(ctx, s, stage.querySelector(".orw"), res => {
+      record(res);
+      const tip = res.tips.length ? pick(res.tips[0], LANG) : "";
+      const rate = res.rate != null ? L("saniyede " + num(res.rate) + " dönüş. ", num(res.rate) + " turns/s. ") : "";
+      fb.className = "fb orf" + (!res.measured ? "" : res.ok ? " good" : " bad");
+      fb.textContent = res.ok ? (rate || L("Güzel! ", "Good! ")) + tip : rate + tip;
+    });
+    $("orgo").textContent = L("Durdur", "Stop");
+  }
+  kindEl.value = st.kind; mkEl.value = st.mk; rateEl.value = st.rate;
+  fillNotes();
+  kindEl.addEventListener("change", sync);
+  mkEl.addEventListener("change", () => { fillNotes(); sync(); });
+  noteEl.addEventListener("change", sync);
+  rateEl.addEventListener("input", sync);
+  $("ordir").addEventListener("click", e => { const b = e.target.closest("[data-d]"); if(b){ st.dir = b.dataset.d; sync(); } });
+  $("orlisten").addEventListener("click", () => ornamentPlay(ctx, spec()));
+  $("orgo").addEventListener("click", () => att ? stop() : start());
+  sync();
+  return {
+    raw: d => { if(att) att.raw(d); },
+    silence: t => { if(att) att.silence(t); },
+    leave(){ stop(); SK.stopSound(); }
+  };
+};
 
 // ======== Ders adımları ========
 // Her biri (st, stage, done, ctx) alır, { note, silence, raw, stop } döndürür (practice.js'teki RUN ile aynı biçim)
