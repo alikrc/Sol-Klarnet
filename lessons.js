@@ -30,6 +30,7 @@ const UNITS = [
   { id:"temel",  name:{ tr:"Temeller", en:"Basics" } },
   { id:"klarino", name:{ tr:"Register ve klarino", en:"Register and clarion" } },
   { id:"teknik", name:{ tr:"Teknik ve üslup", en:"Technique and style" } },
+  { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" } },
   { id:"makam",  name:{ tr:"Makamlar", en:"Makams" } },
   { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" } }
 ];
@@ -730,11 +731,142 @@ for(const mk of ["rast","ussak","huseyni","hicaz","nihavend","kurdi","saba","seg
 addStep("usul", { type:"piece", id:"e-semai", mode:"tempo", min:60 });
 addStep("ritim-ileri", { type:"piece", id:"e-aksak", mode:"tempo", min:55 });
 
+// ---- Süsleme ünitesi ----
+// ornament adımı: { kind, note, dir?, makam?, comma?, n? (sayılı türler), rate?, sec? (tril) }; ölçüm skills.js'te.
+// Her süsleme adımından önce aynı süslemeyi çalan bir dinleme adımı (orn alanı) gelir.
+const SUSLEME = [
+  { id:"sus-carpma", unit:"susleme", notes:[],
+    title:{ tr:"Çarpma", en:"Grace notes" },
+    text:[
+      { tr:"Çarpma, asıl notadan hemen önce çok kısa çalınan bir süs notasıdır. Türk klarnetinde en sık kullanılan süslemedir: ezgiye canlılık ve vurgu katar.",
+        en:"A grace note is a very short note played just before the main note. It is the most common ornament on the Turkish clarinet: it adds life and accent to the melody." },
+      { tr:"Üstten çarpmada asıl notanın parmağını kurarsın, üstteki notayı açacak parmağı kaldırıp hemen geri kapatırsın. Parmak vurup kalkar; süs notası neredeyse duyulmadan geçer, ses kesilmez.",
+        en:"For an upper grace note, set the fingering of the main note, then lift the finger that opens the upper note and put it straight back. The finger taps and lifts; the grace note passes almost unheard and the sound never stops." },
+      { tr:"Uygulama süs notasının süresini ölçer: 40–80 ms arası en doğal duyulur. 120 ms'yi geçerse çarpma değil, iki ayrı nota gibi duyulur.",
+        en:"The app measures how long the grace note lasts: 40–80 ms sounds most natural. Beyond 120 ms it no longer sounds like a grace note but like two separate notes." }
+    ],
+    tips:[
+      { tr:"Dille ayırma: süs notası ile asıl nota tek nefeste, bağlı çalınır.", en:"Don't tongue: the grace note and the main note are slurred in one breath." },
+      { tr:"Önce yavaş dene, sonra parmağı giderek daha çabuk kaldırıp kapat.", en:"Try it slowly first, then lift and close the finger faster and faster." }
+    ],
+    steps:[
+      { type:"listen", notes:[69], orn:{ kind:"carpma", dir:"up" } },
+      { type:"ornament", kind:"carpma", dir:"up", note:69, n:5 },
+      { type:"ornament", kind:"carpma", dir:"up", note:67, n:5 },
+      { type:"ornament", kind:"carpma", dir:"up", note:72, n:5 }
+    ] },
+  { id:"sus-carpma-alt", unit:"susleme", notes:[],
+    title:{ tr:"Alttan çarpma ve çarpmalı tekrar", en:"Lower grace notes and repeated notes" },
+    text:[
+      { tr:"Alttan çarpmada süs notası asıl notanın altındadır: asıl notanın bir altındaki parmağı kısaca kapatıp hemen açarsın.",
+        en:"In a lower grace note the ornament sits below the main note: briefly close the finger for the note below and open it again at once." },
+      { tr:"Oyun havalarında aynı nota art arda çalınırken çoğu zaman dil kullanılmaz: nota, araya giren kısa çarpmalarla bölünür. Buna çarpmalı tekrar diyoruz; ses hiç kesilmez, yalnızca parmak vurur.",
+        en:"In dance tunes, repeated notes are often not tongued: the note is split by short grace notes. We call this a repeated note split by grace notes; the sound never stops, only the finger taps." }
+    ],
+    tips:[
+      { tr:"Çarpmalı tekrarda nefes desteğini sabit tut; bölmeyi dil değil parmak yapar.", en:"Keep the breath support steady in repeated notes; the finger splits the note, not the tongue." }
+    ],
+    steps:[
+      { type:"listen", notes:[69], orn:{ kind:"carpma", dir:"down" } },
+      { type:"ornament", kind:"carpma", dir:"down", note:69, n:5 },
+      { type:"ornament", kind:"carpma", dir:"down", note:71, n:5 },
+      { type:"listen", notes:[69], orn:{ kind:"tekrar", dir:"up" } },
+      { type:"ornament", kind:"tekrar", dir:"up", note:69, n:2 }
+    ] },
+  { id:"sus-mordan", unit:"susleme", notes:[],
+    title:{ tr:"Mordan", en:"Mordents" },
+    text:[
+      { tr:"Mordan üç notalı hızlı bir süslemedir: asıl nota, komşu nota, yine asıl nota. Üst mordanda komşu üstte, alt mordanda alttadır.",
+        en:"A mordent is a quick three-note ornament: main note, neighbour, main note again. In an upper mordent the neighbour is above, in a lower mordent below." },
+      { tr:"Mordanı asıl notayla başlayan bir çarpma gibi düşün: parmak bir kez vurup kalkar. Üç nota birlikte 300 ms'yi geçmemeli.",
+        en:"Think of it as a grace note that starts on the main note: the finger taps and lifts once. All three notes together should take no more than 300 ms." }
+    ],
+    tips:[
+      { tr:"Son notaya otur ve tut; mordan bir vurgudur, asıl nota sonra gelir.", en:"Land on the last note and hold it; the mordent is an accent, the main note comes after." }
+    ],
+    steps:[
+      { type:"listen", notes:[69], orn:{ kind:"mordan", dir:"up" } },
+      { type:"ornament", kind:"mordan", dir:"up", note:69, n:4 },
+      { type:"listen", notes:[72], orn:{ kind:"mordan", dir:"down" } },
+      { type:"ornament", kind:"mordan", dir:"down", note:72, n:4 }
+    ] },
+  { id:"sus-tril", unit:"susleme", notes:[],
+    title:{ tr:"Tril", en:"Trills" },
+    text:[
+      { tr:"Tril, asıl nota ile üstündeki nota arasında hızlı ve düzenli bir git geldir. Uzun notaları süsler, özellikle karar öncesinde sık duyulur.",
+        en:"A trill is a quick, even alternation between the main note and the note above. It decorates long notes and is often heard just before a cadence." },
+      { tr:"Trili tek parmakla yap: asıl notanın parmağı dururken yalnızca üst notayı açan parmak oynar. Önce yavaş ve eşit başla, hız düzenden sonra gelir.",
+        en:"Trill with one finger: keep the fingering of the main note and move only the finger that opens the upper note. Start slow and even; speed comes after evenness." },
+      { tr:"Uygulama saniyedeki dönüş sayısını (bir dönüş = iki nota) ve iki notada kalma sürelerinin ne kadar eşit olduğunu ölçer.",
+        en:"The app measures turns per second (one turn = two notes) and how evenly you stay on each note." }
+    ],
+    tips:[
+      { tr:"Parmağı yüksek kaldırma; deliğin hemen üstünde kalırsa tril hem hızlı hem düzenli olur.", en:"Don't lift the finger high; kept just above the hole, the trill becomes both faster and more even." }
+    ],
+    steps:[
+      { type:"listen", notes:[67], orn:{ kind:"tril", dir:"up" } },
+      { type:"ornament", kind:"tril", dir:"up", note:67, rate:4, sec:2 },
+      { type:"ornament", kind:"tril", dir:"up", note:67, rate:6, sec:2 },
+      { type:"ornament", kind:"tril", dir:"up", note:74, rate:5, sec:2 }
+    ] },
+  { id:"sus-uslup", unit:"susleme", notes:[],
+    title:{ tr:"Sol klarnet üslubu: kayarak giriş ve düşüş", en:"Sol clarinet style: slide-ins and falls" },
+    text:[
+      { tr:"Sol klarnetin sesini tanınır yapan şeylerden biri notalara kayarak girmek ve notaların sonunu aşağı bırakmaktır. Glissando dersindeki parmak sıyırmasını burada kısa ve tek nota üzerinde kullanırsın.",
+        en:"Part of what makes the Sol clarinet recognisable is sliding into notes and letting their ends fall. You use the finger slide from the glissando lesson here, short and on a single note." },
+      { tr:"Kayarak girişte notaya birkaç koma pesten başlarsın: parmak deliğin kenarından sıyrılır, dudak sesi yukarı taşır. Düşüşte nota tutulurken sonunda ses kesilmeden aşağı bırakılır.",
+        en:"For a slide-in, start a few commas below the note: the finger slides off the edge of the hole while the lips carry the pitch up. For a fall, hold the note and let it drop at the end without stopping the sound." }
+    ],
+    tips:[
+      { tr:"Kayış kısa olmalı: notaya en geç 0,4 saniyede otur.", en:"Keep the slide short: settle on the note within 0.4 seconds." }
+    ],
+    steps:[
+      { type:"listen", notes:[69], orn:{ kind:"giris" } },
+      { type:"ornament", kind:"giris", note:69, n:4 },
+      { type:"listen", notes:[69], orn:{ kind:"dusus" } },
+      { type:"ornament", kind:"dusus", note:69, n:4 },
+      { type:"ornament", kind:"giris", note:74, n:4 }
+    ] },
+  { id:"sus-ezgi", unit:"susleme", notes:[],
+    title:{ tr:"Süslemeyi ezgide kullanmak", en:"Using ornaments in a melody" },
+    text:[
+      { tr:"Süslemeler ezginin içinde anlam kazanır. Bu iki etütte süslemeler dizekte işaretli: tr tril, küçük nota çarpma, dalgalı işaret mordan, notadan önceki çizgi kayarak giriş, sonraki çizgi düşüş.",
+        en:"Ornaments make sense inside a melody. In these two études they are marked on the staff: tr is a trill, a small note a grace note, the wavy sign a mordent, a line before the note a slide-in, a line after it a fall." },
+      { tr:"Önce dinle, sonra süslemeleri atlamadan tempoda çal. Uygulama doğru nota oranının yanında işaretli süslemelerden kaçını duyduğunu da söyler.",
+        en:"Listen first, then play in tempo without skipping the ornaments. Besides the share of correct notes, the app tells you how many of the marked ornaments it heard." }
+    ],
+    tips:[
+      { tr:"Süsleme tempoyu bozmamalı: süs notası asıl notanın zamanından çalınır.", en:"Ornaments must not break the tempo: the grace note takes its time from the main note." }
+    ],
+    steps:[
+      { type:"piece", id:"e-sus-ussak", mode:"tempo", min:60 },
+      { type:"piece", id:"e-sus-hicaz", mode:"tempo", min:55 }
+    ] },
+  { id:"sus-makam", unit:"susleme", notes:[],
+    title:{ tr:"Makamda süsleme", en:"Ornaments within a makam" },
+    text:[
+      { tr:"Makam içinde süsleme notası makamın dizisinden gelir. Uşşak'ta Segâh'a üstten çarpma Çargâh'tan yapılır; aradaki aralık Batı müziğindeki yarım sesten biraz geniştir.",
+        en:"Within a makam the ornament note comes from the makam's scale. In Uşşak a grace note onto Segâh comes from Çargâh; that step is a little wider than a Western semitone." },
+      { tr:"Hicaz'da Dügâh üzerindeki tril Dik Kürdî ile yapılır; bu dar aralık Hicaz'ın rengini verir. Göstergede komşu notanın koma sapmasını izle.",
+        en:"In Hicaz the trill on Dügâh uses Dik Kürdî; that narrow step gives Hicaz its colour. Watch the comma deviation of the neighbour note on the display." }
+    ],
+    tips:[
+      { tr:"Süs notası da perdesinde olmalı: kısa diye perdesiz çalma.", en:"The ornament note must be in tune too: being short is no excuse to play it out of its perde." }
+    ],
+    steps:[
+      { type:"listen", commas:[17], makam:"ussak", orn:{ kind:"carpma", dir:"up" } },
+      { type:"ornament", kind:"carpma", dir:"up", note:71, comma:17, makam:"ussak", n:3 },
+      { type:"listen", commas:[9], makam:"hicaz", orn:{ kind:"tril", dir:"up" } },
+      { type:"ornament", kind:"tril", dir:"up", note:69, comma:9, makam:"hicaz", rate:5, sec:2 }
+    ] }
+];
+
 // Yeni dersleri müfredattaki yerlerine yerleştir
 LESSONS.unshift(...BASLANGIC);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "vibrato") + 1, 0, ...TEKNIK2);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "huzzam") + 1, 0, ...MAKAM2);
 LESSONS.push(...ILERI);
+LESSONS.splice(LESSONS.findIndex(l => l.id === "rast-giris"), 0, ...SUSLEME);
 
 const lessonById = id => LESSONS.find(l => l.id === id) || null;
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
@@ -753,6 +885,15 @@ const RHYTHM_NAMES = {
 const DYN_NAMES = { cresc:{ tr:"crescendo (hafiften güçlüye)", en:"crescendo" }, dim:{ tr:"decrescendo (güçlüden hafife)", en:"decrescendo" },
   messa:{ tr:"messa di voce (hafif-güçlü-hafif)", en:"messa di voce" } };
 
+const ORN_NAMES = {
+  carpma:{ up:{ tr:"üstten çarpma", en:"upper grace note" }, down:{ tr:"alttan çarpma", en:"lower grace note" } },
+  tekrar:{ tr:"çarpmalı tekrar", en:"repeated note split by grace notes" },
+  mordan:{ up:{ tr:"üst mordan", en:"upper mordent" }, down:{ tr:"alt mordan", en:"lower mordent" } },
+  tril:{ tr:"tril", en:"trill" },
+  giris:{ tr:"alttan kayarak giriş", en:"slide in from below" },
+  dusus:{ tr:"sonda düşüş", en:"fall at the end" } };
+const ornName = o => { const n = ORN_NAMES[o.kind]; return n.up ? n[o.dir === "down" ? "down" : "up"] : n; };
+
 // Adım başlığı: "Uzun ton: Sol4 · 8 sn · en az 55 puan"
 function stepTitle(step, lang = "tr"){
   const en = lang === "en";
@@ -764,7 +905,12 @@ function stepTitle(step, lang = "tr"){
   };
   const mk = step.makam ? LLEARN.makamById(step.makam).name : null;
   switch(step.type){
-    case "listen": return (en ? "Listen: " : "Dinle: ") + seq();
+    case "listen": return (en ? "Listen: " : "Dinle: ") + (step.orn ? pick(ornName(step.orn), lang) + " · " : "") + seq();
+    case "ornament": {
+      const what = (en ? "Ornament: " : "Süsleme: ") + pick(ornName(step), lang) + " · " + nn(step.note) + (step.comma != null ? " (" + LLEARN.perdeName(step.comma) + ")" : "");
+      return step.kind === "tril" ? what + " · " + step.sec + (en ? " s · at least " + step.rate + " turns/s" : " sn · en az " + step.rate + " dönüş/sn")
+                                  : what + " · " + step.n + (en ? " times" : " kez");
+    }
     case "hold": return (en ? "Long tone: " : "Uzun ton: ") + nn(step.note) + (step.comma != null ? " (" + LLEARN.perdeName(step.comma) + ")" : "") +
       " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan") +
       (step.quality ? (en ? " · tone clarity ≥ " : " · ses temizliği ≥ %") + step.quality + (en ? "%" : "") : "");
@@ -812,6 +958,7 @@ function stepOk(step, res){
     case "mimic": return v >= step.len;
     case "vibrato": return v >= step.sec;
     case "glide": return v >= step.n;
+    case "ornament": return step.kind === "tril" ? v >= step.rate : v >= step.n;
   }
   return false;
 }
@@ -854,6 +1001,12 @@ function unlocked(lesson, prog, all = false){
   if(i <= 0) return true;
   const base = () => LESSONS.filter(l => l.unit === "temel" || l.unit === "klarino").every(l => lessonDone(l, prog));
   if(lesson.unit === "teknik") return base();
+  // Süsleme: glissando ve dil vuruşu gerekir, ünite içinde sırayla; son ders Uşşak ve Hicaz'ı da ister
+  if(lesson.unit === "susleme"){
+    const d = id => { const l = lessonById(id); return !!l && lessonDone(l, prog); };
+    const open = LESSONS[i-1].unit === "susleme" ? lessonDone(LESSONS[i-1], prog) : base() && d("glissando") && d("artikulasyon");
+    return open && (lesson.id !== "sus-makam" || (d("ussak") && d("hicaz")));
+  }
   if(lesson.unit === "makam") return LESSONS[i-1].unit === "makam" ? lessonDone(LESSONS[i-1], prog) : base();
   return lessonDone(LESSONS[i-1], prog);
 }
@@ -947,6 +1100,9 @@ function dailyPlan(ctx){
   if(done("kulak-1")) steps.push({ type:"ear", mode:"abx", level: done("kulak-2") ? 3 : 2, n:6, min:4 });
   // 8. Seyir: taksime giriş bittiyse bugünün makamında kısa serbest çalma
   if(mk && done("taksim-giris")) steps.push({ type:"seyir", makam:mk, sec:45, min:55 });
+  // 9. Süsleme: bitirilen süsleme derslerinden birinin ilk süsleme adımı
+  const sus = LESSONS.filter(l => l.unit === "susleme" && lessonDone(l, ctx.prog) && l.steps.some(s => s.type === "ornament"));
+  if(done("sus-carpma") && sus.length) steps.push({ ...sus[Math.floor(rng()*sus.length)].steps.find(s => s.type === "ornament") });
   return { id:"daily", unit:null, notes:[], daily:true,
            title:{ tr:"Bugünün çalışması", en:"Today's practice" },
            text:[{ tr:"Bitirdiğin derslerden her gün yeniden kurulan kısa bir program: zorlandığın notalar ve perdeler öne çıkar.",

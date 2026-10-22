@@ -104,6 +104,35 @@ function run(ok){
     ['e-sus-ussak','e-sus-hicaz'].forEach(id => { const e = R.etudeById(id), n = e ? R.etudeNotes(e).filter(n => n.orn) : [];
       ok(n.length >= 4 && new Set(n.map(o => o.orn.kind)).size >= 3, id + ': en az 4 susleme, 3 tur'); });
   }
+
+  console.log('\n[32] Susleme dersleri');
+  {
+    const D = require('./lessons.js');
+    ok(D.LESSONS.length === 52 && D.LESSONS.filter(l => l.unit === 'susleme').map(l => l.id).join() === 'sus-carpma,sus-carpma-alt,sus-mordan,sus-tril,sus-uslup,sus-ezgi,sus-makam', 'susleme unitesi 7 ders, sirasi dogru', D.LESSONS.length);
+    ok(D.LESSONS.indexOf(D.lessonById('sus-makam')) + 1 === D.LESSONS.indexOf(D.lessonById('rast-giris')), 'susleme makamlardan once');
+    ok(D.UNITS.findIndex(u => u.id === 'susleme') === D.UNITS.findIndex(u => u.id === 'teknik') + 1, 'susleme unitesi teknikten sonra');
+    ok(D.stepTitle({type:'ornament', kind:'carpma', dir:'up', note:69, n:5}) === 'Süsleme: üstten çarpma · La4 · 5 kez' &&
+       D.stepTitle({type:'ornament', kind:'carpma', dir:'up', note:69, n:5}, 'en') === 'Ornament: upper grace note · A4 · 5 times' &&
+       D.stepTitle({type:'ornament', kind:'tril', note:67, dir:'up', rate:6, sec:2}) === 'Süsleme: tril · Sol4 · 2 sn · en az 6 dönüş/sn' &&
+       D.stepTitle({type:'ornament', kind:'tril', note:67, dir:'up', rate:6, sec:2}, 'en') === 'Ornament: trill · G4 · 2 s · at least 6 turns/s', 'susleme adim basligi',
+       D.stepTitle({type:'ornament', kind:'carpma', dir:'up', note:69, n:5}) + ' / ' + D.stepTitle({type:'ornament', kind:'tril', note:67, dir:'up', rate:6, sec:2}, 'en'));
+    ok(D.stepOk({type:'ornament', kind:'tril', rate:6}, {v:6.2}) && !D.stepOk({type:'ornament', kind:'carpma', n:5}, {v:4}) && D.stepOk({type:'ornament', kind:'carpma', n:5}, {v:5}), 'susleme adimi gecme kosulu');
+    const p = {}, fin = id => { const l = D.lessonById(id); p[id] = { s: Object.fromEntries(l.steps.map((_, i) => [i, { v:99, ok:true }])) }; };
+    D.LESSONS.filter(l => l.unit === 'temel' || l.unit === 'klarino').forEach(l => fin(l.id));
+    const sc = D.lessonById('sus-carpma');
+    ok(!D.unlocked(sc, p), 'temel ve klarino bitince susleme hala kilitli');
+    fin('glissando');
+    ok(!D.unlocked(sc, p), 'glissando tek basina yetmiyor');
+    fin('artikulasyon');
+    ok(D.unlocked(sc, p) && !D.unlocked(D.lessonById('sus-carpma-alt'), p), 'glissando ve dil vurusu bitince ilk susleme dersi acik, ikincisi kilitli');
+    ['sus-carpma','sus-carpma-alt','sus-mordan','sus-tril','sus-uslup','sus-ezgi'].forEach(fin);
+    ok(!D.unlocked(D.lessonById('sus-makam'), p), 'Ussak ve Hicaz bitmeden makamda susleme kilitli');
+    fin('ussak'); fin('hicaz');
+    ok(D.unlocked(D.lessonById('sus-makam'), p), 'Ussak ve Hicaz bitince makamda susleme acik');
+    const dp = D.dailyPlan({ prog:p, intStats:{}, quizStats:{}, day:'2026-10-23' });
+    ok(dp.steps.some(s => s.type === 'ornament'), 'susleme dersi bitince gunluk planda susleme adimi var');
+    ok(!D.dailyPlan({ prog:{}, intStats:{}, quizStats:{}, day:'2026-10-23' }).steps.some(s => s.type === 'ornament'), 'susleme dersi bitmeden gunluk planda susleme yok');
+  }
 }
 
 module.exports = { run };

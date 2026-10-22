@@ -376,7 +376,7 @@ ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.inclu
 
 console.log('\n[22] Dersler');
 const D = require('./lessons.js');
-const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear','piece'];
+const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear','piece','ornament'];
 const SK2 = require('./skills.js');
 const inR = w => w >= LOW_NOTE && w <= HIGH_NOTE && fingeringsFor(w).length > 0;
 let lsErr = [];
@@ -400,6 +400,9 @@ for(const l of D.LESSONS){
     if(st.type === 'dynamics' && (!['cresc','dim','messa'].includes(st.shape) || !(st.sec >= 3))) lsErr.push(tag + ' dinamik');
     if(st.type === 'seyir' && (!L.makamById(st.makam) || !(st.sec >= 20) || !(st.min > 0))) lsErr.push(tag + ' seyir');
     if(st.type === 'ear' && (!['abx','makam'].includes(st.mode) || st.min > st.n || (st.mode === 'makam' && !(st.pool && st.pool.length >= 4 && st.pool.every(id => L.makamById(id)))))) lsErr.push(tag + ' kulak');
+    if(st.type === 'ornament' && (!['carpma','tekrar','mordan','tril','giris','dusus'].includes(st.kind) || !(st.note >= 64 && st.note <= 84) || (st.makam && !L.makamById(st.makam)) ||
+       (st.kind === 'tril' ? !(st.rate >= 2 && st.rate <= 12 && st.sec >= 1) : !(st.n >= 1)) || (['carpma','tekrar','mordan'].includes(st.kind) && !['up','down'].includes(st.dir)))) lsErr.push(tag + ' susleme');
+    if(st.orn && !(st.type === 'listen' && ['carpma','tekrar','mordan','tril','giris','dusus'].includes(st.orn.kind))) lsErr.push(tag + ' ornek susleme');
     if(st.quality != null && !(st.quality > 0 && st.quality <= 100)) lsErr.push(tag + ' ses kalitesi');
     if(st.type === 'piece' && (!require('./repertoire.js').etudeById(st.id) || !['tempo','free'].includes(st.mode) || !(st.min >= 0))) lsErr.push(tag + ' eser');
     // Art arda iki farklı perde aynı yazılı notaya düşerse sırayla çalmada ayırt edilemez
