@@ -904,7 +904,9 @@
     tuningMode: () => ctxNow().mode,
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
-    pcm: pcmRange
+    pcm: pcmRange,
+    pcmBusy: (fromT, toT) => busy.some(([b, e]) => b < toT && e > fromT),
+    minRms: () => sensitivityToRms(settings.sens)
   };
 
   // ---- Günlük hedef ve hatırlatma ----

@@ -154,6 +154,47 @@ function run(ok){
     const shortMain = [{ w:71, ms:50 }, { w:69, ms:220 }];
     ok(!ev(shortMain, { kind:'carpma', note:69, dir:'up' }).ok && ev(shortMain, { kind:'carpma', note:69, dir:'up', mainMin:150 }).ok, 'eserde kisa nota: mainMin ile ana nota alt siniri dusuyor');
   }
+
+  console.log('\n[35] Gozden gecirme duzeltmeleri');
+  {
+    const { midiToFreq } = require('./core.js');
+    // Pes bölge (2048 örneklik pencere): sonuç çalgıya göre değişmemeli
+    const evT = (segs, spec, T, seed) => { const a = A.ornamentAudio(segs, { seed, T });
+      return S.ornamentEval(S.ornamentTrack(a.pcm, a.srate, { T, expectHz: midiToFreq(spec.note - T) }), spec); };
+    for(const T of [5, 2]){
+      const lowC = { kind:'carpma', note:64, dir:'down' }, lowM = { kind:'mordan', note:64, dir:'down' }, rep = { kind:'tekrar', note:64, dir:'up' };
+      const nbD = S.ornamentNeighbor(lowC), nbU = S.ornamentNeighbor(rep);
+      let c = 0, m = 0, t = 0;
+      for(let s=1;s<=5;s++){
+        if(evT([{ comma:nbD, ms:60 }, { w:64, ms:500 }], lowC, T, s).ok) c++;
+        if(evT([{ w:64, ms:120 }, { comma:nbD, ms:60 }, { w:64, ms:500 }], lowM, T, s).ok) m++;
+        if(evT([{ w:64, ms:300 }, { comma:nbU, ms:40 }, { w:64, ms:300 }, { comma:nbU, ms:40 }, { w:64, ms:300 }, { comma:nbU, ms:40 }, { w:64, ms:300 }], rep, T, s).ok) t++;
+      }
+      ok(c >= 4 && m >= 4 && t >= 4, 'Mi4 (T=' + T + '): alttan carpma, alt mordan, carpmali tekrar bulunuyor', [c, m, t].join('/'));
+    }
+    // Tutulan notadan başlayan tril düzensiz sayılmamalı
+    const trillFrom = (holdMs) => { const segs = [{ w:67, ms:holdMs }]; for(let i=0;i<28;i++) segs.push({ w: i%2 ? 67 : 69, ms:83 }); return segs; };
+    for(const h of [300, 600]){
+      const r = ev(trillFrom(h), { kind:'tril', note:67, dir:'up', rate:5, sec:2 });
+      ok(r.ok && Math.abs(r.rate - 6) <= 0.5, 'tril ' + h + ' ms tutulan notadan basliyor: gecer, hiz dogru', JSON.stringify([r.rate, r.evenness]));
+    }
+    // Hassasiyet: kısık ses, kullanıcının eşiğiyle duyulur
+    const q = A.ornamentAudio([{ w:71, ms:50 }, { w:69, ms:500 }], { seed:3, breath:0.002 });
+    const quiet = q.pcm.map(x => x*0.012);
+    const C = { kind:'carpma', note:69, dir:'up' };
+    ok(!S.ornamentEval(S.ornamentTrack(quiet, q.srate, { T:5, expectHz:300 }), C).measured &&
+       S.ornamentEval(S.ornamentTrack(quiet, q.srate, { T:5, expectHz:300, minRms:0.002 }), C).ok, 'kisik ses: kullanicinin esigi (minRms) ile olculuyor');
+    // Ölçülemeyen deneme nedeni söylenir
+    const ub = S.ornamentUnmeasured('busy', 'carpma'), un = S.ornamentUnmeasured('nobuf', 'carpma');
+    ok(!ub.measured && !ub.ok && /dron/i.test(ub.tips[0].tr) && /drone/i.test(ub.tips[0].en) && un.tips.length === 1 && un.tips[0].tr !== ub.tips[0].tr, 'olculemeyen deneme: dron/ornek ses ve tampon nedeni soyleniyor');
+    // Eserde önceki nota çarpmanın komşusuysa çarpma ölçülemez; etütlerde böyle çarpma yok
+    ok(S.ornamentAmbiguous(22, { kind:'carpma', dir:'up', note:71, comma:17, makam:'ussak' }) && !S.ornamentAmbiguous(9, { kind:'carpma', dir:'up', note:71, comma:17, makam:'ussak' }) &&
+       !S.ornamentAmbiguous(22, { kind:'tril', dir:'up', note:71, comma:17, makam:'ussak' }), 'onceki nota komsu perdedeyse carpma belirsiz');
+    const R = require('./repertoire.js'), amb = [];
+    R.ETUDES.forEach(e => { const ns = R.etudeNotes(e); ns.forEach((n, i) => { const p = ns[i-1];
+      if(n.orn && p && !p.rest && p.c !== null && S.ornamentAmbiguous(p.c, { ...n.orn, note:n.w, comma:n.c, makam:e.makam || undefined })) amb.push(e.id + '#' + i); }); });
+    ok(!amb.length, 'etutlerde onceki notasi komsu perdede olan carpma yok', amb.join(','));
+  }
 }
 
 module.exports = { run };

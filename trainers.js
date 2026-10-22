@@ -344,7 +344,7 @@ function ornamentAttempt(ctx, spec, holder, onResult){
   const mainC = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
   const nbC = ORN_NB.includes(spec.kind) ? ornamentNeighbor(spec) : null;
   const expectHz = ctx.commaFreq(mainC);
-  let start = null, last = null, busy = false;
+  let start = null, last = null, busy = false, hold = false;   // hold: tril süresi doldu, kuyruğu yeni deneme sayma
   holder.innerHTML = `<svg class="orntrace" viewBox="0 0 300 90" preserveAspectRatio="none" role="img" aria-label="${L("Son denemenin perde eğrisi", "Pitch curve of the last attempt")}"></svg>`;
   const svg = holder.querySelector("svg");
   // Perde eğrisi; ana nota ve komşu soluk yatay çizgi
@@ -368,11 +368,11 @@ function ornamentAttempt(ctx, spec, holder, onResult){
     const s = start, e = last; start = last = null;
     if(busy) return;
     const p = SK.pcm(s - 150, e + 50);
-    if(!p) return;
+    if(!p){ onResult(ornamentUnmeasured(SK.pcmBusy(s - 150, e + 50) ? "busy" : "nobuf", spec.kind)); return; }
     busy = true;
     setTimeout(() => {
       busy = false;
-      const track = ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz });
+      const track = ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz, minRms: SK.minRms() });
       const res = ornamentEval(track, spec);
       draw(track);
       onResult(res);
@@ -380,15 +380,17 @@ function ornamentAttempt(ctx, spec, holder, onResult){
   }
   return {
     raw(d){
+      if(hold) return;
       if(start === null) start = d.t;
       last = d.t;
-      if(spec.kind === "tril" && d.t - start >= (spec.sec || 2)*1000 + 400) finish();
+      if(spec.kind === "tril" && d.t - start >= (spec.sec || 2)*1000 + 400){ hold = true; finish(); }
     },
     silence(){
+      hold = false;
       if(start === null) return;
       if(last - start >= 300) finish(); else start = last = null;
     },
-    stop(){ start = last = null; }
+    stop(){ start = last = null; hold = false; }
   };
 }
 // Süslemenin örnek sesi (makam varsa seçili akorttaki perdelerle)

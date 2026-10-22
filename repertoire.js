@@ -215,7 +215,7 @@ const ETUDES = [
     text:"Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî:0.5 Dügâh:1 | Nevâ:0.5 Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:1 Dik_Kürdî:0.5 Dügâh:1 | Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Hüseynî:1 Nevâ:1.5 | Nim_Hicaz:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Rast:0.5 Dügâh:2.5" },
   // Süslemeli etütler (Süsleme ünitesi): ekler nota metninde (k giriş, ç+ çarpma, m+ mordan, tr tril, d düşüş)
   { id:"e-sus-ussak", name:{ tr:"Süslemeli Uşşak etüdü", en:"Uşşak étude with ornaments" }, level:4, makam:"ussak", tempo:72, meter:[4,4],
-    text:"Dügâh:1:k Segâh Çargâh Nevâ | Nevâ:2:m+ Çargâh Segâh:1:ç+ | Çargâh:1.5 Segâh:0.5 Dügâh Segâh | Nevâ:4:d | Hüseynî:1:ç+ Nevâ Çargâh Nevâ | Segâh:2:tr Çargâh Segâh | Dügâh Rast Dügâh:1:ç+ Segâh | Dügâh:4" },
+    text:"Dügâh:1:k Segâh Çargâh Nevâ | Nevâ:2:m+ Segâh Çargâh:1:ç+ | Çargâh:1.5 Segâh:0.5 Dügâh Segâh | Nevâ:4:d | Hüseynî:1:ç+ Nevâ Çargâh Nevâ | Segâh:2:tr Çargâh Segâh | Dügâh Rast Dügâh:1:ç+ Segâh | Dügâh:4" },
   { id:"e-sus-hicaz", name:{ tr:"Süslemeli Hicaz oyun havası (9/8)", en:"Hicaz dance with ornaments (9/8)" }, level:5, makam:"hicaz", tempo:92, meter:[9,8], usul:"aksak",
     text:"Dügâh:0.5:ç+ Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî:0.5 Dügâh:1 | Nevâ:0.5:k Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:1:m- Dik_Kürdî:0.5 Dügâh:1 | Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Hüseynî:1:ç+ Nevâ:1.5:tr | Nim_Hicaz:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Rast:0.5 Dügâh:2.5:d" }
 ];

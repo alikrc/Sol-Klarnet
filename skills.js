@@ -313,7 +313,7 @@ function ornamentParts(track, mainC, nbC){
   const hop = track.length > 1 ? track[1].t - track[0].t : 5;
   const ps = microNotes(track, ORN.near).map(p => ({ ...p,
     lab: Math.abs(p.comma - mainC) <= ORN.near ? "main" : nbC != null && Math.abs(p.comma - nbC) <= ORN.near ? "nb" : "other" }))
-    .filter(p => p.lab !== "other" || p.ms >= 25);
+    .filter(p => p.lab !== "other" || p.end - p.start + hop >= 25);   // ham süreye göre: pencere düzeltmesi geçiş kırıntılarını büyütmesin
   const out = [];
   for(const p of ps){
     const q = out[out.length-1];
@@ -414,6 +414,10 @@ function ornamentEval(track, spec){
                            "No trill heard: move quickly and evenly between the main note and the " + upE + " note with one finger."));
         break;
       }
+      // Trilden önce tutulan ve sonda bekletilen nota tril değildir: ortanca parçanın iki katından uzun baş/son parçalar atılır
+      const med = median(best.map(p => p.ms));
+      while(best.length > ORN.trilSwitch + 1 && best[0].ms > 2*med) best.shift();
+      while(best.length > ORN.trilSwitch + 1 && best[best.length-1].ms > 2*med) best.pop();
       const a = best[0], z = best[best.length-1], body = best.slice(0, -1).map(p => p.ms);
       res.found = true;
       res.rate = (best.length - 1)/2/((z.start - a.start)/1000);
@@ -488,6 +492,17 @@ function ornamentNotes(spec){
   return [];
 }
 
+// Ham ses alınamadıysa (dron ya da örnek ses çalıyordu, ya da tampon henüz dolmadı) nedeni söylenir
+function ornamentUnmeasured(reason, kind){
+  return { ok:false, measured:false, kind, found:false, durMs:null, intervalErr:null, rate:null, evenness:null, mainErr:null, count:0,
+    tips:[reason === "busy" ? otip("Dron ya da örnek ses çalarken denemeyi değerlendiremiyorum: dronu kapat ya da örneğin bitmesini bekle.",
+                                   "I can't judge an attempt while the drone or an example is playing: turn the drone off or wait for the example to end.")
+                            : otip("Deneme tam kaydedilemedi: biraz bekleyip yeniden çal.", "The attempt wasn't fully recorded: wait a moment and play again.")] };
+}
+// Eserde önceki nota çarpmanın komşu perdesindeyse süs notası ondan ayırt edilemez
+function ornamentAmbiguous(prevComma, spec){
+  return spec.kind === "carpma" && prevComma != null && Math.abs(prevComma - ornamentNeighbor(spec)) <= ORN.near;
+}
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
 function ornamentScore(results){
   const m = results.filter(r => r.measured), found = m.filter(r => r.ok).length;
@@ -495,7 +510,7 @@ function ornamentScore(results){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore,
+  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };
