@@ -254,16 +254,23 @@ function ornamentTrack(pcm, sampleRate, opts = {}){
     out.push({ t: k*hopMs + win/2/sampleRate*1000, freq: d.freq, rms: d.rms, clarity: d.clarity,
                comma: d.freq > 0 ? (SCORE.freqToMidi(d.freq) + T - 67)*53/12 : null });
   }
+  out.winMs = win/sampleRate*1000;
   return out;
 }
+// Parça süresi: ilk ve son ölçüm arası + bir adım; pencere geçişte iki perdeyi birden gördüğü için her parça
+// yaklaşık (pencere − adım)/2 kısa görünür, o kadar eklenir.
+const partMs = (track, start, end) => {
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5;
+  return end - start + hop + (track.winMs ? Math.max(0, (track.winMs - hop)/2) : 0);
+};
 const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length/2)]; };
 // İzi aynı perdeye oturan parçalara böler: ölçüm parçanın ortancasından tol komadan fazla uzaklaşınca ya da perde
 // kaybolunca yeni parça başlar; minMs'den kısa parçalar atılır.
 function microNotes(track, tol = 2, minMs = 15){
-  const hop = track.length > 1 ? track[1].t - track[0].t : 5, out = [];
+  const out = [];
   let cur = null;
   const close = () => {
-    if(cur){ const ms = cur.end - cur.start + hop; if(ms >= minMs) out.push({ start:cur.start, end:cur.end, ms, comma: median(cur.cs) }); }
+    if(cur){ const ms = partMs(track, cur.start, cur.end); if(ms >= minMs) out.push({ start:cur.start, end:cur.end, ms, comma: median(cur.cs) }); }
     cur = null;
   };
   for(const f of track){
@@ -276,8 +283,125 @@ function microNotes(track, tol = 2, minMs = 15){
   return out;
 }
 
+// Eşikler (ms ve koma); gerçek kayıtlarla ayarlanacak
+const ORN = {
+  measuredMin: 0.6,            // denemenin en az bu oranında perde bulunmalı
+  near: 2,                     // bir parça ana notaya ya da komşuya bu kadar komaya oturmuşsa onun sayılır
+  grace: [20, 120], graceIdeal: [40, 80], gapMax: 30, mainMin: 300, mainTol: 1.5,
+  tekrar: [20, 80], tekrarDip: 0.3, tekrarMin: 3,
+  mordanTotal: 300
+};
+// Komşu perdenin koması: makam verilmişse makam dizisinde ana perdenin hemen üstü/altı, yoksa yazılı komşu nota
+function ornamentNeighbor(spec){
+  const up = spec.dir !== "down";
+  if(spec.makam){
+    const mk = SLEARN.makamById(spec.makam), main = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
+    const base = [...new Set([...mk.asc, ...mk.desc].map(c => ((c % 53) + 53) % 53))];
+    const all = []; for(let k=-2;k<=3;k++) for(const c of base) all.push(c + 53*k);
+    all.sort((a, b) => a - b);
+    return up ? all.find(c => c > main + 0.5) : [...all].reverse().find(c => c < main - 0.5);
+  }
+  const pc = spec.note % 12;
+  const w = up ? spec.note + (pc === 4 || pc === 11 ? 1 : 2) : spec.note - (pc === 0 || pc === 5 ? 1 : 2);
+  return (w - 67)*53/12;
+}
+// Mikro notaları ana / komşu / başka diye etiketler; aradaki kısa geçiş parçalarını atar, aynı etiketli
+// ardışık parçaları birleştirir (geçişte pencere iki perdeyi birden görür).
+function ornamentParts(track, mainC, nbC){
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5;
+  const ps = microNotes(track, ORN.near).map(p => ({ ...p,
+    lab: Math.abs(p.comma - mainC) <= ORN.near ? "main" : nbC != null && Math.abs(p.comma - nbC) <= ORN.near ? "nb" : "other" }))
+    .filter(p => p.lab !== "other" || p.ms >= 25);
+  const out = [];
+  for(const p of ps){
+    const q = out[out.length-1];
+    if(q && q.lab === p.lab && p.start - q.end - hop <= 40){
+      const n1 = q.ms, n2 = p.ms;
+      q.comma = (q.comma*n1 + p.comma*n2)/(n1 + n2); q.end = p.end; q.ms = partMs(track, q.start, q.end);
+    }else out.push({ ...p });
+  }
+  return out;
+}
+const otip = (tr, en) => ({ tr, en });
+// Bir süsleme denemesini değerlendirir. spec: { kind, note, comma?, makam?, dir?, rate?, sec? }
+function ornamentEval(track, spec){
+  const res = { ok:false, measured:false, kind:spec.kind, found:false, durMs:null, intervalErr:null, rate:null,
+                evenness:null, mainErr:null, count:0, tips:[] };
+  const voiced = track.filter(f => f.comma !== null).length;
+  if(!track.length || voiced/track.length < ORN.measuredMin){
+    res.tips.push(otip("Duyamadım: biraz daha güçlü ya da mikrofona yakın çal.", "I couldn't hear it: play a little louder or closer to the microphone."));
+    return res;
+  }
+  res.measured = true;
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5;
+  const mainC = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
+  const nbC = ["carpma", "tekrar", "mordan", "tril"].includes(spec.kind) ? ornamentNeighbor(spec) : null;
+  const parts = ornamentParts(track, mainC, nbC);
+  const upW = spec.dir === "down" ? "alttaki" : "üstteki", upE = spec.dir === "down" ? "lower" : "upper";
+  const mainCheck = m => {
+    res.mainErr = m.comma - mainC;
+    if(Math.abs(res.mainErr) > ORN.mainTol){
+      res.tips.push(res.mainErr > 0 ? otip("Ana nota tiz: dudağı biraz gevşet.", "The main note is sharp: relax the lips a little.")
+                                    : otip("Ana nota pes: havayı biraz hızlandır.", "The main note is flat: speed up the air a little."));
+      return false;
+    }
+    return true;
+  };
+  switch(spec.kind){
+    case "carpma": {
+      const i = parts.findIndex((p, k) => p.lab === "nb" && p.ms >= ORN.grace[0] && parts[k+1] && parts[k+1].lab === "main" &&
+                                          parts[k+1].start - p.end - hop <= ORN.gapMax);
+      if(i < 0){ res.tips.push(otip("Çarpma duyulmadı: ana notadan hemen önce " + upW + " notaya parmağı kısaca vur.",
+                                    "No grace note heard: tap the " + upE + " note briefly just before the main note.")); break; }
+      const g = parts[i], m = parts[i+1];
+      res.found = true; res.durMs = g.ms; res.intervalErr = g.comma - nbC;
+      if(g.ms > ORN.grace[1]){ res.tips.push(otip("Çarpma uzun, appoggiatura gibi oldu: parmağı vurup hemen kaldır.",
+                                                  "The grace note is too long, it sounds like an appoggiatura: tap the finger and lift it at once.")); break; }
+      if(m.ms < ORN.mainMin){ res.tips.push(otip("Ana notayı daha uzun tut.", "Hold the main note longer.")); break; }
+      if(!mainCheck(m)) break;
+      res.ok = true;
+      if(g.ms < ORN.graceIdeal[0] || g.ms > ORN.graceIdeal[1])
+        res.tips.push(otip("Güzel. Çarpma biraz " + (g.ms < ORN.graceIdeal[0] ? "kısa" : "uzun") + "; 40–80 ms arası en doğal duyulur.",
+                           "Good. The grace note is a little " + (g.ms < ORN.graceIdeal[0] ? "short" : "long") + "; 40–80 ms sounds most natural."));
+      break;
+    }
+    case "tekrar": {
+      const first = parts.findIndex(p => p.lab === "main");
+      let last = -1; parts.forEach((p, k) => { if(p.lab === "main") last = k; });
+      const cuts = first < 0 ? [] : parts.slice(first, last + 1).filter((p, k, a) => p.lab === "nb" && p.ms >= ORN.tekrar[0] && p.ms <= ORN.tekrar[1] &&
+                                                                         a[k-1] && a[k-1].lab === "main" && a[k+1] && a[k+1].lab === "main");
+      res.count = cuts.length; res.found = cuts.length > 0;
+      if(cuts.length) res.durMs = SLEARN.mean(cuts.map(c => c.ms));
+      const sounding = first < 0 ? [] : track.filter(f => f.t >= parts[first].start && f.t <= parts[last].end);
+      const peak = Math.max(0, ...sounding.map(f => f.rms));
+      const dipped = sounding.some(f => f.rms < ORN.tekrarDip*peak);
+      if(dipped) res.tips.push(otip("Dille böldün; burada notayı parmakla, kısa bir çarpmayla bölmen gerekiyor.",
+                                    "You split the note with the tongue; here split it with the finger, using a quick grace note."));
+      if(cuts.length < ORN.tekrarMin){ if(!dipped) res.tips.push(otip("Ana notayı tutarken " + upW + " notaya kısa kısa vurarak en az " + ORN.tekrarMin + " kez böl.",
+                                     "While holding the main note, split it at least " + ORN.tekrarMin + " times with quick taps on the " + upE + " note.")); break; }
+      res.ok = !dipped;
+      break;
+    }
+    case "mordan": {
+      const i = parts.findIndex((p, k) => p.lab === "main" && parts[k+1] && parts[k+1].lab === "nb" && parts[k+2] && parts[k+2].lab === "main");
+      if(i < 0){ res.tips.push(otip("Mordan duyulmadı: ana nota, " + upW + " nota, yine ana nota; hepsi tek nefeste ve hızlı.",
+                                    "No mordent heard: main note, " + upE + " note, main note again; all quick and in one breath.")); break; }
+      const a = parts[i], n = parts[i+1], b = parts[i+2];
+      res.found = true; res.durMs = n.ms; res.intervalErr = n.comma - nbC;
+      if(n.ms > ORN.grace[1] || b.start - a.start > ORN.mordanTotal){ res.tips.push(otip("Mordan yavaş: üç notayı daha hızlı bağla.", "The mordent is slow: join the three notes faster.")); break; }
+      if(b.ms < ORN.mainMin){ res.tips.push(otip("Son notayı daha uzun tut.", "Hold the last note longer.")); break; }
+      if(!mainCheck(b)) break;
+      res.ok = true;
+      break;
+    }
+    default:
+      res.measured = false;
+  }
+  return res;
+}
+
 if(typeof module !== "undefined") module.exports = {
-  ornamentTrack, microNotes,
+  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

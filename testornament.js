@@ -31,6 +31,34 @@ function run(ok){
     const bm = S.microNotes(S.ornamentTrack(b.pcm, b.srate, { T:2, expectHz:400 }));
     ok(bm.length === 1 && Math.abs(bm[0].comma - 9) < 1, 'baska calgida (T=2) ayni yazili koma', JSON.stringify(bm));
   }
+
+  const ev = (segs, spec, o = {}) => { const a = A.ornamentAudio(segs, { seed: o.seed || 7, ...o });
+    return S.ornamentEval(S.ornamentTrack(a.pcm, a.srate, { T:5, expectHz:300 }), spec); };
+  console.log('\n[29] Carpma ve mordan');
+  {
+    const C = { kind:'carpma', note:69, dir:'up' };
+    let hit = 0, durErr = 0;
+    for(const ms of [25,40,60,80,110]) for(let s=0;s<4;s++){
+      const r = ev([{ w:71, ms }, { w:69, ms:500 }], C, { seed:s+1, hp: s%2 ? 200 : null, breath: 0.02 + s*0.015 });
+      if(r.ok){ hit++; durErr = Math.max(durErr, Math.abs(r.durMs - ms)); }
+    }
+    ok(hit >= 19, 'ustten carpma 25–110 ms (telefon suzgeci, nefes): en az 19/20 bulunuyor', hit);
+    ok(durErr <= 15, 'carpma suresi hatasi ≤ 15 ms', durErr);
+    const long = ev([{ w:71, ms:200 }, { w:69, ms:500 }], C);
+    ok(!long.ok && long.measured && /appoggiatura/.test(long.tips[0].tr), 'uzun carpma: kaldi + appoggiatura ipucu', JSON.stringify(long));
+    let fp = 0;
+    for(let s=0;s<40;s++){ const r = ev([{ comma: 9 + (s%2 ? 3 : -3), ms:12 }, { w:69, ms:500 }], C, { seed:100+s }); if(r.found) fp++; }
+    ok(fp <= 1, 'atak kaymasi (12 ms, ±3 koma) carpma sayilmiyor', fp);
+    ok(!ev([{ w:69, ms:500 }], C).found, 'duz nota carpma degil');
+    ok(ev([{ w:67, ms:50 }, { w:69, ms:500 }], { ...C, dir:'down' }).ok, 'alttan carpma');
+    ok(Math.abs(S.ornamentNeighbor({ note:71, comma:17, makam:'ussak', dir:'up' }) - 22) < 0.01, 'Ussak ta Segah in ust komsusu Cargah (makam dizisinden)');
+    const quiet = ev([{ w:71, ms:50 }, { w:69, ms:500 }], C, { gapMs:1500 });
+    ok(!quiet.measured && !quiet.ok, 'cogu sessiz deneme olculemedi sayiliyor');
+    ok(ev([{ w:69, ms:120 }, { w:71, ms:60 }, { w:69, ms:500 }], { kind:'mordan', note:69, dir:'up' }).ok, 'ust mordan');
+    ok(!ev([{ w:69, ms:120 }, { w:71, ms:60 }, { w:69, ms:500 }], { kind:'mordan', note:69, dir:'down' }).ok, 'yanlis yone mordan gecmiyor');
+    const rep = ev([{ w:69, ms:300 }, { w:71, ms:40 }, { w:69, ms:300 }, { w:71, ms:40 }, { w:69, ms:300 }, { w:71, ms:40 }, { w:69, ms:300 }], { kind:'tekrar', note:69, dir:'up' });
+    ok(rep.ok && rep.count === 3, 'carpmali tekrar: 3 bolme', JSON.stringify(rep));
+  }
 }
 
 module.exports = { run };
