@@ -27,6 +27,7 @@
     <div class="ptabs" role="tablist" aria-label="${L("Kontrol türü", "Review type")}">
       <button type="button" role="tab" data-rt="f" id="rt-f">${L("Parmak pozisyonları", "Fingerings")}</button>
       <button type="button" role="tab" data-rt="m" id="rt-m">${L("Makamlar", "Makams")}</button>
+      <button type="button" role="tab" data-rt="o" id="rt-o">${L("Süslemeler", "Ornaments")}</button>
     </div>
     <div id="rvbody"></div>
     <div class="pbar"><button class="primary small" id="rvshare" type="button">${L("Raporu paylaş", "Share the report")}</button>
@@ -48,8 +49,33 @@
     const out = [];
     for(let w=LOW_NOTE; w<=HIGH_NOTE; w++) fingeringsFor(w).forEach((_, i) => out.push("f:" + w + ":" + i));
     MAKAMS.forEach(m => out.push("m:" + m.id));
+    ORN_REVIEW.forEach(o => out.push("o:" + o.id));
     return out;
   }
+  // Süslemeler: tanım, ölçüm eşikleri ve örnek ses (skills.js ORN, ornamentNotes); süslemeli etütler
+  const ORN_REVIEW = [
+    { id:"carpma-up", kind:"carpma", dir:"up", note:69, name:L("Üstten çarpma", "Upper grace note"),
+      def:L("Asıl notadan hemen önce üstteki komşu nota çok kısa çalınır, bağlı. Ölçüm: süs notası " + ORN.grace[0] + "–" + ORN.grace[1] + " ms (ideal " + ORN.graceIdeal.join("–") + "), ardından en az " + ORN.mainMin + " ms ana nota.",
+            "The upper neighbour is played very briefly, slurred, just before the main note. Measured: grace " + ORN.grace[0] + "–" + ORN.grace[1] + " ms (ideal " + ORN.graceIdeal.join("–") + "), then at least " + ORN.mainMin + " ms of the main note.") },
+    { id:"carpma-down", kind:"carpma", dir:"down", note:69, name:L("Alttan çarpma", "Lower grace note"),
+      def:L("Üstten çarpmanın aynısı, süs notası alttaki komşu.", "Same as the upper grace note, with the lower neighbour.") },
+    { id:"tekrar", kind:"tekrar", dir:"up", note:69, name:L("Çarpmalı tekrar", "Repeated note split by grace notes"),
+      def:L("Aynı nota dil yerine " + ORN.tekrar[0] + "–" + ORN.tekrar[1] + " ms'lik üst komşu çarpmalarıyla bölünür; ses kesilmez. En az " + ORN.tekrarMin + " bölme.",
+            "The same note is split by " + ORN.tekrar[0] + "–" + ORN.tekrar[1] + " ms upper-neighbour taps instead of the tongue; the sound never stops. At least " + ORN.tekrarMin + " splits.") },
+    { id:"mordan-up", kind:"mordan", dir:"up", note:69, name:L("Üst mordan", "Upper mordent"),
+      def:L("Ana – üst komşu – ana; üçü birlikte en çok " + ORN.mordanTotal + " ms.", "Main – upper neighbour – main; all three within " + ORN.mordanTotal + " ms.") },
+    { id:"mordan-down", kind:"mordan", dir:"down", note:72, name:L("Alt mordan", "Lower mordent"),
+      def:L("Ana – alt komşu – ana; üçü birlikte en çok " + ORN.mordanTotal + " ms.", "Main – lower neighbour – main; all three within " + ORN.mordanTotal + " ms.") },
+    { id:"tril", kind:"tril", dir:"up", note:67, name:L("Tril", "Trill"),
+      def:L("Ana nota ile üst komşu arasında en az " + ORN.trilSwitch + " geçiş; düzen: süre değişkenlik katsayısı ≤ " + ORN.trilEven + ". Dersler saniyede 4–6 dönüş ister.",
+            "At least " + ORN.trilSwitch + " alternations between the main note and the upper neighbour; evenness: duration coefficient of variation ≤ " + ORN.trilEven + ". Lessons ask for 4–6 turns per second.") },
+    { id:"giris", kind:"giris", note:69, name:L("Alttan kayarak giriş", "Slide in from below"),
+      def:L("Notaya en az " + ORN.girisDepth + " koma pesten, " + ORN.giris.join("–") + " ms içinde tek yönlü kayarak girilir.", "The note is entered from at least " + ORN.girisDepth + " commas below, sliding up within " + ORN.giris.join("–") + " ms.") },
+    { id:"dusus", kind:"dusus", note:69, name:L("Sonda düşüş", "Fall at the end"),
+      def:L("Notanın sonunda " + ORN.dusus.join("–") + " ms içinde en az " + ORN.dususDepth + " koma aşağı bırakılıp susulur.", "At the end of the note the pitch drops at least " + ORN.dususDepth + " commas within " + ORN.dusus.join("–") + " ms, into silence.") },
+    { id:"et:e-sus-ussak", etude:"e-sus-ussak" },
+    { id:"et:e-sus-hicaz", etude:"e-sus-hicaz" }
+  ];
 
   // İşaret düğmeleri ve yorum kutusu
   function verdictBox(key){
@@ -144,8 +170,27 @@
       </div>`;
     }).join("");
   }
+  function renderOrnaments(){
+    $("rvbody").innerHTML = ORN_REVIEW.map(o => {
+      if(o.etude){
+        const e = etudeById(o.etude);
+        return `<div class="rvmk"><h3 class="lstitle">${esc(pick(e.name, LANG))}</h3>
+          <p class="muted">${L("Etüt ve eserler sekmesinde dinlenebilir. Süsleme ekleri: k giriş, ç+ çarpma, m+/m- mordan, tr tril, d düşüş.", "Can be heard in the Études & pieces tab. Ornament marks: k slide-in, ç+ grace note, m+/m- mordent, tr trill, d fall.")}</p>
+          <code class="fcode">${esc(e.text)}</code>${verdictBox("o:" + o.id)}</div>`;
+      }
+      return `<div class="rvmk"><h3 class="lstitle">${o.name}</h3><p>${o.def}</p>
+        <div class="pbar"><button class="stopbtn" type="button" data-ornhear="${o.id}">${L("Örneği dinle", "Hear the example")}</button></div>
+        ${verdictBox("o:" + o.id)}</div>`;
+    }).join("");
+  }
   let hearToken = null;
   root.addEventListener("click", async e => {
+    const oh = e.target.closest("[data-ornhear]");
+    if(oh){
+      const o = ORN_REVIEW.find(x => x.id === oh.dataset.ornhear), f = c => midiToFreq(commaToMidi(c) - T);
+      SK.playGlide(ornamentNotes(o).map(x => ({ freq: f(x.comma), ms: x.ms, toFreq: x.to != null ? f(x.to) : null })));
+      return;
+    }
     const h = e.target.closest("[data-hear]");
     if(h){ const w = +h.dataset.hear; SK.play(w); await sleep(1200); if(SK.playing() === w) SK.stopSound(); return; }
     const m = e.target.closest("[data-mkhear]");
@@ -162,7 +207,7 @@
   });
   function render(){
     root.querySelectorAll("[data-rt]").forEach(b => b.setAttribute("aria-selected", b.dataset.rt === tab ? "true" : "false"));
-    if(tab === "m") renderMakams(); else renderFingers();
+    if(tab === "m") renderMakams(); else if(tab === "o") renderOrnaments(); else renderFingers();
     summary();
   }
 
@@ -175,6 +220,7 @@
       const it = rv.items[k]; if(!it) continue;
       let what;
       if(k.startsWith("f:")){ const [, w, i] = k.split(":"); what = nn(+w) + (+i ? " " + L("alt. ", "alt. ") + i : " " + L("temel", "basic")) + " [" + fingeringsFor(+w)[+i].code + "]"; }
+      else if(k.startsWith("o:")){ const o = ORN_REVIEW.find(x => x.id === k.slice(2)); what = L("Süsleme ", "Ornament ") + (o.etude ? pick(etudeById(o.etude).name, LANG) : o.name); }
       else what = "Makam " + makamById(k.slice(2)).name;
       lines.push(vt(it.v) + " · " + what + (it.c ? " — " + it.c : ""));
     }

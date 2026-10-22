@@ -26,6 +26,9 @@ En değerli set, her register'dan ve farklı koşullardan kısa kayıtlar:
 3. Altissimo: Do♯6–Sol6
 4. Makam perdeleri: Segâh, Bûselik, Kürdî, Dik Kürdî, Nim Hicaz, Hicaz, Evç, Acem (doğru basıldığından emin olunan)
 5. Gürültülü oda ve yankılı oda örnekleri
+6. Süslemeler: her birinden 5'er örnek (üstten ve alttan çarpma, çarpmalı tekrar, üst ve alt mordan, yavaş ve hızlı tril,
+   kayarak giriş, düşüş), ayrıca aynı notaların süslemesiz hâli (yanlış pozitifleri denetlemek için). Dosya adında süsleme:
+   `La4_carpma-ust.wav`, `Sol4_tril-6.wav`
 
 WAV (16/24 bit PCM ya da 32 bit float, mono ya da stereo) okunur. Telefonun ses kaydedicisi genellikle m4a verir;
 `ffmpeg -i kayit.m4a kayit.wav` ile çevrilebilir.

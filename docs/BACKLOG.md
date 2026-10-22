@@ -1,5 +1,21 @@
 # Sol Klarnet — Backlog
 
+## Süsleme — tamamlandı (23 Ekim 2026)
+
+Tasarım: [docs/superpowers/specs/2026-10-23-susleme-design.md](superpowers/specs/2026-10-23-susleme-design.md),
+plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-23-susleme.md).
+
+- Yeni "Süsleme" ünitesi (7 ders): çarpma, alttan çarpma ve çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş,
+  süslemeli iki etüt, makamda süsleme. Toplam ders 45 → 52
+- Ölçüm: mikrofonun son 4 sn'lik ham sesi (`pcmring.js`, AudioWorklet) deneme bitince 5 ms adımla yeniden çözülür
+  (`skills.js`: `ornamentTrack`, `microNotes`, `ornamentEval`); eşikler `ORN` içinde
+- Teknik grubunda "Süsleme" alıştırma sekmesi; İlerleme'de en iyi tril hızı ve çarpma başarısı
+- Nota metninde süsleme ekleri (`La4:2:tr`, `ç+`, `m-`, `k`, `d`), MusicXML'den tril, mordan ve süs notası; dizekte işaretler;
+  tempolu çalmada ayrı süsleme puanı
+- Uzman kontrolüne "Süslemeler" sekmesi
+- Gerçek mikrofonla denenmedi: tarayıcı panelinde mikrofon kapalıydı, ölçüm yalnızca sentetik seslerle ve sahte PCM ile
+  sınandı. Telefonda gerçek klarnetle denenmeli
+
 ## Kapsamlı iyileştirme — tamamlandı (10 Ekim 2026)
 
 - Perde bulucu: FFT ile NSDF, telefon mikrofonunun pes sesi kırpmasına karşı alt harmonik denetimi, tizde kısa pencere;
@@ -16,10 +32,12 @@
 ## İnsan gerektiren işler (kodla çözülemez)
 
 1. **Uzman doğrulaması:** Bir Sol klarnet hocası Ayarlar → Uzman kontrolü ekranından 124 parmağı, 19 makamın dizisini,
-   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. Ders metinleri ve 14 etüt de gözden geçirilmeli.
+   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. Ders metinleri ve 16 etüt de gözden geçirilmeli. Süslemeler (Uzman kontrolü → Süslemeler): tanımlar,
+   örnek sesler, ölçüm eşikleri (`skills.js` `ORN`; ör. tril düzeni ≤ 0,2, çarpma 20–120 ms) ve iki süslemeli etüt.
    Yanlış bulunanlar `core.js` (FINGERINGS, ALT_FINGERINGS), `learn.js` (MAKAMS, SEYIR_TYPE, ICRA) ve
    `repertoire.js` (ETUDES) içinde düzeltilir; testler tutarlılığı denetler.
 2. **Gerçek kayıtlar:** `testdata/README.md` içindeki listeye göre telefonla kayıt toplanıp `npm run audio-check` çalıştırılmalı.
+   Süsleme eşikleri (`ORN`) yalnızca sentetik seslerle ayarlandı; süslemeli gerçek kayıtlarla gözden geçirilmeli.
 3. **WFG izni:** Parmak verisi Woodwind Fingering Guide'dan; ücretli yayınlanacaksa sahibinden izin istenmeli.
 4. **Mağaza:** Play geliştirici hesabı, yükleme anahtarı, kapalı test; iOS için Mac + Xcode + Apple geliştirici hesabı;
    mağaza ekran görüntüleri ve tanıtım görseli.
@@ -27,6 +45,8 @@
    seçki eklenecekse lisans koşulları kontrol edilmeli.
 
 ## Sonraki adım fikirleri
+
+- Grupetto (çevirme) süslemesi; serbest çalmada ve taksimde (Seyir) süsleme tanıma
 
 - Nim perdeler için çeyrek ses parmakları (WFG `ocl_qt_1`)
 - Hocanın öğrenciye ödev ve etüt gönderebileceği paylaşım bağlantıları
