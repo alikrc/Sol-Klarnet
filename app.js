@@ -629,6 +629,48 @@
     if(running && document.hidden && window.Capacitor) stop();
   });
 
+  // ---- Ham ses tamponu (pcmring.js): süsleme denemeleri bitince 5 ms adımla yeniden çözülür ----
+  // off: performance.now() ile ses bağlamı saati arasındaki fark (ms); mesajlar gecikerek gelebildiği için en küçüğü.
+  let pcm = null;
+  const busy = [];             // örnek ses ya da dron çalarken geçen aralıklar [başla, bitir] (ms); o ses analiz edilmez
+  function markBusy(now){
+    const last = busy[busy.length-1];
+    if(last && now - last[1] <= 60) last[1] = now; else busy.push([now - 40, now]);
+    while(busy.length && busy[0][1] < now - 10000) busy.shift();
+  }
+  async function startPcm(src){
+    const me = { ring: new PcmRing(Math.round(4*ctx.sampleRate)), off: null, endT: 0 }, a = ctx;
+    pcm = me;
+    const take = (data, ctxT) => {
+      if(pcm !== me) return;
+      const endMs = (ctxT + data.length/a.sampleRate)*1000, off = performance.now() - endMs;
+      me.off = me.off === null ? off : Math.min(me.off, off);
+      me.ring.push(data); me.endT = endMs + me.off;
+    };
+    const mute = a.createGain(); mute.gain.value = 0; mute.connect(a.destination);
+    try{
+      await a.audioWorklet.addModule("pcmring.js");
+      if(pcm !== me) return;
+      const node = new AudioWorkletNode(a, "pcm-ring");
+      node.port.onmessage = e => take(e.data.data, e.data.t);
+      src.connect(node); node.connect(mute);
+    }catch(e){
+      if(pcm !== me) return;
+      const sp = a.createScriptProcessor(2048, 1, 1);
+      sp.onaudioprocess = ev => take(ev.inputBuffer.getChannelData(0).slice(), ev.playbackTime);
+      src.connect(sp); sp.connect(mute);
+    }
+  }
+  // fromT–toT (performance.now() ms) arasındaki ham ses; tamponda değilse ya da o sırada örnek ses çaldıysa null
+  function pcmRange(fromT, toT){
+    if(!pcm || pcm.off === null || !ctx) return null;
+    toT = Math.min(toT, pcm.endT);
+    if(!(toT > fromT) || busy.some(([b, e]) => b < toT && e > fromT)) return null;
+    const sr = ctx.sampleRate, n = Math.round((pcm.endT - fromT)*sr/1000);
+    if(n > pcm.ring.length) return null;
+    return { data: pcm.ring.read(n).subarray(0, Math.round((toT - fromT)*sr/1000)), sampleRate: sr, t0: fromT };
+  }
+
   async function start(){
     if(running || starting) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
@@ -647,7 +689,9 @@
     await ctx.resume();
     analyser = ctx.createAnalyser();
     analyser.fftSize = 4096;
-    ctx.createMediaStreamSource(stream).connect(analyser);
+    const src = ctx.createMediaStreamSource(stream);
+    src.connect(analyser);
+    startPcm(src);
     buf = new Float32Array(analyser.fftSize);
     hist.length = 0; stab.reset();
     running = true; starting = false; btn.disabled = false;
@@ -663,6 +707,7 @@
     letSleep();
     clearInterval(timer); timer = null;
     if(stream) stream.getTracks().forEach(t=>t.stop());
+    pcm = null; busy.length = 0;
     if(ctx) ctx.close();
     stream = ctx = analyser = null;
     hist.length = 0; stab.reset();
@@ -709,6 +754,7 @@
     lastT = now;
     analyser.getFloatTimeDomainData(buf);
     // Şeritten çalınan ses hoparlörden mikrofona girmesin
+    if(voices.size || now < synthUntil || (window.SK && SK.droneActive)) markBusy(now);
     if(voices.size || now < synthUntil){
       chip.textContent = "örnek ses çalıyor";
       drawSoon();
@@ -828,7 +874,8 @@
     setTempContext(mkId){ tempCtx = mkId ? { mk: mkId } : null; applyCtx(); },
     tuningMode: () => ctxNow().mode,
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
-    level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); }
+    level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
+    pcm: pcmRange
   };
 
   // ---- Günlük hedef ve hatırlatma ----

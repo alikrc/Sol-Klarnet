@@ -626,6 +626,8 @@ const R = require('./repertoire.js');
   const al2 = R.alignPerformance(nt.times, [1020], () => 67, 200);
   ok(al2.missed === 2, 'calinmayan notalar kacan sayiliyor');
 
+  require('./testornament.js').run(ok);
+
   console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
   process.exit(fail?1:0);
 })();
