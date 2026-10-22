@@ -80,6 +80,30 @@ function run(ok){
     ok(ev([{ w:69, ms:500 }, { comma:9, ms:250, to:2 }], { kind:'dusus', note:69 }).ok, 'sonda dusus');
     ok(!ev([{ w:69, ms:600 }], { kind:'dusus', note:69 }).found, 'duz bitis dusus degil');
   }
+
+  console.log('\n[31] Susleme isaretleri');
+  {
+    const R = require('./repertoire.js');
+    const sig = ns => ns.map(n => n.orn ? n.orn.kind + (n.orn.dir || '') : '').join();
+    const p = R.parseScoreText('La4:2:tr Si4:1:ç+ Sol4::m- Do5 Re5:1:k Mi5:1:d');
+    ok(!p.errors.length && p.notes[0].orn.kind === 'tril' && p.notes[1].orn.dir === 'up' && p.notes[2].d === 1 && p.notes[2].orn.kind === 'mordan' && !p.notes[3].orn, 'nota metni susleme ekleri', JSON.stringify(p));
+    ok(R.parseScoreText('La4:1:zz').errors.length === 1, 'bilinmeyen ek hata');
+    ok(sig(R.parseScoreText('La4:1:g-').notes) === 'carpmadown', 'Ingilizce yazim (g-) alttan carpma');
+    ok(sig(R.parseScoreText(R.scoreToText(p.notes)).notes) === sig(p.notes), 'ekler gidis-donus korunuyor', R.scoreToText(p.notes));
+    const xml = '<part id="P1"><measure><attributes><divisions>1</divisions></attributes>' +
+      '<note><grace/><pitch><step>B</step><octave>4</octave></pitch></note>' +
+      '<note><pitch><step>A</step><octave>4</octave></pitch><duration>1</duration><notations><ornaments><trill-mark/></ornaments></notations></note>' +
+      '<note><pitch><step>G</step><octave>4</octave></pitch><duration>1</duration><notations><ornaments><inverted-mordent/></ornaments></notations></note></measure></part>';
+    const x = R.parseMusicXML(xml).notes;
+    ok(x.length === 2 && x[0].orn.kind === 'tril' && x[1].orn.kind === 'mordan' && x[1].orn.dir === 'up', 'MusicXML tril ve mordan (isaret grace notadan once gelir)', JSON.stringify(x));
+    const xg = R.parseMusicXML('<part id="P1"><measure><attributes><divisions>1</divisions></attributes>' +
+      '<note><grace/><pitch><step>B</step><octave>4</octave></pitch></note>' +
+      '<note><pitch><step>A</step><octave>4</octave></pitch><duration>1</duration></note>' +
+      '<note><pitch><step>A</step><octave>4</octave></pitch><duration>1</duration><notations><ornaments><mordent/></ornaments></notations></note></measure></part>').notes;
+    ok(sig(xg) === 'carpmaup,mordandown', 'MusicXML grace nota ustten carpma, mordent alt mordan', JSON.stringify(xg));
+    ['e-sus-ussak','e-sus-hicaz'].forEach(id => { const e = R.etudeById(id), n = e ? R.etudeNotes(e).filter(n => n.orn) : [];
+      ok(n.length >= 4 && new Set(n.map(o => o.orn.kind)).size >= 3, id + ': en az 4 susleme, 3 tur'); });
+  }
 }
 
 module.exports = { run };

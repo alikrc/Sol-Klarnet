@@ -7,7 +7,14 @@ const RCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, n
 // ---- Nota metni ----
 // Her öge "Ad:süre" (süre dörtlük cinsinden, verilmezse 1). Ad yazılı nota (Sol4, Si♭4, G4, Bb4) ya da AEU
 // perde adı olabilir (boşluk yerine alt çizgi: Dik_Kürdî). "-" ya da "Es" sus işaretidir. "|" ölçü çizgisi, yok sayılır.
-// Dönen: { notes:[{ w, c, d, rest }], errors:[] }  (w yazılı MIDI, c Rast'a göre koma ya da null)
+// Üçüncü kısım süsleme eki: "La4:2:tr" tril, "ç+"/"ç-" üstten/alttan çarpma (İngilizce g+/g-), "m+"/"m-" üst/alt
+// mordan, "k" kayarak giriş, "d" sonda düşüş. Süresiz ek: "La4::tr".
+// Dönen: { notes:[{ w, c, d, rest, orn? }], errors:[] }  (w yazılı MIDI, c Rast'a göre koma ya da null, orn { kind, dir? })
+const ORN_CODES = { "tr":{ kind:"tril", dir:"up" }, "ç+":{ kind:"carpma", dir:"up" }, "ç-":{ kind:"carpma", dir:"down" },
+  "g+":{ kind:"carpma", dir:"up" }, "g-":{ kind:"carpma", dir:"down" }, "m+":{ kind:"mordan", dir:"up" }, "m-":{ kind:"mordan", dir:"down" },
+  "k":{ kind:"giris" }, "d":{ kind:"dusus" } };
+const ornCode = o => o.kind === "tril" ? "tr" : o.kind === "carpma" ? (o.dir === "down" ? "ç-" : "ç+") :
+                     o.kind === "mordan" ? (o.dir === "down" ? "m-" : "m+") : o.kind === "giris" ? "k" : "d";
 const PERDE_BY_NAME = new Map(RCORE.PERDES.map(([c, n]) => [n.toLocaleLowerCase("tr"), c]));
 const LETTER_PC2 = { do:0, re:2, mi:4, fa:5, sol:7, la:9, si:11, c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
 function writtenToken(tok){
@@ -21,22 +28,26 @@ function parseScoreText(text){
   const notes = [], errors = [];
   for(const raw of text.split(/[\s;]+/).filter(Boolean)){
     if(raw === "|") continue;
-    const [name, ds] = raw.split(":");
-    const d = ds === undefined ? 1 : parseFloat(ds.replace(",", "."));
+    const [name, ds, os] = raw.split(":");
+    const d = ds === undefined || ds === "" ? 1 : parseFloat(ds.replace(",", "."));
     if(!(d > 0 && d <= 16)){ errors.push(raw); continue; }
-    if(name === "-" || /^es$/i.test(name)){ notes.push({ w:null, c:null, d, rest:true }); continue; }
+    const orn = os === undefined ? null : ORN_CODES[os.toLocaleLowerCase("tr")] || false;
+    if(orn === false){ errors.push(raw); continue; }
+    const withOrn = n => orn ? { ...n, orn:{ ...orn } } : n;
+    if(name === "-" || /^es$/i.test(name)){ if(orn){ errors.push(raw); continue; } notes.push({ w:null, c:null, d, rest:true }); continue; }
     const pc = PERDE_BY_NAME.get(name.replace(/_/g, " ").toLocaleLowerCase("tr"));
-    if(pc !== undefined){ notes.push({ w: Math.round(67 + pc*12/53), c: pc, d, rest:false }); continue; }
+    if(pc !== undefined){ notes.push(withOrn({ w: Math.round(67 + pc*12/53), c: pc, d, rest:false })); continue; }
     const w = writtenToken(name);
     if(w === null){ errors.push(raw); continue; }
     const p = RCORE.nearestPerde((w - 67)*53/12);
-    notes.push({ w, c: p ? p.comma : null, d, rest:false });
+    notes.push(withOrn({ w, c: p ? p.comma : null, d, rest:false }));
   }
   return { notes, errors };
 }
 // Notaları metne çevirir (perde adı varsa perde adıyla)
 function scoreToText(notes){
-  return notes.map(n => (n.rest ? "-" : n.c !== null ? RCORE.PERDES.find(p => p[0] === n.c)[1].replace(/ /g, "_") : RCORE.noteName(n.w).tr) + (n.d === 1 ? "" : ":" + n.d)).join(" ");
+  return notes.map(n => (n.rest ? "-" : n.c !== null ? RCORE.PERDES.find(p => p[0] === n.c)[1].replace(/ /g, "_") : RCORE.noteName(n.w).tr) +
+    (n.orn ? ":" + (n.d === 1 ? "" : n.d) + ":" + ornCode(n.orn) : n.d === 1 ? "" : ":" + n.d)).join(" ");
 }
 
 // ---- AEU koma işaretleri ----
@@ -74,6 +85,7 @@ function parseMusicXML(xml){
   const STEP = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
   let divisions = 1, beats = 4, beatType = 4, tempo = null;
   const notes = [];
+  let grace = null;                                     // önceki süs notasının yazılı perdesi (çarpma)
   for(const mm of part.matchAll(/<measure\b[^>]*>([\s\S]*?)<\/measure>/g)){
     const meas = mm[1];
     const dv = xmlTag(meas, "divisions"); if(dv) divisions = +dv;
@@ -81,15 +93,21 @@ function parseMusicXML(xml){
     const sp = /<sound[^>]*\btempo="([\d.]+)"/.exec(meas); if(sp && tempo === null) tempo = +sp[1];
     for(const nm of meas.matchAll(/<note\b[^>]*>([\s\S]*?)<\/note>/g)){
       const n = nm[1];
-      if(/<chord\s*\/>/.test(n) || /<grace\b/.test(n)) continue;
+      if(/<chord\s*\/>/.test(n)) continue;
+      const pitchOf = p => snapPerde(STEP[xmlTag(p, "step")] + (+(xmlTag(p, "alter") || 0)) + (+xmlTag(p, "octave") + 1)*12);
+      if(/<grace\b/.test(n)){ const gp = xmlTag(n, "pitch"); if(gp) grace = pitchOf(gp).w; continue; }
+      const g = grace; grace = null;
       const dur = +(xmlTag(n, "duration") || 0) / divisions;     // dörtlük cinsinden
       if(!(dur > 0)) continue;
       if(/<rest\b/.test(n)){ notes.push({ w:null, c:null, d:dur, rest:true }); continue; }
       const p = xmlTag(n, "pitch"); if(!p) continue;
-      const { w, c } = snapPerde(STEP[xmlTag(p, "step")] + (+(xmlTag(p, "alter") || 0)) + (+xmlTag(p, "octave") + 1)*12);
+      const { w, c } = pitchOf(p);
       const tieStop = /<tie[^>]*type="stop"/.test(n), prev = notes[notes.length-1];
       if(tieStop && prev && !prev.rest && prev.w === w){ prev.d += dur; continue; }
-      notes.push({ w, c, d:dur, rest:false });
+      // Süsleme: işaret süs notasından önce gelir
+      const orn = /<trill-mark\b/.test(n) ? { kind:"tril", dir:"up" } : /<inverted-mordent\b/.test(n) ? { kind:"mordan", dir:"up" } :
+                  /<mordent\b/.test(n) ? { kind:"mordan", dir:"down" } : g !== null && g !== w ? { kind:"carpma", dir: g > w ? "up" : "down" } : null;
+      notes.push(orn ? { w, c, d:dur, rest:false, orn } : { w, c, d:dur, rest:false });
     }
   }
   return { title, notes, beats, beatType, tempo };
@@ -194,7 +212,12 @@ const ETUDES = [
     text:"Rast:2 Dügâh | Segâh:2 Çargâh | Nevâ:3 | Hüseynî Nevâ Çargâh | Segâh:2 Dügâh | Segâh Çargâh Nevâ | Çargâh Segâh Dügâh | Rast:3" },
   // 9/8: süreler dörtlük cinsinden (sekizlik = 0.5); ölçü 2+2+2+3 sekizlik
   { id:"e-aksak", name:{ tr:"Aksak oyun havası (Hicaz, 9/8)", en:"Aksak dance (Hicaz, 9/8)" }, level:5, makam:"hicaz", tempo:100, meter:[9,8], usul:"aksak",
-    text:"Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî:0.5 Dügâh:1 | Nevâ:0.5 Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:1 Dik_Kürdî:0.5 Dügâh:1 | Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Hüseynî:1 Nevâ:1.5 | Nim_Hicaz:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Rast:0.5 Dügâh:2.5" }
+    text:"Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî:0.5 Dügâh:1 | Nevâ:0.5 Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:1 Dik_Kürdî:0.5 Dügâh:1 | Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Hüseynî:1 Nevâ:1.5 | Nim_Hicaz:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Rast:0.5 Dügâh:2.5" },
+  // Süslemeli etütler (Süsleme ünitesi): ekler nota metninde (k giriş, ç+ çarpma, m+ mordan, tr tril, d düşüş)
+  { id:"e-sus-ussak", name:{ tr:"Süslemeli Uşşak etüdü", en:"Uşşak étude with ornaments" }, level:4, makam:"ussak", tempo:72, meter:[4,4],
+    text:"Dügâh:1:k Segâh Çargâh Nevâ | Nevâ:2:m+ Çargâh Segâh:1:ç+ | Çargâh:1.5 Segâh:0.5 Dügâh Segâh | Nevâ:4:d | Hüseynî:1:ç+ Nevâ Çargâh Nevâ | Segâh:2:tr Çargâh Segâh | Dügâh Rast Dügâh:1:ç+ Segâh | Dügâh:4" },
+  { id:"e-sus-hicaz", name:{ tr:"Süslemeli Hicaz oyun havası (9/8)", en:"Hicaz dance with ornaments (9/8)" }, level:5, makam:"hicaz", tempo:92, meter:[9,8], usul:"aksak",
+    text:"Dügâh:0.5:ç+ Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî:0.5 Dügâh:1 | Nevâ:0.5:k Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:1:m- Dik_Kürdî:0.5 Dügâh:1 | Dügâh:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:0.5 Hüseynî:1:ç+ Nevâ:1.5:tr | Nim_Hicaz:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Rast:0.5 Dügâh:2.5:d" }
 ];
 // Etüdün notaları (bir kez ayrıştırılır)
 const etudeCache = new Map();
