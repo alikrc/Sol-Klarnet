@@ -334,9 +334,107 @@ const TRAINERS = {
   }
 };
 
+// ======== Süsleme denemesi ========
+// Ders adımı ve Süsleme sekmesi ortak kullanır. Ses başlayınca deneme başlar; en az 300 ms sesten sonra sessizlik
+// gelince (trilde süre dolunca) o aralığın ham sesi (SK.pcm) 5 ms adımla çözülür ve değerlendirilir.
+// Örnek ses ya da dron çalarken alınan deneme SK.pcm null döndüğü için atlanır. holder'a son denemenin yakın izi çizilir.
+const ORN_NB = ["carpma", "tekrar", "mordan", "tril"];
+function ornamentAttempt(ctx, spec, holder, onResult){
+  const { SK } = ctx;
+  const mainC = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
+  const nbC = ORN_NB.includes(spec.kind) ? ornamentNeighbor(spec) : null;
+  const expectHz = ctx.commaFreq(mainC);
+  let start = null, last = null, busy = false;
+  holder.innerHTML = `<svg class="orntrace" viewBox="0 0 300 90" preserveAspectRatio="none" role="img" aria-label="${L("Son denemenin perde eğrisi", "Pitch curve of the last attempt")}"></svg>`;
+  const svg = holder.querySelector("svg");
+  // Perde eğrisi; ana nota ve komşu soluk yatay çizgi
+  function draw(track){
+    const pts = track.filter(f => f.comma !== null);
+    if(!pts.length){ svg.innerHTML = ""; return; }
+    const lv = nbC != null ? [mainC, nbC] : [mainC];
+    const lo = Math.max(Math.min(...lv) - 12, Math.min(...lv, ...pts.map(f => f.comma)) - 2);
+    const hi = Math.min(Math.max(...lv) + 12, Math.max(...lv, ...pts.map(f => f.comma)) + 2);
+    const t0 = track[0].t, t1 = Math.max(t0 + 1, track[track.length-1].t);
+    const X = t => 4 + (t - t0)/(t1 - t0)*292, Y = c => 86 - (Math.min(hi, Math.max(lo, c)) - lo)/(hi - lo)*82;
+    let d = "", pen = false;
+    for(const f of track){
+      // Geçişte pencere iki perdeyi birden görüp aralık dışı değer verebilir; çizgi orada kesilir
+      if(f.comma === null || f.comma < lo || f.comma > hi){ pen = false; continue; }
+      d += (pen ? "L" : "M") + X(f.t).toFixed(1) + " " + Y(f.comma).toFixed(1) + " "; pen = true;
+    }
+    svg.innerHTML = lv.map(c => `<line class="lvl" x1="0" x2="300" y1="${Y(c).toFixed(1)}" y2="${Y(c).toFixed(1)}"/>`).join("") + `<path class="pl" d="${d}"/>`;
+  }
+  function finish(){
+    const s = start, e = last; start = last = null;
+    if(busy) return;
+    const p = SK.pcm(s - 150, e + 50);
+    if(!p) return;
+    busy = true;
+    setTimeout(() => {
+      busy = false;
+      const track = ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz });
+      const res = ornamentEval(track, spec);
+      draw(track);
+      onResult(res);
+    }, 0);
+  }
+  return {
+    raw(d){
+      if(start === null) start = d.t;
+      last = d.t;
+      if(spec.kind === "tril" && d.t - start >= (spec.sec || 2)*1000 + 400) finish();
+    },
+    silence(){
+      if(start === null) return;
+      if(last - start >= 300) finish(); else start = last = null;
+    },
+    stop(){ start = last = null; }
+  };
+}
+// Hedef cümlesi: "Çarpma: Si4 → La4"
+function ornamentGoal(spec, nn){
+  const m = nn(spec.note), n = ORN_NB.includes(spec.kind) ? nn(commaToWritten(ornamentNeighbor(spec))) : "";
+  switch(spec.kind){
+    case "carpma": return L("Çarpma: ", "Grace note: ") + n + " → " + m + L(" (süs notası kısa, asıl nota uzun)", " (short grace note, long main note)");
+    case "tekrar": return L("Çarpmalı tekrar: " + m + " tutarken " + n + " ile en az 3 kez böl", "Repeated note: hold " + m + " and split it at least 3 times with " + n);
+    case "mordan": return L("Mordan: ", "Mordent: ") + m + " → " + n + " → " + m;
+    case "tril": return L("Tril: ", "Trill: ") + m + " ↔ " + n + L(", en az " + spec.sec + " sn", ", at least " + spec.sec + " s");
+    case "giris": return L("Kayarak giriş: birkaç koma pesten başla, " + m + " notasına kay", "Slide-in: start a few commas low and slide up to " + m);
+    case "dusus": return L("Düşüş: " + m + " notasını tut, sonunda sesi aşağı bırak", "Fall: hold " + m + ", then let the pitch drop at the end");
+  }
+  return "";
+}
+
 // ======== Ders adımları ========
 // Her biri (st, stage, done, ctx) alır, { note, silence, raw, stop } döndürür (practice.js'teki RUN ile aynı biçim)
 const TRAINER_STEPS = {
+  // Süsleme: sayılı türlerde st.n başarılı deneme, trilde hızı hedefi geçen bir deneme
+  ornament(st, stage, done, ctx){
+    const counted = st.kind !== "tril";
+    let count = 0;
+    stage.innerHTML = `<div class="label">${ornamentGoal(st, ctx.nn)}</div>
+      ${counted ? `<div class="ltclock orc">0 <em>/ ${st.n}</em></div>` : `<div class="ltclock small orc">${L("hedef: saniyede " + st.rate + " dönüş", "target: " + st.rate + " turns/s")}</div>`}
+      <div class="ornfing"></div><div class="orw"></div><div class="fb orf" aria-live="polite"></div>`;
+    ctx.SK.showNote(st.note);
+    if(st.kind === "tril"){
+      // Tril parmağı: üst notanın parmağı küçük şemada
+      const nbW = commaToWritten(ornamentNeighbor(st)), mc = ctx.miniChart(), box = stage.querySelector(".ornfing");
+      box.innerHTML = `<div class="label">${L("Üst nota: ", "Upper note: ") + ctx.nn(nbW)}</div>`;
+      box.appendChild(mc); if(FINGERINGS[nbW]) ctx.paintMini(mc, FINGERINGS[nbW]);
+    }
+    const fb = stage.querySelector(".orf");
+    return ornamentAttempt(ctx, st, stage.querySelector(".orw"), res => {
+      const tip = res.tips.length ? pick(res.tips[0], LANG) : "";
+      const rate = res.rate != null ? L("saniyede " + ctx.num(res.rate) + " dönüş. ", ctx.num(res.rate) + " turns/s. ") : "";
+      if(!res.measured){ fb.className = "fb orf"; fb.textContent = tip; return; }
+      if(!res.ok){ fb.className = "fb orf bad"; fb.textContent = rate + tip; return; }
+      fb.className = "fb orf good"; fb.textContent = (rate || L("Güzel! ", "Good! ")) + tip;
+      if(!counted) return done({ v: Math.round(res.rate*10)/10 });
+      count++;
+      stage.querySelector(".orc").innerHTML = count + ` <em>/ ${st.n}</em>`;
+      if(count >= st.n) done({ v: count });
+    });
+  },
   // Okuma adımı: metin dersleri (bakım, duruş, nota okuma); "Okudum" ile geçilir
   read(st, stage, done){
     stage.innerHTML = (st.body || []).map(t => `<p>${pick(t, LANG)}</p>`).join("") +

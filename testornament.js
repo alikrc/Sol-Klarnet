@@ -133,6 +133,19 @@ function run(ok){
     ok(dp.steps.some(s => s.type === 'ornament'), 'susleme dersi bitince gunluk planda susleme adimi var');
     ok(!D.dailyPlan({ prog:{}, intStats:{}, quizStats:{}, day:'2026-10-23' }).steps.some(s => s.type === 'ornament'), 'susleme dersi bitmeden gunluk planda susleme yok');
   }
+
+  console.log('\n[33] Susleme ornek sesi');
+  {
+    const on = S.ornamentNotes({ kind:'carpma', note:69, dir:'up' });
+    ok(on.length === 2 && on[0].ms === 60 && on[0].comma === 18 && on[1].comma === 9 && on[1].ms === 900, 'ornek ses: carpma (Buselik → Dugah, perdelerde)', JSON.stringify(on));
+    const ot = S.ornamentNotes({ kind:'tril', note:67, dir:'up' });
+    ok(ot.length === 29 && ot.slice(0, 28).every(x => x.ms === 70) && ot[1].comma === 9, 'ornek ses: tril');
+    ok(S.ornamentNotes({ kind:'giris', note:69 })[0].to === 9 && S.ornamentNotes({ kind:'giris', note:69 })[0].comma === 4, 'ornek ses: kayarak giris rampali');
+    const od = S.ornamentNotes({ kind:'dusus', note:69 });
+    ok(od.length === 2 && od[1].to === 1, 'ornek ses: dusus');
+    ok(S.ornamentNotes({ kind:'mordan', note:69, dir:'down' }).map(x => x.comma).join() === '9,0,9' && S.ornamentNotes({ kind:'tekrar', note:69, dir:'up' }).length === 7, 'ornek ses: mordan ve tekrar');
+    ok(S.ornamentNotes({ kind:'carpma', note:71, comma:17, makam:'ussak', dir:'up' })[0].comma === 22, 'ornek ses: makamda komsu makam dizisinden');
+  }
 }
 
 module.exports = { run };

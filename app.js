@@ -471,6 +471,7 @@
     noteOn(w, freq); current = w; markPlaying();
   }
   function stopSound(){
+    stopGlide();
     if(current === null) return;
     noteOff(current); current = null; markPlaying();
   }
@@ -508,6 +509,34 @@
     osc.start();
     voices.set(w, {osc, g});
     hist.length = 0; stab.reset();
+  }
+  // Süsleme örneği: [{ freq, ms, toFreq? }] tek osilatörde kesintisiz çalınır (kayışlar rampayla); bitince çözülür
+  let glideOsc = null;
+  function stopGlide(){
+    if(!glideOsc) return;
+    try{ glideOsc.stop(); }catch(e){}
+    glideOsc = null;
+  }
+  function playGlide(items){
+    stopSound();
+    const a = audioCtx(), t0 = a.currentTime + 0.02;
+    const osc = a.createOscillator(), g = a.createGain();
+    osc.setPeriodicWave(wave);
+    let t = t0;
+    for(const it of items){
+      osc.frequency.setValueAtTime(it.freq, t);
+      if(it.toFreq) osc.frequency.linearRampToValueAtTime(it.toFreq, t + it.ms/1000);
+      t += it.ms/1000;
+    }
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.03);
+    g.gain.setValueAtTime(0.22, Math.max(t0 + 0.03, t - 0.1));
+    g.gain.exponentialRampToValueAtTime(0.0001, t);
+    osc.connect(g).connect(a.destination);
+    osc.start(t0); osc.stop(t + 0.02);
+    glideOsc = osc;
+    synthUntil = performance.now() + (t - a.currentTime)*1000 + 300;   // yankı bitene kadar mikrofonu dinleme
+    return new Promise(r => { osc.onended = () => { if(glideOsc === osc) glideOsc = null; r(); }; });
   }
   function noteOff(w){
     const v = voices.get(w);
@@ -754,8 +783,8 @@
     lastT = now;
     analyser.getFloatTimeDomainData(buf);
     // Şeritten çalınan ses hoparlörden mikrofona girmesin
-    if(voices.size || now < synthUntil || (window.SK && SK.droneActive)) markBusy(now);
-    if(voices.size || now < synthUntil){
+    if(voices.size || glideOsc || now < synthUntil || (window.SK && SK.droneActive)) markBusy(now);
+    if(voices.size || glideOsc || now < synthUntil){
       chip.textContent = "örnek ses çalıyor";
       drawSoon();
       return;
@@ -861,7 +890,7 @@
     startMic: start,
     isListening: () => running,
     getStream: () => stream,
-    play, stopSound,
+    play, stopSound, playGlide,
     playing: () => current,
     showNote: w => show(analyze(perdeFreq(w, T), T)),
     drawStaffInto,

@@ -470,8 +470,25 @@ function ornamentEval(track, spec){
   return res;
 }
 
+// Örnek ses: [{ comma, ms, to? }] (to: kayış hedefi). Makam yoksa ana nota ve komşu en yakın perdeye oturtulur.
+function ornamentNotes(spec){
+  const snap = c => { const p = SCORE.nearestPerde(c); return p ? p.comma : c; };
+  const m = spec.comma != null ? spec.comma : snap((spec.note - 67)*53/12);
+  const n = ["carpma", "tekrar", "mordan", "tril"].includes(spec.kind) ? (spec.makam ? ornamentNeighbor(spec) : snap(ornamentNeighbor(spec))) : null;
+  const rep = (k, xs) => Array.from({ length:k }, () => xs).flat();
+  switch(spec.kind){
+    case "carpma": return [{ comma:n, ms:60 }, { comma:m, ms:900 }];
+    case "mordan": return [{ comma:m, ms:80 }, { comma:n, ms:70 }, { comma:m, ms:900 }];
+    case "tekrar": return [{ comma:m, ms:350 }, ...rep(3, [{ comma:n, ms:50 }, { comma:m, ms:350 }])];
+    case "tril": return [...rep(14, [{ comma:m, ms:70 }, { comma:n, ms:70 }]), { comma:m, ms:400 }];
+    case "giris": return [{ comma:m - 5, ms:250, to:m }, { comma:m, ms:700 }];
+    case "dusus": return [{ comma:m, ms:700 }, { comma:m, ms:300, to:m - 8 }];
+  }
+  return [];
+}
+
 if(typeof module !== "undefined") module.exports = {
-  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval,
+  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

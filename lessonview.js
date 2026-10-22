@@ -72,10 +72,11 @@ TRAINERS.lessons = function(ctx){
       case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
       case "ear": return r.v + "/" + st.n;
       case "piece": return st.mode === "free" ? r.v + L(" hata", " mistakes") : "%" + r.v;
+      case "ornament": return st.kind === "tril" ? num(r.v) + L(" dönüş/sn", " turns/s") : r.v + "/" + st.n;
     }
     return "";
   }
-  const canHear = st => ["notes", "scale", "hold", "vibrato"].includes(st.type);
+  const canHear = st => ["notes", "scale", "hold", "vibrato", "ornament"].includes(st.type);
   function stepHead(st, i, r){
     return `<span class="lsnum">${r && r.ok ? "✓" : i+1}</span><span class="lsname">${esc(stepTitle(st, LANG))}</span>` +
       (r ? `<span class="lsres">${r.ok ? resText(st, r) : "en iyi: " + resText(st, r)}</span>` : "");
@@ -153,7 +154,18 @@ TRAINERS.lessons = function(ctx){
     if(st.type === "hold" || st.type === "vibrato") return st.comma != null ? [[st.note, mkFreq(lessonMk(st), st.comma)]] : fromNotes([st.note]);
     return st.commas ? fromCommas(st.commas, st) : fromNotes(st.notes);
   }
+  // Süsleme örneği: ornament adımı ya da orn alanlı dinleme adımı
+  function ornSpec(st){
+    if(st.type === "ornament") return st;
+    return { ...st.orn, note: st.notes ? st.notes[0] : commaToWritten(st.commas[0]), comma: st.commas ? st.commas[0] : undefined, makam: st.makam };
+  }
+  function playOrn(st){
+    const spec = ornSpec(st), mk = spec.makam ? makamById(spec.makam) : null;
+    const f = c => mk ? mkFreq(mk, c) : ctx.commaFreq(c);
+    return SK.playGlide(ornamentNotes(spec).map(x => ({ freq: f(x.comma), ms: x.ms, toFreq: x.to != null ? f(x.to) : null })));
+  }
   async function hear(st){
+    if(st.type === "ornament" || st.orn){ playToken = null; return playOrn(st); }
     const items = itemsOf(st);
     if(items.length > 1) return playSeq(items);
     const token = {}; playToken = token;
@@ -201,6 +213,13 @@ TRAINERS.lessons = function(ctx){
   const RUN = {
     ...Object.fromEntries(Object.entries(TRAINER_STEPS).map(([k, fn]) => [k, (st, stage, done) => fn(st, stage, done, ctx)])),
     listen(st, stage, done){
+      if(st.orn){
+        const token = {}; playToken = token;
+        stage.innerHTML = `<div class="label">${esc(stepTitle(st, LANG))}</div>`;
+        SK.showNote(ornSpec(st).note);
+        playOrn(st).then(() => { if(playToken === token) done({ v:1 }); });
+        return { stop(){ playToken = null; SK.stopSound(); } };
+      }
       const items = itemsOf(st);
       stage.innerHTML = `<div class="chiprow">${items.map(([w], k) => `<span class="pchip"><b>${st.commas ? perdeName(st.commas[k]) : nn(w)}</b><small>${st.commas ? nn(w) : perdeOf(w)}</small></span>`).join("")}</div>`;
       const chips = stage.querySelectorAll(".pchip");
