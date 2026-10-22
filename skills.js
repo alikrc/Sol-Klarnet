@@ -339,6 +339,7 @@ function ornamentEval(track, spec){
   const mainC = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
   const nbC = ["carpma", "tekrar", "mordan", "tril"].includes(spec.kind) ? ornamentNeighbor(spec) : null;
   const parts = ornamentParts(track, mainC, nbC);
+  const mainMin = spec.mainMin != null ? spec.mainMin : ORN.mainMin;     // eserde kısa notalar için düşürülür
   const upW = spec.dir === "down" ? "alttaki" : "üstteki", upE = spec.dir === "down" ? "lower" : "upper";
   const mainCheck = m => {
     res.mainErr = m.comma - mainC;
@@ -359,7 +360,7 @@ function ornamentEval(track, spec){
       res.found = true; res.durMs = g.ms; res.intervalErr = g.comma - nbC;
       if(g.ms > ORN.grace[1]){ res.tips.push(otip("Çarpma uzun, appoggiatura gibi oldu: parmağı vurup hemen kaldır.",
                                                   "The grace note is too long, it sounds like an appoggiatura: tap the finger and lift it at once.")); break; }
-      if(m.ms < ORN.mainMin){ res.tips.push(otip("Ana notayı daha uzun tut.", "Hold the main note longer.")); break; }
+      if(m.ms < mainMin){ res.tips.push(otip("Ana notayı daha uzun tut.", "Hold the main note longer.")); break; }
       if(!mainCheck(m)) break;
       res.ok = true;
       if(g.ms < ORN.graceIdeal[0] || g.ms > ORN.graceIdeal[1])
@@ -391,7 +392,7 @@ function ornamentEval(track, spec){
       const a = parts[i], n = parts[i+1], b = parts[i+2];
       res.found = true; res.durMs = n.ms; res.intervalErr = n.comma - nbC;
       if(n.ms > ORN.grace[1] || b.start - a.start > ORN.mordanTotal){ res.tips.push(otip("Mordan yavaş: üç notayı daha hızlı bağla.", "The mordent is slow: join the three notes faster.")); break; }
-      if(b.ms < ORN.mainMin){ res.tips.push(otip("Son notayı daha uzun tut.", "Hold the last note longer.")); break; }
+      if(b.ms < mainMin){ res.tips.push(otip("Son notayı daha uzun tut.", "Hold the last note longer.")); break; }
       if(!mainCheck(b)) break;
       res.ok = true;
       break;
@@ -459,7 +460,7 @@ function ornamentEval(track, spec){
         res.found = true; res.durMs = dur; res.intervalErr = -depth;
         if(dur > ORN.dusus[1]){ res.tips.push(otip("Düşüş çok uzun: daha kısa ve kararlı bırak.", "The fall is too long: make it shorter and firmer.")); break; }
       }
-      if(m.ms < ORN.mainMin){ res.tips.push(otip("Ana notayı daha uzun tut.", "Hold the main note longer.")); break; }
+      if(m.ms < mainMin){ res.tips.push(otip("Ana notayı daha uzun tut.", "Hold the main note longer.")); break; }
       if(!mainCheck(m)) break;
       res.ok = true;
       break;
@@ -487,8 +488,14 @@ function ornamentNotes(spec){
   return [];
 }
 
+// Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
+function ornamentScore(results){
+  const m = results.filter(r => r.measured), found = m.filter(r => r.ok).length;
+  return { n: m.length, found, pct: m.length ? Math.round(found/m.length*100) : null };
+}
+
 if(typeof module !== "undefined") module.exports = {
-  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes,
+  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

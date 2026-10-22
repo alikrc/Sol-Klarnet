@@ -625,6 +625,9 @@ svg.score{display:block}
 .score .rest{fill:none;stroke:var(--ink);stroke-width:2}
 .score .acc{font:18px "Noto Music","Segoe UI Symbol",var(--ui);fill:var(--ink);text-anchor:middle}
 .score .acck{font:600 8px var(--ui);fill:var(--teal)}
+.score .orn{font:italic 700 10px var(--display);fill:var(--ink);text-anchor:middle}
+.score .ornl{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linecap:round}
+.score .sn.ornmiss .orn{fill:var(--muted)} .score .sn.ornmiss .ornl{stroke:var(--muted)}
 .score .va{font:italic 600 9px var(--ui);fill:var(--muted)}
 .score .pname{font:500 8.5px var(--ui);fill:var(--teal);text-anchor:middle}
 .score .sn.cur .head{fill:var(--accent)} .score .sn.cur .head.hollow{fill:none;stroke:var(--accent)} .score .sn.cur .stem{stroke:var(--accent)}

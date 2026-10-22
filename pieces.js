@@ -19,7 +19,7 @@ function drawScore(holder, notes, opts = {}){
   const bars = [];
   notes.forEach((n, i) => {
     const acc = !n.rest && (n.c !== null ? (turkishAccidental(n.c, n.w) || {}).k : staffPos(n.w).acc);
-    x += acc ? 12 : 0;
+    x += (acc ? 12 : 0) + (n.orn && (n.orn.kind === "carpma" || n.orn.kind === "giris") ? 12 : 0);   // süs notası / kayış çizgisi yeri
     xs.push(x);
     x += 16 + 15*Math.sqrt(n.d);
     beats += n.d;
@@ -70,6 +70,19 @@ function drawScore(holder, notes, opts = {}){
       g.appendChild(scoreEl("text", { class:"acck", x:nx-8, y:y+9 }, String(Math.abs(ta.k))));
     }else if(!ta && p.acc) g.appendChild(scoreEl("text", { class:"acc", x:nx-12, y:y+5 }, p.acc));
     if(p.ottava) g.appendChild(scoreEl("text", { class:"va", x:nx-8, y:Math.min(y, sy(10)) - 10 }, "8va"));
+    // Süsleme: tril "tr", mordan dalgası (alt mordanda dikey çizgili), çarpma küçük çizgili nota, kayış çizgileri
+    if(n.orn){
+      const o = n.orn, oy = Math.min(up ? y - 31 : y - 9, sy(9)) - 4, accW = (ta && ta.k) || (!ta && p.acc) ? 12 : 0;
+      if(o.kind === "tril") g.appendChild(scoreEl("text", { class:"orn", x:nx, y:oy }, "tr"));
+      else if(o.kind === "mordan") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-7} ${oy} l3.5 -4 l3.5 4 l3.5 -4 l3.5 4` + (o.dir === "down" ? ` M${nx} ${oy-7} v10` : "") }));
+      else if(o.kind === "carpma"){
+        const gy = y + (o.dir === "down" ? STEP : -STEP), gx = nx - 14 - accW;
+        g.appendChild(scoreEl("ellipse", { class:"head grace", cx:gx, cy:gy, rx:3.2, ry:2.4, transform:`rotate(-20 ${gx} ${gy})` }));
+        g.appendChild(scoreEl("path", { class:"ornl", d:`M${gx+2.8} ${gy} v-13 M${gx-1} ${gy-4} l8 -6` }));
+      }
+      else if(o.kind === "giris") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-18-accW} ${y+7} L${nx-9-accW} ${y+1}` }));
+      else if(o.kind === "dusus") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx+8} ${y+1} L${nx+17} ${y+8}` }));
+    }
     if(opts.names){
       const pn = n.c !== null ? (PERDES.find(q => q[0] === n.c) || [, ""])[1] : noteName(n.w).tr;
       g.appendChild(scoreEl("text", { class:"pname", x:nx, y:H - 4 }, pn.replace(/^(Tiz|Kaba) /, "")));
@@ -103,6 +116,17 @@ function piecePlayer(ctx, piece, holder, info, onDone){
   const say = (cls, t) => { info.className = "fb " + cls; info.textContent = t; };
   const freqOf = n => n.c !== null && mk ? ctx.mkFreq(mk, n.c) : n.c !== null ? ctx.commaFreq(n.c) : undefined;
   function redraw(){ sc = drawScore(holder, notes, { meter: piece.meter, names }); }
+  const ornSpec = n => ({ ...n.orn, note:n.w, comma: n.c !== null ? n.c : undefined, makam: piece.makam || undefined });
+  // Süslemeli notanın örnek sesi notanın süresine sığdırılır (düşüşte kısalan ana nota olur)
+  function ornFit(n, durMs){
+    const xs = ornamentNotes(ornSpec(n)).map(x => ({ ...x }));
+    if(n.orn.kind === "dusus") xs[0].ms = Math.max(50, durMs - xs[1].ms);
+    const its = []; let left = durMs;
+    for(const x of xs){ if(left <= 0) break; const ms = Math.min(x.ms, left); its.push({ ...x, ms }); left -= ms; }
+    if(left > 0) its[its.length-1].ms += left;
+    const f = c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c);
+    return its.map(x => ({ freq: f(x.comma), ms: x.ms, toFreq: x.to != null ? f(x.to) : null }));
+  }
 
   // Serbest takip: sıradaki notayı doğru çalınca ilerler
   function startFree(){
@@ -149,6 +173,23 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     const off = SK.level(f => { const o = det.push(f); if(o !== null) onsets.push(o); });
     const timers = [];
     times.forEach(e => timers.push(setTimeout(() => { if(mode === "tempo") curScore(sc.svg, e.i, holder); }, Math.max(0, e.t - performance.now()))));
+    // Süsleme: işaretli her nota bitince ham sesi alınıp değerlendirilir (tampon 4 sn tuttuğu için sona bırakılmaz)
+    const latO = ctx.store.get("rhythm.lat", 0), ornRes = [];
+    times.forEach(e => {
+      const n = notes[e.i];
+      if(!n.orn) return;
+      const durMs = n.d*beatMs, from = e.t + latO - 100, to = e.t + latO + durMs;
+      timers.push(setTimeout(() => {
+        if(mode !== "tempo") return;
+        const p = SK.pcm(from, to);
+        if(!p) return;
+        const r = ornamentEval(ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz: freqOf(n) || ctx.commaFreq((n.w - 67)*53/12) }),
+                               { ...ornSpec(n), mainMin: Math.min(300, durMs*0.4) });
+        ornRes.push(r);
+        const g = sc.svg.querySelector(`g.sn[data-i="${e.i}"]`);
+        if(g && r.measured && !r.ok) g.classList.add("ornmiss");
+      }, Math.max(0, to + 120 - performance.now())));
+    });
     say("", L("Sayım… ", "Count-in… ") + perBar + L(" vuruş dinle, sonra çal.", " beats, then play."));
     timers.push(setTimeout(() => { if(mode === "tempo") say("", L("Çal!", "Play!")); }, Math.max(0, startPerf + perBar*clickMs - performance.now())));
     run = { stable, stop(){ timers.forEach(clearTimeout); off(); } };
@@ -159,9 +200,10 @@ function piecePlayer(ctx, piece, holder, info, onDone){
       const pitchAt = t => { const s = stable.find(x => x.t >= t - 30 && x.t <= t + 300); return s ? s.w : null; };
       const res = alignPerformance(times, onsets.map(o => o - lat), t => pitchAt(t + lat), 200);
       res.notes.forEach(r => markScore(sc.svg, r.i, r.state === "ok" ? "ok" : r.state === "pitch" ? "bad" : "miss"));
-      const pct2 = Math.round(res.pitchRate*100);
+      const pct2 = Math.round(res.pitchRate*100), os = ornamentScore(ornRes);
+      const ornTxt = os.pct === null ? "" : L(" · süsleme %" + os.pct, " · ornaments " + os.pct + "%");
       say(pct2 >= 80 ? "good" : "bad", L("Doğru nota %", "Correct notes ") + pct2 + (LANG === "en" ? "%" : "") + " · " + res.wrong + L(" yanlış · ", " wrong · ") + res.missed + L(" kaçan", " missed") +
-        (res.notes.some(r => r.state === "ok") ? " · " + (Math.abs(res.mean) < 25 ? L("zamanlama yerinde", "timing on the beat") : Math.round(Math.abs(res.mean)) + (res.mean < 0 ? L(" ms erken", " ms early") : L(" ms geç", " ms late"))) + " ±" + Math.round(res.sd) + " ms" : ""));
+        (res.notes.some(r => r.state === "ok") ? " · " + (Math.abs(res.mean) < 25 ? L("zamanlama yerinde", "timing on the beat") : Math.round(Math.abs(res.mean)) + (res.mean < 0 ? L(" ms erken", " ms early") : L(" ms geç", " ms late"))) + " ±" + Math.round(res.sd) + " ms" : "") + ornTxt);
       const best = ctx.store.get("piece.best", {}), id = piece.id || piece.name;
       if(!best[id] || pct2 > best[id]){ best[id] = pct2; ctx.store.set("piece.best", best); }
       mode = null; run = null;
@@ -176,7 +218,9 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     for(let i=0;i<notes.length;i++){
       if(playToken !== token) return;
       const n = notes[i];
-      if(n.rest) SK.stopSound(); else { curScore(sc.svg, i, holder); SK.play(n.w, freqOf(n)); }
+      if(n.rest) SK.stopSound();
+      else if(n.orn){ curScore(sc.svg, i, holder); SK.playGlide(ornFit(n, n.d*beatMs*0.92)); }
+      else { curScore(sc.svg, i, holder); SK.play(n.w, freqOf(n)); }
       await new Promise(r => setTimeout(r, n.d*beatMs*0.92));
       if(playToken !== token) return;
       SK.stopSound(); await new Promise(r => setTimeout(r, n.d*beatMs*0.08));

@@ -146,6 +146,14 @@ function run(ok){
     ok(S.ornamentNotes({ kind:'mordan', note:69, dir:'down' }).map(x => x.comma).join() === '9,0,9' && S.ornamentNotes({ kind:'tekrar', note:69, dir:'up' }).length === 7, 'ornek ses: mordan ve tekrar');
     ok(S.ornamentNotes({ kind:'carpma', note:71, comma:17, makam:'ussak', dir:'up' })[0].comma === 22, 'ornek ses: makamda komsu makam dizisinden');
   }
+
+  console.log('\n[34] Eser susleme puani');
+  {
+    ok(JSON.stringify(S.ornamentScore([{ ok:true, measured:true }, { ok:false, measured:true }, { ok:false, measured:false }])) === '{"n":2,"found":1,"pct":50}' &&
+       S.ornamentScore([]).pct === null, 'eser susleme puani (olculemeyen sayilmaz)');
+    const shortMain = [{ w:71, ms:50 }, { w:69, ms:220 }];
+    ok(!ev(shortMain, { kind:'carpma', note:69, dir:'up' }).ok && ev(shortMain, { kind:'carpma', note:69, dir:'up', mainMin:150 }).ok, 'eserde kisa nota: mainMin ile ana nota alt siniri dusuyor');
+  }
 }
 
 module.exports = { run };
