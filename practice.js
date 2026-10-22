@@ -19,22 +19,42 @@
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // ---- İskelet ----
-  // On bir alıştırma beş gruba ayrılır: üstte grup sekmeleri, altında (grupta birden çok alıştırma varsa) alt sekmeler.
+  // On bir alıştırma beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
+  // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
-  const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],
+  const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],
                 ["piece",L("Etüt ve eserler", "Études & pieces")],["rec","Kayıt"],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","long","rhythm"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm"]],
                   ["makam","Makam",["makam","mimic","seyir","ear"]],
                   ["pieces",L("Eserler", "Pieces"),["piece","rec"]],
                   ["progress","İlerleme",["progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
+  const tabName = id => TABS.find(t => t[0] === id)[1];
+  // Ana sayfa kartlarındaki kısa açıklamalar
+  const BLURB = {
+    lessons: L("Adım adım dersler, mikrofonla değerlendirilir", "Step-by-step lessons, checked with the microphone"),
+    quiz: L("Notaları ve parmakları ezberle: çal, bul, oku", "Memorise notes and fingerings: play, find, read"),
+    staffmap: L("Hangi nota dizekte nerede: Si4 mü, Si5 mi?", "Where each note sits: B4 or B5?"),
+    long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
+    rhythm: L("Metronomla zamanında çal", "Play in time with the metronome"),
+    makam: L("Makam dizisini çık ve in", "Play the makam scale up and down"),
+    mimic: L("Duyduğun ezgiyi tekrar çal", "Play back the phrase you hear"),
+    seyir: L("Serbest çal, seyrini gör", "Play freely, see your seyir"),
+    ear: L("Koma farklarını duymayı öğren", "Learn to hear comma differences"),
+    piece: L("Etütleri ve kendi eserlerini çal", "Play études and your own pieces"),
+    rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
+    progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
+  };
   const ICON = {
     play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>`,
     stop: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
-    chev: `<svg class="tchev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`
+    chev: `<svg class="tchev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`,
+    back: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`,
+    go: `<svg class="hgo" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`
   };
+  const card = id => `<button type="button" class="hcard" data-open="${id}"><span><b>${tabName(id)}</b><small>${BLURB[id]}</small></span>${ICON.go}</button>`;
   const root = $("practice");
   root.innerHTML = `
     <div class="phead">
@@ -45,6 +65,22 @@
           <span id="pgoaltx"></span><i aria-hidden="true"><b id="pgoalbar"></b></i></button>
       </div>
     </div>
+    <div class="phub" id="phub">
+      <button type="button" class="hresume" id="hresume"></button>
+      ${GROUPS.map(([g, name, members]) => `<section class="hgroup" aria-label="${name}">
+        ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
+        <div class="hcards">${members.map(card).join("")}</div></section>`).join("")}
+    </div>
+    <div class="pex" id="pex" hidden>
+    <nav class="pnav" aria-label="Çalışma türü">
+      <div class="pbar">
+        <button type="button" class="pback" id="pback">${ICON.back}<span>${L("Çalışma", "Practice")}</span></button>
+        <h2 class="ptitle" id="ptitle"></h2>
+      </div>
+      <div class="psubs" role="tablist" aria-label="Çalışma türü">
+        ${TABS.map(([id, name]) => `<button type="button" role="tab" id="tab-${id}" aria-controls="pp-${id}" data-tab="${id}">${name}</button>`).join("")}
+      </div>
+    </nav>
     <div class="tools">
       <div class="tool" id="tmet">
         <div class="thead">
@@ -79,15 +115,8 @@
         </div>
       </div>
     </div>
-    <nav class="pnav" aria-label="Çalışma türü">
-      <div class="pgroups" role="tablist" aria-label="${L("Çalışma grubu", "Practice group")}">
-        ${GROUPS.map(([g, name]) => `<button type="button" role="tab" id="pg-${g}" data-group="${g}">${name}</button>`).join("")}
-      </div>
-      <div class="psubs" role="tablist" aria-label="Çalışma türü">
-        ${TABS.map(([id, name]) => `<button type="button" role="tab" id="tab-${id}" aria-controls="pp-${id}" data-tab="${id}">${name}</button>`).join("")}
-      </div>
-    </nav>
     ${TABS.map(([id]) => `<div class="ppanel" role="tabpanel" id="pp-${id}" aria-labelledby="tab-${id}" hidden></div>`).join("")}
+    </div>
   `;
 
   const micNote = $("pmic");
@@ -95,17 +124,17 @@
   SK.on("mic", micHint); micHint();
   async function needMic(){ if(!SK.isListening()) await SK.startMic(); return SK.isListening(); }
 
-  // Araçlar (metronom, dron): başlıkta aç/kapat ve özet; ayarlar katlanır, açık olan hatırlanır
-  const toolsOpen = store.get("tools.open", {});
+  // Araçlar (metronom, dron): başlıkta aç/kapat ve özet; ayarlar katlanır. Alıştırmayı kapatmasın diye
+  // ayarlar her alıştırmada kapalı açılır.
   function setToolOpen(tool, open){
     const sum = tool.querySelector(".tsum");
     tool.classList.toggle("open", open);
     sum.setAttribute("aria-expanded", open ? "true" : "false");
     $(sum.getAttribute("aria-controls")).hidden = !open;
-    toolsOpen[tool.id] = open; store.set("tools.open", toolsOpen);
   }
+  const closeTools = () => root.querySelectorAll(".tool").forEach(tool => setToolOpen(tool, false));
   root.querySelectorAll(".tool").forEach(tool => {
-    setToolOpen(tool, !!toolsOpen[tool.id]);
+    setToolOpen(tool, false);
     tool.querySelector(".tsum").addEventListener("click", () => setToolOpen(tool, !tool.classList.contains("open")));
   });
   const PLAY_LABELS = {
@@ -122,18 +151,17 @@
   // Etkin modül kararlı nota/sessizlik olaylarını alır
   const modules = {};
   let active = null;
-  const lastInGroup = store.get("ptab.last", {});
   const pnav = root.querySelector(".pnav");
   const descs = [];   // telefonda iki satıra kısalan açıklamalar
+  // Ana sayfadan açılan alıştırma tarayıcı geçmişine eklenir: telefonun geri tuşu ana sayfaya döner
+  let pushed = false;
   function selectTab(id, user){
-    if(active && modules[active].leave) modules[active].leave();
+    if(active && active !== id && modules[active].leave) modules[active].leave();
+    const fromHub = active === null;
     active = id; store.set("ptab", id);
-    const [gid, , members] = groupOf(id);
-    lastInGroup[gid] = id; store.set("ptab.last", lastInGroup);
-    GROUPS.forEach(([g]) => {
-      $("pg-"+g).setAttribute("aria-selected", g===gid ? "true" : "false");
-      $("pg-"+g).tabIndex = g===gid ? 0 : -1;
-    });
+    const members = groupOf(id)[2];
+    $("phub").hidden = true; $("pex").hidden = false;
+    $("ptitle").textContent = tabName(id);
     TABS.forEach(([t]) => {
       $("tab-"+t).hidden = !members.includes(t);
       $("tab-"+t).setAttribute("aria-selected", t===id ? "true" : "false");
@@ -141,33 +169,53 @@
       $("pp-"+t).hidden = t!==id;
     });
     pnav.classList.toggle("single", members.length < 2);
-    GROUPS.forEach(([g]) => $("pg-"+g).removeAttribute("aria-controls"));
-    if(members.length < 2) $("pg-"+gid).setAttribute("aria-controls", "pp-"+id);
+    closeTools();
     if(modules[id].enter) modules[id].enter();
     fitDescs();
-    // Yapışkan menü altında kalan uzun bir sayfadan geçilince yeni alıştırma baştan görünsün
     if(user){
-      const top = pnav.getBoundingClientRect().bottom, p = $("pp-"+id).getBoundingClientRect().top;
-      if(p < top) window.scrollBy(0, p - top - 8);
+      const st = history.state || {};
+      if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id }, ""); pushed = true; }
+      else if(st.view === "practice") history.replaceState({ ...st, ex:id }, "");
+      // Yeni alıştırma baştan görünsün
+      if(fromHub) window.scrollTo(0, 0);
+      else{
+        const top = pnav.getBoundingClientRect().bottom, p = $("pp-"+id).getBoundingClientRect().top;
+        if(p < top) window.scrollBy(0, p - top - 8);
+      }
     }
   }
-  const selectGroup = (g, user) => { const m = GROUPS.find(x => x[0]===g)[2]; selectTab(m.includes(lastInGroup[g]) ? lastInGroup[g] : m[0], user); };
-  pnav.addEventListener("click", e => {
-    const g = e.target.closest("[data-group]"), b = e.target.closest("[data-tab]");
-    if(g) selectGroup(g.dataset.group, true);
-    else if(b) selectTab(b.dataset.tab, true);
+  function showHub(){
+    if(active && modules[active].leave) modules[active].leave();
+    active = null; pushed = false;
+    TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
+    $("pex").hidden = true; $("phub").hidden = false;
+    const last = store.get("ptab", "lessons"), r = $("hresume");
+    r.dataset.open = TABS.some(([t]) => t === last) ? last : "lessons";
+    r.innerHTML = `<span><small>${L("Kaldığın yerden devam et", "Pick up where you left off")}</small><b>${tabName(r.dataset.open)}</b></span>${ICON.go}`;
+    window.scrollTo(0, 0);
+  }
+  function back(){
+    if(pushed && history.state && history.state.ex) history.back();
+    else{ if(history.state && history.state.ex){ const { ex, ...st } = history.state; history.replaceState(st, ""); } showHub(); }
+  }
+  $("pback").addEventListener("click", back);
+  $("phub").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if(c) selectTab(c.dataset.open, true); });
+  window.addEventListener("popstate", e => {
+    const st = e.state || {};
+    if(st.view !== "practice") return;
+    if(st.ex && TABS.some(([t]) => t === st.ex)){ if(active !== st.ex) selectTab(st.ex); }
+    else if(active) showHub();
   });
+  // Alt menüde açıkken Çalışma'ya yeniden dokunmak ana sayfaya döndürür
+  const navBtn = document.querySelector('.nav [data-view="practice"]');
+  if(navBtn) navBtn.addEventListener("click", () => { if(document.body.dataset.view === "practice" && active) back(); }, true);
+  pnav.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) selectTab(b.dataset.tab, true); });
   pnav.addEventListener("keydown", e => {
     const step = {ArrowRight:1, ArrowLeft:-1}[e.key];
-    if(!step) return;
+    if(!step || !e.target.closest(".psubs")) return;
     e.preventDefault();
-    if(e.target.closest(".pgroups")){
-      const i = (GROUPS.findIndex(([g]) => g===groupOf(active)[0]) + step + GROUPS.length) % GROUPS.length;
-      selectGroup(GROUPS[i][0], true); $("pg-"+GROUPS[i][0]).focus();
-    }else{
-      const m = groupOf(active)[2], i = (m.indexOf(active) + step + m.length) % m.length;
-      selectTab(m[i], true); $("tab-"+m[i]).focus();
-    }
+    const m = groupOf(active)[2], i = (m.indexOf(active) + step + m.length) % m.length;
+    selectTab(m[i], true); $("tab-"+m[i]).focus();
   });
   $("pgoal").addEventListener("click", () => selectTab("progress", true));
 
@@ -432,6 +480,10 @@
     p.after(b); descs.push([p, b]);
   });
 
+  // Ana ekran kısayolu (?tab=rhythm) alıştırmayı doğrudan açar; yoksa ana sayfa
   const qtab = new URLSearchParams(location.search).get("tab");
-  selectTab(TABS.some(([t]) => t === qtab) ? qtab : TABS.some(([t]) => t === store.get("ptab")) ? store.get("ptab") : "lessons");
+  if(TABS.some(([t]) => t === qtab)){
+    selectTab(qtab);
+    if(history.state && history.state.view === "practice") history.replaceState({ ...history.state, ex:qtab }, "");
+  }else showHub();
 })();

@@ -585,3 +585,69 @@ TRAINERS.progress = function(ctx){
   });
   return { enter: render };
 };
+
+// ---- Dizek haritası: Mi3–Do7 arası doğal notaların sol anahtarlı dizekteki yeri ----
+// Üç satır (Mi3–Si4, Do5–Do6, Re6–Do7) ki telefonda yatay kaydırmadan sığsın; tiz notalar 8va'sız, ek çizgileriyle.
+// Notaya dokununca ses ve parmak; mikrofon açıkken çalınan nota haritada işaretlenir.
+TRAINERS.staffmap = function(ctx){
+  const { SK, $, nn, miniChart, paintMini } = ctx;
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const NAT = [0,2,4,5,7,9,11];
+  const notes = []; for(let w = LOW_NOTE; w <= 96; w++) if(NAT.includes(w % 12)) notes.push(w);
+  const ROWS = [[L("Pes bölge", "Low register"), notes.filter(w => w < 72)], [L("Orta bölge", "Middle register"), notes.filter(w => w >= 72 && w <= 84)],
+                [L("Tiz bölge", "High register"), notes.filter(w => w > 84)]];
+  const stepOf = w => { const p = staffPos(w); return p.ottava ? p.step + 7 : p.step; };
+  // Akılda tutulacak işaret noktaları
+  const MARK = { 60: L("orta Do", "middle C"), 67: L("anahtarın çizgisi", "clef line"), 71: L("orta çizgi", "middle line"), 84: L("2 ek çizgi", "2 ledgers") };
+  const P = $("pp-staffmap");
+  P.innerHTML = `
+    <p class="pdesc">${L("Yazılı notaların dizekteki yeri. Sayı oktavı gösterir ve her Do'da bir artar (Si4'ten sonra Do5 gelir). Bir notaya dokun: sesini duy, parmağını gör. Mikrofon açıkken çaldığın nota haritada yanar.",
+      "Where written notes sit on the staff. The number is the octave and goes up at every C (B4 is followed by C5). Tap a note to hear it and see its fingering. With the microphone on, the note you play lights up.")}</p>
+    <div class="smhint"><span><b>${L("Çizgiler", "Lines")}</b> Mi · Sol · Si · Re · Fa</span><span><b>${L("Aralıklar", "Spaces")}</b> Fa · La · Do · Mi</span>
+      <span>${L("Bir oktav yukarısı çizgiden aralığa (ya da tersine) geçer.", "An octave up always flips line ↔ space.")}</span></div>
+    ${ROWS.map(([name], i) => `<div class="label">${name}</div><div class="smrow" id="smrow${i}"></div>`).join("")}
+    <div class="smpick" id="smpick" hidden><div class="smname" id="smname"></div><div id="smchart"></div></div>`;
+  const svgEl = (tag, attrs, text) => { const e = document.createElementNS(SVGNS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(text) e.textContent = text; return e; };
+  const HS = 4, DX = 26, X0 = 40;
+  const heads = new Map();
+  ROWS.forEach(([, ws], ri) => {
+    const steps = ws.map(stepOf);
+    const top = Math.max(10, ...steps) + 2, bot = Math.min(0, ...steps) - 3;
+    const sy = s => (top - s)*HS + 4, H = sy(bot) + 26, W = X0 + ws.length*DX;
+    const svg = svgEl("svg", { viewBox:`0 0 ${W} ${H}`, class:"smap", role:"group", "aria-label":ROWS[ri][0] });
+    svg.style.width = (W / (X0 + ROWS[0][1].length*DX) * 100) + "%";        // her satırda nota boyu aynı
+    for(let s = 0; s <= 8; s += 2) svg.appendChild(svgEl("line", { class:"sl", x1:2, x2:W-2, y1:sy(s), y2:sy(s) }));
+    svg.appendChild(svgEl("text", { class:"clef", x:4, y:sy(-1.5) }, "𝄞"));
+    ws.forEach((w, i) => {
+      const x = X0 + i*DX + DX/2, st = stepOf(w), name = noteName(w)[LANG === "en" ? "en" : "tr"];
+      const g = svgEl("g", { class:"smn" + (MARK[w] ? " mark" : ""), tabindex:0, role:"button", "aria-label":name + (MARK[w] ? ", " + MARK[w] : "") });
+      g.appendChild(svgEl("rect", { class:"hit", x:x-DX/2, y:0, width:DX, height:H }));
+      for(let s = -2; s >= st; s -= 2) g.appendChild(svgEl("line", { class:"ledger", x1:x-9, x2:x+9, y1:sy(s), y2:sy(s) }));
+      for(let s = 10; s <= st; s += 2) g.appendChild(svgEl("line", { class:"ledger", x1:x-9, x2:x+9, y1:sy(s), y2:sy(s) }));
+      g.appendChild(svgEl("ellipse", { class:"head", cx:x, cy:sy(st), rx:5.4, ry:3.9, transform:`rotate(-20 ${x} ${sy(st)})` }));
+      const t = svgEl("text", { class:"nl", x, y:sy(bot) + 12 });
+      t.appendChild(svgEl("tspan", { x }, name.replace(/\d+$/, "")));
+      t.appendChild(svgEl("tspan", { x, dy:10, class:"oct" }, name.match(/\d+$/)[0]));
+      g.appendChild(t);
+      g.addEventListener("click", () => pick(w));
+      g.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(w); } });
+      heads.set(w, g); svg.appendChild(g);
+    });
+    $("smrow" + ri).appendChild(svg);
+  });
+  const chart = miniChart(); $("smchart").appendChild(chart);
+  function mark(w, cls){ heads.forEach((g, k) => g.classList.toggle(cls, k === w)); }
+  function pick(w){
+    mark(w, "sel");
+    $("smpick").hidden = false;
+    $("smname").innerHTML = `<b>${nn(w)}</b>${MARK[w] ? ` <em>${MARK[w]}</em>` : ""}`;
+    paintMini(chart, FINGERINGS[w]);
+    SK.play(w);
+    setTimeout(() => { if(SK.playing() === w) SK.stopSound(); }, 1200);
+  }
+  return {
+    note(r){ mark(r.inRange ? r.written : null, "live"); },
+    silence(){ mark(null, "live"); },
+    leave(){ mark(null, "live"); }
+  };
+};
