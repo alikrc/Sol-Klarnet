@@ -661,11 +661,12 @@
   // ---- Ham ses tamponu (pcmring.js): süsleme denemeleri bitince 5 ms adımla yeniden çözülür ----
   // off: performance.now() ile ses bağlamı saati arasındaki fark (ms); mesajlar gecikerek gelebildiği için en küçüğü.
   let pcm = null;
+  const pcmTaps = new Set();   // uzun kayıt aboneleri (SK.pcmCapture)
   const busy = [];             // örnek ses ya da dron çalarken geçen aralıklar [başla, bitir] (ms); o ses analiz edilmez
   function markBusy(now){
     const last = busy[busy.length-1];
     if(last && now - last[1] <= 60) last[1] = now; else busy.push([now - 40, now]);
-    while(busy.length && busy[0][1] < now - 10000) busy.shift();
+    while(busy.length && busy[0][1] < now - 40000) busy.shift();   // uzun kayıt (30 sn) için de yetsin
   }
   async function startPcm(src){
     const me = { ring: new PcmRing(Math.round(8*ctx.sampleRate)), off: null, endT: 0, last: 0 }, a = ctx;
@@ -675,6 +676,8 @@
       const now = performance.now(), endMs = (ctxT + data.length/a.sampleRate)*1000;
       me.off = clockOffset(me.off, now - endMs, me.last ? now - me.last : 0); me.last = now;
       me.ring.push(data); me.endT = endMs + me.off;
+      const t = me.endT - data.length/a.sampleRate*1000;
+      pcmTaps.forEach(f => f(data, t));
     };
     const mute = a.createGain(); mute.gain.value = 0; mute.connect(a.destination);
     try{
@@ -906,6 +909,19 @@
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
     pcm: pcmRange,
+    // Uzun kayıt (en çok 30 sn): stop() → { data, sampleRate, t0, busy } ya da mikrofon kapalıysa null
+    pcmCapture(){
+      if(!ctx) return { stop: () => null };
+      const sr = ctx.sampleRate, rec = new PcmRecorder(30*sr), tap = (d, t) => rec.push(d, t);
+      pcmTaps.add(tap);
+      return { stop(){
+        pcmTaps.delete(tap);
+        const r = rec.stop();
+        if(r.t0 === null) return null;
+        const end = r.t0 + r.data.length/sr*1000;
+        return { data: r.data, sampleRate: sr, t0: r.t0, full: r.full, busy: busy.filter(([b, e]) => b < end && e > r.t0).map(x => [...x]) };
+      } };
+    },
     pcmBusy: (fromT, toT) => busy.some(([b, e]) => b < toT && e > fromT),
     minRms: () => sensitivityToRms(settings.sens),
     pitchRange: () => PR

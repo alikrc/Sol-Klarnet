@@ -25,6 +25,23 @@ class PcmRing{
   }
 }
 
+// Uzun kayıt (hız çalışları): blokları sırayla biriktirir, maxSamples'ı aşmaz. t: bloğun ilk örneğinin
+// performance.now() zamanı (ms); stop() ilkini t0 olarak verir.
+class PcmRecorder{
+  constructor(maxSamples){ this.max = maxSamples; this.blocks = []; this.n = 0; this.t0 = null; this.full = false; }
+  push(data, t){
+    if(this.t0 === null) this.t0 = t;
+    const k = Math.min(data.length, this.max - this.n);
+    if(k < data.length) this.full = true;
+    if(k > 0){ this.blocks.push(data.slice(0, k)); this.n += k; }
+  }
+  stop(){
+    const data = new Float32Array(this.n); let o = 0;
+    for(const b of this.blocks){ data.set(b, o); o += b.length; }
+    return { data, t0: this.t0, full: this.full };
+  }
+}
+
 // 128 örneklik worklet bloklarını size örneklik mesajlarda toplar (saniyede ~375 yerine ~45 mesaj).
 // push dolunca { t (ilk bloğun ses saati), data } döner; blok sığmazsa birikmiş kısım gönderilir, blok yeniye başlar.
 class PcmBatch{
@@ -56,4 +73,4 @@ if(typeof registerProcessor !== "undefined"){
   });
 }
 
-if(typeof module !== "undefined") module.exports = { PcmRing, PcmBatch, clockOffset };
+if(typeof module !== "undefined") module.exports = { PcmRing, PcmBatch, PcmRecorder, clockOffset };

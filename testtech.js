@@ -16,6 +16,15 @@ function run(ok){
     ok(S.techPattern({ type:'break', pair:[69,71], sub:2, art:'legato' }).notes.map(n => n.w).join() === '69,71,69,71,69,71,69,71,69', 'register gecisi');
     ok(S.techPattern({ type:'scale', makam:'rast', sub:2, art:'legato' }).label.tr === 'Rast dizisi · sekizlik' && S.patternKey({ type:'scale', makam:'rast', sub:2, art:'legato' }) === 'scale:rast::1:2:legato', 'etiket ve anahtar');
   }
+
+  console.log('\n[38] Kayit');
+  {
+    const { PcmRecorder } = require('./pcmring.js');
+    const rec = new PcmRecorder(5);
+    rec.push(Float32Array.from([1,2]), 100); rec.push(Float32Array.from([3,4]), 150); rec.push(Float32Array.from([5,6]), 200);
+    const out = rec.stop();
+    ok(out.t0 === 100 && out.data.join() === '1,2,3,4,5' && out.full, 'kayit bloklari birlestiriyor, siniri asmiyor');
+  }
 }
 
 module.exports = { run };
