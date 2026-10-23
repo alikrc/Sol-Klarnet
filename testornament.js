@@ -117,9 +117,9 @@ function run(ok){
   console.log('\n[32] Susleme dersleri');
   {
     const D = require('./lessons.js');
-    ok(D.LESSONS.length === 52 && D.LESSONS.filter(l => l.unit === 'susleme').map(l => l.id).join() === 'sus-carpma,sus-carpma-alt,sus-mordan,sus-tril,sus-uslup,sus-ezgi,sus-makam', 'susleme unitesi 7 ders, sirasi dogru', D.LESSONS.length);
+    ok(D.LESSONS.length === 59 && D.LESSONS.filter(l => l.unit === 'susleme').map(l => l.id).join() === 'sus-carpma,sus-carpma-alt,sus-mordan,sus-tril,sus-uslup,sus-ezgi,sus-makam', 'susleme unitesi 7 ders, sirasi dogru', D.LESSONS.length);
     ok(D.LESSONS.indexOf(D.lessonById('sus-makam')) + 1 === D.LESSONS.indexOf(D.lessonById('rast-giris')), 'susleme makamlardan once');
-    ok(D.UNITS.findIndex(u => u.id === 'susleme') === D.UNITS.findIndex(u => u.id === 'teknik') + 1, 'susleme unitesi teknikten sonra');
+    ok(D.UNITS.findIndex(u => u.id === 'susleme') === D.UNITS.findIndex(u => u.id === 'hiz') + 1 && D.UNITS.findIndex(u => u.id === 'hiz') === D.UNITS.findIndex(u => u.id === 'teknik') + 1, 'susleme unitesi teknik ve hizdan sonra');
     ok(D.stepTitle({type:'ornament', kind:'carpma', dir:'up', note:69, n:5}) === 'Süsleme: üstten çarpma · La4 · 5 kez' &&
        D.stepTitle({type:'ornament', kind:'carpma', dir:'up', note:69, n:5}, 'en') === 'Ornament: upper grace note · A4 · 5 times' &&
        D.stepTitle({type:'ornament', kind:'tril', note:67, dir:'up', rate:6, sec:2}) === 'Süsleme: tril · Sol4 · 2 sn · en az 6 dönüş/sn' &&

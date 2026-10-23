@@ -376,7 +376,7 @@ ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.inclu
 
 console.log('\n[22] Dersler');
 const D = require('./lessons.js');
-const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear','piece','ornament'];
+const TYPES = ['listen','hold','notes','quiz','scale','mimic','vibrato','glide','read','rhythm','dynamics','seyir','ear','piece','ornament','tech'];
 const SK2 = require('./skills.js');
 const inR = w => w >= LOW_NOTE && w <= HIGH_NOTE && fingeringsFor(w).length > 0;
 let lsErr = [];
@@ -402,9 +402,11 @@ for(const l of D.LESSONS){
     if(st.type === 'ear' && (!['abx','makam'].includes(st.mode) || st.min > st.n || (st.mode === 'makam' && !(st.pool && st.pool.length >= 4 && st.pool.every(id => L.makamById(id)))))) lsErr.push(tag + ' kulak');
     if(st.type === 'ornament' && (!['carpma','tekrar','mordan','tril','giris','dusus'].includes(st.kind) || !(st.note >= 64 && st.note <= 84) || (st.makam && !L.makamById(st.makam)) ||
        (st.kind === 'tril' ? !(st.rate >= 2 && st.rate <= 12 && st.sec >= 1) : !(st.n >= 1)) || (['carpma','tekrar','mordan'].includes(st.kind) && !['up','down'].includes(st.dir)))) lsErr.push(tag + ' susleme');
+    if(st.type === 'tech' && (!SK2.techPattern(st.pattern) || !(st.start >= 40) || !(st.target > st.start && st.target <= 220))) lsErr.push(tag + ' hiz');
+    if(st.type === 'listen' && st.pattern && (!SK2.techPattern(st.pattern) || !(st.tempo >= 40))) lsErr.push(tag + ' hiz dinle');
     if(st.orn && !(st.type === 'listen' && ['carpma','tekrar','mordan','tril','giris','dusus'].includes(st.orn.kind))) lsErr.push(tag + ' ornek susleme');
     if(st.quality != null && !(st.quality > 0 && st.quality <= 100)) lsErr.push(tag + ' ses kalitesi');
-    if(st.type === 'piece' && (!require('./repertoire.js').etudeById(st.id) || !['tempo','free'].includes(st.mode) || !(st.min >= 0))) lsErr.push(tag + ' eser');
+    if(st.type === 'piece' && (!require('./repertoire.js').etudeById(st.id) || !['tempo','free','ladder'].includes(st.mode) || !(st.min >= 0))) lsErr.push(tag + ' eser');
     // Art arda iki farklı perde aynı yazılı notaya düşerse sırayla çalmada ayırt edilemez
     if(st.commas){ const w = D.stepNotes(st); if(w.some((x, k) => k && x === w[k-1] && st.commas[k] !== st.commas[k-1])) lsErr.push(tag + ' farkli perde ayni yazili nota'); }
     for(const lang of ['tr','en']){ const t = D.stepTitle(st, lang); if(!t || /undefined|null|NaN/.test(t)) lsErr.push(tag + ' baslik ' + lang + ': ' + t); }

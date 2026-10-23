@@ -84,6 +84,30 @@ function run(ok){
     const R = require('./repertoire.js');
     ok(R.pieceClean({ pitchRate:0.92, mean:-30, sd:40 }) && !R.pieceClean({ pitchRate:0.92, mean:70, sd:40 }) && !R.pieceClean({ pitchRate:0.85, mean:0, sd:10 }), 'eserde temiz calis');
   }
+
+  console.log('\n[42] Hiz dersleri');
+  {
+    const D = require('./lessons.js');
+    ok(D.LESSONS.length === 59 && D.LESSONS.filter(l => l.unit === 'hiz').map(l => l.id).join() === 'hiz-metronom,hiz-artik,hiz-parmak,hiz-arpej,hiz-16lik,hiz-makam,hiz-etut', 'hiz unitesi 7 ders', D.LESSONS.length);
+    ok(D.LESSONS.indexOf(D.lessonById('hiz-etut')) + 1 === D.LESSONS.indexOf(D.lessonById('sus-carpma')) && D.UNITS.map(u => u.id).join().includes('teknik,hiz,susleme'), 'hiz teknik ile susleme arasinda');
+    ok(D.stepTitle({ type:'tech', pattern:{ type:'scale', makam:'rast', sub:2, art:'legato' }, start:60, target:80 }) === 'Hız: Rast dizisi · sekizlik · ♩=60 → 80' &&
+       D.stepTitle({ type:'tech', pattern:{ type:'scale', makam:'rast', sub:2, art:'legato' }, start:60, target:80 }, 'en') === 'Speed: Rast scale · eighths · ♩=60 → 80', 'tech basligi');
+    ok(D.stepOk({ type:'tech', target:80 }, { v:80 }) && !D.stepOk({ type:'tech', target:80 }, { v:76 }) && D.stepOk({ type:'piece', mode:'ladder', min:100 }, { v:100 }) && !D.stepOk({ type:'piece', mode:'ladder', min:100 }, { v:95 }), 'gecme kosullari');
+    const p = {}, fin = id => { const l = D.lessonById(id); p[id] = { s: Object.fromEntries(l.steps.map((_, i) => [i, { v:999, ok:true }])) }; };
+    D.LESSONS.filter(l => l.unit === 'temel' || l.unit === 'klarino').forEach(l => fin(l.id));
+    const hm = D.lessonById('hiz-metronom');
+    ok(!D.unlocked(hm, p), 'temel ve klarino bitince hiz hala kilitli');
+    fin('artikulasyon');
+    ok(D.unlocked(hm, p) && !D.unlocked(D.lessonById('hiz-artik'), p), 'dil vurusu bitince ilk hiz dersi acik, ikincisi kilitli');
+    fin('hiz-metronom');
+    const dp = D.dailyPlan({ prog:p, intStats:{}, quizStats:{}, day:'2026-10-24', techBest:{ 'scale:rast::1:2:legato':84 } });
+    const ts = dp.steps.find(s => s.type === 'tech');
+    ok(ts && ts.start === 76 && ts.target === 88, 'gunluk planda hiz: son en iyinin 8 alti, 3 basamak', JSON.stringify(ts));
+    ok(!D.dailyPlan({ prog:{}, intStats:{}, quizStats:{}, day:'2026-10-24' }).steps.some(s => s.type === 'tech'), 'hiz dersi bitmeden gunluk planda hiz yok');
+    // Süsleme ünitesinin açılması değişmedi
+    const ps = {}; D.LESSONS.filter(l => l.unit === 'temel' || l.unit === 'klarino').forEach(l => { ps[l.id] = p[l.id]; }); ps.glissando = { s: Object.fromEntries(D.lessonById('glissando').steps.map((_, i) => [i, { v:999, ok:true }])) }; ps.artikulasyon = p.artikulasyon;
+    ok(D.unlocked(D.lessonById('sus-carpma'), ps), 'susleme hiz unitesini beklemiyor');
+  }
 }
 
 module.exports = { run };

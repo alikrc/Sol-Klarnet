@@ -22,6 +22,7 @@
 const LCORE = typeof module !== "undefined" ? require("./core.js") : { noteName, nearestPerde };
 // Etütler repertoire.js'te; Node'da gerektiğinde yüklenir (tarayıcıda repertoire.js lessons.js'ten sonra gelir)
 const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : { etudeById };
+const LSK = () => typeof module !== "undefined" ? require("./skills.js") : { techPattern, patternKey };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
   : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS };
 
@@ -30,6 +31,7 @@ const UNITS = [
   { id:"temel",  name:{ tr:"Temeller", en:"Basics" } },
   { id:"klarino", name:{ tr:"Register ve klarino", en:"Register and clarion" } },
   { id:"teknik", name:{ tr:"Teknik ve üslup", en:"Technique and style" } },
+  { id:"hiz", name:{ tr:"Hız ve teknik", en:"Speed and technique" } },
   { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" } },
   { id:"makam",  name:{ tr:"Makamlar", en:"Makams" } },
   { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" } }
@@ -861,18 +863,131 @@ const SUSLEME = [
     ] }
 ];
 
+// ---- Hız ve teknik ünitesi ----
+// tech adımı: { pattern (skills.js techPattern), start, target } — tempo merdiveni target'a ulaşınca geçer.
+// Her kalıptan önce dinleme adımı kalıbı hedef tempoda çalar.
+const techSteps = (pattern, start, target) => [{ type:"listen", pattern, tempo:target }, { type:"tech", pattern, start, target }];
+const HIZ = [
+  { id:"hiz-metronom", unit:"hiz", notes:[],
+    title:{ tr:"Metronomla dizi", en:"Scales with the metronome" },
+    text:[
+      { tr:"Hızlı çalmanın yolu yavaş ve temiz çalmaktan geçer. Bu ünitede bir kalıbı metronomla çalarsın; temiz çalınca tempo birkaç vuruş artar, iki kez üst üste zorlanırsan iner. Böylece her gün sınırının hemen altında çalışırsın.",
+        en:"The road to playing fast goes through playing slowly and cleanly. In this unit you play a pattern with the metronome; when it is clean the tempo goes up a few beats, and if you struggle twice in a row it comes down. That way you always work just below your limit." },
+      { tr:"Temiz çalış: notaların en az %90'ı doğru, notalar vuruşun üstünde ve hepsi eşit uzunlukta. Uygulama her çalıştan sonra en büyük sorunu söyler.",
+        en:"A clean run: at least 90% of the notes right, on the beat and all equally long. After every run the app tells you the biggest problem." }
+    ],
+    tips:[
+      { tr:"Parmakları deliklerin hemen üstünde tut; yüksek kaldırılan parmak geç döner.", en:"Keep your fingers just above the holes; a finger lifted high comes back late." },
+      { tr:"Omuzlar ve çene gevşek kalsın; hız gerginlikten değil düzenden gelir.", en:"Keep shoulders and jaw loose; speed comes from evenness, not tension." }
+    ],
+    steps:[
+      ...techSteps({ type:"scale", makam:"rast", sub:2, art:"legato" }, 60, 80),
+      ...techSteps({ type:"scale", base:60, mode:"major", sub:2, art:"legato" }, 60, 80)
+    ] },
+  { id:"hiz-artik", unit:"hiz", notes:[],
+    title:{ tr:"Bağlı ve dille", en:"Slurred and tongued" },
+    text:[
+      { tr:"Aynı diziyi önce bağlı (tek nefeste, dilsiz), sonra her notayı dille ayırarak çal. Dille çalarken dil hafifçe kamışa dokunur; hava kesilmez.",
+        en:"Play the same scale first slurred (one breath, no tongue), then separating every note with the tongue. When tonguing, the tongue touches the reed lightly; the air never stops." },
+      { tr:"Hızlı dille çalışta dil ile parmak aynı anda hareket etmeli. Uygulama dille çalışta notaları ses düzeyindeki kısa düşüşlerden ayırır.",
+        en:"In fast tonguing, tongue and fingers must move together. In tongued runs the app separates the notes by the short dips in loudness." }
+    ],
+    tips:[
+      { tr:"Dil vuruşu kısa ve hafif olsun: \"ta\" değil \"da\".", en:"Keep the tongue stroke short and light: \"da\" rather than \"ta\"." }
+    ],
+    steps:[
+      ...techSteps({ type:"scale", makam:"rast", sub:2, art:"legato" }, 70, 90),
+      ...techSteps({ type:"scale", makam:"rast", sub:2, art:"tongue" }, 70, 90)
+    ] },
+  { id:"hiz-parmak", unit:"hiz", notes:[],
+    title:{ tr:"Parmak çevikliği", en:"Finger agility" },
+    text:[
+      { tr:"Dörtlü gruplar diziyi dörder nota ilerleterek parmakların her geçişi tek tek çalışmasını sağlar. Register geçişi ise klarnetin en zor yeridir: boğaz notalarından klarino bölgesine geçerken bütün parmaklar aynı anda kapanmalı.",
+        en:"Four-note groups move through the scale four notes at a time so every finger change gets practised. Crossing the break is the hardest spot on the clarinet: going from the throat notes into the clarion register, all fingers must close at the same moment." },
+      { tr:"Geçişte takılıyorsan iki notayı yavaşça, parmakları birlikte indirmeye odaklanarak tekrar et.",
+        en:"If you stumble at the break, repeat the two notes slowly, focusing on putting the fingers down together." }
+    ],
+    tips:[
+      { tr:"Geçişte havayı kesme; parmaklar değişirken hava aynı hızla aksın.", en:"Don't stop the air at the break; keep it flowing at the same speed while the fingers change." }
+    ],
+    steps:[
+      ...techSteps({ type:"groups", base:67, mode:"major", sub:4, art:"legato" }, 50, 70),
+      ...techSteps({ type:"break", pair:[69, 71], sub:4, art:"legato" }, 60, 80),
+      ...techSteps({ type:"break", pair:[70, 72], sub:4, art:"legato" }, 60, 80)
+    ] },
+  { id:"hiz-arpej", unit:"hiz", notes:[],
+    title:{ tr:"Arpejler ve üçlüler", en:"Arpeggios and thirds" },
+    text:[
+      { tr:"Arpej, bir akorun seslerini sırayla çalmaktır: kök, üçlü, beşli, oktav. Dizideki adım adım hareketten farklı olarak atlamalar parmaklardan daha büyük değişimler ister.",
+        en:"An arpeggio plays the notes of a chord one after another: root, third, fifth, octave. Unlike stepwise scales, the leaps ask for bigger finger changes." },
+      { tr:"Üçlü atlamalar makam müziğinde de sık görülür; Rast dizisinde birer basamak atlayarak çıkıp inersin.",
+        en:"Leaps of a third are common in makam music too; you climb and descend the Rast scale skipping one step each time." }
+    ],
+    tips:[
+      { tr:"Atlamada dudağı sıkma; havayı biraz hızlandırmak yeter.", en:"Don't pinch on the leaps; slightly faster air is enough." }
+    ],
+    steps:[
+      ...techSteps({ type:"arp", base:67, mode:"major", sub:2, art:"legato" }, 60, 84),
+      ...techSteps({ type:"arp", base:57, mode:"minor", sub:2, art:"legato" }, 60, 84),
+      ...techSteps({ type:"thirds", makam:"rast", sub:2, art:"legato" }, 60, 80)
+    ] },
+  { id:"hiz-16lik", unit:"hiz", notes:[],
+    title:{ tr:"On altılıklar", en:"Sixteenth notes" },
+    text:[
+      { tr:"On altılıkta her vuruşa dört nota düşer. Önce yavaş bir tempoda, vuruşun başındaki notayı hafifçe vurgulayarak çal; dörtlü gruplar kulağında sayılmayı kolaylaştırır.",
+        en:"In sixteenths four notes fall on every beat. Start at a slow tempo and lightly accent the note on the beat; hearing the groups of four makes counting easier." },
+      { tr:"İki oktavlık gamda register geçişi hızda gelir; geçişi önceki dersteki gibi hazırlamış olman burada işe yarar.",
+        en:"In the two-octave scale the break comes at speed; the work you did on it in the previous lesson pays off here." }
+    ],
+    tips:[
+      { tr:"Nefesi gamın başında al; ortada nefes almak zorunda kalırsan tempoyu düşür.", en:"Breathe before the scale; if you have to breathe in the middle, lower the tempo." }
+    ],
+    steps:[
+      ...techSteps({ type:"scale", makam:"rast", sub:4, art:"legato" }, 60, 80),
+      ...techSteps({ type:"scale", base:55, mode:"major", octaves:2, sub:4, art:"legato" }, 50, 70)
+    ] },
+  { id:"hiz-makam", unit:"hiz", notes:[],
+    title:{ tr:"Makam dizileri hızda", en:"Makam scales at speed" },
+    text:[
+      { tr:"Hızlı çalarken de perdeler yerinde olmalı: Uşşak'ta Segâh, Hicaz'da Dik Kürdî ve Nim Hicaz, Nihâvend'de Kürdî. Uygulama yanlış perdeyi yanlış nota sayar.",
+        en:"The perdes must stay in place at speed too: Segâh in Uşşak, Dik Kürdî and Nim Hicaz in Hicaz, Kürdî in Nihâvend. The app counts a wrong perde as a wrong note." }
+    ],
+    tips:[
+      { tr:"Önce diziyi yavaşça dronla çal, sonra merdivene geç.", en:"Play the scale slowly against the drone first, then start the ladder." }
+    ],
+    steps:[
+      ...techSteps({ type:"scale", makam:"ussak", sub:4, art:"legato" }, 70, 90),
+      ...techSteps({ type:"scale", makam:"hicaz", sub:4, art:"legato" }, 70, 90),
+      ...techSteps({ type:"scale", makam:"nihavend", sub:4, art:"legato" }, 70, 90)
+    ] },
+  { id:"hiz-etut", unit:"hiz", notes:[],
+    title:{ tr:"Hızlı etüt", en:"Fast étude" },
+    text:[
+      { tr:"Bu Hicaz oyun havası pasajı sekizliklerle ♩=120'de çalınır. Merdiven %60 tempodan başlar; her temiz çalışta %5 hızlanır.",
+        en:"This Hicaz dance passage is played in eighths at ♩=120. The ladder starts at 60% tempo and speeds up 5% after every clean run." }
+    ],
+    tips:[
+      { tr:"9/8'in uzun vuruşunu (son üç sekizlik) hissederek çal; hızda ölçü dağılmasın.", en:"Feel the long beat of 9/8 (the last three eighths); don't let the bar fall apart at speed." }
+    ],
+    steps:[
+      { type:"piece", id:"e-hiz-hicaz", mode:"ladder", min:100 }
+    ] }
+];
+
 // Yeni dersleri müfredattaki yerlerine yerleştir
 LESSONS.unshift(...BASLANGIC);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "vibrato") + 1, 0, ...TEKNIK2);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "huzzam") + 1, 0, ...MAKAM2);
 LESSONS.push(...ILERI);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "rast-giris"), 0, ...SUSLEME);
+LESSONS.splice(LESSONS.findIndex(l => l.id === "sus-carpma"), 0, ...HIZ);
 
 const lessonById = id => LESSONS.find(l => l.id === id) || null;
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // Adımın yazılı notaları (çalma ya da dinleme için)
 function stepNotes(step){
+  if(step.pattern){ const p = LSK().techPattern(step.pattern); return p ? p.notes.map(n => n.w) : []; }
   if(step.notes) return step.notes;
   if(step.commas) return step.commas.map(LLEARN.commaToWritten);
   return [];
@@ -905,7 +1020,9 @@ function stepTitle(step, lang = "tr"){
   };
   const mk = step.makam ? LLEARN.makamById(step.makam).name : null;
   switch(step.type){
-    case "listen": return (en ? "Listen: " : "Dinle: ") + (step.orn ? pick(ornName(step.orn), lang) + " · " : "") + seq();
+    case "listen": if(step.pattern) return (en ? "Listen: " : "Dinle: ") + pick(LSK().techPattern(step.pattern).label, lang) + " · ♩=" + step.tempo;
+      return (en ? "Listen: " : "Dinle: ") + (step.orn ? pick(ornName(step.orn), lang) + " · " : "") + seq();
+    case "tech": return (en ? "Speed: " : "Hız: ") + pick(LSK().techPattern(step.pattern).label, lang) + " · ♩=" + step.start + " → " + step.target;
     case "ornament": {
       const what = (en ? "Ornament: " : "Süsleme: ") + pick(ornName(step), lang) + " · " + nn(step.note) + (step.comma != null ? " (" + LLEARN.perdeName(step.comma) + ")" : "");
       return step.kind === "tril" ? what + " · " + step.sec + (en ? " s · at least " + step.rate + " turns/s" : " sn · en az " + step.rate + " dönüş/sn")
@@ -926,6 +1043,7 @@ function stepTitle(step, lang = "tr"){
     case "glide": return (en ? "Glissando: " : "Glissando: ") + nn(step.from) + " → " + nn(step.to) + " · " + step.n + (en ? " times" : " kez");
     case "read": return (en ? "Read: " : "Oku: ") + pick(step.title, lang);
     case "piece": { const e = LREP().etudeById(step.id);
+      if(step.mode === "ladder") return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + (en ? " · tempo ladder · up to " + step.min + "%" : " · tempo merdiveni · %" + step.min + "'e kadar");
       return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
         : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru")); }
     case "rhythm": {
@@ -952,6 +1070,7 @@ function stepOk(step, res){
     case "rhythm": case "seyir": case "ear": return v >= step.min;
     case "dynamics": return v >= 1;
     case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
+    case "tech": return v >= step.target;
     case "notes": return v <= step.maxMiss;
     case "quiz": return v >= step.min;
     case "scale": return v >= step.min;
@@ -1001,6 +1120,12 @@ function unlocked(lesson, prog, all = false){
   if(i <= 0) return true;
   const base = () => LESSONS.filter(l => l.unit === "temel" || l.unit === "klarino").every(l => lessonDone(l, prog));
   if(lesson.unit === "teknik") return base();
+  // Hız ve teknik: dil vuruşu gerekir, ünite içinde sırayla
+  if(lesson.unit === "hiz"){
+    if(LESSONS[i-1].unit === "hiz") return lessonDone(LESSONS[i-1], prog);
+    const art = lessonById("artikulasyon");
+    return base() && !!art && lessonDone(art, prog);
+  }
   // Süsleme: glissando ve dil vuruşu gerekir, ünite içinde sırayla; son ders Uşşak ve Hicaz'ı da ister
   if(lesson.unit === "susleme"){
     const d = id => { const l = lessonById(id); return !!l && lessonDone(l, prog); };
@@ -1103,6 +1228,13 @@ function dailyPlan(ctx){
   // 9. Süsleme: bitirilen süsleme derslerinden birinin ilk süsleme adımı
   const sus = LESSONS.filter(l => l.unit === "susleme" && lessonDone(l, ctx.prog) && l.steps.some(s => s.type === "ornament"));
   if(done("sus-carpma") && sus.length) steps.push({ ...sus[Math.floor(rng()*sus.length)].steps.find(s => s.type === "ornament") });
+  // 10. Hız: bitirilen hız derslerinden birinin ilk kalıbı, son en iyinin 8 altından üç basamak (ctx.techBest: { [patternKey]: tempo })
+  const hz = LESSONS.filter(l => l.unit === "hiz" && lessonDone(l, ctx.prog) && l.steps.some(s => s.type === "tech"));
+  if(done("hiz-metronom") && hz.length){
+    const st = hz[Math.floor(rng()*hz.length)].steps.find(s => s.type === "tech");
+    const best = (ctx.techBest || {})[LSK().patternKey(st.pattern)], start = best ? best - 8 : st.start;
+    steps.push({ ...st, start, target: start + 12 });
+  }
   return { id:"daily", unit:null, notes:[], daily:true,
            title:{ tr:"Bugünün çalışması", en:"Today's practice" },
            text:[{ tr:"Bitirdiğin derslerden her gün yeniden kurulan kısa bir program: zorlandığın notalar ve perdeler öne çıkar.",
