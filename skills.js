@@ -560,6 +560,24 @@ function techPattern(spec){
   return { notes: seq.map(n => ({ ...n, d })), meter:[4,4],
            label:{ tr: what.tr + " · " + SUB_NAMES[spec.sub].tr + extra("tr"), en: what.en + " · " + SUB_NAMES[spec.sub].en + extra("en") } };
 }
+// Çalıştaki notalar (5 ms'lik iz): bağlı çalışta perde değişimi, dille çalışta perdesiz ya da sesi düşen aralık nota
+// sınırıdır. Aynı perdeye, sesi düşmeden kısa bir kesintiyle dönen parçalar (metronom tıkı) birleştirilir.
+// Dönen: [{ t (nota başı, iz zamanı ms), end, comma }]
+function runNotes(track){
+  if(!track.length) return [];
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5, fix = track.winMs ? Math.max(0, (track.winMs - hop)/2) : 0;
+  const rmsIn = (a, b) => track.filter(f => f.t >= a && f.t <= b).map(f => f.rms);
+  const out = [];
+  for(const p of microNotes(track, ORN.near, 30)){
+    const q = out[out.length-1];
+    if(q && Math.abs(p.comma - q.comma) <= 1.5 && p.start - q.end <= 50){
+      const peak = Math.max(...rmsIn(q.start, q.end)), gap = rmsIn(q.end + hop/2, p.start - hop/2);
+      if(!gap.length || Math.min(...gap) >= 0.45*peak){ q.end = p.end; continue; }
+    }
+    out.push({ start:p.start, end:p.end, comma:p.comma });
+  }
+  return out.filter(p => partMs(track, p.start, p.end) >= 40).map(p => ({ t: p.start - fix, end: p.end, comma: p.comma }));
+}
 const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1, spec.sub, spec.art].join(":");
 
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
@@ -570,7 +588,7 @@ function ornamentScore(results){
 
 if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey,
+  techPattern, patternKey, runNotes,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

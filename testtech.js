@@ -25,6 +25,25 @@ function run(ok){
     const out = rec.stop();
     ok(out.t0 === 100 && out.data.join() === '1,2,3,4,5' && out.full, 'kayit bloklari birlestiriyor, siniri asmiyor');
   }
+
+  const A = require('./testaudio.js');
+  const P = S.techPattern({ type:'scale', makam:'rast', sub:4, art:'legato' });
+  console.log('\n[39] Calista notalar');
+  {
+    const run = (o, tempo = 90) => { const a = A.techAudio(P.notes, tempo, { seed:1, ...o });
+      const tr = S.ornamentTrack(a.pcm, a.srate, { T: o.T || 5, expectHz:300 }); return { a, n: S.runNotes(tr) }; };
+    ok(run({}).n.length === 15, 'bagli on altilik ♩=90: 15 nota', run({}).n.length);
+    ok(run({}, 140).n.length === 15, 'bagli on altilik ♩=140 (107 ms): 15 nota', run({}, 140).n.length);
+    ok(run({ art:'tongue' }).n.length === 15, 'dille on altilik: 15 nota', run({ art:'tongue' }).n.length);
+    const rep = A.techAudio([{ w:69, d:0.5 }, { w:69, d:0.5 }, { w:69, d:0.5 }, { w:69, d:0.5 }], 90, { seed:2, art:'tongue' });
+    const rn = S.runNotes(S.ornamentTrack(rep.pcm, rep.srate, { T:5, expectHz:300 }));
+    ok(rn.length === 4, 'dille ayni notanin tekrari: 4 nota', rn.length);
+    const ck = A.techAudio(P.notes, 90, { seed:3 }); A.addClicks(ck.pcm, ck.srate, [0,1,2,3,4,5].map(k => k*667 + 30));
+    const cn = S.runNotes(S.ornamentTrack(ck.pcm, ck.srate, { T:5, expectHz:300 }));
+    ok(cn.length === 15, 'metronom tiki nota sayilmiyor', cn.length);
+    const t2 = run({ T:2 });
+    ok(t2.n.length === 15 && Math.abs(t2.n[0].comma - 0) < 1, 'baska calgida (T=2) ayni yazili notalar', t2.n.length);
+  }
 }
 
 module.exports = { run };

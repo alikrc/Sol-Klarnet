@@ -85,4 +85,33 @@ function ornamentAudio(segs, opts = {}){
   return { pcm, srate };
 }
 
-module.exports = { rng, PROFILES, highpass, voice, randomCase, ornamentAudio };
+// Hız çalışı: notes [{ w, c?, d (dörtlük) }] tempoda, 100 ms sessizlikten sonra. starts: notaların beklenen başları (ms).
+// opts: art "tongue" (her notanın son 25 ms'i sus), jitter (süreler ±oran/2 rastgele), rush (her nota oran kadar kısa:
+// tempo kaçar), wrong { i, w }, skip [i] (nota yerine sus), extra { after, w } (notanın ikinci yarısı başka nota),
+// T, seed, srate.
+function techAudio(notes, tempo, opts = {}){
+  const r = rng((opts.seed || 1) + 7), segs = [], starts = [];
+  let t = 100;
+  notes.forEach((n, i) => {
+    const ms = n.d*60000/tempo; starts.push(t); t += ms;
+    let play = ms*(1 - (opts.rush || 0))*(1 + (opts.jitter || 0)*(r() - 0.5));
+    const pitch = opts.wrong && opts.wrong.i === i ? { w: opts.wrong.w } : n.c != null ? { comma: n.c } : { w: n.w };
+    if(opts.skip && opts.skip.includes(i)){ segs.push({ rest:true, ms: play }); return; }
+    const tongue = opts.art === "tongue" ? 25 : 0;
+    if(opts.extra && opts.extra.after === i){ segs.push({ ...pitch, ms: play/2 }, { w: opts.extra.w, ms: play/2 - tongue }); }
+    else segs.push({ ...pitch, ms: play - tongue });
+    if(tongue) segs.push({ rest:true, ms: tongue });
+  });
+  segs.push({ rest:true, ms:200 });
+  const a = ornamentAudio(segs, { seed: opts.seed || 1, T: opts.T, srate: opts.srate, gapMs:100 });
+  return { ...a, starts };
+}
+// Metronom sızıntısı: her zamana (ms) 3 ms'lik geniş bantlı tık
+function addClicks(pcm, srate, timesMs, amp = 0.4){
+  const r = rng(99);
+  for(const t of timesMs){ const i0 = Math.round(t*srate/1000), n = Math.round(0.003*srate);
+    for(let i=0;i<n && i0+i<pcm.length;i++) pcm[i0+i] += amp*(r()*2 - 1)*(1 - i/n); }
+  return pcm;
+}
+
+module.exports = { rng, PROFILES, highpass, voice, randomCase, ornamentAudio, techAudio, addClicks };
