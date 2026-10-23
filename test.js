@@ -630,6 +630,7 @@ const R = require('./repertoire.js');
   ok(al2.missed === 2, 'calinmayan notalar kacan sayiliyor');
 
   require('./testornament.js').run(ok);
+  require('./testtech.js').run(ok);
 
   console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
   process.exit(fail?1:0);

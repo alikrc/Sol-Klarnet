@@ -2,7 +2,7 @@
 // ses kalitesi, dinamik (crescendo/decrescendo), seyir analizi ve kulak eğitimi soru üreticileri.
 // Tarayıcıda lessons.js'ten sonra <script src="skills.js"> ile, Node'da require("./skills.js") ile yüklenir.
 
-const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi };
+const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi, noteName };
 const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, mean, sd, commaToWritten, perdeName };
 
 // ---- Nota başı (onset) bulma ----
@@ -503,6 +503,65 @@ function ornamentUnmeasured(reason, kind){
 function ornamentAmbiguous(prevComma, spec){
   return spec.kind === "carpma" && prevComma != null && Math.abs(prevComma - ornamentNeighbor(spec)) <= ORN.near;
 }
+// ---- Hız ve teknik ----
+// Teknik kalıpları kurallarla üretilir: makam dizisi ya da Batı gamı, arpej, üçlü atlama, dörtlü grup, register geçişi.
+// spec: { type, makam?, base? (yazılı), mode?: "major"|"minor", octaves?: 1|2, sub: 2|3|4, art: "legato"|"tongue", pair?: [w,w] }
+// Dönen: { notes:[{ w, c, d }], meter, label:{ tr, en } } ya da kalıp yazılı Mi3–Do6 dışına taşarsa null.
+const TECH_LOW = 52, TECH_HIGH = 84;
+const SCALE_STEPS = { major:[2,2,1,2,2,2,1], minor:[2,1,2,2,1,2,2] };
+const SUB_NAMES = { 2:{ tr:"sekizlik", en:"eighths" }, 3:{ tr:"triole", en:"triplets" }, 4:{ tr:"on altılık", en:"sixteenths" } };
+function techPattern(spec){
+  const oct = spec.octaves || 1, d = 1/spec.sub;
+  const mk = spec.makam ? SLEARN.makamById(spec.makam) : null;
+  const W = w => ({ w, c:null }), C = c => ({ w: SLEARN.commaToWritten(c), c });
+  // Dizi basamakları (artan sırada): çıkış ve iniş ayrı (makamlarda inişte farklı perde olabilir)
+  const stepsOf = list => { const out = [...list]; for(let k=1;k<oct;k++) out.push(...list.slice(1).map(c => c + 53*k)); return out; };
+  let up, dn;
+  if(mk){ up = stepsOf(mk.asc).map(C); dn = stepsOf(mk.desc).map(C); }
+  else if(spec.base != null){
+    const st = SCALE_STEPS[spec.mode || "major"], ws = [spec.base];
+    for(let k=0;k<7*oct;k++) ws.push(ws[ws.length-1] + st[k % 7]);
+    up = dn = ws.map(W);
+  }
+  const rev = a => [...a].reverse();
+  let seq = [];
+  switch(spec.type){
+    case "scale": seq = [...up, ...rev(dn).slice(1)]; break;
+    case "arp": {
+      const iv = spec.mode === "minor" ? [0,3,7,12] : [0,4,7,12];
+      const all = oct === 2 ? [...iv, ...iv.slice(1).map(x => x + 12)] : iv;
+      seq = [...all, ...rev(all).slice(1)].map(x => W(spec.base + x));
+      break;
+    }
+    case "thirds":
+      for(let i=0;i+2<up.length;i++) seq.push(up[i], up[i+2]);
+      for(let i=dn.length-1;i-2>=0;i--) seq.push(dn[i], dn[i-2]);
+      break;
+    case "groups":
+      for(let i=0;i+3<up.length;i++) seq.push(...up.slice(i, i+4));
+      seq.push(up[up.length-1]);
+      break;
+    case "break":
+      for(let k=0;k<4;k++) seq.push(W(spec.pair[0]), W(spec.pair[1]));
+      seq.push(W(spec.pair[0]));
+      break;
+  }
+  if(!seq.length || seq.some(n => !(n.w >= TECH_LOW && n.w <= TECH_HIGH))) return null;
+  const tone = lang => SCORE.noteName(spec.base)[lang].replace(/-?\d+$/, "");
+  const key = { major:{ tr:"majör", en:"major" }, minor:{ tr:"minör", en:"minor" } }[spec.mode || "major"];
+  const what = {
+    scale: () => mk ? { tr: mk.name + " dizisi", en: mk.name + " scale" } : { tr: tone("tr") + " " + key.tr + " gamı", en: tone("en") + " " + key.en + " scale" },
+    arp: () => ({ tr: tone("tr") + " " + key.tr + " arpej", en: tone("en") + " " + key.en + " arpeggio" }),
+    thirds: () => mk ? { tr: mk.name + " üçlü atlamalar", en: mk.name + " in thirds" } : { tr: tone("tr") + " " + key.tr + " üçlü atlamalar", en: tone("en") + " " + key.en + " in thirds" },
+    groups: () => mk ? { tr: mk.name + " dörtlü gruplar", en: mk.name + " four-note groups" } : { tr: tone("tr") + " " + key.tr + " dörtlü gruplar", en: tone("en") + " " + key.en + " four-note groups" },
+    break: () => spec.pair ? { tr: "Register geçişi " + SCORE.noteName(spec.pair[0]).tr + "–" + SCORE.noteName(spec.pair[1]).tr, en: "Register crossing " + SCORE.noteName(spec.pair[0]).en + "–" + SCORE.noteName(spec.pair[1]).en } : null
+  }[spec.type]();
+  const extra = lang => (oct === 2 ? (lang === "tr" ? " · 2 oktav" : " · 2 octaves") : "") + (spec.art === "tongue" ? (lang === "tr" ? " · dille" : " · tongued") : "");
+  return { notes: seq.map(n => ({ ...n, d })), meter:[4,4],
+           label:{ tr: what.tr + " · " + SUB_NAMES[spec.sub].tr + extra("tr"), en: what.en + " · " + SUB_NAMES[spec.sub].en + extra("en") } };
+}
+const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1, spec.sub, spec.art].join(":");
+
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
 function ornamentScore(results){
   const m = results.filter(r => r.measured), found = m.filter(r => r.ok).length;
@@ -511,6 +570,7 @@ function ornamentScore(results){
 
 if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
+  techPattern, patternKey,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };
