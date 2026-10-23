@@ -23,7 +23,7 @@ TRAINERS.lessons = function(ctx){
     const day = dayKey(new Date());
     // Gün içinde hiçbir adıma başlanmadıysa plan yeniden kurulur (o arada bitirilen dersler de girsin)
     if(!daily || daily.day !== day || !Object.keys(daily.p.s).length){
-      const plan = dailyPlan({ prog, intStats, quizStats: store.get("quiz.stats", {}), day });
+      const plan = dailyPlan({ prog, intStats, quizStats: store.get("quiz.stats", {}), day, techBest: techBestMap(store) });
       daily = { day, plan: plan.steps, p:{ s:{} } };
       store.set("lesson.daily", daily);
     }
@@ -71,12 +71,13 @@ TRAINERS.lessons = function(ctx){
       case "rhythm": case "seyir": return r.v + L(" puan", " points");
       case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
       case "ear": return r.v + "/" + st.n;
-      case "piece": return st.mode === "free" ? r.v + L(" hata", " mistakes") : "%" + r.v;
+      case "piece": return st.mode === "free" ? r.v + L(" hata", " mistakes") : st.mode === "ladder" ? "%" + r.v + L(" tempo", " tempo") : "%" + r.v;
+      case "tech": return "♩=" + r.v;
       case "ornament": return st.kind === "tril" ? num(r.v) + L(" dönüş/sn", " turns/s") : r.v + "/" + st.n;
     }
     return "";
   }
-  const canHear = st => ["notes", "scale", "hold", "vibrato", "ornament"].includes(st.type);
+  const canHear = st => ["notes", "scale", "hold", "vibrato", "ornament", "tech"].includes(st.type);
   function stepHead(st, i, r){
     return `<span class="lsnum">${r && r.ok ? "✓" : i+1}</span><span class="lsname">${esc(stepTitle(st, LANG))}</span>` +
       (r ? `<span class="lsres">${r.ok ? resText(st, r) : "en iyi: " + resText(st, r)}</span>` : "");
@@ -160,7 +161,23 @@ TRAINERS.lessons = function(ctx){
     return { ...st.orn, note: st.notes ? st.notes[0] : commaToWritten(st.commas[0]), comma: st.commas ? st.commas[0] : undefined, makam: st.makam };
   }
   const playOrn = st => ornamentPlay(ctx, ornSpec(st));
+  // Teknik kalıbı tempoda çalar (dinleme adımı ve "Örneği dinle")
+  async function playPattern(st, onIdx){
+    const spec = st.pattern, pat = techPattern(spec), mk = spec.makam ? makamById(spec.makam) : null, tempo = st.tempo || st.target;
+    const token = {}; playToken = token;
+    for(let k=0;k<pat.notes.length;k++){
+      if(playToken !== token) return false;
+      const n = pat.notes[k]; if(onIdx) onIdx(k);
+      SK.play(n.w, n.c != null && mk ? mkFreq(mk, n.c) : undefined);
+      await sleep(n.d*60000/tempo*0.92);
+      if(playToken !== token) return false;
+      SK.stopSound(); await sleep(n.d*60000/tempo*0.08);
+    }
+    SK.stopSound();
+    return playToken === token;
+  }
   async function hear(st){
+    if(st.pattern) return playPattern(st);
     if(st.type === "ornament" || st.orn){ playToken = null; return playOrn(st); }
     const items = itemsOf(st);
     if(items.length > 1) return playSeq(items);
@@ -209,6 +226,12 @@ TRAINERS.lessons = function(ctx){
   const RUN = {
     ...Object.fromEntries(Object.entries(TRAINER_STEPS).map(([k, fn]) => [k, (st, stage, done) => fn(st, stage, done, ctx)])),
     listen(st, stage, done){
+      if(st.pattern){
+        stage.innerHTML = `<div class="label">${esc(stepTitle(st, LANG))}</div><div class="scorewrap"></div>`;
+        const wrap = stage.querySelector(".scorewrap"), sc = drawScore(wrap, techPattern(st.pattern).notes, { meter:[4,4] });
+        playPattern(st, k => curScore(sc.svg, k, wrap)).then(ok => { if(ok) done({ v:1 }); });
+        return { stop(){ playToken = null; SK.stopSound(); } };
+      }
       if(st.orn){
         const token = {}; playToken = token;
         stage.innerHTML = `<div class="label">${esc(stepTitle(st, LANG))}</div>`;

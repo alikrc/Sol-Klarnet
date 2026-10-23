@@ -507,9 +507,91 @@ TRAINERS.susleme = function(ctx){
   };
 };
 
+// ======== Hız çalışı ========
+// Kalıp metronomla çalınır: bir ölçü sayım, sonra notalar; ham ses sayımın son vuruşundan son notadan 700 ms sonrasına
+// kadar kaydedilir ve çalış bitince çözülür (runNotes → alignRun → runVerdict). Tempo merdiveni sonraki tempoyu seçer.
+// Kayıt: tech.best[patternKey] = [{ day, tempo }] (gün başına en iyi, son 60 gün).
+function techRecord(store, key, tempo){
+  const all = store.get("tech.best", {}), list = all[key] || (all[key] = []), day = dayKey(new Date());
+  const last = list[list.length-1];
+  if(last && last.day === day){ if(tempo > last.tempo) last.tempo = tempo; } else list.push({ day, tempo });
+  all[key] = list.slice(-60); store.set("tech.best", all);
+}
+// Kalıp başına son kaydedilen en iyi tempo (günlük plan ve başlangıç temposu için)
+function techBestMap(store){
+  const out = {}, all = store.get("tech.best", {});
+  for(const [k, list] of Object.entries(all)) if(list.length) out[k] = list[list.length-1].tempo;
+  return out;
+}
+function techRun(ctx, spec, holder, opts){
+  const { SK, store } = ctx;
+  const pat = techPattern(spec), key = patternKey(spec);
+  const ladder = new TempoLadder(opts.start, { target: opts.target });
+  holder.innerHTML = `<div class="trstat"><span class="ltclock small trt"></span> <span class="muted trb"></span></div>
+    <div class="scorewrap"></div><div class="fb trf" aria-live="polite"></div>
+    <div class="pbar"><button class="primary small trgo" type="button"></button>
+      <label class="chk small"><input type="checkbox" class="trauto"> ${L("otomatik devam", "auto-continue")}</label></div>`;
+  const q = s => holder.querySelector(s), wrap = q(".scorewrap"), fb = q(".trf"), goBtn = q(".trgo"), auto = q(".trauto");
+  auto.checked = store.get("tech.auto", false);
+  auto.addEventListener("change", () => store.set("tech.auto", auto.checked));
+  let sc = null, timers = [], cap = null, running = false, over = false;
+  const clear = () => { timers.forEach(clearTimeout); timers = []; };
+  function status(){
+    q(".trt").textContent = "♩=" + ladder.tempo;
+    q(".trb").textContent = (ladder.best ? L("en iyi ♩=", "best ♩=") + ladder.best : "") + (opts.target ? L(" · hedef ♩=", " · target ♩=") + opts.target : "");
+    goBtn.textContent = running ? L("Durdur", "Stop") : sc && fb.textContent ? L("Sonraki: ♩=", "Next: ♩=") + ladder.tempo : L("Başla", "Start");
+  }
+  const say = (cls, t) => { fb.className = "fb trf " + cls; fb.textContent = t; };
+  async function go(){
+    if(running || over) return;
+    if(!(await ctx.needMic())) return;
+    running = true; sc = drawScore(wrap, pat.notes, { meter: pat.meter }); say("", L("Sayım…", "Count-in…")); status();
+    const tempo = ladder.tempo, beatMs = 60000/tempo, a = SK.audioCtx();
+    const startC = a.currentTime + 0.3, t0 = ctxToPerf(a, startC);
+    const { times, beats } = noteTimes(pat.notes, t0 + 4*beatMs, beatMs);
+    for(let i=0;i<4 + Math.ceil(beats);i++) ctx.hit(a, i % 4 === 0 ? "D" : "T", startC + i*beatMs/1000, i < 4 ? 1 : 0.55);
+    const now = () => performance.now();
+    times.forEach(e => timers.push(setTimeout(() => curScore(sc.svg, e.i, wrap), Math.max(0, e.t - now()))));
+    timers.push(setTimeout(() => { cap = SK.pcmCapture(); say("", L("Çal!", "Play!")); }, Math.max(0, t0 + 3*beatMs - now())));
+    timers.push(setTimeout(() => finish(times, tempo, beatMs), Math.max(0, t0 + (4 + beats)*beatMs + 700 - now())));
+  }
+  function finish(times, tempo, beatMs){
+    const rec = cap ? cap.stop() : null; cap = null; running = false; clear();
+    if(!rec){ say("", L("Kayıt alınamadı: mikrofon açık mı?", "Nothing was recorded: is the microphone on?")); status(); return; }
+    setTimeout(() => {
+      const lat = store.get("rhythm.lat", 0), pr = SK.pitchRange();
+      const mid = pat.notes[Math.floor(pat.notes.length/2)];
+      const tr = ornamentTrack(rec.data, rec.sampleRate, { T: SK.T, expectHz: ctx.commaFreq((mid.w - 67)*53/12), minRms: SK.minRms(), minHz: pr.min, maxHz: pr.max });
+      const expected = times.map(e => ({ t: e.t, w: e.w, ms: pat.notes[e.i].d*beatMs }));
+      const al = alignRun(expected, runPlayed(runNotes(tr), rec.t0 - lat), { busy: rec.busy.map(([b, e]) => [b - lat, e - lat]) });
+      const v = runVerdict(al, pat.notes[0].d*beatMs, tr.length ? tr.filter(f => f.comma !== null).length/tr.length : 0);
+      al.notes.forEach(r => { if(r.state !== "skip") markScore(sc.svg, r.i, r.state === "ok" ? "ok" : r.state === "pitch" ? "bad" : "miss"); });
+      const r = ladder.record(!v.measured ? "unmeasured" : v.clean ? "clean" : "dirty");
+      if(v.clean) techRecord(store, key, tempo);
+      const pct = Math.round(al.correct*100);
+      const head = !v.measured ? "" : v.clean ? L("Temiz! ", "Clean! ") : L("Doğru nota %" + pct + ". ", pct + "% correct notes. ");
+      say(!v.measured ? "" : v.clean ? "good" : "bad", head + (v.tips.length ? pick(v.tips[0], LANG) : ""));
+      if(opts.onRun) opts.onRun({ tempo, verdict: v, align: al });
+      status();
+      if(r.done){ over = true; say("good", L("Hedefe ulaştın: ♩=", "Target reached: ♩=") + ladder.best); if(opts.onDone) opts.onDone(ladder.best); return; }
+      if(r.rest){ over = true; say("bad", L("Biraz dinlen; sonra daha yavaş başla.", "Take a short break, then start slower.")); goBtn.disabled = true; return; }
+      if(auto.checked) timers.push(setTimeout(go, 2000));
+    }, 0);
+  }
+  goBtn.addEventListener("click", () => { if(running) stop(); else go(); });
+  function stop(){ clear(); if(cap){ cap.stop(); cap = null; } running = false; say("", ""); status(); }
+  sc = drawScore(wrap, pat.notes, { meter: pat.meter }); status();
+  return { stop, ladder };
+}
+
 // ======== Ders adımları ========
 // Her biri (st, stage, done, ctx) alır, { note, silence, raw, stop } döndürür (practice.js'teki RUN ile aynı biçim)
 const TRAINER_STEPS = {
+  // Hız: tempo merdiveni hedefe ulaşınca geçer (v = en yüksek temiz tempo)
+  tech(st, stage, done, ctx){
+    const run = techRun(ctx, st.pattern, stage, { start: st.start, target: st.target, onDone: best => done({ v: best }) });
+    return { stop: () => run.stop() };
+  },
   // Süsleme: sayılı türlerde st.n başarılı deneme, trilde hızı hedefi geçen bir deneme
   ornament(st, stage, done, ctx){
     const counted = st.kind !== "tril";
