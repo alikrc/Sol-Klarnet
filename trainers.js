@@ -584,6 +584,79 @@ function techRun(ctx, spec, holder, opts){
   return { stop, ladder };
 }
 
+// ======== Hız sekmesi ========
+// Kalıp seçilir, tempo merdiveni hedefsiz çalışır; kalıbın son 14 gündeki en iyi tempoları çizgi olarak gösterilir.
+TRAINERS.hiz = function(ctx){
+  const { $, store, nn } = ctx;
+  const P = $("pp-hiz");
+  const KINDS = [["mscale", L("Makam dizisi", "Makam scale")], ["wscale", L("Gam", "Scale")], ["arp", L("Arpej", "Arpeggio")],
+                 ["thirds", L("Üçlü atlamalar", "Thirds")], ["groups", L("Dörtlü gruplar", "Four-note groups")], ["break", L("Register geçişi", "Register crossing")]];
+  const TONES = [55, 57, 60, 62, 64, 65, 67, 69], PAIRS = [[69, 71], [70, 72], [67, 74]];
+  const opt = (v, t) => `<option value="${v}">${t}</option>`;
+  P.innerHTML = `
+    <p class="pdesc">${L("Bir kalıp seç ve metronomla çal. Temiz çalınca tempo artar, iki kez üst üste zorlanırsan iner. Kalıp başına en iyi tempon kaydedilir.",
+      "Pick a pattern and play it with the metronome. A clean run raises the tempo; struggling twice in a row lowers it. Your best tempo is saved per pattern.")}</p>
+    <div class="pbar">
+      <select id="hzkind" aria-label="${L("Kalıp", "Pattern")}">${KINDS.map(([k, t]) => opt(k, t)).join("")}</select>
+      <select id="hzmk" aria-label="Makam">${MAKAMS.map(m => opt(m.id, m.name)).join("")}</select>
+      <select id="hztone" aria-label="${L("Ton", "Key")}">${TONES.map(w => opt(w, nn(w))).join("")}</select>
+      <select id="hzmode" aria-label="${L("Majör/minör", "Major/minor")}">${opt("major", L("majör", "major"))}${opt("minor", L("minör", "minor"))}</select>
+      <select id="hzpair" aria-label="${L("Geçiş", "Crossing")}">${PAIRS.map((p, i) => opt(i, nn(p[0]) + "–" + nn(p[1]))).join("")}</select>
+    </div>
+    <div class="pbar">
+      <select id="hzsub" aria-label="${L("Nota değeri", "Note value")}">${opt(2, L("sekizlik", "eighths"))}${opt(3, L("triole", "triplets"))}${opt(4, L("on altılık", "sixteenths"))}</select>
+      <select id="hzart" aria-label="${L("Çalış", "Articulation")}">${opt("legato", L("bağlı", "slurred"))}${opt("tongue", L("dille", "tongued"))}</select>
+      <select id="hzoct" aria-label="${L("Oktav", "Octaves")}">${opt(1, L("1 oktav", "1 octave"))}${opt(2, L("2 oktav", "2 octaves"))}</select>
+      <label class="tnum">♩ <input id="hztempo" type="number" min="40" max="220" step="2" aria-label="${L("Başlangıç temposu", "Start tempo")}"></label>
+    </div>
+    <div class="fb" id="hzmsg"></div>
+    <svg class="hzchart" id="hzchart" viewBox="0 0 300 70" preserveAspectRatio="none" role="img" aria-label="${L("Son 14 günün en iyi temposu", "Best tempo over the last 14 days")}"></svg>
+    <div id="hzstage"></div>`;
+  const el = id => $(id), st = store.get("tech.opts", { kind:"mscale", mk:"rast", tone:60, mode:"major", pair:0, sub:2, art:"legato", oct:1 });
+  let run = null;
+  function spec(){
+    const k = st.kind, base = { sub:+st.sub, art:st.art, octaves:+st.oct };
+    if(k === "mscale") return { type:"scale", makam:st.mk, ...base };
+    if(k === "wscale") return { type:"scale", base:+st.tone, mode:st.mode, ...base };
+    if(k === "arp") return { type:"arp", base:+st.tone, mode:st.mode, ...base };
+    if(k === "break") return { type:"break", pair:PAIRS[+st.pair], sub:+st.sub, art:st.art };
+    return { type:k, makam:st.mk, ...base };
+  }
+  function chart(key){
+    const list = (store.get("tech.best", {})[key] || []).slice(-14), svg = el("hzchart");
+    if(list.length < 2){ svg.innerHTML = ""; svg.hidden = true; return; }
+    svg.hidden = false;
+    const lo = Math.min(...list.map(x => x.tempo)) - 4, hi = Math.max(...list.map(x => x.tempo)) + 4;
+    const pts = list.map((x, i) => (4 + i/(list.length - 1)*292).toFixed(1) + "," + (66 - (x.tempo - lo)/(hi - lo)*62).toFixed(1)).join(" ");
+    svg.innerHTML = `<polyline class="pl" points="${pts}"/>`;
+  }
+  function sync(){
+    ["kind","mk","tone","mode","pair","sub","art","oct"].forEach(k => { st[k] = el("hz" + k).value; });
+    store.set("tech.opts", st);
+    const k = st.kind;
+    el("hzmk").hidden = !["mscale","thirds","groups"].includes(k);
+    el("hztone").hidden = el("hzmode").hidden = !["wscale","arp"].includes(k);
+    el("hzpair").hidden = k !== "break";
+    el("hzoct").hidden = k === "break";
+    build();
+  }
+  function build(){
+    if(run){ run.stop(); run = null; }
+    const s = spec(), pat = techPattern(s), stage = el("hzstage");
+    if(!pat){ el("hzmsg").textContent = L("Bu kalıp klarnetin aralığına sığmıyor (Mi3–Do6).", "This pattern doesn't fit the clarinet's range (E3–C6)."); stage.innerHTML = ""; chart(""); return; }
+    el("hzmsg").textContent = "";
+    const key = patternKey(s), best = techBestMap(store)[key];
+    const t = +el("hztempo").value || (best ? Math.max(40, best - 8) : 60);
+    el("hztempo").value = t;
+    chart(key);
+    run = techRun(ctx, s, stage, { start: t, onRun: () => chart(key) });
+  }
+  ["kind","mk","tone","mode","pair","sub","art","oct"].forEach(k => { el("hz" + k).value = st[k]; el("hz" + k).addEventListener("change", () => { el("hztempo").value = ""; sync(); }); });
+  el("hztempo").addEventListener("change", build);
+  sync();
+  return { leave(){ if(run) run.stop(); } };
+};
+
 // ======== Ders adımları ========
 // Her biri (st, stage, done, ctx) alır, { note, silence, raw, stop } döndürür (practice.js'teki RUN ile aynı biçim)
 const TRAINER_STEPS = {

@@ -357,6 +357,8 @@ svg.minichart{width:150px;height:auto;pointer-events:none}
 .orntrace .lvl{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3;vector-effect:non-scaling-stroke}
 .orntrace .pl{fill:none;stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke}
 .ornfing .minichart{max-width:160px}
+.hzchart{display:block;width:100%;max-width:420px;height:70px;margin:6px 0;background:var(--sunk);border-radius:6px}
+.hzchart .pl{fill:none;stroke:var(--teal);stroke-width:2;vector-effect:non-scaling-stroke}
 .pbarfill{height:10px;border-radius:5px;background:var(--surface);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line);margin-bottom:8px}
 .pbarfill i{display:block;height:100%;width:0;background:var(--ok)}
 .mklist{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}

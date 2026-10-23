@@ -505,6 +505,18 @@ TRAINERS.rec = function(ctx){
 // ======== İlerleme ========
 TRAINERS.progress = function(ctx){
   const { $, store, num, sgn, label, days, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
+  // Hız: en çok çalışılan üç kalıbın en iyi temposu ve son 14 gündeki artışı
+  function techLine(){
+    const all = store.get("tech.best", {}), since = (() => { const x = new Date(); x.setDate(x.getDate() - 14); return dayKey(x); })();
+    const rows = Object.entries(all).filter(([, l]) => l.length).sort((a, b) => b[1].length - a[1].length).slice(0, 3).map(([k, l]) => {
+      const [type, who, mode, oct, sub, art] = k.split(":");
+      const spec = { type, sub:+sub, art, octaves:+oct || 1, mode: mode || undefined };
+      if(type === "break") spec.pair = who.split("-").map(Number); else if(/^d+$/.test(who)) spec.base = +who; else spec.makam = who;
+      const pat = techPattern(spec), best = Math.max(...l.map(x => x.tempo)), old = l.filter(x => x.day < since), was = old.length ? old[old.length-1].tempo : l[0].tempo;
+      return (pat ? pick(pat.label, LANG) : k) + " <strong>♩=" + best + "</strong>" + (best > was ? " (+" + (best - was) + ")" : "");
+    });
+    return rows.join(" · ") || "—";
+  }
   // Süsleme: en iyi tril hızı (düzenli olanlardan) ve son 20 çarpma denemesinde başarı
   function ornLine(){
     const best = store.get("orn.trilBest", 0), c = store.get("orn.hist", []).filter(h => h.kind === "carpma").slice(-20);
@@ -527,6 +539,7 @@ TRAINERS.progress = function(ctx){
       <div class="label">${L("Ritim", "Rhythm")}</div><p>${rh.length ? L("son 10 tur ortalaması ", "last 10 rounds average ") + "<strong>" + avg(last10) + "</strong> · " + L("en iyi ", "best ") + store.get("rhythm.best", 0) + " · " + rh.length + L(" tur", " rounds") : "—"}</p>
       <div class="label">${L("Kulak", "Ear")}</div><p>${ear.pitch != null ? L("ayırt edebildiğin en küçük fark ", "smallest difference you can hear ") + "<strong>" + num(ear.pitch) + L(" koma</strong>", " commas</strong>") : "—"}${ear.makam ? " · " + L("makam tanıma rekoru ", "makam ID record ") + ear.makam : ""}</p>
       <div class="label">${L("Seyir (taksim)", "Seyir (taksim)")}</div><p>${sy.length ? L("son 10 ortalama ", "last 10 average ") + "<strong>" + avg(sy10) + "</strong> · " + Object.entries(syBy).map(([id, v]) => makamById(id).name + " " + v).join(" · ") : "—"}</p>
+      <div class="label">${L("Hız", "Speed")}</div><p>${techLine()}</p>
       <div class="label">${L("Süsleme", "Ornaments")}</div><p>${ornLine()}</p>
       <div class="label">${L("Eserler (tempolu, en iyi)", "Pieces (in tempo, best)")}</div><p>${Object.entries(pb).map(([id, v]) => { const e = etudeById(id); return (e ? pick(e.name, LANG) : id) + " %" + v; }).join(" · ") || "—"}</p>`;
   }

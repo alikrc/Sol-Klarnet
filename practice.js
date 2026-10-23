@@ -22,11 +22,11 @@
   // On bir alıştırma beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
   // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
-  const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["susleme",L("Süsleme", "Ornaments")],
+  const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],
                 ["piece",L("Etüt ve eserler", "Études & pieces")],["rec","Kayıt"],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm","susleme"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear"]],
                   ["pieces",L("Eserler", "Pieces"),["piece","rec"]],
                   ["progress","İlerleme",["progress"]]];
@@ -39,6 +39,7 @@
     staffmap: L("Hangi nota dizekte nerede: Si4 mü, Si5 mi?", "Where each note sits: B4 or B5?"),
     long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
     rhythm: L("Metronomla zamanında çal", "Play in time with the metronome"),
+    hiz: L("Gam, arpej, dizi: tempo merdiveniyle hızlan", "Scales, arpeggios: speed up with the tempo ladder"),
     susleme: L("Çarpma, mordan, tril, kayış: ölçülerek", "Grace notes, mordents, trills, slides: measured"),
     makam: L("Makam dizisini çık ve in", "Play the makam scale up and down"),
     mimic: L("Duyduğun ezgiyi tekrar çal", "Play back the phrase you hear"),
