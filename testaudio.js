@@ -71,6 +71,7 @@ function ornamentAudio(segs, opts = {}){
   const freqOf = c => midiToFreq(67 - T + c*12/53);
   let ph = 0, i = gap;
   segs.forEach((s, k) => {
+    if(s.rest){ i += lens[k]; return; }                          // sus (dil boşluğu): sessizlik
     const c0 = commaOf(s), c1 = s.to != null ? s.to : c0, vib = s.vib || { rate:0, depth:0 };
     for(let j=0;j<lens[k];j++, i++){
       const c = c0 + (c1 - c0)*j/lens[k] + vib.depth*Math.sin(2*Math.PI*vib.rate*(i-gap)/srate);

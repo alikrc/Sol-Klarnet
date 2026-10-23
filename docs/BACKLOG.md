@@ -7,7 +7,7 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 
 - Yeni "Süsleme" ünitesi (7 ders): çarpma, alttan çarpma ve çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş,
   süslemeli iki etüt, makamda süsleme. Toplam ders 45 → 52
-- Ölçüm: mikrofonun son 4 sn'lik ham sesi (`pcmring.js`, AudioWorklet) deneme bitince 5 ms adımla yeniden çözülür
+- Ölçüm: mikrofonun son 8 sn'lik ham sesi (`pcmring.js`, AudioWorklet) deneme bitince 5 ms adımla yeniden çözülür
   (`skills.js`: `ornamentTrack`, `microNotes`, `ornamentEval`); eşikler `ORN` içinde
 - Teknik grubunda "Süsleme" alıştırma sekmesi; İlerleme'de en iyi tril hızı ve çarpma başarısı
 - Nota metninde süsleme ekleri (`La4:2:tr`, `ç+`, `m-`, `k`, `d`), MusicXML'den tril, mordan ve süs notası; dizekte işaretler;

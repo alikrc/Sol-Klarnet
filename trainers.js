@@ -372,25 +372,31 @@ function ornamentAttempt(ctx, spec, holder, onResult){
     busy = true;
     setTimeout(() => {
       busy = false;
-      const track = ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz, minRms: SK.minRms() });
+      const track = ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz, minRms: SK.minRms(), minHz: SK.pitchRange().min, maxHz: SK.pitchRange().max });
       const res = ornamentEval(track, spec);
       draw(track);
+      ornamentRecord(SK.store, res);
       onResult(res);
     }, 0);
   }
+  // Deneme, ses 200 ms'den uzun kesilince biter: dil boşlukları (çarpmalı tekrarı dille bölmek) denemeyi bölmesin
+  let quietFrom = null;
   return {
     raw(d){
+      quietFrom = null;
       if(hold) return;
       if(start === null) start = d.t;
       last = d.t;
       if(spec.kind === "tril" && d.t - start >= (spec.sec || 2)*1000 + 400){ hold = true; finish(); }
     },
-    silence(){
+    silence(t){
+      if(quietFrom === null) quietFrom = t;
+      if(t - quietFrom < 200) return;
       hold = false;
       if(start === null) return;
       if(last - start >= 300) finish(); else start = last = null;
     },
-    stop(){ start = last = null; hold = false; }
+    stop(){ start = last = null; hold = false; quietFrom = null; }
   };
 }
 // Süslemenin örnek sesi (makam varsa seçili akorttaki perdelerle)
@@ -398,6 +404,12 @@ function ornamentPlay(ctx, spec){
   const mk = spec.makam ? makamById(spec.makam) : null;
   const f = c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c);
   return ctx.SK.playGlide(ornamentNotes(spec).map(x => ({ freq: f(x.comma), ms: x.ms, toFreq: x.to != null ? f(x.to) : null })));
+}
+// İlerleme kaydı (ders adımı ve Süsleme sekmesi): orn.hist son 200 deneme, orn.trilBest düzenli trillerin en hızlısı
+function ornamentRecord(store, res){
+  if(!res.measured) return;
+  const h = store.get("orn.hist", []); h.push({ kind: res.kind, ok: res.ok, t: Date.now() }); store.set("orn.hist", h.slice(-200));
+  if(res.kind === "tril" && res.found && res.evenness <= ORN.trilEven && res.rate > store.get("orn.trilBest", 0)) store.set("orn.trilBest", Math.round(res.rate*10)/10);
 }
 // Hedef cümlesi: "Çarpma: Si4 → La4"
 function ornamentGoal(spec, nn){
@@ -464,11 +476,6 @@ TRAINERS.susleme = function(ctx){
     stop();
   }
   function stop(){ att = null; stage.innerHTML = ""; $("orgo").textContent = L("Başla", "Start"); }
-  function record(res){
-    if(!res.measured) return;
-    const h = store.get("orn.hist", []); h.push({ kind: res.kind, ok: res.ok, t: Date.now() }); store.set("orn.hist", h.slice(-200));
-    if(res.kind === "tril" && res.found && res.evenness <= ORN.trilEven && res.rate > store.get("orn.trilBest", 0)) store.set("orn.trilBest", Math.round(res.rate*10)/10);
-  }
   async function start(){
     if(!(await needMic())) return;
     const s = spec();
@@ -476,7 +483,6 @@ TRAINERS.susleme = function(ctx){
     SK.showNote(s.note);
     const fb = stage.querySelector(".orf");
     att = ornamentAttempt(ctx, s, stage.querySelector(".orw"), res => {
-      record(res);
       const tip = res.tips.length ? pick(res.tips[0], LANG) : "";
       const rate = res.rate != null ? L("saniyede " + num(res.rate) + " dönüş. ", num(res.rate) + " turns/s. ") : "";
       fb.className = "fb orf" + (!res.measured ? "" : res.ok ? " good" : " bad");

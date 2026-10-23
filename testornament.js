@@ -12,6 +12,15 @@ function run(ok){
     r.push(Float32Array.from([1,2,3])); r.push(Float32Array.from([4,5,6,7,8,9,10]));
     ok(r.length === 8 && r.read(3).join() === '8,9,10' && r.read(8).join() === '3,4,5,6,7,8,9,10', 'halka tamponu son ornekleri sirayla veriyor');
     ok(r.read(20).length === 8, 'tamponda olandan fazlasi istenince olan kadar');
+    const { PcmBatch, clockOffset } = require('./pcmring.js');
+    const bt = new PcmBatch(256), outs = [];
+    for(let k=0;k<5;k++){ const o = bt.push(Float32Array.from({ length:128 }, (_, j) => k*128 + j), k*0.01); if(o) outs.push(o); }
+    ok(outs.length === 2 && outs[0].data.length === 256 && outs[0].t === 0 && outs[1].t === 0.02 && outs[1].data[0] === 256, 'worklet bloklari 256 orneklik toplu mesajda, zaman ilk blogun');
+    ok(clockOffset(null, 12, 0) === 12 && clockOffset(10, 12, 0) === 10 && clockOffset(10, 9, 5) === 9, 'saat farki: en kucugu tutulur');
+    let off = 10; for(let s=0;s<60;s++) off = clockOffset(off, 13, 100);
+    ok(off > 10 && off < 13, 'saat farki zamanla yavasca yukari kayabiliyor (saat kaymasi birikmez)', off);
+    const swOff = clockOffset(10, 12, 60000);
+    ok(swOff <= 12 && swOff > 10, 'bir dakikada en cok birkac ms', swOff);
     const sw = rd('sw.js'), build = rd('scripts/build-web.js');
     ok(sw.includes('"pcmring.js"') && build.includes('"pcmring.js"'), 'worklet dosyasi SW onbelleginde ve www/ paketinde');
   }
@@ -194,6 +203,23 @@ function run(ok){
     R.ETUDES.forEach(e => { const ns = R.etudeNotes(e); ns.forEach((n, i) => { const p = ns[i-1];
       if(n.orn && p && !p.rest && p.c !== null && S.ornamentAmbiguous(p.c, { ...n.orn, note:n.w, comma:n.c, makam:e.makam || undefined })) amb.push(e.id + '#' + i); }); });
     ok(!amb.length, 'etutlerde onceki notasi komsu perdede olan carpma yok', amb.join(','));
+  }
+
+  console.log('\n[36] Ertelenen kucuk duzeltmeler');
+  {
+    const { midiToFreq } = require('./core.js');
+    const tongued = ev([{ w:69, ms:300 }, { rest:true, ms:60 }, { w:69, ms:300 }, { rest:true, ms:60 }, { w:69, ms:300 }, { rest:true, ms:60 }, { w:69, ms:300 }], { kind:'tekrar', note:69, dir:'up' });
+    ok(tongued.measured && !tongued.ok && /Dille/.test(tongued.tips.map(t => t.tr).join(' ')), 'dille bolunen tekrar: kalir, dil ipucu', JSON.stringify(tongued.tips));
+    // Pes bölgede (2048 pencere, Mi4 ve T=5) çarpma süresi de ≤ 15 ms hatayla
+    const C = { kind:'carpma', note:64, dir:'up' }, nb = S.ornamentNeighbor(C);
+    let hit = 0, err = 0, n = 0;
+    for(const ms of [30, 40, 60, 80, 110]) for(let s=1;s<=3;s++){
+      n++;
+      const a = A.ornamentAudio([{ comma:nb, ms }, { w:64, ms:500 }], { seed:s, T:5 });
+      const r = S.ornamentEval(S.ornamentTrack(a.pcm, a.srate, { T:5, expectHz: midiToFreq(64 - 5) }), C);
+      if(r.ok){ hit++; err = Math.max(err, Math.abs(r.durMs - ms)); }
+    }
+    ok(hit >= n - 1 && err <= 15, 'pes bolge (2048 pencere): carpma 30–110 ms bulunuyor, sure hatasi ≤ 15 ms', hit + '/' + n + ' hata ' + err.toFixed(1));
   }
 }
 

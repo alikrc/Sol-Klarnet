@@ -173,13 +173,15 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     const off = SK.level(f => { const o = det.push(f); if(o !== null) onsets.push(o); });
     const timers = [];
     times.forEach(e => timers.push(setTimeout(() => { if(mode === "tempo") curScore(sc.svg, e.i, holder); }, Math.max(0, e.t - performance.now()))));
-    // Süsleme: işaretli her notanın ham sesi nota bitince kopyalanır (tampon 4 sn tutar); çözümleme eser bitince yapılır,
+    // Süsleme: işaretli her notanın ham sesi nota bitince kopyalanır (tampon 8 sn tutar; düşüşte notanın sonu, diğerlerinde ilk 3 sn alınır); çözümleme eser bitince yapılır,
     // çalarken ana iş parçacığı nota başlarını kaçırmasın. Önceki nota çarpmanın komşu perdesindeyse ölçülmez.
     const latO = ctx.store.get("rhythm.lat", 0), ornPcm = [];
     times.forEach(e => {
       const n = notes[e.i], prev = notes[e.i - 1];
       if(!n.orn || (prev && !prev.rest && ornamentAmbiguous(prev.c !== null ? prev.c : (prev.w - 67)*53/12, ornSpec(n)))) return;
-      const durMs = n.d*beatMs, from = e.t + latO - 100, to = e.t + latO + durMs;
+      const durMs = n.d*beatMs;
+      let from = e.t + latO - 100, to = e.t + latO + durMs;
+      if(n.orn.kind === "dusus") from = Math.max(from, to - 2000); else to = Math.min(to, from + 3000);
       timers.push(setTimeout(() => {
         if(mode !== "tempo") return;
         const p = SK.pcm(from, to);
@@ -187,7 +189,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
       }, Math.max(0, to + 120 - performance.now())));
     });
     const ornEval = () => ornPcm.map(({ i, n, durMs, p }) => {
-      const r = ornamentEval(ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz: freqOf(n) || ctx.commaFreq((n.w - 67)*53/12), minRms: SK.minRms() }),
+      const r = ornamentEval(ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz: freqOf(n) || ctx.commaFreq((n.w - 67)*53/12), minRms: SK.minRms(), minHz: SK.pitchRange().min, maxHz: SK.pitchRange().max }),
                              { ...ornSpec(n), mainMin: Math.min(300, durMs*0.4) });
       const g = sc.svg.querySelector(`g.sn[data-i="${i}"]`);
       if(g && r.measured && !r.ok) g.classList.add("ornmiss");

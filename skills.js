@@ -243,10 +243,10 @@ function makamPhrase(mk, rng = Math.random){
 // ---- Süsleme ----
 // Canlı ölçüm 40 ms'de bir yapılır; çarpma ve tril notaları bundan kısadır. Deneme bitince ham ses (PCM) 5 ms adımla,
 // kısa pencereyle yeniden çözülür. Komalar canlı "raw" olayıyla aynı ölçekte: Rast'a (yazılı Sol4) göre.
-// opts: { T (aktarım), minHz, maxHz, minRms, hopMs, expectHz (250 Hz üstünde 1024 örneklik pencere) }
+// opts: { T (aktarım), minHz, maxHz, minRms, hopMs, expectHz (160 Hz üstünde 1024 örneklik pencere: süsleme aralığında, Sol klarnette en pes 247 Hz, kısa notalar ayrışsın) }
 function ornamentTrack(pcm, sampleRate, opts = {}){
   const T = opts.T == null ? 5 : opts.T, hopMs = opts.hopMs || 5;
-  const win = (opts.expectHz || 0) > 250 ? 1024 : 2048, hop = sampleRate*hopMs/1000;
+  const win = (opts.expectHz || 0) > 160 ? 1024 : 2048, hop = sampleRate*hopMs/1000;
   const out = [];
   for(let k=0; Math.round(k*hop) + win <= pcm.length; k++){
     const s = Math.round(k*hop);

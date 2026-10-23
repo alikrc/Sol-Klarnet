@@ -90,7 +90,7 @@ GitHub Actions her push'ta testleri çalıştırır.
 | `learn.js` | Makam ve usul verisi, icra düzeltmeleri, test, puanlama, istatistik (tarayıcı + Node) |
 | `lessons.js` | Müfredat (iki dilli), adım başlıkları, geçme koşulları, kilit sırası, günlük plan (tarayıcı + Node) |
 | `skills.js` | Nota başı bulma, ritim, ses kalitesi, dinamik, seyir analizi, kulak eğitimi, süsleme ölçümü (tarayıcı + Node) |
-| `pcmring.js` | Mikrofonun son 4 saniyelik ham sesi (AudioWorklet); süsleme denemeleri bundan çözülür |
+| `pcmring.js` | Mikrofonun son 8 saniyelik ham sesi (AudioWorklet); süsleme denemeleri bundan çözülür |
 | `repertoire.js` | Süreli nota biçimi, AEU koma işaretleri, MusicXML, tempolu çalma değerlendirmesi, etütler (tarayıcı + Node) |
 | `practice.js` | Çalışma bölümünün kabuğu: sekme menüsü, metronom ve dron, sürekli ölçümler, sekmelere verilen ortak yardımcılar |
 | `drills.js` | Parmak testi, Uzun ton, Dizi (makam), Taklit, Kayıt ve İlerleme sekmeleri |

@@ -668,12 +668,12 @@
     while(busy.length && busy[0][1] < now - 10000) busy.shift();
   }
   async function startPcm(src){
-    const me = { ring: new PcmRing(Math.round(4*ctx.sampleRate)), off: null, endT: 0 }, a = ctx;
+    const me = { ring: new PcmRing(Math.round(8*ctx.sampleRate)), off: null, endT: 0, last: 0 }, a = ctx;
     pcm = me;
     const take = (data, ctxT) => {
       if(pcm !== me) return;
-      const endMs = (ctxT + data.length/a.sampleRate)*1000, off = performance.now() - endMs;
-      me.off = me.off === null ? off : Math.min(me.off, off);
+      const now = performance.now(), endMs = (ctxT + data.length/a.sampleRate)*1000;
+      me.off = clockOffset(me.off, now - endMs, me.last ? now - me.last : 0); me.last = now;
       me.ring.push(data); me.endT = endMs + me.off;
     };
     const mute = a.createGain(); mute.gain.value = 0; mute.connect(a.destination);
@@ -686,7 +686,8 @@
     }catch(e){
       if(pcm !== me) return;
       const sp = a.createScriptProcessor(2048, 1, 1);
-      sp.onaudioprocess = ev => take(ev.inputBuffer.getChannelData(0).slice(), ev.playbackTime);
+      // playbackTime çıkışın zamanıdır (bir tampon ileride); giriş bloğu şu an bitmiş sayılır
+      sp.onaudioprocess = ev => { const d = ev.inputBuffer.getChannelData(0).slice(); take(d, a.currentTime - d.length/a.sampleRate); };
       src.connect(sp); sp.connect(mute);
     }
   }
@@ -906,7 +907,8 @@
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
     pcm: pcmRange,
     pcmBusy: (fromT, toT) => busy.some(([b, e]) => b < toT && e > fromT),
-    minRms: () => sensitivityToRms(settings.sens)
+    minRms: () => sensitivityToRms(settings.sens),
+    pitchRange: () => PR
   };
 
   // ---- Günlük hedef ve hatırlatma ----
