@@ -161,7 +161,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
   // Tempolu çalma: bir ölçü sayım, sonra notalar zamanında; bitince perde ve zamanlama değerlendirilir
   // onResult verilirse (tempo merdiveni) sonuç ona gider, ders adımı bitmez
   async function startTempo(pct = 1, onResult){
-    stop();
+    if(onResult) halt(); else stop();   // merdivenin kendi çalışı merdiveni durdurmaz
     if(!(await ctx.needMic())) return;
     mode = "tempo"; redraw();
     const a = SK.audioCtx(), beatMs = 60000/(piece.tempo*pct);
@@ -236,30 +236,21 @@ function piecePlayer(ctx, piece, holder, info, onDone){
   }
   // Tempo merdiveni: %60'tan başlar, temiz çalışta %5 artar, iki temiz olmayan çalışta %5 iner (en çok %120).
   // report(pct): her çalıştan önce yüzde (kaydırıcıyı güncellemek için)
-  let ladder = null;
+  let ladder = null;     // ladderLoop denetimi
   function startLadder(target = 120, report){
     stop();
     const lad = new TempoLadder(60, { target, max:120, stepFn: () => 5 });
-    ladder = lad;
-    const once = () => {
-      if(ladder !== lad) return;
-      if(report) report(lad.tempo);
-      startTempo(lad.tempo/100, res => {
-        if(ladder !== lad) return;
-        const clean = pieceClean(res), r = lad.record(clean ? "clean" : "dirty");
-        say(clean ? "good" : "bad", info.textContent + L(" · merdiven: sonraki %", " · ladder: next ") + r.tempo + (LANG === "en" ? "%" : ""));
-        if(r.done || r.rest){
-          ladder = null;
-          say(r.done ? "good" : "bad", r.done ? L("Hedefe ulaştın: %", "Target reached: ") + lad.best + (LANG === "en" ? "% tempo" : " tempo") : L("Biraz dinlen; en iyi %", "Take a break; best ") + lad.best + (LANG === "en" ? "%" : ""));
-          if(onDone) onDone({ v: lad.best, mode:"ladder" });
-          return;
-        }
-        setTimeout(once, 2000);
-      });
-    };
-    once();
+    ladder = ladderLoop(lad, (pct, cb) => { if(report) report(pct); startTempo(pct/100, cb); }, res => pieceClean(res) ? "clean" : "dirty", {
+      onRun: (r, res) => say(pieceClean(res) ? "good" : "bad", info.textContent + L(" · merdiven: sonraki %", " · ladder: next ") + r.tempo + (LANG === "en" ? "%" : "")),
+      onEnd: r => {
+        ladder = null;
+        say(r.done ? "good" : "bad", r.done ? L("Hedefe ulaştın: %", "Target reached: ") + lad.best + (LANG === "en" ? "% tempo" : " tempo") : L("Biraz dinlen; en iyi %", "Take a break; best ") + lad.best + (LANG === "en" ? "%" : ""));
+        if(onDone) onDone({ v: lad.best, mode:"ladder" });
+      }
+    });
   }
-  function stop(){ playToken = null; ladder = null; if(run){ run.stop(); run = null; } mode = null; }
+  function halt(){ playToken = null; if(run){ run.stop(); run = null; } mode = null; }
+  function stop(){ if(ladder){ ladder.stop(); ladder = null; } halt(); }
   return {
     startFree, startTempo, startLadder, listen, stop,
     toggleNames(){ names = !names; ctx.store.set("piece.names", names); redraw(); },

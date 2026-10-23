@@ -509,10 +509,7 @@ TRAINERS.progress = function(ctx){
   function techLine(){
     const all = store.get("tech.best", {}), since = (() => { const x = new Date(); x.setDate(x.getDate() - 14); return dayKey(x); })();
     const rows = Object.entries(all).filter(([, l]) => l.length).sort((a, b) => b[1].length - a[1].length).slice(0, 3).map(([k, l]) => {
-      const [type, who, mode, oct, sub, art] = k.split(":");
-      const spec = { type, sub:+sub, art, octaves:+oct || 1, mode: mode || undefined };
-      if(type === "break") spec.pair = who.split("-").map(Number); else if(/^d+$/.test(who)) spec.base = +who; else spec.makam = who;
-      const pat = techPattern(spec), best = Math.max(...l.map(x => x.tempo)), old = l.filter(x => x.day < since), was = old.length ? old[old.length-1].tempo : l[0].tempo;
+      const pat = techPattern(patternFromKey(k)), best = Math.max(...l.map(x => x.tempo)), old = l.filter(x => x.day < since), was = old.length ? old[old.length-1].tempo : l[0].tempo;
       return (pat ? pick(pat.label, LANG) : k) + " <strong>♩=" + best + "</strong>" + (best > was ? " (+" + (best - was) + ")" : "");
     });
     return rows.join(" · ") || "—";

@@ -523,6 +523,7 @@ function techPattern(spec){
     for(let k=0;k<7*oct;k++) ws.push(ws[ws.length-1] + st[k % 7]);
     up = dn = ws.map(W);
   }
+  if(!up && spec.type !== "arp" && spec.type !== "break") return null;   // dizi kaynağı yok (makam ya da ton verilmemiş)
   const rev = a => [...a].reverse();
   let seq = [];
   switch(spec.type){
@@ -538,8 +539,7 @@ function techPattern(spec){
       for(let i=dn.length-1;i-2>=0;i--) seq.push(dn[i], dn[i-2]);
       break;
     case "groups":
-      for(let i=0;i+3<up.length;i++) seq.push(...up.slice(i, i+4));
-      seq.push(up[up.length-1]);
+      for(let i=0;i+3<up.length;i++) seq.push(...up.slice(i, i+4));   // son grup tepede biter
       break;
     case "break":
       for(let k=0;k<4;k++) seq.push(W(spec.pair[0]), W(spec.pair[1]));
@@ -622,6 +622,9 @@ function alignRun(expected, played, opts = {}){
 }
 // Çalış temiz mi; ipuçları en büyük sorundan başlar
 function runVerdict(al, noteMs, voicedRatio){
+  // Notaların yarısından fazlası dron ya da örnek ses sırasına düştüyse çalış değerlendirilmez
+  if(al.notes.length && al.notes.filter(r => r.state === "skip").length > al.notes.length/2) return { clean:false, measured:false,
+    tips:[otip("Dron ya da örnek ses çalarken çalışı değerlendiremiyorum: merdivende dronu kapat.", "I can't judge a run while the drone or an example is playing: turn the drone off for the ladder.")] };
   if(!(voicedRatio >= 0.5)) return { clean:false, measured:false,
     tips:[otip("Duyamadım: biraz daha güçlü ya da mikrofona yakın çal.", "I couldn't hear it: play a little louder or closer to the microphone.")] };
   const tips = [], nm = w => SCORE.noteName(w);
@@ -672,6 +675,39 @@ class TempoLadder{
     return { tempo: this.tempo, best: this.best, done, rest: this.streak >= 3 };
   }
 }
+// Çalış aralığında (ilk notanın başı – son notanın sonu, iz zamanı) perde bulunan ölçümlerin oranı; sayım ve
+// kuyruk sessizliği kısa kalıplarda oranı düşürmesin
+function runVoicedRatio(track, fromMs, toMs){
+  const fr = track.filter(f => f.t >= fromMs && f.t <= toMs);
+  return fr.length ? fr.filter(f => f.comma !== null).length/fr.length : 0;
+}
+// Merdiven döngüsü: play(tempo, cb) bir çalış yapar, judge(sonuç) "clean"|"dirty"|"unmeasured" verir; hedefte ya da
+// dinlenme gerekince onEnd. wait(fn) sonraki çalışı bekletir. stop() döngüyü keser.
+function ladderLoop(ladder, play, judge, opts = {}){
+  const ctl = { active:true, stop(){ ctl.active = false; } };
+  const once = () => {
+    if(!ctl.active) return;
+    play(ladder.tempo, res => {
+      if(!ctl.active) return;
+      const r = ladder.record(judge(res));
+      if(opts.onRun) opts.onRun(r, res);
+      if(r.done || r.rest){ ctl.active = false; if(opts.onEnd) opts.onEnd(r); return; }
+      (opts.wait || (f => setTimeout(f, 2000)))(once);
+    });
+  };
+  once();
+  return ctl;
+}
+// patternKey'in tersi (İlerleme satırı kalıbın adını gösterebilsin)
+function patternFromKey(key){
+  const [type, who, mode, oct, sub, art] = String(key).split(":");
+  const spec = { type, sub:+sub, art, octaves:+oct || 1 };
+  if(mode) spec.mode = mode;
+  if(type === "break") spec.pair = who.split("-").map(Number);
+  else if(/^\d+$/.test(who)) spec.base = +who;
+  else spec.makam = who;
+  return spec;
+}
 const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1, spec.sub, spec.art].join(":");
 
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
@@ -682,7 +718,7 @@ function ornamentScore(results){
 
 if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder,
+  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

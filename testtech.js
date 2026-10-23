@@ -108,6 +108,44 @@ function run(ok){
     const ps = {}; D.LESSONS.filter(l => l.unit === 'temel' || l.unit === 'klarino').forEach(l => { ps[l.id] = p[l.id]; }); ps.glissando = { s: Object.fromEntries(D.lessonById('glissando').steps.map((_, i) => [i, { v:999, ok:true }])) }; ps.artikulasyon = p.artikulasyon;
     ok(D.unlocked(D.lessonById('sus-carpma'), ps), 'susleme hiz unitesini beklemiyor');
   }
+
+  console.log('\n[43] Gozden gecirme duzeltmeleri');
+  {
+    // Kalıp anahtarından kalıba geri dönüş (İlerleme satırı): her tür
+    const specs = [{ type:'scale', makam:'rast', sub:2, art:'legato' }, { type:'scale', base:60, mode:'major', sub:2, art:'legato' },
+      { type:'arp', base:57, mode:'minor', sub:2, art:'tongue' }, { type:'groups', base:67, mode:'major', sub:4, art:'legato' },
+      { type:'thirds', makam:'rast', sub:2, art:'legato' }, { type:'break', pair:[69,71], sub:4, art:'legato' }, { type:'scale', base:55, mode:'major', octaves:2, sub:4, art:'legato' }];
+    const bad = specs.filter(sp => { const back = S.patternFromKey(S.patternKey(sp)); const a = S.techPattern(sp), b = back && S.techPattern(back);
+      return !b || a.label.tr !== b.label.tr || a.notes.map(n => n.w).join() !== b.notes.map(n => n.w).join(); });
+    ok(!bad.length, 'patternKey → patternFromKey her turde ayni kalibi veriyor', JSON.stringify(bad));
+    // Dörtlü gruplar son notayı iki kez çaldırmıyor; kusursuz çalış %100
+    const G = S.techPattern({ type:'groups', base:67, mode:'major', sub:4, art:'legato' }).notes;
+    const g = A.techAudio(G, 70, { seed:4 }), gt = S.ornamentTrack(g.pcm, g.srate, { T:5, expectHz:300 });
+    const ga = S.alignRun(G.map((n, i) => ({ t: g.starts[i], w: n.w, ms: n.d*60000/70 })), S.runPlayed(S.runNotes(gt), 0));
+    ok(G[G.length-1].w !== G[G.length-2].w && ga.correct === 1, 'dortlu gruplar: son nota tekrar etmiyor, kusursuz calis %100', ga.correct);
+    // Kısa ve hızlı kalıpta sayım ve kuyruk sessizliği "ölçülemedi"ye yol açmıyor: perdeli oran çalış aralığında
+    const B = S.techPattern({ type:'break', pair:[69,71], sub:4, art:'legato' }).notes, beat = 60000/140;
+    const bk = A.techAudio(B, 140, { seed:5 });
+    const pad = new Float32Array(Math.round((beat + 700)*bk.srate/1000) + bk.pcm.length); pad.set(bk.pcm, Math.round(beat*bk.srate/1000));
+    const bt = S.ornamentTrack(pad, bk.srate, { T:5, expectHz:300 }), starts = bk.starts.map(t => t + beat);
+    const ratio = S.runVoicedRatio(bt, starts[0], starts[starts.length-1] + B[0].d*beat);
+    ok(ratio >= 0.7, 'kisa hizli kalip: perdeli oran calis araliginda olculuyor', ratio.toFixed(2));
+    // Dron bütün çalışı kapladıysa çalış "ölçülemedi" sayılır, kirli değil
+    const P2 = S.techPattern({ type:'scale', makam:'rast', sub:2, art:'legato' }).notes, d = A.techAudio(P2, 90, { seed:6 });
+    const dt = S.ornamentTrack(d.pcm, d.srate, { T:5, expectHz:300 });
+    const da = S.alignRun(P2.map((n, i) => ({ t: d.starts[i], w: n.w, ms: n.d*60000/90 })), S.runPlayed(S.runNotes(dt), 0), { busy:[[0, 1e6]] });
+    const dv = S.runVerdict(da, 60000/90/2, 0.9);
+    ok(!dv.measured && /dron/i.test(dv.tips[0].tr), 'dron butun calisi kapladiysa olculemedi (ceza yok)', JSON.stringify(dv));
+    // Eser merdiveni döngüsü: her çalış kaydedilir, hedefte ya da dinlenmede biter
+    const lad = new S.TempoLadder(60, { target:70, max:120, stepFn: () => 5 }), seen = [];
+    let ended = null;
+    S.ladderLoop(lad, (pct, cb) => { seen.push(pct); cb({ clean:true }); }, r => r.clean ? 'clean' : 'dirty', { wait: f => f(), onEnd: r => { ended = r; } });
+    ok(seen.join() === '60,65,70' && ended && ended.done && lad.best === 70, 'merdiven dongusu hedefe kadar calisiyor', seen.join());
+    const q2 = []; let n2 = 0;
+    const ctl = S.ladderLoop(new S.TempoLadder(60, { max:120, stepFn: () => 5 }), (pct, cb) => { n2++; cb({ clean:true }); }, () => 'clean', { wait: f => q2.push(f) });
+    q2.shift()(); ctl.stop(); while(q2.length) q2.shift()();
+    ok(n2 === 2, 'merdiven durdurulunca yeni calis baslamiyor', n2);
+  }
 }
 
 module.exports = { run };

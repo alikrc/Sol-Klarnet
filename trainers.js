@@ -564,7 +564,10 @@ function techRun(ctx, spec, holder, opts){
       const tr = ornamentTrack(rec.data, rec.sampleRate, { T: SK.T, expectHz: ctx.commaFreq((mid.w - 67)*53/12), minRms: SK.minRms(), minHz: pr.min, maxHz: pr.max });
       const expected = times.map(e => ({ t: e.t, w: e.w, ms: pat.notes[e.i].d*beatMs }));
       const al = alignRun(expected, runPlayed(runNotes(tr), rec.t0 - lat), { busy: rec.busy.map(([b, e]) => [b - lat, e - lat]) });
-      const v = runVerdict(al, pat.notes[0].d*beatMs, tr.length ? tr.filter(f => f.comma !== null).length/tr.length : 0);
+      // Perdeli oran yalnızca çalış aralığında (iz zamanı = beklenen − kaydın başı + gecikme); sayım ve kuyruk sayılmaz
+      const toTrack = x => x - rec.t0 + lat, noteMs = pat.notes[0].d*beatMs;
+      const voiced = runVoicedRatio(tr, toTrack(expected[0].t) - noteMs/2, toTrack(expected[expected.length-1].t) + expected[expected.length-1].ms);
+      const v = runVerdict(al, noteMs, voiced);
       al.notes.forEach(r => { if(r.state !== "skip") markScore(sc.svg, r.i, r.state === "ok" ? "ok" : r.state === "pitch" ? "bad" : "miss"); });
       const r = ladder.record(!v.measured ? "unmeasured" : v.clean ? "clean" : "dirty");
       if(v.clean) techRecord(store, key, tempo);
