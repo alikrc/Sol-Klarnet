@@ -29,6 +29,8 @@ En değerli set, her register'dan ve farklı koşullardan kısa kayıtlar:
 6. Süslemeler: her birinden 5'er örnek (üstten ve alttan çarpma, çarpmalı tekrar, üst ve alt mordan, yavaş ve hızlı tril,
    kayarak giriş, düşüş), ayrıca aynı notaların süslemesiz hâli (yanlış pozitifleri denetlemek için). Dosya adında süsleme:
    `La4_carpma-ust.wav`, `Sol4_tril-6.wav`
+7. Hızlı pasajlar: Rast dizisi ve Sol majör gamı bağlı ve dille, sekizlik ve on altılık, ♩=60/90/120; bir kısmı metronom
+   hoparlörden açıkken (sızıntıyı denetlemek için). Dosya adında tempo: `rast-dizi_16lik-bagli_90.wav`
 
 WAV (16/24 bit PCM ya da 32 bit float, mono ya da stereo) okunur. Telefonun ses kaydedicisi genellikle m4a verir;
 `ffmpeg -i kayit.m4a kayit.wav` ile çevrilebilir.

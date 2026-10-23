@@ -1,5 +1,17 @@
 # Sol Klarnet — Backlog
 
+## Hız ve teknik — tamamlandı (24 Ekim 2026)
+
+Tasarım: [docs/superpowers/specs/2026-10-24-hiz-teknik-design.md](superpowers/specs/2026-10-24-hiz-teknik-design.md),
+plan: [docs/superpowers/plans/2026-10-24-hiz-teknik.md](superpowers/plans/2026-10-24-hiz-teknik.md).
+
+- Teknik kalıpları kurallarla üretiliyor (`skills.js` `techPattern`): makam dizisi, Batı gamı, arpej, üçlü atlama,
+  dörtlü grup, register geçişi; sekizlik/triole/on altılık, bağlı ya da dille
+- Çalış ham sesten ölçülüyor (`SK.pcmCapture`, `runNotes` → `alignRun` → `runVerdict`): doğru nota, zamanlama,
+  eşitlik ve tempo kayması; metronom tıkı ve dron aralıkları ayıklanıyor
+- Tempo merdiveni (`TempoLadder`), "Hız ve teknik" ünitesi (7 ders, toplam 59), "Hız" sekmesi, eserlerde merdiven
+- Gerçek mikrofonla denenmedi: tarayıcı panelinde mikrofon kapalıydı; ölçüm sentetik seslerle ve sahte kayıtla sınandı
+
 ## Süsleme — tamamlandı (23 Ekim 2026)
 
 Tasarım: [docs/superpowers/specs/2026-10-23-susleme-design.md](superpowers/specs/2026-10-23-susleme-design.md),
@@ -32,7 +44,8 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 ## İnsan gerektiren işler (kodla çözülemez)
 
 1. **Uzman doğrulaması:** Bir Sol klarnet hocası Ayarlar → Uzman kontrolü ekranından 124 parmağı, 19 makamın dizisini,
-   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. Ders metinleri ve 16 etüt de gözden geçirilmeli. Süslemeler (Uzman kontrolü → Süslemeler): tanımlar,
+   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. Ders metinleri ve 17 etüt de gözden geçirilmeli. Hız ünitesinin gam/arpej seçimi, hedef tempoları ve hızlı Hicaz etüdü
+   (`e-hiz-hicaz`) de kontrol edilmeli. Süslemeler (Uzman kontrolü → Süslemeler): tanımlar,
    örnek sesler, ölçüm eşikleri (`skills.js` `ORN`; ör. tril düzeni ≤ 0,2, çarpma 20–120 ms) ve iki süslemeli etüt.
    Yanlış bulunanlar `core.js` (FINGERINGS, ALT_FINGERINGS), `learn.js` (MAKAMS, SEYIR_TYPE, ICRA) ve
    `repertoire.js` (ETUDES) içinde düzeltilir; testler tutarlılığı denetler.

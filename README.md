@@ -1,7 +1,7 @@
 # Sol Klarnet — Akort, Parmak, Makam
 
 Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için akort, parmak pozisyonu, makam, ritim ve kulak eğitimi
-uygulaması. Klarneti ilk kez eline alan birini taksim yapabilecek seviyeye kadar götüren 52 derslik bir müfredatı var.
+uygulaması. Klarneti ilk kez eline alan birini taksim yapabilecek seviyeye kadar götüren 59 derslik bir müfredatı var.
 Mikrofondan çalınan sesi dinler; ses yalnızca cihazda işlenir, uygulama internete bağlanmaz.
 
 ## Akort ve parmak
@@ -21,22 +21,23 @@ Mikrofondan çalınan sesi dinler; ses yalnızca cihazda işlenir, uygulama inte
 
 ## Çalışma bölümü
 
-Sekmeler beş gruptadır: **Dersler**, **Teknik** (Parmak testi, Dizek haritası, Uzun ton, Ritim, Süsleme), **Makam** (Dizi, Taklit, Seyir,
+Sekmeler beş gruptadır: **Dersler**, **Teknik** (Parmak testi, Dizek haritası, Uzun ton, Ritim, Hız, Süsleme), **Makam** (Dizi, Taklit, Seyir,
 Kulak), **Eserler** (Etüt ve eserler, Kayıt) ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
 alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma açılır.
 
 | Sekme | İçerik |
 |---|---|
-| Dersler | 7 ünitede 52 ders: Başlarken (klarneti tanı, duruş/nefes, nota okuma, ritim), Temeller, Register ve klarino, Teknik ve üslup (uzun ton, register geçişi, dil vuruşu, dinamik, ses kalitesi, glissando, vibrato, usuller, kulak), Süsleme (çarpma, çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş, süslemeli etütler, makamda süsleme), 20 makam dersi (19 makam), İleri seviye (taksim, ileri kulak, iç tempo). **Bugünün çalışması** her gün bitirilen derslerden yeniden kurulur |
+| Dersler | 8 ünitede 59 ders: Başlarken (klarneti tanı, duruş/nefes, nota okuma, ritim), Temeller, Register ve klarino, Teknik ve üslup (uzun ton, register geçişi, dil vuruşu, dinamik, ses kalitesi, glissando, vibrato, usuller, kulak), Hız ve teknik (metronomla dizi, bağlı ve dille, parmak çevikliği, arpejler ve üçlüler, on altılıklar, makam dizileri hızda, hızlı etüt), Süsleme (çarpma, çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş, süslemeli etütler, makamda süsleme), 20 makam dersi (19 makam), İleri seviye (taksim, ileri kulak, iç tempo). **Bugünün çalışması** her gün bitirilen derslerden yeniden kurulur |
 | Parmak testi | Çal, Bul ve Oku (dizekten okuyup çal) modları; zorlanılan notalar daha sık sorulur |
 | Uzun ton | Sapma, yayılım, **ses temizliği** ve **ses gücü dengesi**; nota başına rekor |
 | Dizi (Makam) | 19 makamın dizisi, seyri, durak/güçlü/yeden; çıkış-iniş alıştırması |
 | Taklit | Makam dizisinden ezgi çalar, aynısını çal; ezgi uzar |
+| Hız | Makam dizisi, gam, arpej, üçlü atlama, dörtlü grup, register geçişi; sekizlik/triole/on altılık, bağlı ya da dille. Metronomla çalınır, ham sesten ölçülür (doğru nota, zamanlama, eşitlik, tempo kayması); **tempo merdiveni** temiz çalışta hızlanır. Kalıp başına en iyi tempo ve 14 günlük çizgi |
 | Süsleme | Çarpma, çarpmalı tekrar, mordan, tril, kayarak giriş, düşüş; makam seçilirse komşu nota makam dizisinden. Her denemeden sonra perde eğrisi ve ne yapılacağı; en iyi tril hızı ve çarpma başarısı İlerleme'de. Ölçüm deneme bitince ham sesi 5 ms adımla yeniden çözer |
 | Ritim | Kalıplar ve usuller (Sofyan, Semâî, Düyek, Aksak, Ağır Aksak, Curcuna); erken/geç ve tutarlılık; metronomsuz iç tempo; hoparlörle ya da çalarak gecikme ayarı |
 | Kulak | Tiz mi pes mi (uyarlanır merdivenle koma eşiği), perde ayırt (ABX, 1 komaya kadar), makam tanı |
 | Seyir | Serbest çalma / taksim: perdelerde süre, dizi dışı, güçlü vurgusu, açılış, karar |
-| Etüt ve eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 16 özgün etüt (ikisi süslemeli: tril, çarpma, mordan, kayış işaretleri dizekte); kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip ve metronomla tempolu çalma (perde + zamanlama) |
+| Etüt ve eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 17 özgün etüt (biri hızlı, ikisi süslemeli: tril, çarpma, mordan, kayış işaretleri dizekte); kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip, metronomla tempolu çalma (perde + zamanlama) ve %60'tan başlayan tempo merdiveni |
 | Kayıt | Kayıt, nota dökümü, kaydı dosya olarak paylaşma |
 | İlerleme | Seri, günlük hedef, son 14 gün, test, uzun ton, entonasyon, ritim, kulak eşiği, seyir, eserler |
 
@@ -76,9 +77,9 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 ```
 
 `npm test` şunları doğrular: perde bulucu (800 gerçekçi sentetik klarnet sesi: telefon mikrofonu, vibrato, nefes,
-yankı, atak), koma ve makam bağlamı, parmak kodları ve şema, 19 makamın dizileri, 52 dersin her adımı (iki dilli metin,
+yankı, atak), koma ve makam bağlamı, parmak kodları ve şema, 19 makamın dizileri, 59 dersin her adımı (iki dilli metin,
 çalınabilir notalar, geçme koşulları, kilit sırası), ritim/ses kalitesi/dinamik/seyir/kulak ölçümleri, etütler ve
-MusicXML, süslemelerin ölçümü (sentetik çarpma, mordan, tril, kayış; atak kayması ve vibrato yanlış pozitif sayılmıyor), çevrimdışı önbellek ve Android paketinin tamlığı, bütün tarayıcı betiklerinin derlenmesi.
+MusicXML, hızlı çalış ölçümü (sentetik bağlı ve dille çalışlar ♩=140'a kadar, metronom tıkı, acele, düzensizlik) ve tempo merdiveni, süslemelerin ölçümü (sentetik çarpma, mordan, tril, kayış; atak kayması ve vibrato yanlış pozitif sayılmıyor), çevrimdışı önbellek ve Android paketinin tamlığı, bütün tarayıcı betiklerinin derlenmesi.
 GitHub Actions her push'ta testleri çalıştırır.
 
 ## Dosyalar
@@ -89,7 +90,7 @@ GitHub Actions her push'ta testleri çalıştırır.
 | `core.js` | Perde/nota hesabı, makam bağlamı, çalgılar, parmak kodları, perde bulucu (tarayıcı + Node) |
 | `learn.js` | Makam ve usul verisi, icra düzeltmeleri, test, puanlama, istatistik (tarayıcı + Node) |
 | `lessons.js` | Müfredat (iki dilli), adım başlıkları, geçme koşulları, kilit sırası, günlük plan (tarayıcı + Node) |
-| `skills.js` | Nota başı bulma, ritim, ses kalitesi, dinamik, seyir analizi, kulak eğitimi, süsleme ölçümü (tarayıcı + Node) |
+| `skills.js` | Nota başı bulma, ritim, ses kalitesi, dinamik, seyir analizi, kulak eğitimi, süsleme ölçümü, teknik kalıpları, hızlı çalış ölçümü ve tempo merdiveni (tarayıcı + Node) |
 | `pcmring.js` | Mikrofonun son 8 saniyelik ham sesi (AudioWorklet); süsleme denemeleri bundan çözülür |
 | `repertoire.js` | Süreli nota biçimi, AEU koma işaretleri, MusicXML, tempolu çalma değerlendirmesi, etütler (tarayıcı + Node) |
 | `practice.js` | Çalışma bölümünün kabuğu: sekme menüsü, metronom ve dron, sürekli ölçümler, sekmelere verilen ortak yardımcılar |
@@ -99,7 +100,7 @@ GitHub Actions her push'ta testleri çalıştırır.
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |
 | `i18n.js` | Tema ve dil; yeni metinler `L("Türkçe", "English")` ile, eskiler sözlükte |
 | `fonts/` | Uygulamanın içindeki fontlar (`npm run fonts`) |
-| `test.js`, `testornament.js`, `testaudio.js`, `testdata/` | Testler (süsleme testleri ayrı dosyada), sentetik klarnet sesleri, gerçek kayıtlar |
+| `test.js`, `testornament.js`, `testtech.js`, `testaudio.js`, `testdata/` | Testler (süsleme ve hız testleri ayrı dosyalarda), sentetik klarnet sesleri, gerçek kayıtlar |
 
 ## Kaynaklar
 
