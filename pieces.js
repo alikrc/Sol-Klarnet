@@ -159,7 +159,8 @@ function piecePlayer(ctx, piece, holder, info, onDone){
   }
 
   // Tempolu çalma: bir ölçü sayım, sonra notalar zamanında; bitince perde ve zamanlama değerlendirilir
-  async function startTempo(pct = 1){
+  // onResult verilirse (tempo merdiveni) sonuç ona gider, ders adımı bitmez
+  async function startTempo(pct = 1, onResult){
     stop();
     if(!(await ctx.needMic())) return;
     mode = "tempo"; redraw();
@@ -212,7 +213,8 @@ function piecePlayer(ctx, piece, holder, info, onDone){
       const best = ctx.store.get("piece.best", {}), id = piece.id || piece.name;
       if(!best[id] || pct2 > best[id]){ best[id] = pct2; ctx.store.set("piece.best", best); }
       mode = null; run = null;
-      if(onDone) onDone({ v: pct2, mode:"tempo" });
+      if(onResult) onResult(res);
+      else if(onDone) onDone({ v: pct2, mode:"tempo" });
     }, Math.max(0, endAt - performance.now())));
   }
   // Dinle: notaları tempoda çalar
@@ -232,9 +234,34 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     }
     if(playToken === token){ SK.stopSound(); playToken = null; }
   }
-  function stop(){ playToken = null; if(run){ run.stop(); run = null; } mode = null; }
+  // Tempo merdiveni: %60'tan başlar, temiz çalışta %5 artar, iki temiz olmayan çalışta %5 iner (en çok %120).
+  // report(pct): her çalıştan önce yüzde (kaydırıcıyı güncellemek için)
+  let ladder = null;
+  function startLadder(target = 120, report){
+    stop();
+    const lad = new TempoLadder(60, { target, max:120, stepFn: () => 5 });
+    ladder = lad;
+    const once = () => {
+      if(ladder !== lad) return;
+      if(report) report(lad.tempo);
+      startTempo(lad.tempo/100, res => {
+        if(ladder !== lad) return;
+        const clean = pieceClean(res), r = lad.record(clean ? "clean" : "dirty");
+        say(clean ? "good" : "bad", info.textContent + L(" · merdiven: sonraki %", " · ladder: next ") + r.tempo + (LANG === "en" ? "%" : ""));
+        if(r.done || r.rest){
+          ladder = null;
+          say(r.done ? "good" : "bad", r.done ? L("Hedefe ulaştın: %", "Target reached: ") + lad.best + (LANG === "en" ? "% tempo" : " tempo") : L("Biraz dinlen; en iyi %", "Take a break; best ") + lad.best + (LANG === "en" ? "%" : ""));
+          if(onDone) onDone({ v: lad.best, mode:"ladder" });
+          return;
+        }
+        setTimeout(once, 2000);
+      });
+    };
+    once();
+  }
+  function stop(){ playToken = null; ladder = null; if(run){ run.stop(); run = null; } mode = null; }
   return {
-    startFree, startTempo, listen, stop,
+    startFree, startTempo, startLadder, listen, stop,
     toggleNames(){ names = !names; ctx.store.set("piece.names", names); redraw(); },
     note(r, t){
       if(mode === "free") freeNote(r, t);
@@ -265,6 +292,7 @@ TRAINERS.piece = function(ctx){
     <div class="fb" id="pcfb" aria-live="polite"></div>
     <div class="pbar">
       <button class="primary small" id="pctempo" type="button">${L("Tempolu çal", "Play in tempo")}</button>
+      <button class="stopbtn" id="pcladder" type="button">${L("Merdiven", "Ladder")}</button>
       <button class="stopbtn" id="pcfree" type="button">${L("Serbest takip", "Follow mode")}</button>
       <button class="stopbtn" id="pclisten" type="button">${L("Dinle", "Listen")}</button>
       <button class="stopbtn" id="pcstop" type="button">${L("Durdur", "Stop")}</button>
@@ -323,6 +351,7 @@ TRAINERS.piece = function(ctx){
   const pct = () => +$("pcpct").value/100;
   $("pcpct").addEventListener("input", () => { $("pcpctv").textContent = $("pcpct").value + "%"; });
   $("pctempo").addEventListener("click", () => player.startTempo(pct()));
+  $("pcladder").addEventListener("click", () => player.startLadder(120, p => { $("pcpct").value = p; $("pcpctv").textContent = p + "%"; }));
   $("pcfree").addEventListener("click", async () => { await ctx.needMic(); player.startFree(); });
   $("pclisten").addEventListener("click", () => player.listen(pct()));
   $("pcstop").addEventListener("click", () => { player.stop(); SK.stopSound(); });
@@ -375,14 +404,15 @@ TRAINERS.piece = function(ctx){
   };
 };
 
-// Ders adımı: { type:"piece", id, mode:"tempo"|"free", min } — tempoda en az min % doğru nota; serbestte en çok min hata
+// Ders adımı: { type:"piece", id, mode:"tempo"|"free"|"ladder", min } — tempoda en az min % doğru nota; serbestte en çok
+// min hata; merdivende temiz çalınan tempo en az %min
 TRAINER_STEPS.piece = function(st, stage, done, ctx){
   const e = etudeById(st.id);
   stage.innerHTML = `<div class="scorewrap"></div><div class="fb"></div>
-    <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : L("Sayımla başla", "Start with count-in")}</button></div>`;
+    <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : st.mode === "ladder" ? L("Merdiveni başlat", "Start the ladder") : L("Sayımla başla", "Start with count-in")}</button></div>`;
   const p = { id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam };
   const pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
   stage.querySelector("[data-l]").addEventListener("click", () => pl.listen());
-  stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : pl.startTempo());
+  stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : st.mode === "ladder" ? pl.startLadder(st.min) : pl.startTempo());
   return { note: (r, t) => pl.note(r, t), silence: t => pl.silence(t), stop(){ pl.stop(); } };
 };
