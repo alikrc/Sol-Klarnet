@@ -44,6 +44,30 @@ function run(ok){
     const t2 = run({ T:2 });
     ok(t2.n.length === 15 && Math.abs(t2.n[0].comma - 0) < 1, 'baska calgida (T=2) ayni yazili notalar', t2.n.length);
   }
+
+  console.log('\n[40] Hizalama');
+  {
+    const exp = (a, notes, tempo) => notes.map((n, i) => ({ t: a.starts[i], w: n.w, ms: n.d*60000/tempo }));
+    const judge = (o, tempo = 90) => { const a = A.techAudio(P.notes, tempo, { seed:1, ...o });
+      const tr = S.ornamentTrack(a.pcm, a.srate, { T:5, expectHz:300 });
+      const al = S.alignRun(exp(a, P.notes, tempo), S.runPlayed(S.runNotes(tr), 0), o.busy ? { busy:o.busy } : {});
+      return { al, v: S.runVerdict(al, 60000/tempo/4, tr.filter(f => f.comma !== null).length/tr.length) }; };
+    const good = judge({});
+    ok(good.al.correct >= 0.95 && good.v.clean, 'dogru calis temiz', JSON.stringify([good.al.correct, good.al.mean, good.al.sd, good.al.evenness, good.v.tips]));
+    const f140 = judge({}, 140), tg = judge({ art:'tongue' });
+    ok(f140.v.clean && tg.v.clean, '♩=140 bagli ve dille temiz', JSON.stringify([f140.al.correct, f140.al.sd, f140.al.evenness, tg.al.correct, tg.al.sd, tg.al.evenness]));
+    const w = judge({ wrong:{ i:3, w:65 } });
+    ok(w.al.notes[3].state === 'pitch' && /4\./.test(w.v.tips[0].tr), 'yanlis nota yerinde bulunuyor', JSON.stringify(w.v.tips));
+    ok(judge({ skip:[5] }).al.notes[5].state === 'miss', 'kacan nota');
+    ok(judge({ extra:{ after:7, w:76 } }).al.extra === 1, 'fazla nota', judge({ extra:{ after:7, w:76 } }).al.extra);
+    const rush = judge({ rush:0.15 });
+    ok(!rush.v.clean && /erken/.test(rush.v.tips.map(t => t.tr).join()), 'acele temiz degil', JSON.stringify(rush.v.tips));
+    ok(rush.al.correct >= 0.9 && !/yanlış/.test(rush.v.tips.map(t => t.tr).join()), 'acele eden dogru notalar yanlis sayilmiyor (tempo kaymasi)', rush.al.correct);
+    ok(!judge({ jitter:0.6 }).v.clean, 'duzensiz temiz degil');
+    const b = judge({ busy:[[0, 300]] });
+    ok(b.al.notes.slice(0, 2).every(n => n.state === 'skip') && b.v.clean, 'mesgul araliktaki notalar atlaniyor, kacan sayilmiyor');
+    ok(!S.runVerdict({ notes:[], extra:0, correct:0, mean:0, sd:0, evenness:0 }, 160, 0.3).measured, 'perdeli oran %50 altinda olculemedi');
+  }
 }
 
 module.exports = { run };

@@ -578,6 +578,77 @@ function runNotes(track){
   }
   return out.filter(p => partMs(track, p.start, p.end) >= 40).map(p => ({ t: p.start - fix, end: p.end, comma: p.comma }));
 }
+// runNotes çıktısını perf zaman çizgisine (t0) ve en yakın yazılı notaya çevirir
+const runPlayed = (notes, t0) => notes.map(n => ({ t: t0 + n.t, w: Math.round(67 + n.comma*12/53) }));
+// Beklenen notalarla çalınanların hizalanması (dinamik programlama). expected: [{ t, w, ms }], played: [{ t, w }],
+// opts.busy: [[b,e]] — bu aralıktaki beklenen notalar "skip", çalınanlar yok sayılır.
+// Eşleşme maliyeti: (perde farklı ? 1 : 0) + 0,5·min(1, |dt|/tol), yalnızca |dt| ≤ max(400, 4 nota); kaçan ya da fazla
+// nota 1. Zaman toleransı geniş: tempo kaçsa da (acele) notalar sırasıyla eşleşir, kayma ayrıca ölçülür (drift).
+function alignRun(expected, played, opts = {}){
+  const inBusy = t => (opts.busy || []).some(([b, e]) => t >= b && t <= e);
+  const E = expected.map((e, i) => ({ ...e, i })).filter(e => !inBusy(e.t)), Pl = played.filter(p => !inBusy(p.t));
+  const n = E.length, m = Pl.length, tolOf = e => Math.max(400, 4*e.ms);
+  const D = Array.from({ length:n+1 }, () => new Float64Array(m+1)), B = Array.from({ length:n+1 }, () => new Uint8Array(m+1));
+  for(let i=1;i<=n;i++){ D[i][0] = i; B[i][0] = 1; }
+  for(let j=1;j<=m;j++){ D[0][j] = j; B[0][j] = 2; }
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+    let best = D[i-1][j] + 1, how = 1;                               // kaçan
+    if(D[i][j-1] + 1 < best){ best = D[i][j-1] + 1; how = 2; }       // fazla
+    const e = E[i-1], p = Pl[j-1], dt = Math.abs(p.t - e.t), tol = tolOf(e);
+    if(dt <= tol){ const c = D[i-1][j-1] + (p.w === e.w ? 0 : 1) + 0.5*dt/tol; if(c < best){ best = c; how = 3; } }
+    D[i][j] = best; B[i][j] = how;
+  }
+  const res = expected.map((e, i) => ({ i, w: e.w, state: "skip" }));
+  let extra = 0;
+  for(let i=n, j=m; i>0 || j>0; ){
+    const how = B[i][j];
+    if(how === 3){ const e = E[i-1], p = Pl[j-1]; res[e.i] = { i:e.i, w:e.w, state: p.w === e.w ? "ok" : "pitch", dev: p.t - e.t, got: p.t, gotW: p.w }; i--; j--; }
+    else if(how === 1){ res[E[i-1].i] = { i:E[i-1].i, w:E[i-1].w, state:"miss" }; i--; }
+    else { extra++; j--; }
+  }
+  const ok = res.filter(r => r.state === "ok"), devs = ok.map(r => r.dev), mean = SLEARN.mean(devs), sd = SLEARN.sd(devs);
+  const ratios = [];
+  for(let k=1;k<res.length;k++) if(res[k].state === "ok" && res[k-1].state === "ok")
+    ratios.push((res[k].got - res[k-1].got)/(expected[k].t - expected[k-1].t));
+  // Tempo kayması: sapmanın zamana göre doğrusal eğimi × süre (ms); eksi = hızlanıyor
+  let drift = 0;
+  if(ok.length > 2){
+    const xs = ok.map(r => expected[r.i].t), mx = SLEARN.mean(xs);
+    let num = 0, den = 0; ok.forEach((r, k) => { num += (xs[k] - mx)*(r.dev - mean); den += (xs[k] - mx)**2; });
+    drift = den ? num/den*(xs[xs.length-1] - xs[0]) : 0;
+  }
+  return { notes: res, extra, correct: n ? ok.length/n : 0, mean, sd, drift,
+           evenness: ratios.length > 1 ? SLEARN.sd(ratios)/SLEARN.mean(ratios) : 0 };
+}
+// Çalış temiz mi; ipuçları en büyük sorundan başlar
+function runVerdict(al, noteMs, voicedRatio){
+  if(!(voicedRatio >= 0.5)) return { clean:false, measured:false,
+    tips:[otip("Duyamadım: biraz daha güçlü ya da mikrofona yakın çal.", "I couldn't hear it: play a little louder or closer to the microphone.")] };
+  const tips = [], nm = w => SCORE.noteName(w);
+  const bad = al.notes.filter(r => r.state === "pitch" || r.state === "miss");
+  if(bad.length){
+    const idx = bad.slice(0, 3).map(r => r.i + 1);
+    tips.push(otip(idx.map(i => i + ".").join(", ") + (bad.length > 3 ? " …" : "") + (bad.length > 1 ? " notalar" : " nota") + " yanlış ya da eksik.",
+                   "Wrong or missing: note " + idx.join(", ") + (bad.length > 3 ? " …" : "") + "."));
+    // Hatalar art arda üç nota içinde toplanıyorsa o geçiş zor
+    for(let k=0;k+1<bad.length;k++) if(bad[k+1].i - bad[k].i <= 2){
+      const a = al.notes[bad[k].i], b = al.notes[Math.min(al.notes.length - 1, bad[k].i + 1)];
+      tips.push(otip(nm(a.w).tr + "–" + nm(b.w).tr + " geçişinde takılıyorsun: o iki notayı yavaşça tekrar et.",
+                     "You stumble on " + nm(a.w).en + "–" + nm(b.w).en + ": repeat those two notes slowly."));
+      break;
+    }
+  }
+  if(Math.abs(al.drift || 0) > 0.5*noteMs)
+    tips.push(al.drift < 0 ? otip("Hızlanıyorsun: notalar giderek erken geliyor (sonda " + Math.round(-al.drift) + " ms erken).", "You're speeding up: the notes come earlier and earlier (" + Math.round(-al.drift) + " ms early by the end).")
+                           : otip("Yavaşlıyorsun: notalar giderek geç geliyor (sonda " + Math.round(al.drift) + " ms geç).", "You're slowing down: the notes come later and later (" + Math.round(al.drift) + " ms late by the end)."));
+  else if(Math.abs(al.mean) > 0.25*noteMs)
+    tips.push(al.mean < 0 ? otip("Acele ediyorsun (ortalama " + Math.round(-al.mean) + " ms erken): metronomu dinle.", "You're rushing (" + Math.round(-al.mean) + " ms early on average): listen to the click.")
+                          : otip("Geride kalıyorsun (ortalama " + Math.round(al.mean) + " ms geç).", "You're dragging (" + Math.round(al.mean) + " ms late on average)."));
+  if(al.sd > 0.2*noteMs || al.evenness > 0.2)
+    tips.push(otip("Notalar eşit değil: her notaya aynı süreyi ver, gerekirse tempoyu düşür.", "The notes are uneven: give every note the same length; slow down if needed."));
+  const clean = al.correct >= 0.9 && Math.abs(al.mean) <= 0.25*noteMs && al.sd <= 0.2*noteMs && al.evenness <= 0.2;
+  return { clean, measured:true, tips };
+}
 const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1, spec.sub, spec.art].join(":");
 
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
@@ -588,7 +659,7 @@ function ornamentScore(results){
 
 if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes,
+  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };
