@@ -649,6 +649,29 @@ function runVerdict(al, noteMs, voicedRatio){
   const clean = al.correct >= 0.9 && Math.abs(al.mean) <= 0.25*noteMs && al.sd <= 0.2*noteMs && al.evenness <= 0.2;
   return { clean, measured:true, tips };
 }
+// Tempo merdiveni: temiz çalış → tempo bir basamak artar; üst üste iki temiz olmayan çalış → bir basamak iner; tek hata
+// tempoyu değiştirmez; ölçülemeyen çalış sayılmaz. Art arda üç temiz olmayan çalış → dinlen. Eser yüzdesi için de
+// kullanılır (stepFn: () => 5, max: 120).
+class TempoLadder{
+  constructor(start, opts = {}){
+    this.tempo = start; this.best = 0; this.target = opts.target != null ? opts.target : null;
+    this.max = opts.max || 220; this.floor = Math.round(start*0.7);
+    this.stepFn = opts.stepFn || (t => t > 120 ? 6 : 4);
+    this.dirty = 0; this.streak = 0;
+  }
+  record(kind){
+    let done = false;
+    if(kind === "clean"){
+      this.best = Math.max(this.best, this.tempo); this.dirty = 0; this.streak = 0;
+      done = this.target != null && this.best >= this.target;
+      if(!done) this.tempo = Math.min(this.max, this.tempo + this.stepFn(this.tempo));
+    }else if(kind === "dirty"){
+      this.dirty++; this.streak++;
+      if(this.dirty >= 2){ this.tempo = Math.max(this.floor, this.tempo - this.stepFn(this.tempo)); this.dirty = 0; }
+    }
+    return { tempo: this.tempo, best: this.best, done, rest: this.streak >= 3 };
+  }
+}
 const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1, spec.sub, spec.art].join(":");
 
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
@@ -659,7 +682,7 @@ function ornamentScore(results){
 
 if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict,
+  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

@@ -68,6 +68,22 @@ function run(ok){
     ok(b.al.notes.slice(0, 2).every(n => n.state === 'skip') && b.v.clean, 'mesgul araliktaki notalar atlaniyor, kacan sayilmiyor');
     ok(!S.runVerdict({ notes:[], extra:0, correct:0, mean:0, sd:0, evenness:0 }, 160, 0.3).measured, 'perdeli oran %50 altinda olculemedi');
   }
+
+  console.log('\n[41] Merdiven');
+  {
+    const L = new S.TempoLadder(60, { target:72 });
+    ok(L.record('clean').tempo === 64 && L.best === 60, 'temiz: +4');
+    ok(L.record('dirty').tempo === 64 && L.record('dirty').tempo === 60, 'tek hata kalir, iki hata −4');
+    ok(L.record('unmeasured').tempo === 60, 'olculemeyen sayilmaz');
+    const H = new S.TempoLadder(118); H.record('clean'); ok(H.record('clean').tempo === 128, '120 ustunde +6', H.tempo);
+    const F = new S.TempoLadder(60); for(let k=0;k<10;k++) F.record('dirty'); ok(F.tempo === 42, 'alt sinir %70', F.tempo);
+    const R3 = new S.TempoLadder(60); R3.record('dirty'); R3.record('dirty'); ok(R3.record('dirty').rest, 'art arda 3 hata: dinlen');
+    const T = new S.TempoLadder(64, { target:68 }); T.record('clean'); ok(T.record('clean').done && T.best === 68, 'hedefte biter');
+    const Pc = new S.TempoLadder(60, { max:120, stepFn: () => 5 }); Pc.record('clean'); ok(Pc.tempo === 65, 'eser yuzdesi +5');
+    const Mx = new S.TempoLadder(118, { max:120, stepFn: () => 5 }); Mx.record('clean'); ok(Mx.tempo === 120, 'ust sinir', Mx.tempo);
+    const R = require('./repertoire.js');
+    ok(R.pieceClean({ pitchRate:0.92, mean:-30, sd:40 }) && !R.pieceClean({ pitchRate:0.92, mean:70, sd:40 }) && !R.pieceClean({ pitchRate:0.85, mean:0, sd:10 }), 'eserde temiz calis');
+  }
 }
 
 module.exports = { run };

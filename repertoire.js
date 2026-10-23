@@ -173,6 +173,8 @@ function alignPerformance(expected, onsets, pitchAt, tol){
   return { notes: res, pitchRate: expected.length ? ok.length/expected.length : 0,
            missed: res.filter(r => r.state === "miss").length, wrong: res.filter(r => r.state === "pitch").length, mean, sd };
 }
+// Tempo merdiveninde eser çalışı temiz mi: doğru nota ≥ %90, ortalama sapma ≤ 60 ms, yayılım ≤ 50 ms
+const pieceClean = res => res.pitchRate >= 0.9 && Math.abs(res.mean) <= 60 && res.sd <= 50;
 // Notaların beklenen zamanları: start (ms), beatMs (dörtlük), notalar
 function noteTimes(notes, start, beatMs){
   const out = []; let b = 0;
@@ -229,5 +231,5 @@ const etudeById = id => ETUDES.find(e => e.id === id) || null;
 
 if(typeof module !== "undefined") module.exports = {
   parseScoreText, scoreToText, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
-  alignPerformance, noteTimes, ETUDES, etudeNotes, etudeById
+  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById
 };
