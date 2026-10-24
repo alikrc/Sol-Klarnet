@@ -49,6 +49,156 @@
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
   };
+  // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Alıştırma açılınca başlığın altında
+  // katlanmış durur. Metronom ve dron notları kendi ayar kutularında.
+  const HUB_HELP = L(`<p><b>Hepsini bilmen gerekmiyor.</b> Her gün <b>Dersler</b>'i sırayla takip et; dersler gereken alıştırmayı
+      zamanı gelince kendisi açar. Diğer kartlar bir konuyu ayrıca çalışmak içindir.</p>
+    <p>Bir karta dokun, alıştırma açılır. Üstteki sekmeler aynı gruptaki diğer alıştırmalardır; “‹ Çalışma” ana sayfaya döner.
+      Çoğu alıştırma mikrofon ister: sağ üstteki <b>Mikrofon</b>'a bas. Her alıştırmanın başında kendi “Nasıl kullanılır?” notu var.</p>
+    <p><b>Kısa yol haritası:</b></p>
+    <ol><li>Her gün Dersler → Bugünün çalışması.</li>
+      <li>Bir nota hep pes ya da tiz çıkıyorsa Uzun ton, sonra Kayıt ile kendini dinle.</li>
+      <li>Parmaklar yavaşsa Hız.</li>
+      <li>Makamı oturtmak için Dizi → Taklit → Seyir.</li></ol>`,
+    `<p><b>You don't need all of them.</b> Follow <b>Lessons</b> in order every day; lessons open the exercise you need when it's time.
+      The other cards are for working on one topic on its own.</p>
+    <p>Tap a card to open the exercise. The tabs at the top are the other exercises in the same group; “‹ Practice” goes back.
+      Most exercises need the microphone: tap <b>Microphone</b> at the top right. Each exercise has its own “How to use” note.</p>
+    <p><b>A simple route:</b></p>
+    <ol><li>Every day: Lessons → Today's practice.</li>
+      <li>If a note keeps coming out flat or sharp: Long tone, then listen to yourself with Recording.</li>
+      <li>If your fingers are slow: Speed.</li>
+      <li>To settle a makam: Scale → Mimic → Seyir.</li></ol>`);
+  const HELP = {
+    lessons: L(`<p><b>Ne işe yarar:</b> Sıfırdan ileri seviyeye adım adım 59 ders. Her ders birkaç adımdır: oku, dinle, çal.</p>
+      <ol><li>Üstteki “Bugünün çalışması” o gün ne çalışacağını söyler; oradan başla.</li>
+        <li>Bir derse dokun, adımları sırayla geç. Dinleme adımında önce örneği dinle.</li>
+        <li>Çalma adımında mikrofonu aç ve çal; uygulama seni dinler, geçince sonraki adım açılır.</li>
+        <li>Bir ders bitince sonraki ders açılır. Takılırsan dersi tekrar et.</li></ol>`,
+      `<p><b>What it's for:</b> 59 step-by-step lessons from zero to advanced. Each lesson has a few steps: read, listen, play.</p>
+      <ol><li>“Today's practice” at the top tells you what to work on today; start there.</li>
+        <li>Tap a lesson and go through its steps. On listening steps, listen to the example first.</li>
+        <li>On playing steps, turn on the microphone and play; the app listens and opens the next step when you pass.</li>
+        <li>Finishing a lesson unlocks the next one. If you get stuck, repeat the lesson.</li></ol>`),
+    quiz: L(`<p><b>Ne işe yarar:</b> Notaları ve parmakları ezberlemek.</p>
+      <ol><li>Bir mod seç: <b>Çal</b> (istenen notayı çal), <b>Bul</b> (şemadaki parmak hangi nota, seç ya da çal),
+        <b>Oku</b> (dizekteki notayı adını görmeden çal).</li>
+        <li>Bölgeyi seç (önce pes notalar) ve “20 soruluk tur başlat”a bas.</li>
+        <li>Zorlandığın notalar daha sık gelir. Bir bölgede son 20 cevabın %80'i doğruysa sonraki bölge açılır.</li></ol>`,
+      `<p><b>What it's for:</b> memorising notes and fingerings.</p>
+      <ol><li>Pick a mode: <b>Play</b> (play the requested note), <b>Identify</b> (which note is this fingering; pick or play it),
+        <b>Read</b> (play the note on the staff without seeing its name).</li>
+        <li>Choose a region (low notes first) and tap “Start a 20-question round”.</li>
+        <li>Notes you struggle with come up more often. 80% correct in the last 20 answers unlocks the next region.</li></ol>`),
+    staffmap: L(`<p><b>Ne işe yarar:</b> Hangi notanın porte üzerinde nerede durduğunu öğrenmek.</p>
+      <ol><li>Bir notaya dokun: sesini duyarsın, parmağını görürsün.</li>
+        <li>Mikrofon açıkken çal: çaldığın nota haritada yanar.</li>
+        <li>Notanın yanındaki sayı oktavdır ve her Do'da bir artar: Si4'ten sonra Do5 gelir.</li></ol>`,
+      `<p><b>What it's for:</b> learning where each note sits on the staff.</p>
+      <ol><li>Tap a note: you hear it and see its fingering.</li>
+        <li>With the microphone on, play: the note you play lights up on the map.</li>
+        <li>The number is the octave; it goes up at every C: after B4 comes C5.</li></ol>`),
+    long: L(`<p><b>Ne işe yarar:</b> Sesi oturtmak. Bir notayı düz ve sabit tutmayı çalışırsın; temiz ses ve doğru perde buradan gelir.</p>
+      <ol><li>Notayı ve hedef süreyi seç; istersen Dinle ile notayı duy. Mikrofonu aç.</li>
+        <li>Başlat'a bas ve notayı süre boyunca aynı güçte, titretmeden tut.</li>
+        <li>Puan: ne kadar sabit kaldığın, perdeye ne kadar yakın olduğun ve süreyi tamamlaman. Her gün birkaç uzun ton, en iyi ısınmadır.</li></ol>`,
+      `<p><b>What it's for:</b> settling your sound. You practise holding a note steady; a clean sound and true pitch come from this.</p>
+      <ol><li>Choose the note and the target length; tap Listen to hear the note if you like. Turn on the microphone.</li>
+        <li>Tap Start and hold the note at the same strength, without wobbling, for the whole time.</li>
+        <li>The score: how steady you stayed, how close to the pitch, and whether you held it to the end. A few long tones a day are the best warm-up.</li></ol>`),
+    rhythm: L(`<p><b>Ne işe yarar:</b> Zamanında çalmak.</p>
+      <ol><li>İlk kez kullanıyorsan önce bir kez <b>Gecikme ayarı</b>'nı yap (telefonun ses gecikmesi ölçülür; yapmazsan sonuçlar hep biraz kayık çıkar).</li>
+        <li>Bir kalıp ya da usul ve tempo seç, Başlat'a bas.</li>
+        <li>Bir ölçü sayımdan sonra metronomla birlikte kısa notalar çal (hangi nota olduğu önemli değil).</li>
+        <li>Sonuçta isabet, erken/geç ve tutarlılık görünür. Usulde düm ve tek vuruşlarında çalarsın.</li></ol>`,
+      `<p><b>What it's for:</b> playing in time.</p>
+      <ol><li>If it's your first time, run <b>Latency setup</b> once (it measures your phone's audio delay; without it results are always a little off).</li>
+        <li>Pick a pattern or usul and a tempo, tap Start.</li>
+        <li>After a one-bar count-in, play short notes with the metronome (any note).</li>
+        <li>You see accuracy, early/late and consistency. With an usul you play on its düm and tek strokes.</li></ol>`),
+    hiz: L(`<p><b>Ne işe yarar:</b> Parmakları hızlandırmak: gam, arpej, makam dizisi gibi kalıplar.</p>
+      <ol><li>Bir kalıp seç (makam dizisi, Batı gamı, arpej…), nota değerini ve bağlı ya da dilli çalmayı seç.</li>
+        <li>İstersen başlangıç temposunu (♩) değiştir, Başla'ya bas; bir ölçü sayımdan sonra kalıbı metronomla çal.</li>
+        <li>Çalış bitince sonuç görünür. Temiz çalınca tempo kendiliğinden biraz artar; iki kez üst üste zorlanırsan iner.</li>
+        <li>Üç kez zorlanırsan dinlenme önerilir. En iyi temiz tempon kaydedilir ve İlerleme'de görünür.</li></ol>`,
+      `<p><b>What it's for:</b> speeding up your fingers with patterns such as scales, arpeggios and makam scales.</p>
+      <ol><li>Pick a pattern (makam scale, Western scale, arpeggio…), a note value and slurred or tongued.</li>
+        <li>Change the start tempo (♩) if you like and tap Start; after a one-bar count-in, play the pattern with the metronome.</li>
+        <li>When the run ends you see the result. A clean run raises the tempo a little; two struggling runs in a row lower it.</li>
+        <li>After three struggling runs you're told to rest. Your best clean tempo is saved and shown in Progress.</li></ol>`),
+    susleme: L(`<p><b>Ne işe yarar:</b> Çarpma, mordan, tril, kayarak giriş ve düşüş gibi süslemeleri doğru çalmak.</p>
+      <ol><li>Bir süsleme seç; makam seçersen komşu nota o makamdan gelir.</li>
+        <li>Dinle ile örneği duy, sonra Başla'ya basıp çal.</li>
+        <li>Denemeden sonra perde eğrin ve ne yapman gerektiği görünür (ör. “çarpma çok uzun”). Doğru yapınca yeşil olur.</li></ol>`,
+      `<p><b>What it's for:</b> playing ornaments such as grace notes, mordents, trills, slides and falls correctly.</p>
+      <ol><li>Pick an ornament; if you pick a makam, the neighbour note comes from that makam.</li>
+        <li>Tap Listen to hear the example, then tap Start and play.</li>
+        <li>After each try you see your pitch curve and what to do (e.g. “grace note too long”). It turns green when it's right.</li></ol>`),
+    makam: L(`<p><b>Ne işe yarar:</b> Bir makamın perdelerini doğru yerde çalmak.</p>
+      <ol><li>Makamı seç; dizisi nota şeridinde işaretlenir (çerçeveli: dizi, dolu: durak, noktalı: güçlü).</li>
+        <li>“Diziyi dinle” ile önce duy. “Durağı dron yap” durak sesini arkada sürekli çalar.</li>
+        <li>“Alıştırma: çık ve in”e bas ve diziyi önce çık, sonra in. Her perdede kaç koma kaçtığın görünür.</li></ol>`,
+      `<p><b>What it's for:</b> playing a makam's perdes in the right place.</p>
+      <ol><li>Pick the makam; its scale is marked on the note strip (outlined: scale, filled: tonic, dotted: dominant).</li>
+        <li>Hear it first with “Listen to the scale”. “Final as drone” keeps the tonic sounding in the background.</li>
+        <li>Tap “Exercise: up and down” and play the scale up, then down. You see how many commas each perde was off.</li></ol>`),
+    mimic: L(`<p><b>Ne işe yarar:</b> Kulakla çalmayı öğrenmek.</p>
+      <ol><li>Makamı seç, Başlat'a bas: uygulama kısa bir ezgi çalar.</li>
+        <li>Aynı ezgiyi klarnetle çal.</li>
+        <li>Doğru çalınca ezgi bir nota uzar, yanlışta kısalır. “Tekrar dinle” ezgiyi yeniden çalar.</li></ol>`,
+      `<p><b>What it's for:</b> learning to play by ear.</p>
+      <ol><li>Pick a makam and tap Start: the app plays a short phrase.</li>
+        <li>Play the same phrase on the clarinet.</li>
+        <li>Get it right and the phrase grows by one note; get it wrong and it shrinks. “Listen again” replays it.</li></ol>`),
+    seyir: L(`<p><b>Ne işe yarar:</b> Taksimde makamın yolunu (seyrini) izleyip izlemediğini görmek.</p>
+      <ol><li>Makamı ve süreyi (30, 60 ya da 120 sn) seç; istersen “Durağı dron yap”. Başlat'a bas.</li>
+        <li>Süre bitene kadar taksim gibi serbest çal.</li>
+        <li>Uygulama hangi perdelerde ne kadar durduğunu, dizi dışına çıkıp çıkmadığını, güçlüyü vurgulayıp vurgulamadığını
+          ve durakta bitirip bitirmediğini söyler.</li></ol>`,
+      `<p><b>What it's for:</b> seeing whether your taksim follows the makam's path (seyir).</p>
+      <ol><li>Pick the makam and a length (30, 60 or 120 s); tap “Final as drone” if you like. Tap Start.</li>
+        <li>Play freely like a taksim until the time is up.</li>
+        <li>The app tells you where you dwelt, whether you left the scale, whether you stressed the dominant and whether you ended on the tonic.</li></ol>`),
+    ear: L(`<p><b>Ne işe yarar:</b> Koma farklarını duymayı öğrenmek. Klarnet gerekmez, kulaklık önerilir.</p>
+      <ol><li><b>Tiz mi pes mi:</b> İki ses çalar; ikincisi tiz mi pes mi seç. Bildikçe fark küçülür, sonunda duyabildiğin en küçük fark görünür.</li>
+        <li><b>Perde ayırt:</b> A ve B perdelerini dinle, sonra X hangisiydi seç.</li>
+        <li><b>Makam tanı:</b> Kısa bir ezgi dinle, makamını seç.</li></ol>`,
+      `<p><b>What it's for:</b> learning to hear comma differences. No clarinet needed; headphones help.</p>
+      <ol><li><b>Higher or lower:</b> two notes play; choose whether the second is higher or lower. The gap shrinks as you get it right, and finally shows the smallest difference you can hear.</li>
+        <li><b>Tell perdes apart:</b> listen to A and B, then say which one X was.</li>
+        <li><b>Name the makam:</b> listen to a short phrase and pick its makam.</li></ol>`),
+    piece: L(`<p><b>Ne işe yarar:</b> Etütleri ve eserleri notadan çalmak.</p>
+      <ol><li>Listeden bir etüt seç; notası dizekte görünür. Dinle ile önce duy.</li>
+        <li><b>Serbest takip:</b> kendi hızında çal, doğru notada bir sonrakine geçer. <b>Tempolu çal:</b> metronomla çal, doğru nota ve zamanlama ölçülür.
+          <b>Merdiven:</b> tempo temiz çaldıkça artar.</li>
+        <li>Kendi ezgini nota yazıp Kaydet ile ekleyebilir ya da “MusicXML içe aktar” ile nota dosyası yükleyebilirsin.</li></ol>`,
+      `<p><b>What it's for:</b> playing études and pieces from the score.</p>
+      <ol><li>Pick an étude; its score appears on the staff. Tap Listen to hear it first.</li>
+        <li><b>Follow mode:</b> play at your own pace; it moves on when you hit the right note. <b>Play in tempo:</b> play with the metronome; notes and timing are measured.
+          <b>Ladder:</b> the tempo rises as you play cleanly.</li>
+        <li>You can add your own tune by typing the notes and tapping Save, or load a score with “Import MusicXML”.</li></ol>`),
+    rec: L(`<p><b>Ne işe yarar:</b> Kendini dinlemek ve nerede pes ya da tiz kaldığını görmek.</p>
+      <ol><li>Daha doğru ölçüm için Akort'ta çaldığın makamı seç.</li>
+        <li>Kaydı başlat'a bas, çal, Kaydı durdur'a bas.</li>
+        <li>Grafikte yatay şerit hedef perde, çizgi senin sesin: yeşil yerinde, turuncu kaçmış. Grafiği parmakla kaydır, “Tümü” bütün kaydı gösterir.
+          Grafiğe ya da tablodaki bir satıra dokununca kayıt o andan çalar.</li>
+        <li>Altta en çok kaçan perdeler ve ipucu; “Parmağa bak” o notanın parmağını açar. Saklamak için “Kaydı kaydet / paylaş”.</li></ol>`,
+      `<p><b>What it's for:</b> listening to yourself and seeing where you were flat or sharp.</p>
+      <ol><li>For a better reading, choose the makam you're playing in the Tuner.</li>
+        <li>Tap Start recording, play, tap Stop recording.</li>
+        <li>In the chart the band is the target perde and the line is you: green on pitch, orange off. Drag the chart; “All” shows the whole recording.
+          Tap the chart or a table row to play from that moment.</li>
+        <li>Below are the pitches most often off with a tip; “See fingering” opens that note's fingering. Use “Save / share the recording” to keep it.</li></ol>`),
+    progress: L(`<p><b>Ne işe yarar:</b> Ne kadar çalıştığını ve neyin geliştiğini görmek.</p>
+      <ol><li>Üstte seri (kaç gün üst üste) ve bugünkü süre; günlük hedefi Ayarlar'dan değiştirebilirsin.</li>
+        <li>Altta ritim, kulak, seyir, hız, süsleme ve eserlerdeki en iyi sonuçların ve Taklit rekorun.</li>
+        <li>Hangi notalarda zorlandığını görmek için Akort'taki nota şeridinde “Entonasyon haritası”nı aç: pes ya da tiz çıkan notalar renklenir.</li></ol>`,
+      `<p><b>What it's for:</b> seeing how much you've practised and what's improving.</p>
+      <ol><li>At the top: your streak and today's time; change the daily goal in Settings.</li>
+        <li>Below: your best results in rhythm, ear, seyir, speed, ornaments and pieces, and your Mimic record.</li>
+        <li>To see which notes you struggle with, turn on the “Intonation map” on the Tuner's note strip: flat or sharp notes are coloured.</li></ol>`)
+  };
+  const helpBox = (id, body) => `<details class="phelp"${id ? ` id="${id}"` : ""}><summary>${L("Nasıl kullanılır?", "How to use")}</summary><div class="phelpbody"${id ? ` id="${id}body"` : ""}>${body}</div></details>`;
   const ICON = {
     play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>`,
     stop: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
@@ -68,6 +218,7 @@
       </div>
     </div>
     <div class="phub" id="phub">
+      ${helpBox("", HUB_HELP)}
       <button type="button" class="hresume" id="hresume"></button>
       ${GROUPS.map(([g, name, members]) => `<section class="hgroup" aria-label="${name}">
         ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
@@ -83,6 +234,7 @@
         ${TABS.map(([id, name]) => `<button type="button" role="tab" id="tab-${id}" aria-controls="pp-${id}" data-tab="${id}">${name}</button>`).join("")}
       </div>
     </nav>
+    ${helpBox("phelp", "")}
     <div class="tools">
       <div class="tool" id="tmet">
         <div class="thead">
@@ -92,6 +244,7 @@
         </div>
         <div class="slots" id="slots" aria-hidden="true"></div>
         <div class="tbody" id="tmetbody" hidden>
+          <div class="reg thelp">${L("▶ ile başlat, ■ ile durdur. Tempoyu − / + ile ya da sayıyı yazarak değiştir. Usul seçersen düm ve tek vuruşları farklı sesle çalar; noktalar ölçüdeki yeri gösterir.", "Start with ▶, stop with ■. Change the tempo with − / + or by typing it. With an usul, düm and tek strokes sound different; the dots show where you are in the bar.")}</div>
           <label class="tfield"><span class="label">Usul</span>
             <select id="usul" aria-label="Usul">${USULS.map(u => `<option value="${u.id}">${u.name} ${u.meter}</option>`).join("")}</select></label>
           <div class="tfield"><span class="label">Tempo</span>
@@ -113,6 +266,7 @@
           <label class="tfield"><span class="label">${L("Durak perdesi", "Tonic perde")}</span><select id="dronep" aria-label="Dron perdesi"></select></label>
           <label class="tfield"><span class="label">${L("Ses düzeyi", "Volume")}</span>
             <input id="dronevol" type="range" min="1" max="10" value="4" aria-label="Dron ses düzeyi"></label>
+          <div class="reg thelp">${L("Dron, arkada sürekli çalan sabit bir sestir: genelde makamın durak perdesi. Sen onun üstünde çalarak perdelerini kulakla oturtursun. ▶ ile aç, perdeyi ve ses düzeyini buradan seç.", "The drone is a steady background note, usually the makam's tonic. Playing over it helps you place your perdes by ear. Turn it on with ▶ and pick the perde and volume here.")}</div>
           <div class="reg">Kulaklık önerilir. Dron açıkken dron perdesiyle aynı ses (oktavı dahil) algılanmaz.</div>
         </div>
       </div>
@@ -172,6 +326,7 @@
     });
     pnav.classList.toggle("single", members.length < 2);
     closeTools();
+    $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
     if(modules[id].enter) modules[id].enter();
     fitDescs();
     if(user){

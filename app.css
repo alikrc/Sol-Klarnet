@@ -663,3 +663,12 @@ body.modal{overflow:hidden}
 .obopt[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
 .obnav{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
 .goalok{color:var(--ok);font-weight:600}
+/* "Nasıl kullanılır?" notları */
+.phelp{margin:0 0 12px;font-size:13px;line-height:1.55;border:1px solid var(--line);border-radius:10px;background:var(--sunk);padding:8px 12px}
+.phelp summary{cursor:pointer;font-weight:600;color:var(--accent-ink)}
+.phelp[open] summary{margin-bottom:6px}
+.phelpbody p{margin:0 0 8px}
+.phelpbody ol{margin:0 0 4px;padding-left:20px}
+.phelpbody li{margin:3px 0}
+.tunehelp{margin-top:10px;text-align:left}
+.thelp{margin-bottom:8px}

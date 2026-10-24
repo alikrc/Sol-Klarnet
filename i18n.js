@@ -34,6 +34,11 @@ const FINGER_EN = { "işaret":"index", "orta":"middle", "yüzük":"ring" };
 const EXACT = {
   // Ayarlar ve akort kartı (2026-10 eklemeleri)
   "Makam bağlamı": "Makam context",
+  "Nasıl kullanılır?": "How to use",
+  "Mikrofon düğmesine bas ve bir nota çal: hangi perdeyi çaldığını ve kaç koma pes (−) ya da tiz (+) olduğunu görürsün.": "Tap the Microphone button and play a note: you see which perde you're playing and how many commas flat (−) or sharp (+) it is.",
+  "Makam: hangi makamda çaldığını seçersen perdeler o makamın dizisine göre değerlendirilir. Kayıt ve diğer ölçümler de daha doğru olur. Serbest bırakırsan en yakın perde gösterilir.": "Makam: pick the makam you're playing and perdes are judged against its scale. Recording and other measurements become more accurate too. Leave it free and the nearest perde is shown.",
+  "AEU kitaptaki kuramsal perdedir. İcra, ustaların gerçekte çaldığı perdedir (ör. Uşşak'ta Segâh biraz pes çalınır). Emin değilsen İcra'yı seç.": "AEU is the theoretical perde from the books. İcra is how masters actually play it (e.g. Segâh is played a little flat in Uşşak). If unsure, choose İcra.",
+  "Alttaki iz son 8 saniyede çaldığın perdeyi çizer: çizgi yatay perde çizgisinin üstündeyse tizsin, altındaysa pessin.": "The trace below draws your pitch over the last 8 seconds: above the horizontal perde line you're sharp, below it flat.",
   "Makam: serbest (tüm perdeler)": "Makam: free (all perdes)",
   "Çalgı": "Instrument",
   "Yazılı nota ve perde adları seçilen klarnete göre hesaplanır. Parmak şeması Albert sistemdir; parmaklar her Albert klarnette yazılı notaya göre aynıdır.":
