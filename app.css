@@ -386,6 +386,8 @@ audio{width:100%;margin-bottom:10px}
 .rtable th,.rtable td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
 .rtable th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .rtable tr.now td{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
+.curvebar{display:flex;align-items:center;gap:10px;margin:8px 0 6px}
 .inton{font-size:13px;margin:0 0 10px}
 .inton ul{margin:4px 0 0;padding-left:18px}
 .inton li{margin:4px 0}

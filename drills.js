@@ -474,6 +474,8 @@ TRAINERS.rec = function(ctx){
       + (!tctx && summary.measured ? `<p class="small muted">${L("Pes ve tiz, seçili makamın perdelerine göre ölçülür; Akort'ta bir makam seçersen ölçüm daha doğru olur.", "Flat and sharp are judged against the chosen makam; pick one in the Tuner for a better reading.")}</p>` : "");
     stage.innerHTML = (url ? `<audio controls src="${url}" id="rcaudio"></audio>` : `<div class="muted">Bu tarayıcı ses kaydını desteklemiyor; yalnızca notalar listelendi.</div>`) +
       `<div class="qcount">${notes.length} nota · ${glideN} glissando · ${num(dur/1000, 0)} sn</div>
+      <div class="curvebar"><button class="stopbtn small" id="rcall" type="button">${L("Tümü", "All")}</button><span class="muted small" id="rcwin"></span></div>
+      <canvas class="trace curve" id="rccurve" aria-label="${L("Perde eğrisi", "Pitch curve")}"></canvas>
       <div class="inton"><b>${sumLine}</b><span class="muted">${shortLine}</span></div>
       ${perdesHtml}${extra}
       <div class="tablewrap"><table class="rtable"><thead><tr><th>Zaman</th><th>Perde</th><th>Yazılı</th><th>Süre</th><th>Sapma</th><th>${L("Not", "Note")}</th></tr></thead><tbody>
@@ -483,9 +485,11 @@ TRAINERS.rec = function(ctx){
       <div class="pbar">${url ? `<button class="primary small" id="rcsave" type="button">${L("Kaydı kaydet / paylaş", "Save / share the recording")}</button>` : ""}
       <button class="stopbtn" id="rccopy" type="button">Notaları kopyala</button>
       <button class="stopbtn" id="rcpiece" type="button">${L("Eserlere ekle", "Add to pieces")}</button><span class="muted" id="rcmsg"></span></div>`;
+    if(curve) curve.stop();
+    curve = curveView($("rccurve"), { trace, issues, ctx:tctx, dur });
     stage.querySelectorAll("[data-note]").forEach(b => b.addEventListener("click", () => SK.showNote(+b.dataset.note)));   // data-goto Akort'u açar
     if($("rclong")) $("rclong").addEventListener("click", () => selectTab("long"));
-    stage.querySelector(".rtable tbody").addEventListener("click", e => { const tr = e.target.closest("tr[data-i]"); if(tr) seek(notes[+tr.dataset.i].start); });
+    stage.querySelector(".rtable tbody").addEventListener("click", e => { const tr = e.target.closest("tr[data-i]"); if(tr){ const t = notes[+tr.dataset.i].start; curve.show(t); seek(t); } });
     // Kaydı dosya olarak kaydet ya da paylaş (ör. hocaya göndermek için)
     if(url) $("rcsave").addEventListener("click", async () => {
       const blob = await (await fetch(url)).blob(), ext = /mp4|aac|m4a/.test(blob.type) ? "m4a" : /ogg/.test(blob.type) ? "ogg" : "webm";
@@ -526,6 +530,141 @@ TRAINERS.rec = function(ctx){
       $("rcmsg").textContent = L("Eserlere eklendi.", "Added to pieces.");
     });
   }
+  // ---- Perde eğrisi: zaman–koma grafiği ----
+  // Görünür pencere 8 sn (ya da kaydın tamamı); sürükleyerek kaydırılır, dokununca kayıt o ana sarılır.
+  let curve = null;
+  function curveView(canvas, an){
+    const { trace, issues, ctx:tctx, dur } = an, LEFT = 92, SPAN = 8000;
+    const st = { from:0, span:SPAN, full:false, playMs:null, manualUntil:0, raf:0 };
+    const total = Math.max(dur, 1000);
+    const clamp = f => Math.max(0, Math.min(f, Math.max(0, total - st.span)));
+    // Kareler zamana göre sıralı: nota indeksi her çizimde baştan ilerleyen bir imleçle bulunur
+    let ni = 0;
+    const noteAt = t => { while(ni < notes.length && notes[ni].end < t) ni++; return ni < notes.length && t >= notes[ni].start ? ni : -1; };
+    const scaleSet = tctx ? new Set(tctx.scale.map(mod53)) : null;
+    function draw(){
+      const dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
+      if(!W || !H) return;
+      if(canvas.width !== Math.round(W*dpr) || canvas.height !== Math.round(H*dpr)){ canvas.width = Math.round(W*dpr); canvas.height = Math.round(H*dpr); }
+      const g = canvas.getContext("2d");
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+      const cs = getComputedStyle(document.documentElement), col = n => cs.getPropertyValue(n).trim();
+      const BOT = 16, plotW = W - LEFT, from = st.from, to = from + st.span;
+      const x = t => LEFT + (t - from)/st.span*plotW;
+      // Perde aralığı: görünür notaların hedefleri ± 3 koma, en az 12 koma
+      const vis = issues.filter((it, i) => !it.short && notes[i].end >= from && notes[i].start <= to);
+      let lo, hi;
+      if(vis.length){ lo = Math.min(...vis.map(v => v.target)) - 3; hi = Math.max(...vis.map(v => v.target)) + 3; }
+      else{
+        const fr = trace.slice(firstIndexAt(trace, from), firstIndexAt(trace, to)).filter(f => f.comma != null);
+        const c = fr.length ? fr[fr.length - 1].comma : 0; lo = c - 6; hi = c + 6;
+      }
+      if(hi - lo < 12){ const m = (hi + lo)/2; lo = m - 6; hi = m + 6; }
+      const y = c => 6 + (hi - c)/(hi - lo)*(H - BOT - 12);
+      g.font = "500 10px " + col("--ui"); g.textBaseline = "middle";
+      let lastLabelY = -1e9;
+      for(const [c, name] of [...PERDES].reverse()){
+        if(c < lo || c > hi) continue;
+        const inS = !scaleSet || scaleSet.has(mod53(c)), yy = y(c);
+        g.globalAlpha = inS ? 1 : 0.4; g.strokeStyle = col("--line"); g.lineWidth = 1;
+        g.beginPath(); g.moveTo(LEFT, yy); g.lineTo(W, yy); g.stroke(); g.globalAlpha = 1;
+        if(!inS || yy - lastLabelY < 13) continue;
+        g.fillStyle = col("--muted"); g.fillText(name, 8, yy); lastLabelY = yy;
+      }
+      const colorOf = i => i < 0 || issues[i].short ? col("--muted") : issues[i].kinds.some(k => INTON_ERRORS.includes(k)) ? col("--accent") : col("--ok");
+      // Nota şeritleri: hedef perde, nota süresince
+      g.globalAlpha = 0.25; g.lineWidth = 6; g.lineCap = "butt";
+      issues.forEach((it, i) => {
+        if(it.short || notes[i].end < from || notes[i].start > to) return;
+        g.strokeStyle = colorOf(i); g.beginPath(); g.moveTo(x(notes[i].start), y(it.target)); g.lineTo(x(notes[i].end), y(it.target)); g.stroke();
+      });
+      g.globalAlpha = 1;
+      // Eğri: renk notaya göre; sessizlikte kopar
+      g.lineWidth = 2; g.lineJoin = "round";
+      let pen = false, cur = null; ni = 0;
+      const j0 = Math.max(0, firstIndexAt(trace, from) - 1), j1 = Math.min(trace.length, firstIndexAt(trace, to) + 1);
+      for(let j = j0; j < j1; j++){
+        const f = trace[j];
+        if(f.comma == null){ if(pen) g.stroke(); pen = false; continue; }
+        const xx = x(f.t), yy = Math.max(2, Math.min(H - BOT, y(f.comma))), c = colorOf(noteAt(f.t));
+        if(pen && c !== cur){ g.lineTo(xx, yy); g.stroke(); pen = false; }
+        if(!pen){ g.strokeStyle = cur = c; g.beginPath(); g.moveTo(xx, yy); pen = true; }
+        else g.lineTo(xx, yy);
+      }
+      if(pen) g.stroke();
+      // Etiketler: hatalı notada ilk hata (pes/tiz için miktarıyla), bilgi işaretleri soluk
+      g.textBaseline = "alphabetic"; g.font = "600 10px " + col("--ui");
+      let lastRight = -1e9;
+      issues.forEach((it, i) => {
+        if(it.short || !it.kinds.length || notes[i].end < from || notes[i].start > to) return;
+        const err = it.kinds.find(k => INTON_ERRORS.includes(k)), k = err || it.kinds[0];
+        const txt = KIND_LABEL[k] + (k === "pes" || k === "tiz" ? " " + num(Math.abs(it.delta), 1) : "");
+        const xx = Math.max(LEFT, x(notes[i].start)), w = g.measureText(txt).width;
+        if(xx < lastRight + 4) return;
+        g.fillStyle = err ? col("--accent") : col("--muted");
+        g.fillText(txt, xx, Math.max(10, y(it.target) - 7)); lastRight = xx + w;
+      });
+      // Zaman ekseni
+      // Etiketler arasında en az 36 px kalsın
+      const step = [1, 2, 5, 10, 15, 30, 60, 120, 300].map(s => s*1000).find(s => s/st.span*plotW >= 36) || 600000;
+      g.fillStyle = col("--muted"); g.strokeStyle = col("--line"); g.font = "500 10px " + col("--mono"); g.textBaseline = "bottom";
+      for(let s = Math.ceil(from/step)*step; s <= to; s += step){
+        const xx = x(s); g.beginPath(); g.moveTo(xx, H - BOT); g.lineTo(xx, H - BOT + 4); g.stroke();
+        g.fillText(num(s/1000, 0), xx + 2, H);
+      }
+      // Çalma çizgisi
+      if(st.playMs != null && st.playMs >= from && st.playMs <= to){
+        g.strokeStyle = col("--ink"); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x(st.playMs), 0); g.lineTo(x(st.playMs), H - BOT); g.stroke();
+      }
+      const wl = $("rcwin"); if(wl) wl.textContent = `${num(from/1000)}–${num(Math.min(to, total)/1000)} sn`;
+    }
+    // Sürükleme kaydırır; sürüklemeden bırakılan dokunuş kaydı o ana sarar
+    let drag = null;
+    canvas.addEventListener("pointerdown", e => { drag = { x0:e.clientX, from0:st.from, moved:false }; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointermove", e => {
+      if(!drag) return;
+      const dx = e.clientX - drag.x0;
+      if(!drag.moved && Math.abs(dx) <= 8) return;
+      drag.moved = true;
+      st.from = clamp(drag.from0 - dx*st.span/(canvas.clientWidth - LEFT));
+      st.manualUntil = performance.now() + 3000; draw();
+    });
+    canvas.addEventListener("pointerup", e => {
+      const d = drag; drag = null;
+      if(!d || d.moved) return;
+      const r = canvas.getBoundingClientRect(), px = e.clientX - r.left;
+      if(px < LEFT) return;
+      const t = st.from + (px - LEFT)/(canvas.clientWidth - LEFT)*st.span;
+      st.playMs = t; draw(); seek(t);
+    });
+    canvas.addEventListener("pointercancel", () => { drag = null; });
+    const allBtn = $("rcall");
+    allBtn.addEventListener("click", () => {
+      st.full = !st.full;
+      st.span = st.full ? total : SPAN;
+      st.from = st.full ? 0 : clamp((st.playMs || 0) - 2000);
+      allBtn.textContent = st.full ? L("8 sn", "8 s") : L("Tümü", "All");
+      draw();
+    });
+    const audio = $("rcaudio");
+    const tick = () => {
+      st.playMs = audio.currentTime*1000;
+      if(!st.full && performance.now() > st.manualUntil && (st.playMs < st.from || st.playMs > st.from + st.span*0.85)) st.from = clamp(st.playMs - st.span*0.2);
+      draw();
+      st.raf = audio.paused || audio.ended ? 0 : requestAnimationFrame(tick);
+    };
+    if(audio){
+      audio.addEventListener("play", () => { if(!st.raf) st.raf = requestAnimationFrame(tick); });
+      audio.addEventListener("seeked", () => { if(!st.raf) tick(); });
+    }
+    draw();
+    return {
+      draw,
+      show(ms){ if(!st.full) st.from = clamp(ms - 1000); st.playMs = ms; st.manualUntil = performance.now() + 3000; draw(); },
+      stop(){ if(st.raf) cancelAnimationFrame(st.raf); st.raf = 0; }
+    };
+  }
+  window.addEventListener("resize", () => { if(curve) curve.draw(); });
   // Tarayıcı panelinde mikrofon olmadan denemek için
   window.SKDEBUG = Object.assign(window.SKDEBUG || {}, { recPresent: present });
   let prevW = null, gap = [];
@@ -538,7 +677,7 @@ TRAINERS.rec = function(ctx){
   });
   SK.on("silence", d => { if(rec){ rec.frames.push({ t:d.t, written:null }); rec.raw.push({ t:d.t, comma:null }); prevW = null; gap = []; } });
   // Başka sekmeye geçilince kayıt arka planda sürmesin; döküm hazır olur
-  return { leave(){ if(rec) stopRec(); } };
+  return { leave(){ if(rec) stopRec(); if(curve) curve.stop(); } };
 };
 
 // ======== İlerleme ========
