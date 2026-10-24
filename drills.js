@@ -438,7 +438,10 @@ TRAINERS.rec = function(ctx){
     clearInterval(r.timer);
     $("rcbtn").textContent = "Kaydı başlat";
     r.dur = performance.now() - r.t0;
-    r.ctx = getTuningContext();   // çözüm, durdurulduğu andaki makam bağlamıyla yapılır
+    // Çözüm, durdurulduğu andaki makam bağlamıyla yapılır. Makamın icra düzeltmeleri de verilir: AEU modunda
+    // da geleneksel icra perdesi (ör. Uşşak'ta 1,5 koma pes Segâh) pes sayılmasın.
+    const tc = getTuningContext(), mk = SK.tuningMakam && makamById(SK.tuningMakam());
+    r.ctx = tc && mk ? { ...tc, icra:mk.icra } : tc;
     if(r.mr && r.mr.state !== "inactive"){
       r.mr.onstop = () => present(r, URL.createObjectURL(new Blob(r.chunks, { type: r.mr.mimeType || "audio/webm" })));
       r.mr.stop();

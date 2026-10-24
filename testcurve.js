@@ -70,6 +70,29 @@ function run(ok){
   ok(I(mk(0, 800, () => -2), [note(0, 800)])[0].perde === 'Rast', 'Rast baglaminda 2 koma pes nota Rast sayiliyor');
   const e = S.intonationSummary([]);
   ok(e.total === 0 && e.measured === 0 && e.ok === 0 && e.perdes.length === 0, 'bos ozet');
+  // Gerçek perde bulucu 40 ms'de bir ölçer (app.js tick); zaman damgaları biraz oynar
+  console.log('\n[46] Perde egrisi: 40 ms kareler');
+  {
+    const mk40 = (start, dur, f) => { const a = []; for(let x = 0; x <= dur; x += 40) a.push({ t:start + x + (noise()*3), comma:f(x) }); return a; };
+    const errs = x => x.kinds.filter(k => S.INTON_ERRORS.includes(k));
+    for(const [dur, hz, dep] of [[600, 5, 1.75], [900, 5, 1.75], [900, 4.5, 2], [1500, 6.5, 2], [1500, 5.5, 1.5]]){
+      const x = I(mk40(0, dur, t => dep*Math.sin(2*Math.PI*hz*t/1000)), [note(0, dur)])[0];
+      ok(errs(x).length === 0, `vibrato ${dur} ms, ${hz} Hz, ±${dep} koma hata sayilmiyor`, JSON.stringify(x));
+    }
+    const b = I(mk40(0, 800, t => t >= 400 && t <= 480 ? 53 : 0), [note(0, 800)])[0];
+    ok(errs(b).length === 0, '3 karelik oktav hatasi isaret uretmiyor', JSON.stringify(b));
+    const w = I(mk40(0, 1200, () => noise()*1.4), [note(0, 1200)])[0];
+    ok(w.kinds.includes('titrek'), 'uzun notada duzensiz dalgalanma titrek', JSON.stringify(w));
+    // AEU modunda (düzeltme yok) Uşşak Segâh'ı icradaki gibi 1,5 koma pes: hata değil
+    const us = L.makamById('ussak'), aeu = { ...L.tuningCtx(us), icra:us.icra };
+    const u = I(mk40(0, 800, () => 15.2), [note(0, 800, 71)], aeu)[0];
+    ok(u.perde === 'Segâh' && errs(u).length === 0, 'Ussak Segah icra perdesinde pes sayilmiyor', JSON.stringify(u));
+    ok(errs(I(mk40(0, 800, () => 19), [note(0, 800, 71)], aeu)[0]).join() === 'tiz', 'Ussak Segah 2 koma tiz yine tiz');
+    // Dizi dışı notada pes/tiz yok (hedef belirsiz)
+    const d = I(mk40(0, 800, () => 2), [note(0, 800)], { scale:[9], offsets:{} })[0];
+    ok(d.kinds.join() === 'disi', 'dizi disi notada yalnizca dizi disi isareti', JSON.stringify(d));
+  }
+
   const tr = mk(0, 1000, () => 0);
   ok(S.firstIndexAt(tr, 510) === 21 && S.firstIndexAt(tr, -5) === 0 && S.firstIndexAt(tr, 5000) === tr.length, 'ikili arama');
 }

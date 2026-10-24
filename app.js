@@ -906,6 +906,7 @@
     // Çalışma bölümü makam dersi/alıştırması sürerken akort bağlamını geçici olarak o makama kurar
     setTempContext(mkId){ tempCtx = mkId ? { mk: mkId } : null; applyCtx(); },
     tuningMode: () => ctxNow().mode,
+    tuningMakam: () => ctxNow().mk,
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
     pcm: pcmRange,

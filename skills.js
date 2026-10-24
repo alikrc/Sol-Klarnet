@@ -733,7 +733,7 @@ function ornamentScore(results){
 // ---- Perde eğrisi ----
 // Kayıttaki perde izinden nota başına entonasyon işaretleri. Emin olunmayan yerde işaret konmaz.
 // Eşikler yalnızca sentetik seslerle seçildi; gerçek kayıtlarla gözden geçirilmeli.
-const INTON = { offKoma:1.5, driftKoma:1.5, scoopKoma:2, wobbleKoma:0.8, headMs:120, tailMs:80, minStableMs:150, minFrames:4, driftMinMs:400, spikeKoma:20 };
+const INTON = { offKoma:1.5, driftKoma:1.5, scoopKoma:2, wobbleKoma:0.8, headMs:120, tailMs:80, minStableMs:150, minFrames:4, driftMinMs:400, spikeKoma:20, vibMinMs:700 };
 const INTON_ERRORS = ["pes", "tiz", "kayma", "titrek"];   // diğerleri (alttan, ustten, vibrato, disi) bilgi işareti
 
 // t'den küçük olmayan ilk karenin indeksi (ikili arama)
@@ -774,8 +774,12 @@ function notePerde(comma, ctx){
       for(let k = -2; k <= 3; k++){
         const base = c + 53*k, name = SCORE.perdeNameAt(base);
         if(!name) continue;
-        const target = base + ((ctx.offsets && ctx.offsets[c]) || 0), d = Math.abs(comma - target);
-        if(d < bd){ bd = d; best = { name, comma:target, inScale:true }; }
+        // ctx.icra verilmişse hem AEU hem icra perdesi doğru sayılır (AEU modunda geleneksel icra pes denmesin)
+        const offs = new Set([(ctx.offsets && ctx.offsets[c]) || 0, ...(ctx.icra && ctx.icra[c] ? [0, ctx.icra[c]] : [])]);
+        for(const off of offs){
+          const target = base + off, d = Math.abs(comma - target);
+          if(d < bd){ bd = d; best = { name, comma:target, inScale:true }; }
+        }
       }
     }
     if(best && bd <= 2.5) return best;
@@ -783,13 +787,15 @@ function notePerde(comma, ctx){
   const g = SCORE.nearestPerde(comma);
   return g ? { name:g.name, comma:g.comma, inScale:!ctx } : null;
 }
-// Bir periyot kaydırılmış artığın kendisiyle ilintisi (düzenli salınımda ≈ 1, gürültüde ≈ 0)
-function periodic(rs, dt, periodMs){
-  const L = Math.round(periodMs/dt);
-  if(!(L >= 1) || L >= rs.length/2) return false;
-  let a = 0, b = 0;
-  for(let i = 0; i + L < rs.length; i++){ a += rs[i]*rs[i+L]; b += rs[i]*rs[i]; }
-  return b > 0 && a/b > 0.5;
+// 3–9 Hz'lik düzenli salınım var mı: artık bir periyot kaydırılınca kendine benzer, yarım periyot
+// kaydırılınca tersine döner (düzenli salınımda puan ≈ 1, gürültüde ≈ 0). vibrato() 40 ms karelerde ve
+// kısa notada çoğu zaman sonuç vermez.
+function oscillates(rs, dt){
+  const ac = L => { let a = 0, b = 0; for(let i = 0; i + L < rs.length; i++){ a += rs[i]*rs[i+L]; b += rs[i]*rs[i]; } return b > 0 ? a/b : 0; };
+  let best = 0;
+  for(let L = Math.max(2, Math.round(111/dt)); L <= Math.round(333/dt) && L < rs.length/2; L++)
+    best = Math.max(best, (ac(L) - ac(Math.round(L/2)))/2);
+  return best > 0.6;
 }
 
 // notes: [{ start, end, written }] (ms), trace: cleanTrace sonucu (aynı zaman ekseninde), opts.ctx: makam bağlamı
@@ -800,14 +806,19 @@ function intonationIssues(notes, trace, opts = {}){
     const fr = [];
     for(let j = firstIndexAt(trace, n.start); j < trace.length && trace[j].t <= n.end; j++) if(trace[j].comma != null) fr.push(trace[j]);
     const a = n.start + K.headMs, b = n.end - K.tailMs;
-    const st = fr.filter(f => f.t >= a && f.t <= b);
-    if(b - a < K.minStableMs || st.length < K.minFrames) return res;
-    const med = median(st.map(f => f.comma)), p = notePerde(med, ctx);
+    const st0 = fr.filter(f => f.t >= a && f.t <= b);
+    if(b - a < K.minStableMs || st0.length < K.minFrames) return res;
+    const med = median(st0.map(f => f.comma)), p = notePerde(med, ctx);
+    // Süzgeçten kaçan birkaç karelik perde bulucu hatası (oktav, on ikili) kayma ve titreklik hesabına girmesin
+    const st = st0.filter(f => Math.abs(f.comma - med) <= K.spikeKoma);
     if(!p) return res;
     Object.assign(res, { short:false, perde:p.name, target:p.comma, delta:med - p.comma, inScale:p.inScale !== false });
     const k = res.kinds;
-    if(res.delta < -K.offKoma) k.push("pes");
-    else if(res.delta > K.offKoma) k.push("tiz");
+    // Dizi dışı notada hedef belirsiz: pes/tiz denmez
+    if(!(ctx && !res.inScale)){
+      if(res.delta < -K.offKoma) k.push("pes");
+      else if(res.delta > K.offKoma) k.push("tiz");
+    }
     if(n.end - n.start >= K.driftMinMs){
       const m = Math.floor(st.length/3);
       if(m >= 2){
@@ -825,10 +836,10 @@ function intonationIssues(notes, trace, opts = {}){
     let nu = 0, de = 0;
     for(let j = 0; j < xs.length; j++){ nu += (xs[j]-mx)*(ys[j]-my); de += (xs[j]-mx)**2; }
     const sl = de ? nu/de : 0, rs = ys.map((y, j) => y - (my + sl*(xs[j]-mx)));
-    const vib = SLEARN.vibrato(st);
-    // vibrato() düzensiz dalgalanmada da hız bulabilir; bir periyot kaydırılmış iz kendine benzemiyorsa vibrato değildir
-    if(vib && periodic(rs, (xs[xs.length-1] - xs[0])/(xs.length - 1), 1000/vib.rate)) k.push("vibrato");
-    else if(SLEARN.sd(rs) > K.wobbleKoma) k.push("titrek");
+    const dt = (xs[xs.length-1] - xs[0])/Math.max(1, xs.length - 1), spread = SLEARN.sd(rs);
+    if(spread > 0.15 && oscillates(rs, dt)) k.push("vibrato");
+    // Titreklik ancak vibratonun ayırt edilebileceği uzunlukta (kararlı bölüm ≥ 700 ms) söylenir
+    else if(b - a >= K.vibMinMs && spread > K.wobbleKoma) k.push("titrek");
     if(ctx && !res.inScale) k.push("disi");
     return res;
   });
