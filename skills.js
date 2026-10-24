@@ -2,8 +2,8 @@
 // ses kalitesi, dinamik (crescendo/decrescendo), seyir analizi ve kulak eğitimi soru üreticileri.
 // Tarayıcıda lessons.js'ten sonra <script src="skills.js"> ile, Node'da require("./skills.js") ile yüklenir.
 
-const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi, noteName };
-const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, mean, sd, commaToWritten, perdeName };
+const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi, noteName, contextPerde };
+const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, mean, sd, commaToWritten, perdeName, vibrato };
 
 // ---- Nota başı (onset) bulma ----
 // Her ölçümde { t (ms), rms, on (perde bulundu mu), tOn? (pencere içinde enerjinin yükseldiği an) } gelir.
@@ -730,7 +730,125 @@ function ornamentScore(results){
   return { n: m.length, found, pct: m.length ? Math.round(found/m.length*100) : null };
 }
 
+// ---- Perde eğrisi ----
+// Kayıttaki perde izinden nota başına entonasyon işaretleri. Emin olunmayan yerde işaret konmaz.
+// Eşikler yalnızca sentetik seslerle seçildi; gerçek kayıtlarla gözden geçirilmeli.
+const INTON = { offKoma:1.5, driftKoma:1.5, scoopKoma:2, wobbleKoma:0.8, headMs:120, tailMs:80, minStableMs:150, minFrames:4, driftMinMs:400, spikeKoma:20 };
+const INTON_ERRORS = ["pes", "tiz", "kayma", "titrek"];   // diğerleri (alttan, ustten, vibrato, disi) bilgi işareti
+
+// t'den küçük olmayan ilk karenin indeksi (ikili arama)
+function firstIndexAt(trace, t){
+  let lo = 0, hi = trace.length;
+  while(lo < hi){ const mid = (lo + hi) >> 1; if(trace[mid].t < t) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+
+// Sessizlikle (comma:null) ayrılmış her bölümde tek karelik sıçramalar (oktav, alt harmonik) atılır,
+// kalanlara 3'lü kayan medyan uygulanır.
+function cleanTrace(raw){
+  const out = [];
+  let seg = [];
+  const flush = () => {
+    const keep = seg.filter((f, i) => {
+      const nb = seg.slice(Math.max(0, i-2), i).concat(seg.slice(i+1, i+3)).map(x => x.comma);
+      return nb.length < 2 || Math.abs(f.comma - median(nb)) <= INTON.spikeKoma;
+    });
+    keep.forEach((f, i) => out.push({ t:f.t, comma: median(keep.slice(Math.max(0, i-1), i+2).map(x => x.comma)) }));
+    seg = [];
+  };
+  for(const f of raw){
+    if(f.comma == null){ flush(); out.push({ t:f.t, comma:null }); }
+    else seg.push(f);
+  }
+  flush();
+  return out;
+}
+
+// Notanın perdesi: bağlam varsa önce 2,5 koma içindeki dizi perdesi (icra düzeltmesiyle). contextPerde'nin
+// 1,5 koma kuralı burada kullanılmaz: 2 koma pes bir Rast komşu AEU perdesi (Dik Geveşt) sayılır ve pes
+// diye işaretlenemezdi. Bağlam yoksa ya da dizide yakın perde yoksa AEU'nun en yakın perdesi (dizi dışı).
+function notePerde(comma, ctx){
+  if(ctx && ctx.scale && ctx.scale.length){
+    let best = null, bd = 1e9;
+    for(const c of new Set(ctx.scale.map(x => ((Math.round(x) % 53) + 53) % 53))){
+      for(let k = -2; k <= 3; k++){
+        const base = c + 53*k, name = SCORE.perdeNameAt(base);
+        if(!name) continue;
+        const target = base + ((ctx.offsets && ctx.offsets[c]) || 0), d = Math.abs(comma - target);
+        if(d < bd){ bd = d; best = { name, comma:target, inScale:true }; }
+      }
+    }
+    if(best && bd <= 2.5) return best;
+  }
+  const g = SCORE.nearestPerde(comma);
+  return g ? { name:g.name, comma:g.comma, inScale:!ctx } : null;
+}
+// Bir periyot kaydırılmış artığın kendisiyle ilintisi (düzenli salınımda ≈ 1, gürültüde ≈ 0)
+function periodic(rs, dt, periodMs){
+  const L = Math.round(periodMs/dt);
+  if(!(L >= 1) || L >= rs.length/2) return false;
+  let a = 0, b = 0;
+  for(let i = 0; i + L < rs.length; i++){ a += rs[i]*rs[i+L]; b += rs[i]*rs[i]; }
+  return b > 0 && a/b > 0.5;
+}
+
+// notes: [{ start, end, written }] (ms), trace: cleanTrace sonucu (aynı zaman ekseninde), opts.ctx: makam bağlamı
+function intonationIssues(notes, trace, opts = {}){
+  const ctx = opts.ctx || null, K = INTON;
+  return notes.map((n, i) => {
+    const res = { i, written:n.written, perde:null, target:null, delta:null, inScale:true, drift:null, kinds:[], short:true };
+    const fr = [];
+    for(let j = firstIndexAt(trace, n.start); j < trace.length && trace[j].t <= n.end; j++) if(trace[j].comma != null) fr.push(trace[j]);
+    const a = n.start + K.headMs, b = n.end - K.tailMs;
+    const st = fr.filter(f => f.t >= a && f.t <= b);
+    if(b - a < K.minStableMs || st.length < K.minFrames) return res;
+    const med = median(st.map(f => f.comma)), p = notePerde(med, ctx);
+    if(!p) return res;
+    Object.assign(res, { short:false, perde:p.name, target:p.comma, delta:med - p.comma, inScale:p.inScale !== false });
+    const k = res.kinds;
+    if(res.delta < -K.offKoma) k.push("pes");
+    else if(res.delta > K.offKoma) k.push("tiz");
+    if(n.end - n.start >= K.driftMinMs){
+      const m = Math.floor(st.length/3);
+      if(m >= 2){
+        res.drift = SLEARN.mean(st.slice(-m).map(f => f.comma)) - SLEARN.mean(st.slice(0, m).map(f => f.comma));
+        if(Math.abs(res.drift) > K.driftKoma) k.push("kayma");
+      }
+    }
+    const head = fr.filter(f => f.t < a);
+    if(head.length && Math.abs(res.delta) <= K.offKoma){
+      const h = SLEARN.mean(head.map(f => f.comma)) - p.comma;
+      if(h < -K.scoopKoma) k.push("alttan"); else if(h > K.scoopKoma) k.push("ustten");
+    }
+    // Doğrusal eğilim çıkarıldıktan sonra kalan dalgalanma
+    const xs = st.map(f => f.t), ys = st.map(f => f.comma), mx = SLEARN.mean(xs), my = SLEARN.mean(ys);
+    let nu = 0, de = 0;
+    for(let j = 0; j < xs.length; j++){ nu += (xs[j]-mx)*(ys[j]-my); de += (xs[j]-mx)**2; }
+    const sl = de ? nu/de : 0, rs = ys.map((y, j) => y - (my + sl*(xs[j]-mx)));
+    const vib = SLEARN.vibrato(st);
+    // vibrato() düzensiz dalgalanmada da hız bulabilir; bir periyot kaydırılmış iz kendine benzemiyorsa vibrato değildir
+    if(vib && periodic(rs, (xs[xs.length-1] - xs[0])/(xs.length - 1), 1000/vib.rate)) k.push("vibrato");
+    else if(SLEARN.sd(rs) > K.wobbleKoma) k.push("titrek");
+    if(ctx && !res.inScale) k.push("disi");
+    return res;
+  });
+}
+
+// Kaç nota yerinde ve kayıt boyunca en çok kaçan (en az 2 kez çalınmış) üç perde
+function intonationSummary(issues){
+  const m = issues.filter(x => !x.short);
+  const ok = m.filter(x => !x.kinds.some(k => INTON_ERRORS.includes(k))).length;
+  const g = new Map();
+  for(const x of m){ if(!g.has(x.perde)) g.set(x.perde, { perde:x.perde, written:x.written, ds:[] }); g.get(x.perde).ds.push(x.delta); }
+  const perdes = [...g.values()].map(p => ({ perde:p.perde, written:p.written, n:p.ds.length, mean:SLEARN.mean(p.ds) }))
+    .filter(p => p.n >= 2 && Math.abs(p.mean) > 1)
+    .sort((x, y) => Math.abs(y.mean) - Math.abs(x.mean)).slice(0, 3)
+    .map(p => ({ ...p, dir: p.mean < 0 ? "pes" : "tiz" }));
+  return { total:issues.length, measured:m.length, ok, perdes };
+}
+
 if(typeof module !== "undefined") module.exports = {
+  INTON, INTON_ERRORS, firstIndexAt, cleanTrace, intonationIssues, intonationSummary,
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,

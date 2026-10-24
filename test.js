@@ -633,6 +633,7 @@ const R = require('./repertoire.js');
 
   require('./testornament.js').run(ok);
   require('./testtech.js').run(ok);
+  require('./testcurve.js').run(ok);
 
   console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
   process.exit(fail?1:0);
