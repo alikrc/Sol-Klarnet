@@ -136,7 +136,7 @@ function run(ok){
     // aralik
     const rg = freeze(P('Re3 Sol4 Mi♭7 Fa7'));
     ok(R.rangeIssues(rg).join() === '0,3', 'rangeIssues: Re3 ve Fa7', R.rangeIssues(rg).join());
-    const fx = R.shiftOctave(rg, [0, 3], 0 + 1);
+    const fx = R.shiftOctave(rg, [0, 3], 1);
     const so = R.shiftOctave(P('Sol4'), [0], 1)[0];
     ok(fx[0].w === rg[0].w + 12 && so.w === 79 && so.c === 53, 'shiftOctave +12 / +53');
     const fx2 = R.shiftOctave(rg, [3], -1);
@@ -144,13 +144,23 @@ function run(ok){
     ok(rg[0].w === P('Re3')[0].w, 'shiftOctave girdiyi degistirmez');
     // aktarim
     const rast = freeze(P('Rast Dügâh Segâh Çargâh Nevâ Hüseynî Evç Gerdâniye'));
+    const ivs = a => a.slice(1).map((x, k) => x.c - a[k].c).join();
     const up = R.transposeAll(rast, 1, 'perde');
-    ok(up.map(x => x.c).join() === '9,17,22,31,40,48,53,62', 'transposeAll perde +1: Dügâh\'tan baslar', up.map(x => x.c).join());
+    ok(up[0].c === 9 && ivs(up) === ivs(rast), 'transposeAll perde +1: Dügâh tan baslar, araliklar ayni', up.map(x => x.c).join());
     ok(R.transposeAll(up, -1, 'perde').map(x => x.c).join() === rast.map(x => x.c).join(), 'transposeAll perde: geri alinir');
-    const nh = R.transposeAll(P('Nim_Hicaz'), 1, 'perde')[0];
-    ok(nh.c === 31 + 4, 'dizi disi perde isaretini korur', nh.c);
+    ok(R.transposeAll(rast, 2, 'perde')[0].c === 17 && R.transposeAll(rast, -1, 'perde')[0].c === -5, 'transposeAll perde: +2 Segâh, -1 Irak');
+    {
+      const hz = require('./learn.js').makamById('hicaz'), hp = freeze(hz.asc.map(c => ({ w:Math.round(67 + c*12/53), c, d:1, rest:false })));
+      const hu = R.transposeAll(hp, 3, 'perde'), hd = R.transposeAll(hu, -3, 'perde');
+      ok(ivs(hu) === ivs(hp) && ivs(hd) === ivs(hp) && hd[0].c === hp[0].c, 'transposeAll perde: Hicaz araliklari korunur');
+    }
+    const sg = R.transposeAll(P('Segâh Si4'), 1, 'semitone');
+    ok(sg[1].c - sg[0].c === 1 && sg[0].w === 72, 'semitone: Segâh ile Si arasindaki koma korunur', sg.map(x => x.c).join());
     const st = R.transposeAll(P('Sol4 Fa4'), 2, 'semitone');
     ok(st[0].w === 69 && st[1].w === 67 && st[0].c === 9, 'transposeAll semitone');
+    const rp = R.expandRepeats(lt('a b c d'), [{ i:0, kind:'repStart' }, { i:1, kind:'repEnd' }, { i:3, kind:'repEnd' }]);
+    ok(rp.map(x => x.l).join('') === 'aabcbcd', 'expandRepeats: ikinci :|| bir oncekinden sonrasini tekrarlar', rp.map(x => x.l).join(''));
+    ok(R.shiftOctave([{ w:67, d:1, rest:false }], [0], 1)[0].c === null, 'shiftOctave: c yok -> null (NaN degil)');
     ok(R.transposeAll([{ w:null, c:null, d:1, rest:true }], 1, 'perde')[0].rest === true && rast[0].c === 0 && rast.length === 8, 'sus ve girdi korunur');
   }
 }

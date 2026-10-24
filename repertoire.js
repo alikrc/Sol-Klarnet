@@ -321,13 +321,13 @@ function expandRepeats(notes, marks){
   for(const m of marks || []){ if(!at.has(m.i)) at.set(m.i, []); at.get(m.i).push(m); }
   const segnos = (marks || []).filter(m => m.kind === "segno"), done = new Set();
   const out = [];
-  let p = 0, lastStart = 0, post = false, stopI = Infinity;
+  let p = 0, lastStart = 0, back = false, post = false, stopI = Infinity;
   for(let guard = 0; guard < 100000; guard++){
     if(post && p === stopI) break;
     let jumped = false;
     for(const m of at.get(p) || []){
-      if(m.kind === "repStart") lastStart = p;
-      else if(m.kind === "repEnd" && !post && !done.has(m)){ done.add(m); p = lastStart; jumped = true; break; }
+      if(m.kind === "repStart"){ if(!wasBack) lastStart = p; }
+      else if(m.kind === "repEnd" && !post && !done.has(m)){ done.add(m); p = lastStart; lastStart = m.i; back = true; jumped = true; break; }
       else if(m.kind === "toSegno" && !post && !done.has(m) && segnos.length){
         done.add(m); const s = segnos[segnos.length - 1].i;
         post = true; p = s; jumped = true;
@@ -346,21 +346,34 @@ const rangeIssues = notes => notes.reduce((a, n, i) => (inRange(n) ? a : (a.push
 // idxs'teki notaları dir (±1) oktav kaydırır (±12 yarım ses, ±53 koma)
 function shiftOctave(notes, idxs, dir){
   const set = new Set(idxs);
-  return notes.map((n, i) => !set.has(i) || n.rest ? { ...n } : { ...n, w: n.w + 12*dir, c: n.c === null ? null : n.c + 53*dir });
+  return notes.map((n, i) => !set.has(i) || n.rest ? { ...n } : { ...n, w: n.w + 12*dir, c: n.c == null ? null : n.c + 53*dir });
 }
-// Toptan aktarım. "perde": AEU Rast dizisinin (Rast Dügâh Segâh Çargâh Nevâ Hüseynî Evç, oktav 53) komşu perdesine;
-// dizi dışı perdeler (Nim Hicaz gibi) kendi işaretini korur. "semitone": w±steps, c en yakın perde.
+// Toptan aktarım (göçürme): bütün notalar aynı koma farkıyla kayar, aralıklar korunur.
+// "perde": ilk notanın komşu AEU Rast dizisi perdesine (Rast Dügâh Segâh Çargâh Nevâ Hüseynî Evç, oktav 53) olan farkı;
+// |steps| kez, her seferinde ilk notanın yeni yerinden. "semitone": w±steps, c ±round(steps*53/12).
 const RAST_DIZI = [0, 9, 17, 22, 31, 40, 48];
 function transposeAll(notes, steps, unit){
-  if(unit === "semitone") return notes.map(n => n.rest ? { ...n } : { ...n, w: n.w + steps, c: snapPerde(n.w + steps).c });
-  const ladder = j => RAST_DIZI[((j % 7) + 7) % 7] + 53*Math.floor(j/7);
+  const cOf = n => n.c !== null && n.c !== undefined ? n.c : Math.round((n.w - 67)*53/12);
+  let delta;
+  if(unit === "semitone") delta = Math.round(steps*53/12);
+  else{
+    const first = notes.find(n => !n.rest);
+    if(!first) return notes.map(n => ({ ...n }));
+    const ladder = j => RAST_DIZI[((j % 7) + 7) % 7] + 53*Math.floor(j/7);
+    const c0 = cOf(first); let cur = c0;
+    for(let k = 0; k < Math.abs(steps); k++){
+      let j = 7*Math.floor(cur/53) + 6;
+      while(ladder(j) > cur) j--;
+      cur = steps > 0 ? ladder(j + 1) : (ladder(j) < cur ? ladder(j) : ladder(j - 1));
+    }
+    delta = cur - c0;
+  }
   return notes.map(n => {
     if(n.rest) return { ...n };
-    const cc = n.c !== null ? n.c : Math.round((n.w - 67)*53/12);
-    let j = 7*Math.floor(cc/53) + 6;
-    while(ladder(j) > cc) j--;
-    const c = ladder(j + steps) + (cc - ladder(j));
-    return { ...n, w: Math.round(67 + c*12/53), c: n.c !== null ? c : null };
+    if(unit === "semitone") return { ...n, w: n.w + steps, c: n.c == null ? null : n.c + delta };
+    if(n.c == null) return { ...n, w: n.w + Math.round(delta*12/53), c: null };
+    const c = n.c + delta;
+    return { ...n, w: Math.round(67 + c*12/53), c };
   });
 }
 
