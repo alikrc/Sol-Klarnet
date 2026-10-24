@@ -104,8 +104,7 @@ düğmeler.
   Bağlamdaki dizi perdeleri çizgi ve adıyla, dizi dışı AEU perdeleri soluk çizgiyle (Akort izindeki gibi).
 - **Notalar:** her notanın hedef perdesi, nota süresi boyunca kalın, yarı saydam bir şerit. Eğri bu şeridin
   üstünden geçer; öğrenci şeritten ne kadar saptığını görür.
-- **Eğri:** `cleanTrace` sonucu. Rengi nota bazında: hata türü yoksa `--ok`, pes/tiz/kayma/titrek varsa `--accent`
-  . Kısa notalar ve notalar arası geçişler `--muted`.
+- **Eğri:** `cleanTrace` sonucu. Rengi nota bazında: hata türü yoksa `--ok`, pes/tiz/kayma/titrek varsa `--accent`. Kısa notalar ve notalar arası geçişler `--muted`.
 - **İşaretler:** hatalı notanın üstünde kısa etiket ("pes 2,1", "kayıyor", "titrek"); bilgi işaretleri soluk
   ("alttan", "vib.", "dizi dışı"). Etiketler üst üste binerse sonraki gizlenir (Akort izindeki perde adları gibi).
 - **Çalma çizgisi:** `audio.timeupdate` ve `requestAnimationFrame` ile dikey çizgi. Çalarken çizgi pencereden çıkarsa
