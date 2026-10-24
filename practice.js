@@ -24,11 +24,11 @@
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
   const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],
-                ["piece",L("Etüt ve eserler", "Études & pieces")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
+                ["piece",L("Etüt ve eserler", "Études & pieces")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","videos"]],
                   ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear"]],
-                  ["pieces",L("Eserler", "Pieces"),["piece","rec"]],
+                  ["pieces",L("Eserler", "Pieces"),["piece","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
   const tabName = id => TABS.find(t => t[0] === id)[1];
@@ -46,6 +46,7 @@
     seyir: L("Serbest çal, seyrini gör", "Play freely, see your seyir"),
     ear: L("Koma farklarını duymayı öğren", "Learn to hear comma differences"),
     piece: L("Etütleri ve kendi eserlerini çal", "Play études and your own pieces"),
+    convert: L("PDF, resim ya da sesten esere", "From a PDF, picture or recording to a piece"),
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
     videos: L("Hocalardan makam, teknik ve süsleme videoları", "Makam, technique and ornament videos by masters"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
@@ -178,6 +179,16 @@
         <li><b>Follow mode:</b> play at your own pace; it moves on when you hit the right note. <b>Play in tempo:</b> play with the metronome; notes and timing are measured.
           <b>Ladder:</b> the tempo rises as you play cleanly.</li>
         <li>You can add your own tune by typing the notes and tapping Save, or load a score with “Import MusicXML”.</li></ol>`),
+    convert: L(`<p><b>Ne işe yarar:</b> Bir notayı ya da kaydı esere çevirmek: okunan notaları düzeltip “Kendi eserlerim”e eklersin.</p>
+      <ol><li><b>PDF</b> en iyi sonucu verir. Resim çekiyorsan sayfayı düz ve tam çek, kenarları kırp.</li>
+        <li><b>YouTube</b> ya da başka bir kayıt için: videoyu başka bir cihazda ya da hoparlörde aç, telefonu hoparlöre yaklaştır ve “Dinleyerek yaz”a bas (en çok 3 dakika). Ses dosyan varsa “Ses dosyası seç”.</li>
+        <li>Okunan notalar çip olarak görünür: <b>sarı</b> = emin değil, <b>turuncu</b> = ölçü tutmuyor, <b>kırmızı</b> = klarnet aralığı dışı. Bir çipe dokun, altındaki düğmelerle düzelt; ileri kullanıcı metin kutusundan da yazabilir.</li>
+        <li>Okunanı kaydetmeden önce mutlaka <b>Dinle</b> ile kontrol et. Sonra ad ver ve Kaydet: eser “Etüt ve eserler”de açılır.</li></ol>`,
+      `<p><b>What it's for:</b> turning a score or a recording into a piece: you correct the notes read and add them to “My pieces”.</p>
+      <ol><li>A <b>PDF</b> gives the best result. If you take a photo, shoot the page flat and whole, and crop the edges.</li>
+        <li>For <b>YouTube</b> or any other recording: play it on another device or a speaker, hold the phone close and tap “Write by ear” (3 minutes at most). If you have an audio file, use “Choose an audio file”.</li>
+        <li>The notes read appear as chips: <b>yellow</b> = not sure, <b>orange</b> = the bar doesn't add up, <b>red</b> = outside the clarinet's range. Tap a chip and fix it with the buttons below; advanced users can type in the text box too.</li>
+        <li>Always check the result with <b>Listen</b> before saving. Then name it and tap Save: the piece opens in “Études & pieces”.</li></ol>`),
     rec: L(`<p><b>Ne işe yarar:</b> Kendini dinlemek ve nerede pes ya da tiz kaldığını görmek.</p>
       <ol><li>Daha doğru ölçüm için Akort'ta çaldığın makamı seç.</li>
         <li>Kaydı başlat'a bas, çal, Kaydı durdur'a bas.</li>

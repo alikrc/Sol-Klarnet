@@ -44,9 +44,10 @@ function parseScoreText(text){
   }
   return { notes, errors };
 }
-// Notaları metne çevirir (perde adı varsa perde adıyla)
+// Notaları metne çevirir (perde adı varsa perde adıyla; adı olmayan komada yazılı adla)
 function scoreToText(notes){
-  return notes.map(n => (n.rest ? "-" : n.c !== null ? RCORE.PERDES.find(p => p[0] === n.c)[1].replace(/ /g, "_") : RCORE.noteName(n.w).tr) +
+  const pname = c => { const p = c !== null && c !== undefined ? RCORE.PERDES.find(q => q[0] === c) : null; return p ? p[1].replace(/ /g, "_") : null; };
+  return notes.map(n => (n.rest ? "-" : pname(n.c) || RCORE.noteName(n.w).tr) +
     (n.orn ? ":" + (n.d === 1 ? "" : n.d) + ":" + ornCode(n.orn) : n.d === 1 ? "" : ":" + n.d)).join(" ");
 }
 

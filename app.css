@@ -661,6 +661,22 @@ svg.score{display:block}
 .score .sn.bad .head{fill:#D2553A} .score .sn.bad .head.hollow{fill:none;stroke:#D2553A}
 .score .sn.miss .head{fill:var(--muted);opacity:.5}
 
+/* Çevir: düzeltme ekranı. Sarı emin değil, turuncu ölçü tutmuyor, kırmızı aralık dışı */
+.cvchips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:8px 0}
+.cvchip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 9px;min-height:36px;
+  font:600 12.5px/1 var(--ui);cursor:pointer}
+.cvchip i{font:14px/1 "Noto Music","Segoe UI Symbol",var(--ui);font-style:normal;color:var(--muted)}
+.cvchip.unsure{background:color-mix(in srgb,#E3B22E 32%,var(--surface));border-color:#C99A1A}
+.cvchip.badbar{border-color:#E07B24;box-shadow:inset 0 0 0 1.5px #E07B24}
+.cvchip.outrange{background:color-mix(in srgb,#D2553A 26%,var(--surface));border-color:#D2553A;color:var(--ink)}
+.cvchip.sel{outline:2.5px solid var(--teal);outline-offset:1px}
+.cvchip.cur{outline:2.5px solid var(--accent);outline-offset:1px}
+.cvbar{width:2px;align-self:stretch;background:var(--muted);opacity:.5;margin:0 3px;border-radius:1px}
+.cvmark{font:700 13px var(--ui);color:var(--muted)}
+.cvtools .stopbtn,.cvall .stopbtn{min-width:40px}
+.cverr{color:#D2553A;font-weight:600;min-height:14px}
+#cvname{flex:1 1 160px;min-width:0}
+#cvtempo{width:64px}
 /* Karşılama */
 .onboard{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--paper) 70%,transparent);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:grid;place-items:center;

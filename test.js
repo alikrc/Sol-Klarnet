@@ -378,7 +378,7 @@ ok(html.includes('id="themeseg"') && html.includes('id="langseg"') && html.inclu
   const pj = rd('practice.js'), tabs = [...pj.match(/const TABS = \[([\s\S]*?)\];/)[1].matchAll(/\["([a-z]+)",/g)].map(m => m[1]);
   const help = pj.slice(pj.indexOf('const HELP = {'), pj.indexOf('const helpBox'));
   const miss = tabs.filter(id => !help.includes('\n    ' + id + ': L(`'));
-  ok(tabs.length === 15 && !miss.length && pj.includes('HELP[id]') && pj.includes('helpBox("", HUB_HELP)'), 'her alistirmanin "Nasil kullanilir?" notu var', miss.join());
+  ok(tabs.length === 16 && !miss.length && pj.includes('HELP[id]') && pj.includes('helpBox("", HUB_HELP)'), 'her alistirmanin "Nasil kullanilir?" notu var', miss.join());
   ok(html.includes('class="phelp tunehelp"') && rd('i18n.js').includes('"Nasıl kullanılır?": "How to use"'), 'Akort ekraninda da not var, Ingilizcesi sozlukte');
 }
 

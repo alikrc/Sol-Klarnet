@@ -584,6 +584,19 @@ function runNotes(track){
 function audioNotes(pcm, sampleRate, opts = {}){
   return runNotes(ornamentTrack(pcm, sampleRate, { T: opts.T == null ? 5 : opts.T, hopMs:10, expectHz:300 }));
 }
+// Uzun kayıt parça parça çözülür (arayüz donmasın); parçalar ov ms örtüşür. prev: şimdiye kadarki notalar (mutlak ms),
+// next: yeni parçanın audioNotes'u (parça başına göre), off: parçanın başı (ms). Tamamı örtüşmede kalan nota önceki
+// parçada zaten var, atılır; sınırda biten notayla aynı perdede (≤1,5 koma) sınırda başlayan nota onunla birleşir.
+function joinAudioChunk(prev, next, off, ov){
+  const out = prev.map(n => ({ ...n })), B = off + ov;
+  for(const x of next){
+    const q = { ...x, t: x.t + off, end: x.end + off }, p = out[out.length-1];
+    if(ov > 0 && q.end <= B) continue;
+    if(p && ov > 0 && q.t <= B + 30 && p.end >= B - 60 && Math.abs(p.comma - q.comma) <= 1.5){ p.end = Math.max(p.end, q.end); continue; }
+    out.push(q);
+  }
+  return out;
+}
 // Kaydın akordu: notaların AEU perdelerinden sapmalarının ortancası (en çok ±26 koma). Üç nota yetmez → 0.
 // AEU'da perdeler sıktır (0, 4, 5, 8, 9...): yalnızca "en yakın perde"ye bakılırsa +3 kayık kayıt -1 kayık gibi görünür.
 // Bu yüzden 0,25 koma adımla bütün kaymalar denenir; az kullanılan perdeye (PERDE_USE) oturan not en çok 1 koma ceza alır,
@@ -963,7 +976,7 @@ function intonationSummary(issues){
 if(typeof module !== "undefined") module.exports = {
   INTON, INTON_ERRORS, firstIndexAt, cleanTrace, intonationIssues, intonationSummary,
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes, audioNotes, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
+  techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

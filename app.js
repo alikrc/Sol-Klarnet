@@ -910,10 +910,10 @@
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
     pcm: pcmRange,
-    // Uzun kayıt (en çok 30 sn): stop() → { data, sampleRate, t0, busy } ya da mikrofon kapalıysa null
-    pcmCapture(){
+    // Uzun kayıt (en çok maxSec sn; Çevir'in dinleyerek yazı 180): stop() → { data, sampleRate, t0, full, busy } ya da mikrofon kapalıysa null
+    pcmCapture(maxSec = 30){
       if(!ctx) return { stop: () => null };
-      const sr = ctx.sampleRate, rec = new PcmRecorder(30*sr), tap = (d, t) => rec.push(d, t);
+      const sr = ctx.sampleRate, rec = new PcmRecorder(Math.round(maxSec*sr)), tap = (d, t) => rec.push(d, t);
       pcmTaps.add(tap);
       return { stop(){
         pcmTaps.delete(tap);

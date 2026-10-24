@@ -87,6 +87,21 @@ function run(ok){
     try{ q = S.quantizeRun([]); }catch(e){ err = e; }
     ok(!err && q && q.notes.length === 0, 'sessiz kayit: quantizeRun([]) çökmez', err && err.message);
   }
+  {
+    // Uzun kayıt parça parça çözülür (Çevir sekmesi): parça sınırında kalan nota tek nota olarak birleşir
+    const a = A.techAudio(P.notes, 90, { seed:3, T:5 });
+    const whole = S.audioNotes(a.pcm, a.srate, { T:5 });
+    const C = Math.round(a.srate*1.37), OV = Math.round(a.srate*0.05);   // 1,37 sn'lik parçalar: sınırlar nota ortasına düşer
+    let got = [];
+    for(let k=0; k*C < a.pcm.length; k++){
+      const s = Math.max(0, k*C - OV), e = Math.min(a.pcm.length, (k+1)*C);
+      got = S.joinAudioChunk(got, S.audioNotes(a.pcm.subarray(s, e), a.srate, { T:5 }), s/a.srate*1000, (k*C - s)/a.srate*1000);
+    }
+    const near = (x, y) => x.length === y.length && x.every((n, i) => Math.abs(n.comma - y[i].comma) <= 1 && Math.abs(n.t - y[i].t) <= 40);
+    ok(near(got, whole), 'parcali cozum butunle ayni notalar', got.length + ' / ' + whole.length);
+    const q1 = S.quantizeRun(got, { makam:'rast' }), q0 = S.quantizeRun(whole, { makam:'rast' });
+    ok(played(q1).map(n => n.c + ':' + n.d).join() === played(q0).map(n => n.c + ':' + n.d).join(), 'parcali cozumden ayni nota ve sureler');
+  }
   console.log('\n[45] Duzeltme islemleri');
   {
     const R = require('./repertoire.js');
@@ -162,6 +177,13 @@ function run(ok){
     ok(rp.map(x => x.l).join('') === 'aabcbcd', 'expandRepeats: ikinci :|| bir oncekinden sonrasini tekrarlar', rp.map(x => x.l).join(''));
     ok(R.shiftOctave([{ w:67, d:1, rest:false }], [0], 1)[0].c === null, 'shiftOctave: c yok -> null (NaN degil)');
     ok(R.transposeAll([{ w:null, c:null, d:1, rest:true }], 1, 'perde')[0].rest === true && rast[0].c === 0 && rast.length === 8, 'sus ve girdi korunur');
+  }  {
+    // Değiştirici döngüsü adı olmayan bir koma verebilir (Si + 5 koma = 23): metin görünümü çökmez, yazılı adı yazar
+    const R = require('./repertoire.js');
+    const x = R.withAccidental(R.parseScoreText('Si4').notes[0], { k:5, unit:'koma' });
+    let t = null, err = null;
+    try{ t = R.scoreToText([x, { w:69, c:9, d:2, rest:false }]); }catch(e){ err = e; }
+    ok(!err && t === 'Do5 Dügâh:2', 'scoreToText: adsiz koma yazili adla', err ? err.message : t);
   }
 }
 

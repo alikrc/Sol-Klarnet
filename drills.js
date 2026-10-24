@@ -410,7 +410,7 @@ TRAINERS.rec = function(ctx){
     </div>
     <div class="stage" id="rcstage"><div class="muted">Kayıt yok.</div></div>`;
   const stage = $("rcstage");
-  let rec = null, notes = [], url = null;
+  let rec = null, notes = [], url = null, addTok = null;   // addTok: süren "Eserlere ekle" çözümü (yeni kayıt ya da sekmeden çıkış iptal eder)
   // Not sütunundaki kısa adlar; hata türleri kalın, bilgi türleri soluk
   const KIND_LABEL = { pes:L("pes", "flat"), tiz:L("tiz", "sharp"), kayma:L("kayıyor", "drifts"), titrek:L("titrek", "unsteady"),
     alttan:L("alttan", "from below"), ustten:L("üstten", "from above"), vibrato:"vib.", disi:L("dizi dışı", "out of scale") };
@@ -423,7 +423,8 @@ TRAINERS.rec = function(ctx){
     const chunks = [];
     let mr = null;
     try{ mr = new MediaRecorder(stream); }catch(e){ mr = null; }
-    rec = { mr, chunks, frames:[], raw:[], glides:[], t0: performance.now(), timer: setInterval(() => {
+    // Ham ses de tutulur (en çok 3 dk): "Eserlere ekle" sesten ölçülü notaya çevirir
+    rec = { mr, chunks, frames:[], raw:[], glides:[], cap: SK.pcmCapture(180), t0: performance.now(), timer: setInterval(() => {
       $("rctime").textContent = num((performance.now() - rec.t0)/1000) + " sn";
     }, 200) };
     if(mr){
@@ -438,6 +439,7 @@ TRAINERS.rec = function(ctx){
     clearInterval(r.timer);
     $("rcbtn").textContent = "Kaydı başlat";
     r.dur = performance.now() - r.t0;
+    r.pcm = r.cap ? r.cap.stop() : null;
     // Çözüm, durdurulduğu andaki makam bağlamıyla yapılır. Makamın icra düzeltmeleri de verilir: AEU modunda
     // da geleneksel icra perdesi (ör. Uşşak'ta 1,5 koma pes Segâh) pes sayılmasın.
     const tc = getTuningContext(), mk = SK.tuningMakam && makamById(SK.tuningMakam());
@@ -455,7 +457,7 @@ TRAINERS.rec = function(ctx){
   }
   // Çözüm ve gösterim. r = { frames, raw, glides, t0, dur?, ctx? } (frames ve raw mutlak t ile)
   function present(r, u){
-    url = u;
+    url = u; addTok = null;
     notes = segmentNotes(r.frames, 150).map(n => ({ ...n, start: n.start - r.t0, end: n.end - r.t0 }));
     const tctx = r.ctx !== undefined ? r.ctx : getTuningContext();
     const trace = cleanTrace(r.raw.map(f => ({ t:f.t - r.t0, comma:f.comma })));
@@ -526,11 +528,28 @@ TRAINERS.rec = function(ctx){
       try{ await navigator.clipboard.writeText(text); $("rcmsg").textContent = "Kopyalandı."; }
       catch(e){ $("rcmsg").textContent = text; }
     });
-    $("rcpiece").addEventListener("click", () => {
-      const inRange = notes.map(n => n.written).filter(w => w >= LOW_NOTE && w <= HIGH_NOTE);
-      if(!inRange.length){ $("rcmsg").textContent = "Eklenecek nota yok."; return; }
-      SK.addPiece(_t("Kayıt " + new Date().toLocaleTimeString("tr", { hour:"2-digit", minute:"2-digit" })), inRange);
-      $("rcmsg").textContent = L("Eserlere eklendi.", "Added to pieces.");
+    // Eserlere ekle: kaydın ham sesi ölçülü notaya çevrilir (audioNotes → quantizeRun) ve Çevir'in düzeltme ekranında açılır.
+    // Ham ses yoksa (deneme, eski tarayıcı) kararlı notalardan.
+    $("rcpiece").addEventListener("click", async () => {
+      const tok = {}; addTok = tok;
+      const name = _t("Kayıt " + new Date().toLocaleTimeString("tr", { hour:"2-digit", minute:"2-digit" }));
+      const makam = (SK.tuningMakam && SK.tuningMakam()) || null;
+      let raw, offset, q = null;
+      if(r.pcm && r.pcm.data.length){
+        $("rcmsg").textContent = L("Ezgi çözümleniyor…", "Analysing the melody…");
+        const res = await SK.convertPcm(r.pcm.data, r.pcm.sampleRate, { makam, isStale: () => addTok !== tok,
+          onProgress: p => { if(addTok === tok) $("rcmsg").textContent = L("Ezgi çözümleniyor… %", "Analysing the melody… ") + p + (LANG === "en" ? "%" : ""); } });
+        if(!res || addTok !== tok) return;
+        ({ raw, offset, q } = res);
+      }else{
+        raw = notes.map(n => ({ t:n.start, end:n.end, comma:n.comma }));
+        offset = tuningOffset(raw);
+        if(raw.length) q = quantizeRun(raw, { makam, mode: SK.tuningMode(), offset });
+      }
+      addTok = null;
+      if(!q || !q.notes.some(n => !n.rest)){ $("rcmsg").textContent = L("Eklenecek nota yok.", "No notes to add."); return; }
+      $("rcmsg").textContent = "";
+      SK.openConvert({ kind:"audio", notes:q.notes, tempo:q.tempo, meter:q.meter, name, raw, offset, makam, cut: !!(r.pcm && r.pcm.full) });
     });
   }
   // ---- Perde eğrisi: zaman–koma grafiği ----
@@ -681,7 +700,7 @@ TRAINERS.rec = function(ctx){
   });
   SK.on("silence", d => { if(rec){ rec.frames.push({ t:d.t, written:null }); rec.raw.push({ t:d.t, comma:null }); prevW = null; gap = []; } });
   // Başka sekmeye geçilince kayıt arka planda sürmesin; döküm hazır olur
-  return { leave(){ if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
+  return { leave(){ addTok = null; if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
 };
 
 // ======== İlerleme ========
