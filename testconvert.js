@@ -87,6 +87,72 @@ function run(ok){
     try{ q = S.quantizeRun([]); }catch(e){ err = e; }
     ok(!err && q && q.notes.length === 0, 'sessiz kayit: quantizeRun([]) çökmez', err && err.message);
   }
+  console.log('\n[45] Duzeltme islemleri');
+  {
+    const R = require('./repertoire.js');
+    const P = t => R.parseScoreText(t).notes;
+    const freeze = a => { a.forEach(n => Object.freeze(n)); return Object.freeze(a); };
+    const n = P('Segâh')[0];
+    ok(R.naturalOf(n).w === 71 && R.stepNote(n, 1).w === 72 && R.stepNote(n, 1).c === 22, 'basamak: Si → Do (Çargâh), isaret sifirlanir');
+    ok(R.stepNote(P('Do5')[0], -1).w === 71 && R.stepNote(P('Do5')[0], -1).c === 18, 'basamak: Do → alt Si (oktav gecisi)');
+    ok(R.withAccidental(R.naturalOf(n), { k:-1, unit:'koma' }).c === n.c, 'Si + koma bemol = Segâh');
+    const hz = R.withAccidental(P('Si4')[0], { k:-4, unit:'koma' });
+    ok(hz.c === 14 && hz.w === 70, 'Si + bakiye = c 14, w Si♭', hz.c + ',' + hz.w);
+    ok(R.withAccidental(P('Fa4')[0], { k:1, unit:'semitone' }).w === 66, 'konser: Fa♯');
+    ok(R.withAccidental(P('Si4')[0], { k:-1, unit:'semitone' }).w === 70, 'konser: Si♭');
+    ok(R.ACC_CYCLE.koma.join() === '0,5,-4,1,4,8,-1,-5,-8' && R.ACC_CYCLE.semitone.join() === '0,1,-1', 'ACC_CYCLE');
+    const ex = { ...P('Sol4:1')[0], conf:0.4, box:[1,2,3,4], orn:{ kind:'tril', dir:'up' } };
+    const keep = [R.stepNote(ex, 1), R.withAccidental(ex, { k:5, unit:'koma' }), R.scaleDur(ex, 2), R.toggleDot(ex), R.transposeAll([ex], 1, 'perde')[0], R.shiftOctave([ex], [0], 1)[0]];
+    ok(keep.every(x => x.conf === 0.4 && x.box.join() === '1,2,3,4' && x.orn.kind === 'tril'), 'duzenleme alan korur (conf, box, orn)');
+    ok(R.scaleDur(ex, 2).d === 2 && R.scaleDur(ex, 0.5).d === 0.5, 'scaleDur');
+    ok(R.toggleDot({ d:1 }).d === 1.5 && R.toggleDot({ d:1.5 }).d === 1 && R.toggleDot({ d:0.75 }).d === 0.5 && R.toggleDot({ d:0.5 }).d === 0.75, 'toggleDot');
+    const rs = R.toRest(ex);
+    ok(rs.rest === true && rs.w === null && rs.c === null && rs.d === 1 && !rs.orn, 'toRest');
+    // birlestirme
+    const mg = freeze(P('Sol4:1 Sol4:0.5 La4:1'));
+    ok(R.mergeNext(mg, 0).length === 2 && R.mergeNext(mg, 0)[0].d === 1.5, 'mergeNext: ayni perde toplanir');
+    ok(R.mergeNext(mg, 1).length === 3 && R.mergeNext(mg, 1)[1].d === 0.5, 'mergeNext: farkli perde degismez');
+    ok(mg.length === 3 && mg[0].d === 1, 'mergeNext girdiyi degistirmez');
+    // olcu
+    const durs = a => a.map(d => ({ w:67, c:0, d, rest:false }));
+    const b2 = R.barCheck(durs([2.5,2,2]), [2,4]);
+    ok(b2.length === 3 && !b2[0].ok && b2[0].sum === 2.5 && b2[1].ok && b2[0].ok === false, '2/4: tek 2,5 olcu ok:false', JSON.stringify(b2));
+    const b3 = R.barCheck(durs([0.5,1,1,1,1]), [2,4]);
+    ok(b3.length === 3 && b3[0].ok && b3[0].to === 1 && b3[1].ok && b3[2].ok, 'anacrusis: ilk olcu 0,5 ok:true', JSON.stringify(b3));
+    ok(R.barCheck(durs([1,1,1,1]), [2,4]).every(b => b.ok), 'tam olculer ok');
+    ok(R.meterFromBars([2,2,2,1.5]).join() === '2,4' && R.meterFromBars([4.5,4.5]).join() === '9,8', 'olcu');
+    ok(R.meterFromBars([4,4,3]).join() === '4,4' && R.meterFromBars([3,3]).join() === '3,4' && R.meterFromBars([2.5]).join() === '5,8' &&
+       R.meterFromBars([5,5]).join() === '10,8' && R.meterFromBars([3.5,3.5]).join() === '7,8', 'olcu: diger');
+    // tekrar (Hicaz Longa: A ‖: B :‖ segno C | D toSegno)
+    const lt = s => s.split(' ').map((l, i) => ({ w:67, c:0, d:1, rest:false, l }));
+    const hn = lt('a b c d');
+    const out = R.expandRepeats(hn, [{ i:1, kind:'repStart' }, { i:2, kind:'repEnd' }, { i:2, kind:'segno' }, { i:3, kind:'sectionEnd' }, { i:4, kind:'toSegno' }]);
+    ok(out.map(x => x.l).join('') === 'abbcdc', 'expandRepeats: Hicaz Longa duzeni', out.map(x => x.l).join(''));
+    const o2 = R.expandRepeats(hn, [{ i:2, kind:'repEnd' }]);
+    ok(o2.map(x => x.l).join('') === 'ababcd', 'expandRepeats: basi isaretsiz tekrar', o2.map(x => x.l).join(''));
+    const o3 = R.expandRepeats(hn, [{ i:1, kind:'segno' }, { i:4, kind:'toSegno' }]);
+    ok(o3.map(x => x.l).join('') === 'abcdbcd', 'expandRepeats: bitise kadar segno', o3.map(x => x.l).join(''));
+    ok(R.expandRepeats(hn, []).length === 4 && out !== hn && out[0] !== hn[0], 'expandRepeats: yeni nesneler');
+    // aralik
+    const rg = freeze(P('Re3 Sol4 Mi♭7 Fa7'));
+    ok(R.rangeIssues(rg).join() === '0,3', 'rangeIssues: Re3 ve Fa7', R.rangeIssues(rg).join());
+    const fx = R.shiftOctave(rg, [0, 3], 0 + 1);
+    const so = R.shiftOctave(P('Sol4'), [0], 1)[0];
+    ok(fx[0].w === rg[0].w + 12 && so.w === 79 && so.c === 53, 'shiftOctave +12 / +53');
+    const fx2 = R.shiftOctave(rg, [3], -1);
+    ok(R.rangeIssues(R.shiftOctave(P('Re3 Fa7'), [0], 1)).join() === '1' && R.rangeIssues(fx2).join() === '0' && fx2[3].w === rg[3].w - 12, 'shiftOctave duzeltir');
+    ok(rg[0].w === P('Re3')[0].w, 'shiftOctave girdiyi degistirmez');
+    // aktarim
+    const rast = freeze(P('Rast Dügâh Segâh Çargâh Nevâ Hüseynî Evç Gerdâniye'));
+    const up = R.transposeAll(rast, 1, 'perde');
+    ok(up.map(x => x.c).join() === '9,17,22,31,40,48,53,62', 'transposeAll perde +1: Dügâh\'tan baslar', up.map(x => x.c).join());
+    ok(R.transposeAll(up, -1, 'perde').map(x => x.c).join() === rast.map(x => x.c).join(), 'transposeAll perde: geri alinir');
+    const nh = R.transposeAll(P('Nim_Hicaz'), 1, 'perde')[0];
+    ok(nh.c === 31 + 4, 'dizi disi perde isaretini korur', nh.c);
+    const st = R.transposeAll(P('Sol4 Fa4'), 2, 'semitone');
+    ok(st[0].w === 69 && st[1].w === 67 && st[0].c === 9, 'transposeAll semitone');
+    ok(R.transposeAll([{ w:null, c:null, d:1, rest:true }], 1, 'perde')[0].rest === true && rast[0].c === 0 && rast.length === 8, 'sus ve girdi korunur');
+  }
 }
 
 module.exports = { run };

@@ -232,7 +232,141 @@ function etudeNotes(e){
 }
 const etudeById = id => ETUDES.find(e => e.id === id) || null;
 
+// ---- Düzeltme ----
+// Düzeltme ekranının nota işlemleri. Hepsi yeni dizi/nesne döndürür, girdiyi değiştirmez; notanın bilinmeyen
+// alanları (conf, box, orn) korunur. Sus notalarında ({ rest:true, w:null, c:null }) perde işlemleri etkisizdir.
+// Yazılı notanın harfinin doğal hali: { w, c } (Si♭4 → Si4, c = 18)
+function natInfo(w){
+  const pc = ((w % 12) + 12) % 12, natW = w - pc + NAT_PC[LETTER_OF_PC[pc]];
+  const sdist = natW - 67, o = Math.floor(sdist/12);
+  return { w: natW, c: NAT_COMMA[sdist - 12*o] + 53*o };
+}
+const naturalOf = n => natInfo(n.w);
+// Bir dizek basamağı (harf): değiştirici sıfırlanır, yeni harfin doğal hali olur
+function stepNote(n, dir){
+  if(n.rest) return { ...n };
+  const nat = natInfo(n.w), oct = Math.floor(nat.w/12), l = LETTER_OF_PC[((nat.w % 12) + 12) % 12];
+  const idx = oct*7 + l + (dir < 0 ? -1 : 1);
+  const o2 = Math.floor(idx/7), l2 = ((idx % 7) + 7) % 7;
+  const w = o2*12 + NAT_PC[l2];
+  return { ...n, w, c: natInfo(w).c };
+}
+// Değiştirici düğmesinin döngüsü (Türk notasında yalın ♯ küçük mücenneb +5, ♭ bakiye −4; AEU)
+const ACC_CYCLE = { koma:[0,5,-4,1,4,8,-1,-5,-8], semitone:[0,1,-1] };
+// Doğal harfe k ekler: koma biriminde c = doğal + k, yarım ses biriminde w = doğal + k (c en yakın perde ya da null)
+function withAccidental(n, { k, unit }){
+  if(n.rest) return { ...n };
+  const nat = naturalOf(n);
+  if(unit === "semitone") return { ...n, w: nat.w + k, c: snapPerde(nat.w + k).c };
+  const c = nat.c + k;
+  return { ...n, w: Math.round(67 + c*12/53), c };
+}
+const scaleDur = (n, f) => ({ ...n, d: n.d * f });
+// Noktalıysa (d = 1,5 × ikinin kuvveti) noktayı kaldırır, değilse nokta ekler
+function toggleDot(n){
+  const r = Math.log2(n.d/1.5), dotted = Math.abs(r - Math.round(r)) < 1e-9;
+  return { ...n, d: dotted ? n.d/1.5 : n.d*1.5 };
+}
+const toRest = n => { const r = { ...n, w:null, c:null, rest:true }; delete r.orn; return r; };
+// i. ile i+1. nota aynı perdeyse süreleri toplanıp tek nota olur; değilse dizi aynen kalır
+function mergeNext(notes, i){
+  const a = notes[i], b = notes[i + 1];
+  if(!a || !b || a.rest !== b.rest || (!a.rest && (a.w !== b.w || a.c !== b.c))) return notes.map(n => ({ ...n }));
+  const out = notes.map(n => ({ ...n }));
+  out.splice(i, 2, { ...a, d: a.d + b.d });
+  return out;
+}
+// Ölçü denetimi: ölçü uzunluğu meter[0]*4/meter[1] dörtlük. Ölçüler süre toplamıyla kapanır; ilk ölçü eksikse
+// (anacrusis) ve sonrası oturuyorsa ilk ölçü tamam sayılır. Dönen from (dahil) – to (hariç) nota sırasıdır.
+function barCheck(notes, meter){
+  const L = meter[0]*4/meter[1], eps = 1e-6;
+  const split = a => {
+    const bars = []; let from = 0, sum = 0, target = a;
+    notes.forEach((n, i) => {
+      sum += n.d;
+      if(sum >= target - eps){
+        bars.push({ from, to: i + 1, sum, ok: Math.abs(sum - target) < eps || (bars.length === 0 && a < L) });
+        from = i + 1; sum = 0; target = L;
+      }
+    });
+    if(from < notes.length) bars.push({ from, to: notes.length, sum, ok:false });
+    return bars;
+  };
+  let best = split(L);
+  const score = b => b.filter(x => x.ok).length;
+  let acc = 0;
+  for(const n of notes){
+    acc += n.d;
+    if(acc >= L - eps) break;
+    const cand = split(acc);
+    if(score(cand) > score(best)) best = cand;
+  }
+  return best;
+}
+// Ölçü toplamlarının (dörtlük) en sık değerinden payda/pay
+function meterFromBars(bars){
+  if(!bars.length) return [4, 4];
+  const cnt = new Map();
+  for(const b of bars){ const k = Math.round(b*100)/100; cnt.set(k, (cnt.get(k) || 0) + 1); }
+  let x = 4, best = 0;
+  for(const [k, v] of cnt) if(v > best){ best = v; x = k; }
+  const known = { 2:[2,4], 4:[4,4], 4.5:[9,8], 3:[3,4], 2.5:[5,8], 5:[10,8] };
+  return known[x] || [Math.max(1, Math.round(x*2)), 8];
+}
+// Tekrar işaretlerini açar. marks: [{ i, kind }], i = işaretten sonraki notanın sırası (notes.length olabilir).
+// ‖: :‖ arası iki kez; toSegno son segno'ya döner ve ondan sonraki ilk repEnd/sectionEnd'e kadar çalar
+// (dönüşte tekrarlar yeniden açılmaz). İç içe tekrar yok.
+function expandRepeats(notes, marks){
+  const at = new Map();
+  for(const m of marks || []){ if(!at.has(m.i)) at.set(m.i, []); at.get(m.i).push(m); }
+  const segnos = (marks || []).filter(m => m.kind === "segno"), done = new Set();
+  const out = [];
+  let p = 0, lastStart = 0, post = false, stopI = Infinity;
+  for(let guard = 0; guard < 100000; guard++){
+    if(post && p === stopI) break;
+    let jumped = false;
+    for(const m of at.get(p) || []){
+      if(m.kind === "repStart") lastStart = p;
+      else if(m.kind === "repEnd" && !post && !done.has(m)){ done.add(m); p = lastStart; jumped = true; break; }
+      else if(m.kind === "toSegno" && !post && !done.has(m) && segnos.length){
+        done.add(m); const s = segnos[segnos.length - 1].i;
+        post = true; p = s; jumped = true;
+        for(const e of marks) if((e.kind === "repEnd" || e.kind === "sectionEnd") && e.i > s && e.i < stopI) stopI = e.i;
+        break;
+      }
+    }
+    if(jumped) continue;
+    if(p >= notes.length) break;
+    out.push({ ...notes[p] }); p++;
+  }
+  return out;
+}
+const inRange = n => n.rest || (n.w >= RCORE.LOW_NOTE && n.w <= RCORE.HIGH_NOTE);
+const rangeIssues = notes => notes.reduce((a, n, i) => (inRange(n) ? a : (a.push(i), a)), []);
+// idxs'teki notaları dir (±1) oktav kaydırır (±12 yarım ses, ±53 koma)
+function shiftOctave(notes, idxs, dir){
+  const set = new Set(idxs);
+  return notes.map((n, i) => !set.has(i) || n.rest ? { ...n } : { ...n, w: n.w + 12*dir, c: n.c === null ? null : n.c + 53*dir });
+}
+// Toptan aktarım. "perde": AEU Rast dizisinin (Rast Dügâh Segâh Çargâh Nevâ Hüseynî Evç, oktav 53) komşu perdesine;
+// dizi dışı perdeler (Nim Hicaz gibi) kendi işaretini korur. "semitone": w±steps, c en yakın perde.
+const RAST_DIZI = [0, 9, 17, 22, 31, 40, 48];
+function transposeAll(notes, steps, unit){
+  if(unit === "semitone") return notes.map(n => n.rest ? { ...n } : { ...n, w: n.w + steps, c: snapPerde(n.w + steps).c });
+  const ladder = j => RAST_DIZI[((j % 7) + 7) % 7] + 53*Math.floor(j/7);
+  return notes.map(n => {
+    if(n.rest) return { ...n };
+    const cc = n.c !== null ? n.c : Math.round((n.w - 67)*53/12);
+    let j = 7*Math.floor(cc/53) + 6;
+    while(ladder(j) > cc) j--;
+    const c = ladder(j + steps) + (cc - ladder(j));
+    return { ...n, w: Math.round(67 + c*12/53), c: n.c !== null ? c : null };
+  });
+}
+
 if(typeof module !== "undefined") module.exports = {
   parseScoreText, scoreToText, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
-  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById
+  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById,
+  naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, meterFromBars,
+  expandRepeats, rangeIssues, shiftOctave, transposeAll
 };
