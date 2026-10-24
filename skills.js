@@ -826,7 +826,10 @@ function intonationIssues(notes, trace, opts = {}){
         if(Math.abs(res.drift) > K.driftKoma) k.push("kayma");
       }
     }
-    const head = fr.filter(f => f.t < a);
+    // Giriş: notanın ilk headMs'i ve nota başından önceki kareler (kararlı nota bulucusu notayı ≈ 80 ms geç
+    // başlatır). Geriye doğru sessizliğe, önceki notanın sonuna ya da headMs'e kadar gidilir.
+    const head = fr.filter(f => f.t < a), lim = Math.max(n.start - K.headMs, i ? notes[i-1].end : -Infinity);
+    for(let j = firstIndexAt(trace, n.start) - 1; j >= 0 && trace[j].t > lim && trace[j].comma != null; j--) head.unshift(trace[j]);
     if(head.length && Math.abs(res.delta) <= K.offKoma){
       const h = SLEARN.mean(head.map(f => f.comma)) - p.comma;
       if(h < -K.scoopKoma) k.push("alttan"); else if(h > K.scoopKoma) k.push("ustten");

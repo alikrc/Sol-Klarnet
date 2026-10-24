@@ -88,6 +88,11 @@ function run(ok){
     const u = I(mk40(0, 800, () => 15.2), [note(0, 800, 71)], aeu)[0];
     ok(u.perde === 'Segâh' && errs(u).length === 0, 'Ussak Segah icra perdesinde pes sayilmiyor', JSON.stringify(u));
     ok(errs(I(mk40(0, 800, () => 19), [note(0, 800, 71)], aeu)[0]).join() === 'tiz', 'Ussak Segah 2 koma tiz yine tiz');
+    // Kararlı nota bulucusu notayı ≈ 80 ms geç başlatır: kaymanın çoğu nota başından önceki karelerde kalır
+    const sc = I(mk40(0, 900, t => t < 140 ? -4 : 0), [note(80, 820)])[0];
+    ok(sc.kinds.join() === 'alttan', 'nota basindan onceki alttan giris de bulunuyor', JSON.stringify(sc));
+    const gap = I([...mk40(0, 300, () => -6), { t:330, comma:null }, ...mk40(400, 800, () => 0)], [note(400, 800)])[0];
+    ok(gap.kinds.length === 0, 'sessizlikten onceki nota giris sayilmiyor', JSON.stringify(gap));
     // Dizi dışı notada pes/tiz yok (hedef belirsiz)
     const d = I(mk40(0, 800, () => 2), [note(0, 800)], { scale:[9], offsets:{} })[0];
     ok(d.kinds.join() === 'disi', 'dizi disi notada yalnizca dizi disi isareti', JSON.stringify(d));

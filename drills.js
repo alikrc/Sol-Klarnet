@@ -443,7 +443,7 @@ TRAINERS.rec = function(ctx){
     const tc = getTuningContext(), mk = SK.tuningMakam && makamById(SK.tuningMakam());
     r.ctx = tc && mk ? { ...tc, icra:mk.icra } : tc;
     if(r.mr && r.mr.state !== "inactive"){
-      r.mr.onstop = () => present(r, URL.createObjectURL(new Blob(r.chunks, { type: r.mr.mimeType || "audio/webm" })));
+      r.mr.onstop = () => { if(!rec) present(r, URL.createObjectURL(new Blob(r.chunks, { type: r.mr.mimeType || "audio/webm" }))); };   // bu arada yeni kayıt başladıysa eskisi gösterilmez
       r.mr.stop();
     }else present(r, null);
   }
@@ -545,6 +545,7 @@ TRAINERS.rec = function(ctx){
     let ni = 0;
     const noteAt = t => { while(ni < notes.length && notes[ni].end < t) ni++; return ni < notes.length && t >= notes[ni].start ? ni : -1; };
     const scaleSet = tctx ? new Set(tctx.scale.map(mod53)) : null;
+    const dnum = (v, d = 1) => LANG === "en" ? v.toFixed(d) : num(v, d);   // tuval yazısı DOM çevirisinden geçmez
     function draw(){
       const dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
       if(!W || !H) return;
@@ -601,7 +602,7 @@ TRAINERS.rec = function(ctx){
       issues.forEach((it, i) => {
         if(it.short || !it.kinds.length || notes[i].end < from || notes[i].start > to) return;
         const err = it.kinds.find(k => INTON_ERRORS.includes(k)), k = err || it.kinds[0];
-        const txt = KIND_LABEL[k] + (k === "pes" || k === "tiz" ? " " + num(Math.abs(it.delta), 1) : "");
+        const txt = KIND_LABEL[k] + (k === "pes" || k === "tiz" ? " " + dnum(Math.abs(it.delta)) : "");
         const xx = Math.max(LEFT, x(notes[i].start)), w = g.measureText(txt).width;
         if(xx < lastRight + 4) return;
         g.fillStyle = err ? col("--accent") : col("--muted");
@@ -619,11 +620,11 @@ TRAINERS.rec = function(ctx){
       if(st.playMs != null && st.playMs >= from && st.playMs <= to){
         g.strokeStyle = col("--ink"); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x(st.playMs), 0); g.lineTo(x(st.playMs), H - BOT); g.stroke();
       }
-      const wl = $("rcwin"); if(wl) wl.textContent = `${num(from/1000)}–${num(Math.min(to, total)/1000)} sn`;
+      const wl = $("rcwin"); if(wl) wl.textContent = `${dnum(from/1000)}–${dnum(Math.min(to, total)/1000)} ${L("sn", "s")}`;
     }
     // Sürükleme kaydırır; sürüklemeden bırakılan dokunuş kaydı o ana sarar
     let drag = null;
-    canvas.addEventListener("pointerdown", e => { drag = { x0:e.clientX, from0:st.from, moved:false }; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointerdown", e => { if(e.button !== 0) return; drag = { x0:e.clientX, from0:st.from, moved:false }; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener("pointermove", e => {
       if(!drag) return;
       const dx = e.clientX - drag.x0;
@@ -636,8 +637,8 @@ TRAINERS.rec = function(ctx){
       const d = drag; drag = null;
       if(!d || d.moved) return;
       const r = canvas.getBoundingClientRect(), px = e.clientX - r.left;
-      if(px < LEFT) return;
-      const t = st.from + (px - LEFT)/(canvas.clientWidth - LEFT)*st.span;
+      if(px < LEFT || px > r.width || e.clientY < r.top || e.clientY > r.bottom) return;   // tuvalin dışında bırakıldı
+      const t = Math.min(total, st.from + (px - LEFT)/(canvas.clientWidth - LEFT)*st.span);
       st.playMs = t; draw(); seek(t);
     });
     canvas.addEventListener("pointercancel", () => { drag = null; });
@@ -668,8 +669,8 @@ TRAINERS.rec = function(ctx){
     };
   }
   window.addEventListener("resize", () => { if(curve) curve.draw(); });
-  // Tarayıcı panelinde mikrofon olmadan denemek için
-  window.SKDEBUG = Object.assign(window.SKDEBUG || {}, { recPresent: present });
+  // Tarayıcı panelinde mikrofon olmadan denemek için (adrese ?debug eklenince)
+  if(/[?&]debug(=|&|$)/.test(location.search)) window.SKDEBUG = Object.assign(window.SKDEBUG || {}, { recPresent: present });
   let prevW = null, gap = [];
   SK.on("raw", d => { if(rec){ gap.push({ t:d.t, comma:d.comma }); rec.raw.push({ t:d.t, comma:d.comma }); } });
   SK.on("note", d => {
@@ -680,7 +681,7 @@ TRAINERS.rec = function(ctx){
   });
   SK.on("silence", d => { if(rec){ rec.frames.push({ t:d.t, written:null }); rec.raw.push({ t:d.t, comma:null }); prevW = null; gap = []; } });
   // Başka sekmeye geçilince kayıt arka planda sürmesin; döküm hazır olur
-  return { leave(){ if(rec) stopRec(); if(curve) curve.stop(); } };
+  return { leave(){ if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
 };
 
 // ======== İlerleme ========
