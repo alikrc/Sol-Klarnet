@@ -1,2 +1,4 @@
 node_modules/
 www/
+testdata/omr/*
+!testdata/omr/README.md
