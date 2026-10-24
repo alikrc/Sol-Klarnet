@@ -24,8 +24,8 @@
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
   const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],
-                ["piece",L("Etüt ve eserler", "Études & pieces")],["rec","Kayıt"],["progress","İlerleme"]];
-  const GROUPS = [["lessons","Dersler",["lessons"]],
+                ["piece",L("Etüt ve eserler", "Études & pieces")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
+  const GROUPS = [["lessons","Dersler",["lessons","videos"]],
                   ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear"]],
                   ["pieces",L("Eserler", "Pieces"),["piece","rec"]],
@@ -47,6 +47,7 @@
     ear: L("Koma farklarını duymayı öğren", "Learn to hear comma differences"),
     piece: L("Etütleri ve kendi eserlerini çal", "Play études and your own pieces"),
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
+    videos: L("Hocalardan makam, teknik ve süsleme videoları", "Makam, technique and ornament videos by masters"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
   };
   // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Alıştırma açılınca başlığın altında
@@ -189,6 +190,14 @@
         <li>In the chart the band is the target perde and the line is you: green on pitch, orange off. Drag the chart; “All” shows the whole recording.
           Tap the chart or a table row to play from that moment.</li>
         <li>Below are the pitches most often off with a tip; “See fingering” opens that note's fingering. Use “Save / share the recording” to keep it.</li></ol>`),
+    videos: L(`<p><b>Ne işe yarar:</b> Sol klarnet hocalarının eğitim videolarını konuya ve makama göre bulmak.</p>
+      <ol><li>Konu ya da makam seç, istersen başlıkta ara.</li>
+        <li>Bir videoya dokun: YouTube'da açılır. İnternet gerekir.</li>
+        <li>Bir makamı çalışırken önce o makamın anlatım videosunu izle, sonra Dizi ve Taklit'e geç.</li></ol>`,
+      `<p><b>What it's for:</b> finding teaching videos by Sol clarinet masters by topic and makam. The videos are in Turkish.</p>
+      <ol><li>Pick a topic or makam, or search the titles.</li>
+        <li>Tap a video to open it on YouTube. Needs an internet connection.</li>
+        <li>When working on a makam, watch its explanation video first, then move on to Scale and Mimic.</li></ol>`),
     progress: L(`<p><b>Ne işe yarar:</b> Ne kadar çalıştığını ve neyin geliştiğini görmek.</p>
       <ol><li>Üstte seri (kaç gün üst üste) ve bugünkü süre; günlük hedefi Ayarlar'dan değiştirebilirsin.</li>
         <li>Altta ritim, kulak, seyir, hız, süsleme ve eserlerdeki en iyi sonuçların ve Taklit rekorun.</li>

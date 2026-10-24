@@ -240,7 +240,7 @@ details.code summary{cursor:pointer}
 .tool:not(.open):not(.on) .slots{display:none}
 .tool .slots{padding:0 4px 2px}
 .trow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-select,input[type=text],input[type=number],textarea{font:500 13px var(--ui);background:var(--surface);color:var(--ink);
+select,input[type=text],input[type=search],input[type=number],textarea{font:500 13px var(--ui);background:var(--surface);color:var(--ink);
   border:1px solid var(--line);border-radius:8px;padding:6px 8px;max-width:100%}
 textarea{width:100%;font-family:var(--mono);margin:6px 0}
 .tnum{display:inline-flex;align-items:center;gap:4px;font-size:12px}
@@ -420,6 +420,24 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 .lstitle{font-family:var(--display);font-size:24px;font-weight:600;margin:4px 0 8px}
 .lsbody > p{max-width:70ch}
 .lstips{margin:0 0 12px;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.55}
+.lsvids{margin:0 0 12px}
+.lsvids > summary{cursor:pointer;font:600 12px/1.4 var(--ui);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.lsvids > summary small,#pp-videos .label small{font-weight:500;opacity:.7}
+.lsvids > p{margin:6px 0 0}
+/* Video satırları (ders kutusu ve Videolar sekmesi) */
+.vlist{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.vrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;min-width:0}
+@media (hover:hover){.vrow:hover{border-color:var(--accent)}}
+.vrow:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.vplay{flex:0 0 30px;height:30px;border-radius:50%;background:var(--sunk);display:grid;place-items:center}
+.vplay svg{width:14px;height:14px;fill:var(--accent)}
+.vtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.vtx b{font:600 13.5px/1.3 var(--ui)}
+.vtx small{font:500 11.5px/1.3 var(--ui);color:var(--muted)}
+.vext{flex:0 0 auto;font:500 11px/1 var(--ui);color:var(--muted)}
+@media (max-width:420px){.vext{display:none}}
+.vfilt{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.vfilt select,.vfilt input{flex:1 1 140px;min-width:0}
 .lssteps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .lsstep{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .lsstep.active{border-color:var(--accent)}
@@ -568,7 +586,7 @@ footer{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;max-wid
   .primary.small{padding:12px 18px}
   .opt{padding:15px 8px}
   .lsitem{padding:11px 10px}
-  select,input[type=text],input[type=number],textarea,#a4{font-size:16px}
+  select,input[type=text],input[type=search],input[type=number],textarea,#a4{font-size:16px}
   input[type=range]{height:28px}
 }
 /* Klavye kısayolları dokunmatik cihazlarda anlamsız */

@@ -98,12 +98,14 @@ TRAINERS.lessons = function(ctx){
   function open(l){
     stopRun();
     cur = l; store.set("lesson.cur", l.id);
-    const p = progFor(l), u = UNITS.find(x => x.id === l.unit);
+    const p = progFor(l), u = UNITS.find(x => x.id === l.unit), vids = l.daily ? [] : videosForLesson(l.id);
     $("lsbody").innerHTML = `
       <div class="eyebrow">${u ? esc(tx(u.name)) : esc(dayKey(new Date()))}</div>
       <h3 class="lstitle">${esc(tx(l.title))}</h3>
       ${l.text.map(t => `<p>${esc(tx(t))}</p>`).join("")}
       ${l.tips.length ? `<ul class="lstips">${l.tips.map(t => `<li>${esc(tx(t))}</li>`).join("")}</ul>` : ""}
+      ${vids.length ? `<details class="lsvids" open><summary>${L("Videolar", "Videos")} <small>${vids.length}</small></summary>
+        ${videoRowsHtml(vids)}<p class="muted small">${L("Çorlu Klarnet Üstatları kanalından, YouTube'da açılır.", "From the Çorlu Klarnet Üstatları channel, in Turkish; opens on YouTube.")}</p></details>` : ""}
       ${l.makam ? `<div class="pbar"><button class="stopbtn" type="button" data-act="drone">Durağı dron yap</button></div>` : ""}
       <ol class="lssteps">${l.steps.map((st, i) => { const r = p[l.id] && p[l.id].s[i]; return `
         <li class="lsstep${r && r.ok ? " ok" : ""}" id="lst${i}">
@@ -571,4 +573,34 @@ TRAINERS.lessons = function(ctx){
     silence(t){ if(run && run.h && run.h.silence) run.h.silence(t); },
     raw(d){ if(run && run.h && run.h.raw) run.h.raw(d); }
   };
+};
+
+// ---- Videolar: Çorlu Klarnet Üstatları kanalından eğitim videoları (veri videos.js'te) ----
+TRAINERS.videos = function(ctx){
+  const { $ } = ctx;
+  const P = $("pp-videos");
+  const mks = MAKAMS.filter(m => VIDEOS.some(v => v.makam === m.id));
+  P.innerHTML = `
+    <p class="pdesc">${L("Sol klarnet hocaları İlhan Küçükcivan ve Ömür Küçükler'in eğitim videoları: makam anlatımları, etütler, teknik, süsleme, taksim ve örnek eserler. Dokununca YouTube'da açılır. Derslerin altında o derse uygun videolar da var.",
+      "Teaching videos by Sol clarinet masters İlhan Küçükcivan and Ömür Küçükler: makams, études, technique, ornaments, taksim and example pieces. In Turkish; tap to open on YouTube. Each lesson also lists the videos that fit it.")}</p>
+    <div class="vfilt">
+      <select id="vcat" aria-label="${L("Konu", "Topic")}"><option value="">${L("Bütün konular", "All topics")}</option>${VIDEO_CATS.map(c => `<option value="${c.id}">${pick(c.name, LANG)}</option>`).join("")}</select>
+      <select id="vmk" aria-label="Makam"><option value="">${L("Bütün makamlar", "All makams")}</option>${mks.map(m => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
+      <input id="vq" type="search" placeholder="${L("Ara", "Search")}" aria-label="${L("Videolarda ara", "Search videos")}">
+    </div>
+    <div id="vout"></div>
+    <p class="muted small">${L("Kaynak:", "Source:")} <a href="${VIDEO_CHANNEL}" target="_blank" rel="noopener">Çorlu Klarnet Üstatları</a> (YouTube). ${L("Videolar kanal sahiplerine aittir.", "Videos belong to the channel's owners.")}</p>`;
+  const fold = s => s.toLocaleLowerCase("tr").normalize("NFD").replace(/\p{M}/gu, "").replace(/ı/g, "i");
+  function render(){
+    const cat = $("vcat").value, mk = $("vmk").value, q = fold($("vq").value.trim());
+    const list = VIDEOS.filter(v => (!cat || v.cat === cat) && (!mk || v.makam === mk) && (!q || fold(v.title + " " + (VIDEO_BY[v.by] || "")).includes(q)));
+    $("vout").innerHTML = list.length ? VIDEO_CATS.map(c => {
+      const vs = list.filter(v => v.cat === c.id);
+      return vs.length ? `<div class="label">${pick(c.name, LANG)} <small>${vs.length}</small></div>${videoRowsHtml(vs)}` : "";
+    }).join("") : `<p class="muted">${L("Bu seçimde video yok.", "No videos match.")}</p>`;
+  }
+  ["vcat", "vmk"].forEach(id => $(id).addEventListener("change", render));
+  $("vq").addEventListener("input", render);
+  render();
+  return {};
 };
