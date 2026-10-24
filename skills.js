@@ -3,7 +3,7 @@
 // Tarayıcıda lessons.js'ten sonra <script src="skills.js"> ile, Node'da require("./skills.js") ile yüklenir.
 
 const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi, noteName, contextPerde };
-const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, mean, sd, commaToWritten, perdeName, vibrato };
+const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, tuningCtx, mean, sd, commaToWritten, perdeName, vibrato };
 
 // ---- Nota başı (onset) bulma ----
 // Her ölçümde { t (ms), rms, on (perde bulundu mu), tOn? (pencere içinde enerjinin yükseldiği an) } gelir.
@@ -579,6 +579,91 @@ function runNotes(track){
   }
   return out.filter(p => partMs(track, p.start, p.end) >= 40).map(p => ({ t: p.start - fix, end: p.end, comma: p.comma }));
 }
+// ---- Sesten ölçülü nota ----
+// Kayıt (PCM) → ham notalar: 10 ms'lik iz, runNotes ile nota sınırları. Dönen: [{ t, end, comma }] (ms)
+function audioNotes(pcm, sampleRate, opts = {}){
+  return runNotes(ornamentTrack(pcm, sampleRate, { T: opts.T == null ? 5 : opts.T, hopMs:10, expectHz:300 }));
+}
+// Kaydın akordu: notaların AEU perdelerinden sapmalarının ortancası (en çok ±26 koma). Üç nota yetmez → 0.
+// AEU'da perdeler sıktır (0, 4, 5, 8, 9...): yalnızca "en yakın perde"ye bakılırsa +3 kayık kayıt -1 kayık gibi görünür.
+// Bu yüzden 0,25 koma adımla bütün kaymalar denenir; ana perdelere (NATURAL_PERDE) oturmayan not 1 koma ceza alır,
+// küçük kayma da hafif öncelikli. Seçilen kaymanın çevresinde sapmaların ortancasıyla ince ayar yapılır.
+const NATURAL_PERDE = [0, 9, 13, 17, 18, 22, 31, 36, 40, 44, 48];
+function tuningOffset(notes){
+  if(!notes || notes.length < 3) return 0;
+  const ps = SCORE.PERDES.map(p => ({ c:p[0], pen: NATURAL_PERDE.includes(((p[0] % 53) + 53) % 53) ? 0 : 1 }));
+  const fit = x => { let best = null; for(const p of ps){ const v = Math.abs(x - p.c) + p.pen; if(!best || v < best.v) best = { v, d: x - p.c }; } return best; };
+  let bo = 0, bv = 1e9;
+  for(let o=-26;o<=26;o+=0.25){
+    let s = 0; for(const n of notes) s += fit(n.comma - o).v;
+    s = s/notes.length + 0.05*Math.abs(o);
+    if(s < bv){ bv = s; bo = o; }
+  }
+  return Math.max(-26, Math.min(26, bo + median(notes.map(n => fit(n.comma - bo).d))));
+}
+// Ezgiyi vuruş ızgarasına oturtur. opts: { tempo? (verilirse tahmin edilmez), makam? (id), mode? ("aeu"|"icra"),
+// offset? (yoksa tuningOffset) }. Dönen: { notes:[{ w, c, d (vuruş), rest, conf }], tempo, meter, offset }
+function quantizeRun(notes, opts = {}){
+  const mode = opts.mode || "aeu";
+  const offset = opts.offset != null ? opts.offset : tuningOffset(notes);
+  if(!notes || !notes.length) return { notes:[], tempo: opts.tempo || 90, meter:[4,4], offset };
+  // Çok kısa notalar (süs) sonrakine katılır: başlangıç öne alınır, perde sonrakinin kalır
+  const mergeShort = (arr, thr) => {
+    const out = [];
+    for(let i=0;i<arr.length;i++){
+      const n = arr[i], next = arr[i+1];
+      if(next && next.t - n.t < thr){ arr[i+1] = { ...next, t: n.t }; continue; }
+      out.push(n);
+    }
+    return out;
+  };
+  let run = mergeShort(notes.map(n => ({ ...n })), 70);
+  // Tempo: aday vuruş süresi için nota başlarının b/4 ve b/3 ızgarasına uzaklığının (vuruş cinsinden) kareler ortalaması
+  const t0 = run[0].t;
+  const gridCost = (b, g) => {
+    let s = 0;
+    for(const n of run){ const x = (n.t - t0)/b*g; s += ((x - Math.round(x))/g)**2; }
+    return s/run.length;
+  };
+  let beat, grid;
+  if(opts.tempo){
+    beat = 60000/opts.tempo;
+    grid = gridCost(beat, 3) < gridCost(beat, 4) ? 3 : 4;
+  }else{
+    const cands = [];
+    for(let b=300;b<=1200;b+=2){
+      const c4 = gridCost(b, 4), c3 = gridCost(b, 3), bpm = 60000/b;
+      cands.push({ b, g: c3 < c4 ? 3 : 4, cost: Math.min(c3, c4)*(bpm < 60 || bpm > 120 ? 1.15 : 1) });
+    }
+    // Eşdeğer adaylar (b, b/2, 2b/3...) arasında 90'a yakın olan seçilir; üçlü ızgara için küçük bir ek ceza (düz sekizlikler üçleme sayılmasın)
+    const best = Math.min(...cands.map(c => c.cost));
+    const dist = c => Math.abs(Math.log(60000/c.b/90)) + (c.g === 3 ? 0.25 : 0);
+    const near = cands.filter(c => c.cost <= best + 4e-4)
+      .sort((x, y) => dist(x) - dist(y));
+    let pick = near[0];
+    for(const c of cands) if(Math.abs(c.b - pick.b) <= 8 && c.g === pick.g && c.cost < pick.cost) pick = c;   // ince ayar
+    beat = pick.b; grid = pick.g;
+  }
+  run = mergeShort(run, beat/8);
+  const t1 = run[0].t, out = [];
+  const mk = opts.makam ? SLEARN.makamById(opts.makam) : null, ctx = mk ? SLEARN.tuningCtx(mk, mode) : null;
+  run.forEach((n, i) => {
+    const next = run[i+1], span = next ? next.t - n.t : n.end - n.t + 10;   // son nota kendi end'ine göre
+    const gx = (n.t - t1)/beat*grid, gdist = Math.abs(gx - Math.round(gx))/grid;
+    const q = ms => Math.max(1, Math.round(ms/beat*grid))/grid;
+    let d = q(span), rest = 0;
+    if(next && next.t - n.end > beat/2){ rest = q(next.t - n.end); d = Math.max(1/grid, q(span) - rest); }
+    // Perde: akort kayması çıkarıldıktan sonra makam dizisine ya da 1,5 komadan yakınsa AEU perdesine
+    const c0 = n.comma - offset;
+    const p = mk ? SCORE.contextPerde(c0, ctx) : SCORE.nearestPerde(c0);
+    const ok = p && (mk || Math.abs(p.delta) <= 1.5);
+    const c = ok ? (p.base != null ? p.base : p.comma) : null, pdev = ok ? Math.abs(p.delta) : 0;
+    out.push({ w: Math.round(67 + (c != null ? c : c0)*12/53), c, d, rest:false,
+               conf: Math.max(0, 1 - pdev/3) * Math.max(0, 1 - gdist*2) });
+    if(rest) out.push({ w:null, c:null, d: rest, rest:true, conf:1 });
+  });
+  return { notes: out, tempo: Math.round(60000/beat*10)/10, meter:[4,4], offset };
+}
 // runNotes çıktısını perf zaman çizgisine (t0) ve en yakın yazılı notaya çevirir
 const runPlayed = (notes, t0) => notes.map(n => ({ t: t0 + n.t, w: Math.round(67 + n.comma*12/53) }));
 // Beklenen notalarla çalınanların hizalanması (dinamik programlama). expected: [{ t, w, ms }], played: [{ t, w }],
@@ -864,7 +949,7 @@ function intonationSummary(issues){
 if(typeof module !== "undefined") module.exports = {
   INTON, INTON_ERRORS, firstIndexAt, cleanTrace, intonationIssues, intonationSummary,
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
+  techPattern, patternKey, runNotes, audioNotes, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };
