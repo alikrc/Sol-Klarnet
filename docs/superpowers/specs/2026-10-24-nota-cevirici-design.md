@@ -12,9 +12,12 @@ Eksik olan şey, notaların kendisini PDF'ten, resimden ya da sesten çıkarmak.
 Proje sahibinin kararları:
 
 - Okuma **uygulamanın içinde** yapılır. Notayı sohbette Claude'a okutmak istenmiyor.
-- **Yapay zekâ yok, sunucu yok.** Her şey telefonda, internetsiz çalışır. Uygulamanın "hiçbir şey cihazdan çıkmaz"
-  sözü korunur.
+- **Yapay zekâ yok, bizim sunucumuz yok.** Okuma telefonda yapılır. Ses ve resimler cihazdan çıkmaz.
 - Üç kaynak desteklenir: PDF, ekran görüntüsü ya da fotoğraf, YouTube ya da ses kaydı.
+- **Nota bul:** neyzen.com ve projetsm.com uygulamanın içinden aranır, nota indirilip doğrudan okunur. Bunun için
+  uygulamaya internet izni geri gelir. Uygulamanın geri kalanı internetsiz çalışmaya devam eder; internet yoksa
+  yalnızca Nota bul çalışmaz. Proje sahibi bunu kabul etti, neyzen.com'un kullanım koşullarındaki riski de
+  biliyor (aşağıda "Riskler").
 
 Bu sınırlarla nota okuma, kalıp eşleştirme ve kurallara dayanan klasik görüntü işlemeyle yapılır. Ses ise
 uygulamanın mevcut perde bulucusuyla yazıya dökülür. İkisi de hata yapabilir, bu yüzden her sonuç kaydedilmeden önce
@@ -64,7 +67,7 @@ Bu örnek ayrıca bestecinin telif süresi içinde olan bir eser. Bu yüzden dep
   yazılı notasına çevrilir (`SK.T`).
 - **Kaydet:** Ad, tempo, makam ve ölçü (ölçü çizgilerinden hesaplanır) ile "Kendi eserlerim"e eklenir. Bundan sonra
   eser, mevcut eserler gibi tempolu çalınır, takip edilir ve merdivende çalışılır.
-- Bütün metinler iki dilli. İnternet izni eklenmez. Saf mantık Node'da test edilir.
+- Bütün metinler iki dilli. Saf mantık Node'da test edilir.
 
 ## Hedef olmayanlar (bu işte)
 
@@ -87,7 +90,9 @@ Bu örnek ayrıca bestecinin telif süresi içinde olan bir eser. Bu yüzden dep
 
 - Yanlış okunan notaların öğrenci görmeden esere kaydedilmesi. Kayıt yalnızca düzeltme ekranından yapılır; emin
   olunmayan yerler göze batacak biçimde işaretlenir.
-- Uygulamanın internet izni istemesi ya da bir dosyanın cihazdan çıkması.
+- Öğrencinin ses kaydının, resminin ya da dosyasının cihazdan çıkması. İnternete yalnızca Nota bul çıkar ve
+  yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir.
+- Nota bul dışındaki herhangi bir özelliğin internet istemesi.
 - Okuma sırasında arayüzün donması. Uzun işler bir Web Worker'da çalışır ve ilerleme gösterilir.
 - Uygulamanın açılışının yavaşlaması. pdf.js yalnızca PDF seçilince yüklenir.
 - Mevcut "Eser ekle" (metin, MusicXML, konser kutusu), Kayıt sekmesinin "Eserlere ekle" düğmesi ve eserlerin
@@ -205,6 +210,44 @@ Mevcut parçalar kullanılır: `ornamentTrack(pcm, sr, { T: SK.T, hopMs:10 })` �
   tona çevrilir ve Worker'a gönderilir.
 - Lisans (Apache 2.0) README'deki kaynaklar bölümüne yazılır.
 
+### Nota bul: `sources.js` (ayrıştırıcılar saf, Node'da test edilir)
+
+Çevir sekmesinin en üstünde bir arama kutusu. Altında kaynak (hepsi, neyzen, projetsm) ve makam süzgeci.
+
+- **neyzen.com:** Arama sayfası yok, arşiv sabit HTML sayfaları:
+  - `Sablonlar/makamListesi.html` makam sayfalarını listeliyor (`makamlar/<makam>.html`, yaklaşık 90 sayfa).
+    Türküler ve oyun havaları gibi kategori sayfaları ayrı (`ney_turkuler.html` …).
+  - Her makam sayfasında eserler ve PDF bağlantıları var (yalnızca Hicaz'da 887 PDF):
+    `nota_arsivi/<kategori>/<makam>/<dosya>.pdf`. Her satırda form (Longa, Peşrev …) ve besteci yazıyor.
+  - Uygulama ilk aramada bu sayfaları sırayla (aynı anda en çok 2 istek) indirip bir **dizin** çıkarır:
+    `{ title, form, composer, makam, url, source:"neyzen" }`. Dizin cihazda saklanır, 30 günde bir ya da
+    "Dizini yenile" ile yenilenir. Dizin çıkarılırken ilerleme gösterilir; arama sonraki seferlerde anında ve
+    internetsiz çalışır (indirme için yine internet gerekir).
+- **projetsm.com:** Sunucuda arama var: `/search?search=<sözcük>` HTML döndürüyor, eserler `/eserler/<id>-<ad>`
+  bağlantılarıyla. Eser sayfasındaki nota, sayfa sayfa GIF resim: `/uploads/attachment/<id>_v<sürüm>_<sayfa>.gif`.
+  Bazı eserlerde nota yok; eser açılınca "bu eserin notası yok" denir. Site yalnızca HTTP; iOS'ta bu alan adı için
+  ATS istisnası gerekir.
+  - **Bu notaların çoğu elle yazılmış, taranmış eski notalar** (örnek: Acem Aşîrân Longa, `20060_v1_1.gif`, 790 px
+    genişlikte, eğri el yazısı). Klasik okuyucu bunlarda büyük ölçüde başarısız olur; bu hedef değil. Okuyucu yine
+    denenir, ama güven düşükse sonuç atılır ve düzeltme ekranı **"resme bakarak yaz"** biçiminde açılır: üstte
+    resim, altta boş nota şeridi; öğrenci notaları ekler (dizekte basamak seçip süre düğmesiyle). Neyzen notaları
+    (bilgisayarda yazılmış) okuyucunun asıl hedefi olarak kalır.
+- **Ağ:** Tarayıcı CORS'a takıldığı için yerel uygulamada `CapacitorHttp` (Capacitor çekirdeğinde var) kullanılır.
+  Web sürümünde (tarayıcıda açılan uygulama) Nota bul görünür ama "yalnızca telefon uygulamasında çalışır" der.
+  Android'e `INTERNET` izni eklenir.
+- **Arama:** Türkçe harfler ve şapkalar normalleştirilir (â→a, ı→i, ş→s …). Sözcükler başlıkta, formda,
+  bestecide ve makamda aranır. Makam adları uygulamanın `MAKAMS` kimliklerine eşlenir (eşleşmeyenler adıyla kalır);
+  böylece süzgeç ve kaydedilen eserin makamı otomatik dolar.
+- **Sonuç listesi:** Başlık, form, besteci, makam, kaynak. Dokununca nota sayfaları önizlenir (PDF'in ilk sayfası ya
+  da GIF'ler). **"Çevir"** düğmesi dosyayı indirip okuyucuya verir; düzeltme ekranı açılır, ad, makam ve kaynak
+  dolu gelir. **"Dosyayı kaydet"** indirilen PDF'i ya da resmi telefona kaydeder (mevcut Filesystem/Share yolu).
+- **Kaynak bilgisi:** Kaydedilen esere `source: { site, url }` eklenir; eser ekranında "Kaynak: neyzen.com"
+  bağlantısıyla görünür.
+- **Hatalar:** İnternet yok, site yanıt vermiyor, sayfa yapısı değişmiş (ayrıştırıcı hiç sonuç çıkaramadı) için ayrı,
+  anlaşılır iletiler. Yapı değişince uygulama çökmez; o kaynak "şu an okunamıyor" olur.
+- **Gizlilik:** `privacy.html`'e eklenir: "Nota bul kullanılırsa arama sözcüğün ve indirilen notanın adresi
+  neyzen.com ya da projetsm.com'a gider. Başka hiçbir şey gönderilmez."
+
 ## Aşamalar
 
 Her aşama kendi başına kullanılabilir ve ayrı commit'lenir:
@@ -216,7 +259,8 @@ okunmasıdır.
    `quantizeRun`, Kayıt'taki "Eserlere ekle"nin bu yola bağlanması. Mevcut kodun çoğunu kullandığı için ilk bu.
 2. **Resim okuyucu:** `omr.js`, kalıp çıkarma betiği, Worker, kaynak görünümü ve kutular, resim seçme.
 3. **PDF:** pdf.js, sayfaların resme çevrilmesi, çok sayfalı okuma.
-4. **Dayanıklılık:** fotoğraf (Sauvola, eğiklik), düşük çözünürlüklü ekran görüntüleri, gerçek örneklerle eşik
+4. **Nota bul:** `sources.js`, internet izni, dizin, arama, önizleme, Çevir'e aktarma.
+5. **Dayanıklılık:** fotoğraf (Sauvola, eğiklik), düşük çözünürlüklü ekran görüntüleri, gerçek örneklerle eşik
    ayarı.
 
 ## Test
@@ -236,6 +280,10 @@ okunmasıdır.
   metnini kurucu nota sayfasından elle yazar.
   - Ölçüt: Hicâz Longa'da nota başına en az %95 doğru (perde ve süre birlikte), donanım ve bütün koma işaretleri
     doğru.
+- **Nota bul (`testsources.js`):** Sentetik HTML örnekleriyle: neyzen makam listesi ve makam sayfası ayrıştırma
+  (başlık, form, besteci, PDF adresi), projetsm arama ve eser sayfası (GIF adresleri, notasız eser), Türkçe
+  normalleştirilmiş arama, makam adlarının `MAKAMS`'a eşlenmesi, bozuk sayfada boş sonuç ve hata, çökme yok.
+  Ağ isteği testte yapılmaz.
 - **Ses:** Mevcut sentetik ses üreticisiyle bilinen bir ezgi (farklı tempolar, noktalı ritim, triole, süsleme
   notası, sus) → `quantizeRun` → tempo ±%5 içinde, süreler ve perdeler doğru. Makam verilince perdelerin diziye
   oturduğu.
@@ -251,6 +299,15 @@ okunmasıdır.
   sonucu verir, YouTube'u başka cihazda aç ve telefonu hoparlöre yaklaştır, okunanı mutlaka dinleyip kontrol et.
 
 ## Riskler
+
+- **neyzen.com kullanım koşulları.** Notaların kişisel öğrenme için indirilmesine izin veriyor. Ama içeriğin yazılı
+  izin olmadan saklanmasını, işlenmesini ve dağıtılmasını, bunu kolaylaştırmayı da yasaklıyor. Uygulama notayı
+  öğrenci adına indirip okuyor; kişisel kullanımda sorun beklenmez, ama mağazaya çıkınca risk var. Mağazaya
+  çıkmadan önce neyzen.com'dan (Mehmet Yücel) yazılı izin istenir; izin yoksa mağaza sürümünde neyzen kaynağı
+  kapatılır (`sources.js`'te tek bir ayar). Bu madde BACKLOG'da "İnsan gerektiren işler"e yazılır. projetsm.com'un
+  yazılı koşulu yok; robots.txt her şeye izin veriyor.
+- **Sitelerin yapısı değişebilir.** Ayrıştırıcılar küçük, sentetik HTML örnekleriyle test edilir (gerçek sayfalar
+  depoya kopyalanmaz). Bozulunca yalnızca o kaynak çalışmaz.
 
 - **Türk müziği notalarının yazı tipleri.** Her arşivin (neyzen.com, Mus2, Finale) koma işareti çizimi farklı
   olabilir. Kalıplar yazı tiplerinden ve gerçek örneklerden alınır; yeni bir kaynak tutmazsa onun örneği
