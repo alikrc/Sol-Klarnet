@@ -6,9 +6,15 @@
 const OMR = (() => {
   const G = 32;                                     // normalleştirilmiş simge ızgarası (G×G)
   const CLASSES = ["head_black", "head_half", "head_whole", "rest_1", "rest_2", "rest_4", "rest_8", "rest_16", "clef_g",
-    "sharp", "flat", "natural", "aeu_koma_sharp", "aeu_bakiye_sharp", "aeu_buyuk_sharp", "aeu_koma_flat", "aeu_kucuk_flat",
+    "sharp", "flat", "natural", "aeu_koma_sharp", "aeu_kucuk_sharp", "aeu_buyuk_sharp", "aeu_koma_flat", "aeu_bakiye_flat",
     "aeu_buyuk_flat", "segno", "measure_repeat", "dot", "digit_0", "digit_1", "digit_2", "digit_3", "digit_4", "digit_5",
     "digit_6", "digit_7", "digit_8", "digit_9", "other"];
+
+  // Değiştirici sınıfı → AEU koma farkı (doğal harften; repertoire.js turkishAccidental'ın k'sı). Yalın ♯ bakiye
+  // diyez (+4), yalın ♭ küçük mücenneb bemol (−5): SMuFL adları ve AEU yazımı. Batı (tampere) notasında ♯/♭ ±1 yarım
+  // sestir; o yorum okuyucunun (Görev 6) işidir.
+  const ACC_K = { sharp:4, flat:-5, natural:0, aeu_koma_sharp:1, aeu_kucuk_sharp:5, aeu_buyuk_sharp:8,
+    aeu_koma_flat:-1, aeu_bakiye_flat:-4, aeu_buyuk_flat:-8 };
 
   // ---- base64 (Worker'da Buffer yok; atob varsa o) ----
   const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -466,7 +472,7 @@ const OMR = (() => {
     return res.filter(Boolean).flatMap(r => r.parts);
   }
 
-  return { CLASSES, GRID:G, binarize, deskew, rotate, findStaves, removeStaffLines, components, gridOf, classify, splitStems, blackHeads,
+  return { CLASSES, ACC_K, GRID:G, binarize, deskew, rotate, findStaves, removeStaffLines, components, gridOf, classify, splitStems, blackHeads,
     symbols, templates, fromB64, toB64, otsu, holeOf };
 })();
 

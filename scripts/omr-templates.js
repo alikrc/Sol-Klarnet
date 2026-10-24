@@ -15,15 +15,15 @@ const OMR = require("../omr.js");
 
 const ROOT = path.join(__dirname, ".."), SP = 14;
 const SAMPLES = path.join(__dirname, "omr-samples.json");
-// Sınıf → SMuFL kod noktası. AEU'da düz ♯ küçük mücenneb, düz ♭ bakiye sayılır (uygulamanın yazımı); SMuFL'de
-// bu iki çiftin adları ters olduğundan bakiye diyez E446 (tek dikey, uzun yataylar), küçük mücenneb bemol E442
-// (eğik çizgili ♭) çizimiyle alınır. E445 ve E441, Bravura'da düz ♯ ve ♭ ile aynıdır.
+// Sınıf → SMuFL kod noktası, AEU işaretleri SMuFL adlarına göre: yalın ♯ bakiye diyez (+4, E445 = ♯ çizimi),
+// yalın ♭ küçük mücenneb bemol (−5, E441 = ♭ çizimi); çizikli ♭ bakiye bemol (−4, E442), küçük mücenneb diyez
+// (+5, E446), koma ±1 (E443/E444), büyük mücenneb ±8 (E440/E447). Koma değerleri omr.js'te OMR.ACC_K.
 const CLASS_GLYPHS = {
   head_black:0xE0A4, head_half:0xE0A3, head_whole:0xE0A2,
   rest_1:0xE4E3, rest_2:0xE4E4, rest_4:0xE4E5, rest_8:0xE4E6, rest_16:0xE4E7, clef_g:0xE050,
   sharp:0xE262, flat:0xE260, natural:0xE261,
-  aeu_koma_sharp:0xE444, aeu_bakiye_sharp:0xE446, aeu_buyuk_sharp:0xE447,
-  aeu_koma_flat:0xE443, aeu_kucuk_flat:0xE442, aeu_buyuk_flat:0xE440,
+  aeu_koma_sharp:0xE444, aeu_kucuk_sharp:0xE446, aeu_buyuk_sharp:0xE447,
+  aeu_koma_flat:0xE443, aeu_bakiye_flat:0xE442, aeu_buyuk_flat:0xE440,
   segno:0xE047, measure_repeat:0xE500, dot:0xE1E7
 };
 for(let d = 0; d <= 9; d++) CLASS_GLYPHS["digit_" + d] = 0xE080 + d;

@@ -4,7 +4,6 @@
   "private": true,
   "description": "Türk Sol klarneti için akort, parmak pozisyonu ve makam alıştırmaları",
   "scripts": {
-    "test": "node test.js",
     "start": "npx --yes http-server -c-1 -p 8080 .",
     "icons": "node scripts/icons.js",
     "fonts": "node scripts/fonts.js",

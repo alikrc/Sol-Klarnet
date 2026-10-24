@@ -263,8 +263,8 @@ function stepNote(n, dir){
   const w = o2*12 + NAT_PC[l2];
   return { ...n, w, c: natInfo(w).c };
 }
-// Değiştirici düğmesinin döngüsü (Türk notasında yalın ♯ küçük mücenneb +5, ♭ bakiye −4; AEU)
-const ACC_CYCLE = { koma:[0,5,-4,1,4,8,-1,-5,-8], semitone:[0,1,-1] };
+// Değiştirici düğmesinin döngüsü (AEU: yalın ♯ bakiye diyez +4, yalın ♭ küçük mücenneb bemol −5; SMuFL U+E445/E441)
+const ACC_CYCLE = { koma:[0,4,-5,1,5,8,-1,-4,-8], semitone:[0,1,-1] };
 // Doğal harfe k ekler: koma biriminde c = doğal + k, yarım ses biriminde w = doğal + k (c en yakın perde ya da null)
 function withAccidental(n, { k, unit }){
   if(n.rest) return { ...n };

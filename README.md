@@ -69,18 +69,11 @@ Sonra http://localhost:8080 adresini aç. Uygulama bir kez açıldıktan sonra �
 Capacitor ile paketlenir: [docs/ANDROID.md](docs/ANDROID.md), [docs/IOS.md](docs/IOS.md).
 Yeni sürüm için `npm run release -- 1.1.0` (package.json, service worker önbelleği, Android ve iOS sürüm numaraları).
 
-## Test
+## Ses denetimi
 
 ```bash
-npm test
 npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla perde bulucu denetimi
 ```
-
-`npm test` şunları doğrular: perde bulucu (800 gerçekçi sentetik klarnet sesi: telefon mikrofonu, vibrato, nefes,
-yankı, atak), koma ve makam bağlamı, parmak kodları ve şema, 19 makamın dizileri, 59 dersin her adımı (iki dilli metin,
-çalınabilir notalar, geçme koşulları, kilit sırası), ritim/ses kalitesi/dinamik/seyir/kulak ölçümleri, etütler ve
-MusicXML, hızlı çalış ölçümü (sentetik bağlı ve dille çalışlar ♩=140'a kadar, metronom tıkı, acele, düzensizlik) ve tempo merdiveni, süslemelerin ölçümü (sentetik çarpma, mordan, tril, kayış; atak kayması ve vibrato yanlış pozitif sayılmıyor), çevrimdışı önbellek ve Android paketinin tamlığı, bütün tarayıcı betiklerinin derlenmesi.
-GitHub Actions her push'ta testleri çalıştırır.
 
 ## Dosyalar
 
@@ -100,7 +93,7 @@ GitHub Actions her push'ta testleri çalıştırır.
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |
 | `i18n.js` | Tema ve dil; yeni metinler `L("Türkçe", "English")` ile, eskiler sözlükte |
 | `fonts/` | Uygulamanın içindeki fontlar (`npm run fonts`) |
-| `test.js`, `testornament.js`, `testtech.js`, `testaudio.js`, `testdata/` | Testler (süsleme ve hız testleri ayrı dosyalarda), sentetik klarnet sesleri, gerçek kayıtlar |
+| `testdata/` | Gerçek klarnet kayıtları (`npm run audio-check`), nota okuyucunun yazı tipleri ve örnekleri |
 
 ## Kaynaklar
 
