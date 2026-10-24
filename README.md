@@ -38,7 +38,7 @@ alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma 
 | Kulak | Tiz mi pes mi (uyarlanır merdivenle koma eşiği), perde ayırt (ABX, 1 komaya kadar), makam tanı |
 | Seyir | Serbest çalma / taksim: perdelerde süre, dizi dışı, güçlü vurgusu, açılış, karar |
 | Etüt ve eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 17 özgün etüt (biri hızlı, ikisi süslemeli: tril, çarpma, mordan, kayış işaretleri dizekte); kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip, metronomla tempolu çalma (perde + zamanlama) ve %60'tan başlayan tempo merdiveni |
-| Kayıt | Kayıt, nota dökümü, kaydı dosya olarak paylaşma |
+| Kayıt | Kayıt, nota dökümü, zaman–koma grafiği (perde eğrisi), pes/tiz/kayma/titreklik işaretleri ve en çok kaçan perdeler, kaydı dosya olarak paylaşma |
 | İlerleme | Seri, günlük hedef, son 14 gün, test, uzun ton, entonasyon, ritim, kulak eşiği, seyir, eserler |
 
 Usullü metronom ve durak sesi (dron) her sekmede üstteki araç çubuğundan tek dokunuşla açılır; ayarları

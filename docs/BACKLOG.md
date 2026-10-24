@@ -1,5 +1,17 @@
 # Sol Klarnet — Backlog
 
+## Perde eğrisi — tamamlandı (24 Ekim 2026)
+
+Tasarım: [docs/superpowers/specs/2026-10-24-perde-egrisi-design.md](superpowers/specs/2026-10-24-perde-egrisi-design.md),
+plan: [docs/superpowers/plans/2026-10-24-perde-egrisi.md](superpowers/plans/2026-10-24-perde-egrisi.md).
+
+- Kayıt sekmesinde zaman–koma grafiği: hedef perde şeritleri, nota rengine göre eğri, sürükleyerek kaydırma,
+  "Tümü" görünümü, çalma çizgisi; grafiğe ya da tablo satırına dokununca kayıt o ana sarılır
+- Kendiliğinden işaretler (`skills.js` `intonationIssues`, eşikler `INTON`): pes, tiz, kayma, titreklik;
+  bilgi olarak alttan/üstten giriş, vibrato, dizi dışı. Hedef perde seçili makamın dizisinden alınır
+- Özet: kaç nota yerinde, en çok kaçan üç perde, ipucu ve "Parmağa bak" bağlantısı
+- Gerçek mikrofonla denenmedi: arayüz sahte kayıtla (`SKDEBUG.recPresent`), ölçüm sentetik izlerle sınandı
+
 ## Hız ve teknik — tamamlandı (24 Ekim 2026)
 
 Tasarım: [docs/superpowers/specs/2026-10-24-hiz-teknik-design.md](superpowers/specs/2026-10-24-hiz-teknik-design.md),
@@ -51,6 +63,7 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
    `repertoire.js` (ETUDES) içinde düzeltilir; testler tutarlılığı denetler.
 2. **Gerçek kayıtlar:** `testdata/README.md` içindeki listeye göre telefonla kayıt toplanıp `npm run audio-check` çalıştırılmalı.
    Süsleme eşikleri (`ORN`) yalnızca sentetik seslerle ayarlandı; süslemeli gerçek kayıtlarla gözden geçirilmeli.
+   Perde eğrisi eşikleri (`INTON`; ör. pes/tiz 1,5 koma, titreklik 0,8) de gerçek kayıtlarla gözden geçirilmeli.
 3. **WFG izni:** Parmak verisi Woodwind Fingering Guide'dan; ücretli yayınlanacaksa sahibinden izin istenmeli.
 4. **Mağaza:** Play geliştirici hesabı, yükleme anahtarı, kapalı test; iOS için Mac + Xcode + Apple geliştirici hesabı;
    mağaza ekran görüntüleri ve tanıtım görseli.
@@ -62,8 +75,6 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 - Grupetto (çevirme) süslemesi; serbest çalmada ve taksimde (Seyir) süsleme tanıma
 
 - Nim perdeler için çeyrek ses parmakları (WFG `ocl_qt_1`)
-- Hocanın öğrenciye ödev ve etüt gönderebileceği paylaşım bağlantıları
-- Kayıt üzerinde perde eğrisi (zaman–koma grafiği) ve hocanın işaret koyabilmesi
 
 
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/f9c1b6aa-5fdc-475c-914d-1701a7b8a2b9)
