@@ -644,6 +644,7 @@ const R = require('./repertoire.js');
   require('./testcurve.js').run(ok);
   require('./testconvert.js').run(ok);
   require('./testvideos.js').run(ok);
+  await require('./testomr.js').run(ok);
 
   console.log(fail===0 ? '\nTUM TESTLER GECTI\n' : `\n${fail} TEST BASARISIZ\n`);
   process.exit(fail?1:0);

@@ -26,8 +26,11 @@ const CP = { head1:0xE0A2, head2:0xE0A3, head4:0xE0A4, gClef:0xE050, sharp:0xE26
   restBase:0xE4E3 };   // E4E3 birlik … E4E8 otuz ikilik
 // AEU işareti: k (doğal harften koma farkı) → kod noktası. Yalın ♯ küçük mücenneb (+5), yalın ♭ bakiye (−4).
 // E440 BüyükMücennebFlat, E441 KüçükMücennebFlat, E442 BakiyeFlat, E443 KomaFlat, E444 KomaSharp, E445 BakiyeSharp,
-// E446 KüçükMücennebSharp, E447 BüyükMücennebSharp (SMuFL glyphnames.json)
-const ACC_GLYPH = { 0:CP.natural, 5:CP.sharp, "-4":CP.flat, 1:0xE444, "-1":0xE443, 4:0xE445, "-5":0xE441, 8:0xE447, "-8":0xE440 };
+// E446 KüçükMücennebSharp, E447 BüyükMücennebSharp (SMuFL glyphnames.json). SMuFL'de E445 yalın ♯, E441 yalın ♭
+// çizimidir (Bravura'da E262/E260 ile piksel piksel aynı); uygulamanın yazımında yalın işaretler +5/−4 olduğundan
+// bakiye diyez (+4) E446 (tek dikey, uzun yataylar), küçük mücenneb bemol (−5) E442 (çizikli ♭) çizimiyle çizilir.
+// omr.js kalıpları da aynı eşlemeyi kullanır (scripts/omr-templates.js).
+const ACC_GLYPH = { 0:CP.natural, 5:CP.sharp, "-4":CP.flat, 1:0xE444, "-1":0xE443, 4:0xE446, "-5":0xE442, 8:0xE447, "-8":0xE440 };
 const accGlyph = k => { const cp = ACC_GLYPH[k]; if(cp === undefined) throw new Error("cizilemeyen koma isareti: k=" + k); return cp; };
 
 // ---- Yazılı notanın dizek yeri ve değiştirici ----
@@ -299,7 +302,8 @@ function renderSvg(spec){
     const yy = sy - 4*sp - 1.6*sp;
     addGlyph(cp, x, yy, kind === "segno" ? 4*sp : 3*sp);
   }
-  out.push(`<path d="${fills.join("")}" fill="#000"/>`);
+  // her parça ayrı yol: tek yolda üst üste binen alt yollar (çizgi + nota başı) sarım kuralıyla birbirini silerdi
+  out.push(`<g fill="#000">${fills.map(f => `<path d="${f}"/>`).join("")}</g>`);
   return { svg:`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out.join("")}</svg>`, W, H, boxes };
 }
 

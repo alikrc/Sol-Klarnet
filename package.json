@@ -16,6 +16,7 @@
     "ios:sync": "npm run build:web && npx cap sync ios",
     "ios:open": "npx cap open ios",
     "audio-check": "node scripts/audio-check.js",
+    "omr-templates": "node scripts/omr-templates.js",
     "release": "node scripts/release.js"
   },
   "devDependencies": {

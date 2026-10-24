@@ -5,7 +5,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "www");
-const FILES = ["index.html", "app.css", "app.js", "i18n.js", "core.js", "learn.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "pieces.js", "convert.js", "drills.js", "lessonview.js", "practice.js", "review.js", "onboard.js", "pcmring.js", "pcmring.js",
+const FILES = ["index.html", "app.css", "app.js", "i18n.js", "core.js", "learn.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "pieces.js", "omrtemplates.js", "omr.js", "convert.js", "drills.js", "lessonview.js", "practice.js", "review.js", "onboard.js", "pcmring.js", "pcmring.js",
   "sw.js", "manifest.webmanifest", "icon.svg", "privacy.html"];
 const DIRS = ["icons", "fonts"];
 
