@@ -146,6 +146,20 @@ function run(ok){
     q2.shift()(); ctl.stop(); while(q2.length) q2.shift()();
     ok(n2 === 2, 'merdiven durdurulunca yeni calis baslamiyor', n2);
   }
+
+  console.log('\n[44] Ertelenen kucuk duzeltmeler');
+  {
+    // 30 sn'lik sabit ses (dron sızıntısı, tutulan son nota): not bulma doğrusal sürede
+    const tr = []; for(let k=0;k<6000;k++) tr.push({ t: k*5, comma: 9 + 0.3*Math.sin(k/7), rms: 0.2, clarity: 0.9 });
+    const t0 = Date.now(), n = S.runNotes(tr), ms = Date.now() - t0;
+    ok(n.length === 1 && ms < 300, '30 sn sabit seste not bulma hizli (tek nota)', ms + ' ms');
+    // Gecikme kalibrasyonu ham ses yolundan: biplerin başı ±3 ms içinde bulunuyor
+    const sr = 48000, pcm = new Float32Array(sr*5), r = A.rng(3), beeps = [400, 1000, 1600, 2200, 2800];
+    for(let i=0;i<pcm.length;i++) pcm[i] = 0.002*(r()*2 - 1);
+    for(const b of beeps){ const i0 = Math.round(b*sr/1000); for(let k=0;k<0.08*sr;k++) pcm[i0+k] += 0.4*Math.sin(2*Math.PI*880*k/sr)*Math.min(1, k/(0.005*sr)); }
+    const rises = S.pcmRises(pcm, sr, 1000);
+    ok(rises.length === 5 && rises.every((t, i) => Math.abs(t - 1000 - beeps[i]) <= 3), 'ham seste bip baslari bulunuyor', JSON.stringify(rises.map(t => Math.round(t - 1000))));
+  }
 }
 
 module.exports = { run };

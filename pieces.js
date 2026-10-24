@@ -176,7 +176,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     times.forEach(e => timers.push(setTimeout(() => { if(mode === "tempo") curScore(sc.svg, e.i, holder); }, Math.max(0, e.t - performance.now()))));
     // Süsleme: işaretli her notanın ham sesi nota bitince kopyalanır (tampon 8 sn tutar; düşüşte notanın sonu, diğerlerinde ilk 3 sn alınır); çözümleme eser bitince yapılır,
     // çalarken ana iş parçacığı nota başlarını kaçırmasın. Önceki nota çarpmanın komşu perdesindeyse ölçülmez.
-    const latO = ctx.store.get("rhythm.lat", 0), ornPcm = [];
+    const latO = ctx.store.get("tech.lat", ctx.store.get("rhythm.lat", 0)), ornPcm = [];
     times.forEach(e => {
       const n = notes[e.i], prev = notes[e.i - 1];
       if(!n.orn || (prev && !prev.rest && ornamentAmbiguous(prev.c !== null ? prev.c : (prev.w - 67)*53/12, ornSpec(n)))) return;

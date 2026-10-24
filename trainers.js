@@ -128,6 +128,7 @@ const TRAINERS = {
       const msg = $("rhcalmsg");
       if(!(await ctx.needMic())) return;
       const a = SK.audioCtx(), n = 8, gap = 0.6, t0 = a.currentTime + 0.4, sched = [];
+      const cap = SK.pcmCapture();          // aynı bipler ham ses yolundan da ölçülür (hız çalışı ve süsleme bu yolu kullanır)
       for(let i=0;i<n;i++){
         const at = t0 + i*gap;
         if(speaker){
@@ -149,16 +150,21 @@ const TRAINERS = {
       });
       await new Promise(r => setTimeout(r, (t0 - a.currentTime + n*gap + 0.4)*1000));
       off();
+      const rec = cap.stop();
+      const near = (list, s) => { const g = list.filter(x => Math.abs(x - s) < gap*500).sort((x, y) => Math.abs(x - s) - Math.abs(y - s))[0]; return g == null ? null : g - s; };
+      const pDevs = rec ? sched.map(s => near(pcmRises(rec.data, rec.sampleRate, rec.t0), s)).filter(x => x !== null).sort((x, y) => x - y) : [];
+      if(pDevs.length >= n/2) store.set("tech.lat", Math.round(pDevs[Math.floor(pDevs.length/2)]));
       const devs = sched.map(s => { const g = got.filter(x => Math.abs(x - s) < gap*500).sort((x, y) => Math.abs(x - s) - Math.abs(y - s))[0]; return g == null ? null : g - s; }).filter(x => x !== null);
       if(devs.length < n/2){ msg.textContent = L("Yeterli ölçüm alınamadı (" + devs.length + "/" + n + "). Sesi aç ya da yeniden dene.", "Not enough measurements (" + devs.length + "/" + n + "). Turn the volume up or try again."); return; }
       devs.sort((x, y) => x - y);
       const lat = Math.round(devs[Math.floor(devs.length/2)]);
       store.set("rhythm.lat", lat); showLat();
-      msg.textContent = L("Gecikme ", "Latency ") + lat + L(" ms olarak kaydedildi (" + devs.length + " ölçüm, yayılım ±" + Math.round(sd(devs)) + " ms).", " ms saved (" + devs.length + " measurements, spread ±" + Math.round(sd(devs)) + " ms).");
+      msg.textContent = L("Gecikme ", "Latency ") + lat + L(" ms olarak kaydedildi (" + devs.length + " ölçüm, yayılım ±" + Math.round(sd(devs)) + " ms).", " ms saved (" + devs.length + " measurements, spread ±" + Math.round(sd(devs)) + " ms).") +
+        (pDevs.length >= n/2 ? L(" Hız ve süsleme için ham ses yolu: " + store.get("tech.lat") + " ms.", " Raw audio path for speed and ornaments: " + store.get("tech.lat") + " ms.") : "");
     }
     $("rhcalsp").addEventListener("click", () => calibrate(true));
     $("rhcalpl").addEventListener("click", () => calibrate(false));
-    $("rhcal0").addEventListener("click", () => { store.set("rhythm.lat", 0); showLat(); $("rhcalmsg").textContent = ""; });
+    $("rhcal0").addEventListener("click", () => { store.set("rhythm.lat", 0); store.set("tech.lat", 0); showLat(); $("rhcalmsg").textContent = ""; });
     return { leave(){ if(run){ run.stop(); run = null; $("rhstart").textContent = L("Başlat", "Start"); } } };
   },
 
@@ -526,7 +532,7 @@ function techBestMap(store){
 function techRun(ctx, spec, holder, opts){
   const { SK, store } = ctx;
   const pat = techPattern(spec), key = patternKey(spec);
-  const ladder = new TempoLadder(opts.start, { target: opts.target });
+  let ladder = new TempoLadder(opts.start, { target: opts.target });
   holder.innerHTML = `<div class="trstat"><span class="ltclock small trt"></span> <span class="muted trb"></span></div>
     <div class="scorewrap"></div><div class="fb trf" aria-live="polite"></div>
     <div class="pbar"><button class="primary small trgo" type="button"></button>
@@ -534,22 +540,25 @@ function techRun(ctx, spec, holder, opts){
   const q = s => holder.querySelector(s), wrap = q(".scorewrap"), fb = q(".trf"), goBtn = q(".trgo"), auto = q(".trauto");
   auto.checked = store.get("tech.auto", false);
   auto.addEventListener("change", () => store.set("tech.auto", auto.checked));
-  let sc = null, timers = [], cap = null, running = false, over = false;
+  let sc = null, timers = [], cap = null, running = false, starting = false, over = false, rested = false, metro = null;
   const clear = () => { timers.forEach(clearTimeout); timers = []; };
   function status(){
     q(".trt").textContent = "♩=" + ladder.tempo;
     q(".trb").textContent = (ladder.best ? L("en iyi ♩=", "best ♩=") + ladder.best : "") + (opts.target ? L(" · hedef ♩=", " · target ♩=") + opts.target : "");
-    goBtn.textContent = running ? L("Durdur", "Stop") : sc && fb.textContent ? L("Sonraki: ♩=", "Next: ♩=") + ladder.tempo : L("Başla", "Start");
+    goBtn.textContent = running ? L("Durdur", "Stop") : rested ? L("Yavaştan yeniden başla", "Restart slower") : sc && fb.textContent ? L("Sonraki: ♩=", "Next: ♩=") + ladder.tempo : L("Başla", "Start");
   }
   const say = (cls, t) => { fb.className = "fb trf " + cls; fb.textContent = t; };
   async function go(){
-    if(running || over) return;
-    if(!(await ctx.needMic())) return;
+    if(running || starting || over) return;
+    starting = true;                       // çift dokunuş iki çalış başlatmasın
+    const mic = await ctx.needMic(); starting = false;
+    if(!mic || running) return;
     running = true; sc = drawScore(wrap, pat.notes, { meter: pat.meter }); say("", L("Sayım…", "Count-in…")); status();
     const tempo = ladder.tempo, beatMs = 60000/tempo, a = SK.audioCtx();
     const startC = a.currentTime + 0.3, t0 = ctxToPerf(a, startC);
     const { times, beats } = noteTimes(pat.notes, t0 + 4*beatMs, beatMs);
-    for(let i=0;i<4 + Math.ceil(beats);i++) ctx.hit(a, i % 4 === 0 ? "D" : "T", startC + i*beatMs/1000, i < 4 ? 1 : 0.55);
+    metro = a.createGain(); metro.connect(a.destination);   // Durdur'da önceden planlanmış tıklar susar
+    for(let i=0;i<4 + Math.ceil(beats);i++) ctx.hit(a, i % 4 === 0 ? "D" : "T", startC + i*beatMs/1000, i < 4 ? 1 : 0.55, metro);
     const now = () => performance.now();
     times.forEach(e => timers.push(setTimeout(() => curScore(sc.svg, e.i, wrap), Math.max(0, e.t - now()))));
     timers.push(setTimeout(() => { cap = SK.pcmCapture(); say("", L("Çal!", "Play!")); }, Math.max(0, t0 + 3*beatMs - now())));
@@ -557,13 +566,19 @@ function techRun(ctx, spec, holder, opts){
   }
   function finish(times, tempo, beatMs){
     const rec = cap ? cap.stop() : null; cap = null; running = false; clear();
+    metro = null;
     if(!rec){ say("", L("Kayıt alınamadı: mikrofon açık mı?", "Nothing was recorded: is the microphone on?")); status(); return; }
+    say("", L("Çözümleniyor…", "Analysing…"));
     setTimeout(() => {
-      const lat = store.get("rhythm.lat", 0), pr = SK.pitchRange();
+      // Ham ses yolunun gecikmesi (kalibrasyonda ayrıca ölçülür); yoksa ritim gecikmesi
+      const lat = store.get("tech.lat", store.get("rhythm.lat", 0)), pr = SK.pitchRange();
       const mid = pat.notes[Math.floor(pat.notes.length/2)];
       const tr = ornamentTrack(rec.data, rec.sampleRate, { T: SK.T, expectHz: ctx.commaFreq((mid.w - 67)*53/12), minRms: SK.minRms(), minHz: pr.min, maxHz: pr.max });
       const expected = times.map(e => ({ t: e.t, w: e.w, ms: pat.notes[e.i].d*beatMs }));
-      const al = alignRun(expected, runPlayed(runNotes(tr), rec.t0 - lat), { busy: rec.busy.map(([b, e]) => [b - lat, e - lat]) });
+      // 30 sn sınırı dolduysa kaydın sonrasındaki notalar kaçan sayılmaz
+      const busy = rec.busy.map(([b, e]) => [b - lat, e - lat]);
+      if(rec.full) busy.push([rec.t0 + rec.data.length/rec.sampleRate*1000 - lat, Infinity]);
+      const al = alignRun(expected, runPlayed(runNotes(tr), rec.t0 - lat), { busy });
       // Perdeli oran yalnızca çalış aralığında (iz zamanı = beklenen − kaydın başı + gecikme); sayım ve kuyruk sayılmaz
       const toTrack = x => x - rec.t0 + lat, noteMs = pat.notes[0].d*beatMs;
       const voiced = runVoicedRatio(tr, toTrack(expected[0].t) - noteMs/2, toTrack(expected[expected.length-1].t) + expected[expected.length-1].ms);
@@ -577,12 +592,23 @@ function techRun(ctx, spec, holder, opts){
       if(opts.onRun) opts.onRun({ tempo, verdict: v, align: al });
       status();
       if(r.done){ over = true; say("good", L("Hedefe ulaştın: ♩=", "Target reached: ♩=") + ladder.best); if(opts.onDone) opts.onDone(ladder.best); return; }
-      if(r.rest){ over = true; say("bad", L("Biraz dinlen; sonra daha yavaş başla.", "Take a short break, then start slower.")); goBtn.disabled = true; return; }
+      if(r.rest){
+        over = true; rested = true; status();
+        say("bad", L("Biraz dinlen; sonra daha yavaş başla.", "Take a short break, then start slower."));
+        if(opts.onRest) opts.onRest(ladder.best);
+        return;
+      }
       if(auto.checked) timers.push(setTimeout(go, 2000));
     }, 0);
   }
-  goBtn.addEventListener("click", () => { if(running) stop(); else go(); });
-  function stop(){ clear(); if(cap){ cap.stop(); cap = null; } running = false; say("", ""); status(); }
+  // Dinlenmeden sonra: aynı kalıp, son tempodan %10 yavaş yeni bir merdiven (en iyi korunur)
+  function restart(){
+    const best = ladder.best;
+    ladder = new TempoLadder(Math.max(40, Math.round(ladder.tempo*0.9)), { target: opts.target });
+    ladder.best = best; over = false; rested = false; say("", ""); status();
+  }
+  goBtn.addEventListener("click", () => { if(running) stop(); else if(rested) restart(); else go(); });
+  function stop(){ clear(); if(cap){ cap.stop(); cap = null; } if(metro){ metro.disconnect(); metro = null; } running = false; say("", ""); status(); }
   sc = drawScore(wrap, pat.notes, { meter: pat.meter }); status();
   return { stop, ladder };
 }
@@ -601,7 +627,7 @@ TRAINERS.hiz = function(ctx){
       "Pick a pattern and play it with the metronome. A clean run raises the tempo; struggling twice in a row lowers it. Your best tempo is saved per pattern.")}</p>
     <div class="pbar">
       <select id="hzkind" aria-label="${L("Kalıp", "Pattern")}">${KINDS.map(([k, t]) => opt(k, t)).join("")}</select>
-      <select id="hzmk" aria-label="Makam">${MAKAMS.map(m => opt(m.id, m.name)).join("")}</select>
+      <select id="hzmk" aria-label="Makam">${opt("", L("Batı gamı", "Western scale"))}${MAKAMS.map(m => opt(m.id, m.name)).join("")}</select>
       <select id="hztone" aria-label="${L("Ton", "Key")}">${TONES.map(w => opt(w, nn(w))).join("")}</select>
       <select id="hzmode" aria-label="${L("Majör/minör", "Major/minor")}">${opt("major", L("majör", "major"))}${opt("minor", L("minör", "minor"))}</select>
       <select id="hzpair" aria-label="${L("Geçiş", "Crossing")}">${PAIRS.map((p, i) => opt(i, nn(p[0]) + "–" + nn(p[1]))).join("")}</select>
@@ -623,7 +649,8 @@ TRAINERS.hiz = function(ctx){
     if(k === "wscale") return { type:"scale", base:+st.tone, mode:st.mode, ...base };
     if(k === "arp") return { type:"arp", base:+st.tone, mode:st.mode, ...base };
     if(k === "break") return { type:"break", pair:PAIRS[+st.pair], sub:+st.sub, art:st.art };
-    return { type:k, makam:st.mk, ...base };
+    // Üçlü ve dörtlü gruplar makam dizisinden ya da Batı gamından (ton + majör/minör)
+    return st.mk ? { type:k, makam:st.mk, ...base } : { type:k, base:+st.tone, mode:st.mode, ...base };
   }
   function chart(key){
     const list = (store.get("tech.best", {})[key] || []).slice(-14), svg = el("hzchart");
@@ -637,10 +664,16 @@ TRAINERS.hiz = function(ctx){
     ["kind","mk","tone","mode","pair","sub","art","oct"].forEach(k => { st[k] = el("hz" + k).value; });
     store.set("tech.opts", st);
     const k = st.kind;
+    // Makam dizisinde Batı gamı seçeneği yok
+    el("hzmk").querySelector('option[value=""]').hidden = k === "mscale";
+    if(k === "mscale" && !st.mk){ st.mk = el("hzmk").value = "rast"; store.set("tech.opts", st); }
+    const western = ["wscale","arp"].includes(k) || (["thirds","groups"].includes(k) && !st.mk);
     el("hzmk").hidden = !["mscale","thirds","groups"].includes(k);
-    el("hztone").hidden = el("hzmode").hidden = !["wscale","arp"].includes(k);
+    el("hztone").hidden = el("hzmode").hidden = !western;
     el("hzpair").hidden = k !== "break";
-    el("hzoct").hidden = k === "break";
+    // Makam dizileri iki oktavda klarnetin aralığına sığmıyor; seçenek yalnızca Batı kalıplarında
+    el("hzoct").hidden = !western;
+    if(!western && st.oct !== "1"){ st.oct = el("hzoct").value = "1"; store.set("tech.opts", st); }
     build();
   }
   function build(){
@@ -665,6 +698,7 @@ TRAINERS.hiz = function(ctx){
 const TRAINER_STEPS = {
   // Hız: tempo merdiveni hedefe ulaşınca geçer (v = en yüksek temiz tempo)
   tech(st, stage, done, ctx){
+    // Dinlenmede adım kapanmaz: "Yavaştan yeniden başla" aynı adımda sürer, hedefe ulaşınca kaydedilir
     const run = techRun(ctx, st.pattern, stage, { start: st.start, target: st.target, onDone: best => done({ v: best }) });
     return { stop: () => run.stop() };
   },

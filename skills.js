@@ -275,7 +275,8 @@ function microNotes(track, tol = 2, minMs = 15){
   };
   for(const f of track){
     if(f.comma === null){ close(); continue; }
-    if(cur && Math.abs(f.comma - median(cur.cs)) <= tol){ cur.cs.push(f.comma); cur.end = f.t; continue; }
+    // Karşılaştırma son 32 ölçümün ortancasıyla: uzun sabit seste her adımda bütün geçmiş sıralanmasın
+    if(cur && Math.abs(f.comma - median(cur.cs.length > 32 ? cur.cs.slice(-32) : cur.cs)) <= tol){ cur.cs.push(f.comma); cur.end = f.t; continue; }
     close();
     cur = { start:f.t, end:f.t, cs:[f.comma] };
   }
@@ -681,6 +682,19 @@ function runVoicedRatio(track, fromMs, toMs){
   const fr = track.filter(f => f.t >= fromMs && f.t <= toMs);
   return fr.length ? fr.filter(f => f.comma !== null).length/fr.length : 0;
 }
+// Gecikme kalibrasyonu (ham ses yolu): 2,5 ms'lik bloklarda ses düzeyi taban gürültünün 6 katını aşınca bir başlangıç;
+// iki başlangıç arası en az minGapMs. t0: ilk örneğin performance.now() zamanı. Dönen: başlangıç zamanları (ms).
+function pcmRises(data, sampleRate, t0, minGapMs = 300){
+  const blk = Math.max(1, Math.round(sampleRate*0.0025)), out = [];
+  let floor = 1, last = -1e9;
+  for(let o=0; o+blk<=data.length; o+=blk){
+    let s = 0; for(let i=0;i<blk;i++) s += data[o+i]*data[o+i];
+    const rms = Math.sqrt(s/blk), t = t0 + o/sampleRate*1000;
+    floor = Math.min(floor, rms + 1e-5);
+    if(rms > floor*6 && t - last > minGapMs){ out.push(t); last = t; }
+  }
+  return out;
+}
 // Merdiven döngüsü: play(tempo, cb) bir çalış yapar, judge(sonuç) "clean"|"dirty"|"unmeasured" verir; hedefte ya da
 // dinlenme gerekince onEnd. wait(fn) sonraki çalışı bekletir. stop() döngüyü keser.
 function ladderLoop(ladder, play, judge, opts = {}){
@@ -718,7 +732,7 @@ function ornamentScore(results){
 
 if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop,
+  techPattern, patternKey, runNotes, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

@@ -251,9 +251,10 @@
     slotsEl.innerHTML = usulSlots(u).map((s, i) =>
       `<i class="${s==="D" ? "dum" : s==="T" ? "tek" : "rest"}${i===cur ? " now" : ""}">${s==="D" ? "Düm" : s==="T" ? "Tek" : "·"}</i>`).join("");
   }
-  function hit(a, kind, t, vol = 1){
+  // dest: tıkların bağlanacağı düğüm (hız çalışı durdurulunca önceden planlanmış tıklar susturulabilsin)
+  function hit(a, kind, t, vol = 1, dest = a.destination){
     const g = a.createGain();
-    g.connect(a.destination);
+    g.connect(dest);
     if(kind === "D"){
       // Düm: perde bulucunun alt sınırının (100 Hz) altında kalır, nota sanılmaz
       const o = a.createOscillator();
