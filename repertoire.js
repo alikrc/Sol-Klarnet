@@ -325,6 +325,7 @@ function expandRepeats(notes, marks){
   for(let guard = 0; guard < 100000; guard++){
     if(post && p === stopI) break;
     let jumped = false;
+    const wasBack = back; back = false;
     for(const m of at.get(p) || []){
       if(m.kind === "repStart"){ if(!wasBack) lastStart = p; }
       else if(m.kind === "repEnd" && !post && !done.has(m)){ done.add(m); p = lastStart; lastStart = m.i; back = true; jumped = true; break; }
