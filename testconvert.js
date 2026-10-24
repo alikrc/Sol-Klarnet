@@ -26,9 +26,21 @@ function run(ok){
     ok(played(q).map(n => n.d).join() === seq.map(n => n.d).join() && Math.abs(q.tempo - 90) <= 4.5, 'noktalı ritim aynı süreler', played(q).map(n => n.d).join() + ' ♩=' + q.tempo);
   }
   {
+    // Düzgün üçleme dörtlü ızgarada 3/4 tempoyla aynı başlangıçları verir: otomatik tempoda yalnızca süre tutarlılığı,
+    // tempo verilince (90) ızgara üçlü seçer
     const seq = [67,69,71,72,71,69,67,69,71].map(w => ({ w, d:1/3 }));
-    const q = conv(seq, 90).q;
-    ok(played(q).length === 9 && played(q).every(n => n.d === 1/3) && Math.abs(q.tempo - 90) <= 4.5, 'üçleme: ızgara üçlü seçer', played(q).map(n => n.d.toFixed(2)).join() + ' ♩=' + q.tempo);
+    const q = conv(seq, 90).q, ms = 60000/90/3;
+    ok(played(q).length === 9 && played(q).every(n => Math.abs(n.d*60000/q.tempo - ms) <= ms*0.1), 'üçleme: otomatik tempoda süreler gerçek uzunlukta', played(q).map(n => n.d).join() + ' ♩=' + q.tempo);
+    const q3 = conv(seq, 90, {}, { tempo:90 }).q;
+    ok(played(q3).length === 9 && played(q3).every(n => n.d === 1/3), 'üçleme: tempo verilince ızgara üçlü seçer', played(q3).map(n => n.d.toFixed(2)).join());
+  }
+  {
+    // Düzgün sekizlikler tempoda ×2 / ÷2 belirsizdir: tempo gerçeğin ±%5 içinde ya da ×2/÷2 karşılığı olmalı, süreler gerçek uzunlukta
+    for(const tp of [60, 70, 130]){
+      const q = conv(P.notes, tp).q, ms = 30000/tp;
+      const tempoOk = [1, 2, 0.5].some(k => Math.abs(q.tempo/(tp*k) - 1) <= 0.05);
+      ok(tempoOk && played(q).length === 15 && played(q).every(n => Math.abs(n.d*60000/q.tempo - ms) <= ms*0.1), 'düzgün sekizlikler ♩=' + tp + ': tempo ×2/÷2 dahil tutarlı, süreler gerçek', q.tempo + ' d=' + played(q)[0].d);
+    }
   }
   {
     const seq = [{ w:67, d:1 }, { w:69, d:1 }, { w:71, d:1 }, { w:72, d:1 }, { w:71, d:1 }];
@@ -56,6 +68,16 @@ function run(ok){
     const q3 = S.quantizeRun(r.n, { makam:'rast' });
     ok(played(q3).map(n => n.c).join() === played(q).map(n => n.c).join(), 'offset verilmezse kendisi bulur');
     ok(S.tuningOffset(r.n.slice(0, 2)) === 0, 'üçten az nota: kayma 0');
+  }
+  {
+    const L = require('./learn.js'), hz = L.makamById('hicaz');
+    const hs = [...hz.asc, ...[...hz.desc].reverse().slice(1)].map(c => ({ c, d:0.5 }));
+    const off = (notes, sh) => S.tuningOffset(conv(notes.map(n => ({ ...n, c: n.c + sh })), 90).n);
+    const o0 = off(hs, 0), o2 = off(hs, 2);
+    ok(Math.abs(o0) <= 0.7, 'Hicaz dizisi kaymasız: |offset| ≤ 0,7', o0);
+    ok(Math.abs(o2 - 2) <= 0.7, 'Hicaz +2 kayık: offset ≈ 2', o2);
+    const om = off(P.notes, -3);
+    ok(Math.abs(om + 3) <= 0.7, 'Rast -3 kayık: offset ≈ -3', om);
   }
   {
     const z = new Float32Array(22050*3);

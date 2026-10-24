@@ -586,12 +586,19 @@ function audioNotes(pcm, sampleRate, opts = {}){
 }
 // Kaydın akordu: notaların AEU perdelerinden sapmalarının ortancası (en çok ±26 koma). Üç nota yetmez → 0.
 // AEU'da perdeler sıktır (0, 4, 5, 8, 9...): yalnızca "en yakın perde"ye bakılırsa +3 kayık kayıt -1 kayık gibi görünür.
-// Bu yüzden 0,25 koma adımla bütün kaymalar denenir; ana perdelere (NATURAL_PERDE) oturmayan not 1 koma ceza alır,
+// Bu yüzden 0,25 koma adımla bütün kaymalar denenir; az kullanılan perdeye (PERDE_USE) oturan not en çok 1 koma ceza alır,
 // küçük kayma da hafif öncelikli. Seçilen kaymanın çevresinde sapmaların ortancasıyla ince ayar yapılır.
-const NATURAL_PERDE = [0, 9, 13, 17, 18, 22, 31, 36, 40, 44, 48];
+// Perde ağırlığı makam verisinden (learn.js MAKAMS): bir perde ne kadar çok makamın dizisinde geçiyorsa o kadar "ana"dır.
+// 5 ve üstü makamda geçen perde cezasız (Rast, Dügâh, Segâh, Çargâh, Nevâ, Hüseynî, Evç...), her eksik makam 0,2 ceza,
+// hiçbirinde geçmeyen 1 koma ceza. 5 eşiği: 19 makamın yaklaşık dörtte biri.
+const PERDE_USE = (() => {
+  const use = {};
+  for(const m of SLEARN.MAKAMS) for(const c of new Set([...m.asc, ...m.desc].map(x => ((x % 53) + 53) % 53))) use[c] = (use[c] || 0) + 1;
+  return use;
+})();
 function tuningOffset(notes){
   if(!notes || notes.length < 3) return 0;
-  const ps = SCORE.PERDES.map(p => ({ c:p[0], pen: NATURAL_PERDE.includes(((p[0] % 53) + 53) % 53) ? 0 : 1 }));
+  const ps = SCORE.PERDES.map(p => ({ c:p[0], pen: 1 - Math.min(1, (PERDE_USE[((p[0] % 53) + 53) % 53] || 0)/5) }));
   const fit = x => { let best = null; for(const p of ps){ const v = Math.abs(x - p.c) + p.pen; if(!best || v < best.v) best = { v, d: x - p.c }; } return best; };
   let bo = 0, bv = 1e9;
   for(let o=-26;o<=26;o+=0.25){
@@ -635,11 +642,18 @@ function quantizeRun(notes, opts = {}){
       const c4 = gridCost(b, 4), c3 = gridCost(b, 3), bpm = 60000/b;
       cands.push({ b, g: c3 < c4 ? 3 : 4, cost: Math.min(c3, c4)*(bpm < 60 || bpm > 120 ? 1.15 : 1) });
     }
-    // Eşdeğer adaylar (b, b/2, 2b/3...) arasında 90'a yakın olan seçilir; üçlü ızgara için küçük bir ek ceza (düz sekizlikler üçleme sayılmasın)
-    const best = Math.min(...cands.map(c => c.cost));
-    const dist = c => Math.abs(Math.log(60000/c.b/90)) + (c.g === 3 ? 0.25 : 0);
-    const near = cands.filter(c => c.cost <= best + 4e-4)
-      .sort((x, y) => dist(x) - dist(y));
+    // Eşit sığan adaylar arasında (tek biçimli dizide b, b/2, 4b/3... hepsi sığar) sırayla: 60–120 içinde olan; süreleri
+    // yalın olan (yarım vuruşun katı: 0; 0,25 ve 0,75: yarım ceza; 1,25 ya da üçlü: tam ceza); büyük nota değerli olan (az bölünme).
+    // Üçlü ızgara, 4/3 tempoda dörtlü ızgarayla aynı başlangıçları verir; üçlü süreler tam ceza alır (0,7 de değeri kısar): düz sekizlikler
+    // üçleme sayılmasın. Eşik 4e-4 vuruş² ≈ 0,02 vuruş (90'da ~13 ms) ölçüm gürültüsü payı.
+    const best = Math.min(...cands.map(c => c.cost)), spans = run.map((n, i) => i < run.length-1 ? run[i+1].t - n.t : n.end - n.t + 10);
+    const oddness = d => Math.abs(d*2 - Math.round(d*2)) < 1e-9 ? 0 : d < 1 && Math.abs(d*4 - Math.round(d*4)) < 1e-9 ? 0.5 : 1;
+    const near = cands.filter(c => c.cost <= best + 4e-4).map(c => {
+      const ds = spans.map(x => Math.max(1, Math.round(x/c.b*c.g))/c.g), bpm = 60000/c.b;
+      return { c, inRange: bpm >= 60 && bpm <= 120, odd: SLEARN.mean(ds.map(oddness)),
+               value: SLEARN.mean(ds)*(c.g === 3 ? 0.7 : 1) };
+    }).sort((x, y) => (y.inRange - x.inRange) || (Math.abs(x.odd - y.odd) > 0.05 ? x.odd - y.odd : 0) || (y.value - x.value) || (y.c.b - x.c.b))
+      .map(x => x.c);
     let pick = near[0];
     for(const c of cands) if(Math.abs(c.b - pick.b) <= 8 && c.g === pick.g && c.cost < pick.cost) pick = c;   // ince ayar
     beat = pick.b; grid = pick.g;
