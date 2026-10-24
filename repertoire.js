@@ -50,6 +50,17 @@ function scoreToText(notes){
   return notes.map(n => (n.rest ? "-" : pname(n.c) || RCORE.noteName(n.w).tr) +
     (n.orn ? ":" + (n.d === 1 ? "" : n.d) + ":" + ornCode(n.orn) : n.d === 1 ? "" : ":" + n.d)).join(" ");
 }
+// Düzeltme ekranının metin görünümü: metni yeniden okur, prev'in metni (scoreToText) değişmeyen parçalarında eski notayı
+// olduğu gibi tutar (adsız koma, güven, kutu). Baştan ve sondan eşleşen parçalar korunur; aradakiler yeniden okunur.
+function reparseKeeping(text, prev){
+  const toks = text.split(/[\s;]+/).filter(t => t && t !== "|"), errors = [], items = [];
+  for(const t of toks){ const r = parseScoreText(t); if(r.errors.length) errors.push(t); else items.push({ t, n: r.notes[0] }); }
+  const old = prev.map(n => scoreToText([n]));
+  let a = 0; while(a < items.length && a < prev.length && items[a].t === old[a]) a++;
+  let b = 0; while(b < items.length - a && b < prev.length - a && items[items.length-1-b].t === old[prev.length-1-b]) b++;
+  const notes = items.map((it, i) => i < a ? { ...prev[i] } : i >= items.length - b ? { ...prev[prev.length - (items.length - i)] } : it.n);
+  return { notes, errors };
+}
 
 // ---- AEU koma işaretleri ----
 // Doğal notaların AEU'daki yeri (Rast = Sol = 0): La 9, Si 18 (Bûselik), Do 22, Re 31, Mi 40, Fa 44.
@@ -380,7 +391,7 @@ function transposeAll(notes, steps, unit){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  parseScoreText, scoreToText, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
+  parseScoreText, scoreToText, reparseKeeping, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
   alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById,
   naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, meterFromBars,
   expandRepeats, rangeIssues, shiftOctave, transposeAll

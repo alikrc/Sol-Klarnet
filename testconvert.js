@@ -88,19 +88,24 @@ function run(ok){
     ok(!err && q && q.notes.length === 0, 'sessiz kayit: quantizeRun([]) çökmez', err && err.message);
   }
   {
-    // Uzun kayıt parça parça çözülür (Çevir sekmesi): parça sınırında kalan nota tek nota olarak birleşir
-    const a = A.techAudio(P.notes, 90, { seed:3, T:5 });
-    const whole = S.audioNotes(a.pcm, a.srate, { T:5 });
-    const C = Math.round(a.srate*1.37), OV = Math.round(a.srate*0.05);   // 1,37 sn'lik parçalar: sınırlar nota ortasına düşer
-    let got = [];
-    for(let k=0; k*C < a.pcm.length; k++){
-      const s = Math.max(0, k*C - OV), e = Math.min(a.pcm.length, (k+1)*C);
-      got = S.joinAudioChunk(got, S.audioNotes(a.pcm.subarray(s, e), a.srate, { T:5 }), s/a.srate*1000, (k*C - s)/a.srate*1000);
+    // Uzun kayıt parça parça çözülür (Çevir sekmesi, 5 sn'lik parçalar): parça sınırında kalan nota tek nota olarak birleşir.
+    // 1,37 sn'lik parçalarda sınırlar sık ve nota ortalarına düşer; 5 sn (uygulamanın değeri) dörtlüklerin içine düşer.
+    const cases = [[A.techAudio(P.notes, 90, { seed:3, T:5 }), 1.37, 'sekizlik, 1,37 sn'],
+                   [A.techAudio([...P.notes, ...P.notes].map(n => ({ ...n, d:1 })), 70, { seed:4, T:5 }), 5, 'dortluk ♩=70, 5 sn'],
+                   [A.techAudio([...P.notes, ...P.notes, ...P.notes], 100, { seed:5, T:5, art:'tongue' }), 5, 'dilli sekizlik ♩=100, 5 sn']];
+    for(const [a, sec, label] of cases){
+      const whole = S.audioNotes(a.pcm, a.srate, { T:5 });
+      const C = Math.round(a.srate*sec), OV = Math.round(a.srate*0.05);
+      let got = [];
+      for(let k=0; k*C < a.pcm.length; k++){
+        const s = Math.max(0, k*C - OV), e = Math.min(a.pcm.length, (k+1)*C);
+        got = S.joinAudioChunk(got, S.audioNotes(a.pcm.subarray(s, e), a.srate, { T:5 }), s/a.srate*1000, (k*C - s)/a.srate*1000);
+      }
+      const near = (x, y) => x.length === y.length && x.every((n, i) => Math.abs(n.comma - y[i].comma) <= 1 && Math.abs(n.t - y[i].t) <= 40);
+      ok(near(got, whole) && a.pcm.length > 2*C, 'parcali cozum butunle ayni notalar (' + label + ')', got.length + ' / ' + whole.length);
+      const q1 = S.quantizeRun(got, { makam:'rast' }), q0 = S.quantizeRun(whole, { makam:'rast' });
+      ok(played(q1).map(n => n.c + ':' + n.d).join() === played(q0).map(n => n.c + ':' + n.d).join(), 'parcali cozumden ayni nota ve sureler (' + label + ')');
     }
-    const near = (x, y) => x.length === y.length && x.every((n, i) => Math.abs(n.comma - y[i].comma) <= 1 && Math.abs(n.t - y[i].t) <= 40);
-    ok(near(got, whole), 'parcali cozum butunle ayni notalar', got.length + ' / ' + whole.length);
-    const q1 = S.quantizeRun(got, { makam:'rast' }), q0 = S.quantizeRun(whole, { makam:'rast' });
-    ok(played(q1).map(n => n.c + ':' + n.d).join() === played(q0).map(n => n.c + ':' + n.d).join(), 'parcali cozumden ayni nota ve sureler');
   }
   console.log('\n[45] Duzeltme islemleri');
   {
@@ -177,13 +182,23 @@ function run(ok){
     ok(rp.map(x => x.l).join('') === 'aabcbcd', 'expandRepeats: ikinci :|| bir oncekinden sonrasini tekrarlar', rp.map(x => x.l).join(''));
     ok(R.shiftOctave([{ w:67, d:1, rest:false }], [0], 1)[0].c === null, 'shiftOctave: c yok -> null (NaN degil)');
     ok(R.transposeAll([{ w:null, c:null, d:1, rest:true }], 1, 'perde')[0].rest === true && rast[0].c === 0 && rast.length === 8, 'sus ve girdi korunur');
-  }  {
+  }
+  {
     // Değiştirici döngüsü adı olmayan bir koma verebilir (Si + 5 koma = 23): metin görünümü çökmez, yazılı adı yazar
     const R = require('./repertoire.js');
     const x = R.withAccidental(R.parseScoreText('Si4').notes[0], { k:5, unit:'koma' });
     let t = null, err = null;
     try{ t = R.scoreToText([x, { w:69, c:9, d:2, rest:false }]); }catch(e){ err = e; }
     ok(!err && t === 'Do5 Dügâh:2', 'scoreToText: adsiz koma yazili adla', err ? err.message : t);
+    // Metin görünümü yeniden okunurken değişmeyen parçalar eski notayı (adsız koma, güven) korur; ekleme/silme kaydırmaz
+    const prev = [{ ...x, conf:0.4 }, { w:69, c:9, d:2, rest:false, conf:0.9 }, { w:67, c:0, d:1, rest:false, conf:0.5 }];
+    const r1 = R.reparseKeeping('Do5 Dügâh:2 Rast', prev);
+    ok(r1.notes[0].c === 23 && r1.notes[0].conf === 0.4 && r1.notes[2].conf === 0.5 && !r1.errors.length, 'yeniden okuma: adsiz koma ve guven korunur', JSON.stringify(r1.notes[0]));
+    const r2 = R.reparseKeeping('Do5 Nevâ Dügâh:2 Xyz Rast', prev);
+    ok(r2.notes.length === 4 && r2.notes[0].c === 23 && r2.notes[1].c === 31 && r2.notes[1].conf === undefined && r2.notes[2].conf === 0.9 && r2.notes[3].conf === 0.5 && r2.errors.join() === 'Xyz',
+      'yeniden okuma: araya ekleme ve hatali parca', JSON.stringify(r2.notes.map(n => n.c)));
+    const r3 = R.reparseKeeping('Do6 Dügâh:2 Rast', prev);
+    ok(r3.notes[0].c === 75 && r3.notes[0].conf === undefined && r3.notes[1].conf === 0.9, 'yeniden okuma: degisen parca yeniden okunur', JSON.stringify(r3.notes[0]));
   }
 }
 

@@ -704,6 +704,20 @@
     return { data: pcm.ring.read(n).subarray(0, Math.round((toT - fromT)*sr/1000)), sampleRate: sr, t0: fromT };
   }
 
+  // Çevir'in "Dinleyerek yaz"ı dinlerken yankı giderme kapalı olmalı (hoparlörden gelen müziği bastırmasın):
+  // aecOverride kullanıcının "Hoparlör modu" ayarını geçici olarak ezer; null iken ayar geçerli.
+  let aecOverride = null;
+  const aecWanted = () => aecOverride !== null ? aecOverride : !!store.get("aec", false);
+  // Açık mikrofonun izine uygulanır; tarayıcı canlı değiştiremezse mikrofon yeniden açılır
+  async function setRawMic(on){
+    aecOverride = on ? false : null;
+    if(!running || !stream) return;
+    const want = aecWanted(), tr = stream.getAudioTracks()[0];
+    if(!tr) return;
+    try{ await tr.applyConstraints({ echoCancellation: want, noiseSuppression:false, autoGainControl:false }); }catch(e){}
+    const got = tr.getSettings ? tr.getSettings().echoCancellation : undefined;
+    if(got !== undefined && got !== want){ stop(); await start(); }
+  }
   async function start(){
     if(running || starting) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
@@ -712,7 +726,7 @@
     starting = true; btn.disabled = true; chip.textContent = "izin bekleniyor";
     try{
       stream = await navigator.mediaDevices.getUserMedia({ audio:{
-        echoCancellation: !!store.get("aec", false), noiseSuppression:false, autoGainControl:false }});
+        echoCancellation: aecWanted(), noiseSuppression:false, autoGainControl:false }});
     }catch(e){
       chip.textContent = "mikrofon açılamadı (" + e.name + ")";
       starting = false; btn.disabled = false;
@@ -910,6 +924,7 @@
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },
     level: fn => { levelTaps.add(fn); return () => levelTaps.delete(fn); },
     pcm: pcmRange,
+    setRawMic,
     // Uzun kayıt (en çok maxSec sn; Çevir'in dinleyerek yazı 180): stop() → { data, sampleRate, t0, full, busy } ya da mikrofon kapalıysa null
     pcmCapture(maxSec = 30){
       if(!ctx) return { stop: () => null };

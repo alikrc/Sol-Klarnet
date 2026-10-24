@@ -1,13 +1,13 @@
 // Çevir: PDF, resim ya da sesten esere. Okunan notalar düzeltme ekranında çip şeridi, metin ve dizek olarak görünür;
 // öğrenci düzeltir, dinler ve "Kendi eserlerim"e kaydeder. Ses: dosya ya da "Dinleyerek yaz" (mikrofon, en çok 3 dk);
-// 22 050 Hz tek kanala indirilir, 30 sn'lik parçalarla çözülür (arada ara verilir, arayüz donmaz).
+// 22 050 Hz tek kanala indirilir, 5 sn'lik parçalarla çözülür (her parça ~0,1 sn; arada ara verilir, arayüz donmaz).
 // Mantık skills.js (audioNotes, joinAudioChunk, tuningOffset, quantizeRun) ve repertoire.js'te (düzeltme işlemleri).
 // Dışa: SK.openConvert(job) — job: { notes, tempo?, meter?, name?, makam?, kind:"audio"|"image", turkish?, pages?, marks?,
 // flags?, source?, raw?, offset? } (raw/offset: ses işinde tempo değişince yeniden ızgaraya oturtmak için).
 
 // Kaydedilmemiş iş oturum boyunca burada durur: sekmeye dönünce yerinde
 let cvState = null, cvJobSeq = 0;
-const CV_SR = 22050, CV_MAX_SEC = 180, CV_CHUNK_SEC = 30, CV_OV_MS = 50;
+const CV_SR = 22050, CV_MAX_SEC = 180, CV_CHUNK_SEC = 5, CV_OV_MS = 50, CV_MAX_MB = 60;
 const CV_METERS = [[2,4],[3,4],[4,4],[5,8],[6,8],[7,8],[9,8],[10,8],[12,8]];
 
 TRAINERS.convert = function(ctx){
@@ -131,6 +131,8 @@ TRAINERS.convert = function(ctx){
   // Ses dosyası: çöz → kanalların ortalaması → 180 sn'den uzunsa kes → 22 050 Hz
   async function readFile(f){
     const id = newJob();
+    // Çok büyük dosya çözülürken telefonun belleği yetmeyebilir (3 dk'lık sıkıştırılmış ses birkaç MB'tır)
+    if(f.size > CV_MAX_MB*1024*1024){ prog(L("Dosya çok büyük (en çok " + CV_MAX_MB + " MB). Kısa bir parçasını kesip seç.", "The file is too large (" + CV_MAX_MB + " MB at most). Cut a shorter part and choose that."), "bad"); return; }
     prog(L("Ses dosyası açılıyor…", "Opening the audio file…"));
     let buf;
     try{
@@ -155,9 +157,13 @@ TRAINERS.convert = function(ctx){
   function listenUi(on){ $("cvlisten").textContent = on ? L("Durdur", "Stop") : L("Dinleyerek yaz", "Write by ear"); $("cvlisten").classList.toggle("listening", on); if(!on) $("cvclock").textContent = ""; }
   async function startListen(){
     const id = newJob();   // süren okuma varsa iptal
+    // Dinlerken yankı giderme kapalı (kullanıcının Hoparlör modu ayarından bağımsız); her çıkışta ayar geri gelir
+    const raw = () => SK.setRawMic ? SK.setRawMic(true) : null, restore = () => { if(SK.setRawMic) SK.setRawMic(false); };
+    await raw();
     const ok = await ctx.needMic();
-    if(stale(id) || listening) return;   // izin beklenirken sekmeden çıkıldı
-    if(!ok){ prog(L("Mikrofon açılamadı.", "Couldn't open the microphone."), "bad"); return; }
+    if(listening) return;                                   // başka bir dinleme zaten sürüyor (ayar onda kalır)
+    if(stale(id)){ restore(); return; }                     // izin beklenirken sekmeden çıkıldı
+    if(!ok){ restore(); prog(L("Mikrofon açılamadı.", "Couldn't open the microphone."), "bad"); return; }
     const cap = SK.pcmCapture(CV_MAX_SEC), t0 = performance.now();
     listening = { cap, timer: setInterval(() => {
       const s = (performance.now() - t0)/1000;
@@ -167,7 +173,14 @@ TRAINERS.convert = function(ctx){
     listenUi(true);
     prog(L("Dinliyorum… ezgiyi çal ya da kaydı oynat, bitince Durdur.", "Listening… play the tune or the recording, then tap Stop."));
   }
-  function endListen(){ const l = listening; listening = null; if(!l) return null; clearInterval(l.timer); listenUi(false); return l.cap.stop(); }
+  // Dinlemenin bütün bitişleri (Durdur, 3 dk dolması, sekmeden çıkış) buradan geçer: yankı giderme ayarı geri gelir
+  function endListen(){
+    const l = listening; listening = null; if(!l) return null;
+    clearInterval(l.timer); listenUi(false);
+    const r = l.cap.stop();
+    if(SK.setRawMic) SK.setRawMic(false);
+    return r;
+  }
   function stopListen(){
     const r = endListen();
     if(!r || !r.data.length){ prog(L("Ses alınamadı.", "No audio was captured."), "bad"); return; }
@@ -301,11 +314,12 @@ TRAINERS.convert = function(ctx){
     if(!b || !st) return;
     edit(transposeAll(st.notes, +b.dataset.dir, b.dataset.tr), st.sel, []);
   });
-  // Metin görünümü: yazdıkça çipler güncellenir; okunamayan parçalar kırmızı iletide. Aynı kalan notaların güveni korunur.
+  // Metin görünümü: yazdıkça çipler güncellenir; okunamayan parçalar kırmızı iletide. Değişmeyen parçalar eski notayı
+  // (adsız koma, güven) korur.
   $("cvtext").addEventListener("input", () => {
     const st = S(); if(!st) return;
-    const r = parseScoreText($("cvtext").value);
-    st.notes = r.notes.map((n, i) => { const o = st.notes[i]; return o && o.w === n.w && o.c === n.c && o.d === n.d && !!o.rest === !!n.rest ? { ...o, ...n } : n; });
+    const r = reparseKeeping($("cvtext").value, st.notes);
+    st.notes = r.notes;
     st.marks = st.marks.filter(m => m.i <= st.notes.length);
     if(st.sel !== null && st.sel >= st.notes.length) st.sel = st.notes.length ? st.notes.length - 1 : null;
     st.dirty = true;

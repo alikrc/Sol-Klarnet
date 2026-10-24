@@ -328,10 +328,12 @@ TRAINERS.piece = function(ctx){
     const best = store.get("piece.best", {})[p.id || p.name];
     $("pcmeta").textContent = [p.makam ? makamById(p.makam).name : null, (p.meter || [4,4]).join("/"), "♩ = " + p.tempo, p.notes.length + L(" nota", " notes"), best != null ? L("en iyi %", "best ") + best + (LANG === "en" ? "%" : "") : null].filter(Boolean).join(" · ");
     // Nota bul'dan gelen eserin kaynağı: { site, url }
+    // Bağlantı yalnızca http(s) adresine (javascript: gibi adresler yazı olarak kalır)
     if(p.source && (p.source.site || p.source.url)){
-      const a = document.createElement(p.source.url ? "a" : "span");
-      if(p.source.url){ a.href = p.source.url; a.target = "_blank"; a.rel = "noopener"; }
-      a.textContent = L("Kaynak: ", "Source: ") + (p.source.site || p.source.url);
+      const url = typeof p.source.url === "string" && /^https?:/i.test(p.source.url) ? p.source.url : null;
+      const a = document.createElement(url ? "a" : "span");
+      if(url){ a.href = url; a.target = "_blank"; a.rel = "noopener"; }
+      a.textContent = L("Kaynak: ", "Source: ") + (p.source.site || url || "");
       $("pcmeta").append(" · ", a);
     }
     if(p.makam) SK.setTempContext(p.makam); else SK.setTempContext(null);
@@ -392,8 +394,6 @@ TRAINERS.piece = function(ctx){
     if(!confirm(L("Bu eser silinsin mi?", "Delete this piece?"))) return;
     user.splice(+k.slice(1), 1); store.set("piece.user", user); fillSel(); load();
   });
-  // Kayıt sekmesinden gelen notalar
-  SK.addPiece = (name, ws) => addUser({ name, notes: ws.map(w => { const q = nearestPerde((w-67)*53/12); return { w, c: q ? q.comma : null, d:1, rest:false }; }), tempo:80, meter:[4,4], makam:null });
   // Çevir sekmesinin düzeltme ekranından: { name, notes, tempo, meter, makam, source? } eklenir ve "Etüt ve eserler" o eserle açılır
   SK.addPieceFull = piece => {
     const p = { name: piece.name, notes: piece.notes, tempo: piece.tempo, meter: piece.meter, makam: piece.makam || null };
