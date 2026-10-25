@@ -24,11 +24,11 @@
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
   const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],
-                ["piece",L("Etüt ve eserler", "Études & pieces")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
+                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","videos"]],
                   ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear"]],
-                  ["pieces",L("Eserler", "Pieces"),["piece","convert","rec"]],
+                  ["pieces",L("Eserler", "Pieces"),["archive","piece","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
   const tabName = id => TABS.find(t => t[0] === id)[1];
@@ -45,6 +45,7 @@
     mimic: L("Duyduğun ezgiyi tekrar çal", "Play back the phrase you hear"),
     seyir: L("Serbest çal, seyrini gör", "Play freely, see your seyir"),
     ear: L("Koma farklarını duymayı öğren", "Learn to hear comma differences"),
+    archive: L("2200 eser: ara, dinle, yavaşlat, birlikte çal", "2200 pieces: search, listen, slow down, play along"),
     piece: L("Etütleri ve kendi eserlerini çal", "Play études and your own pieces"),
     convert: L("PDF, resim ya da sesten esere", "From a PDF, picture or recording to a piece"),
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
@@ -169,6 +170,22 @@
       <ol><li><b>Higher or lower:</b> two notes play; choose whether the second is higher or lower. The gap shrinks as you get it right, and finally shows the smallest difference you can hear.</li>
         <li><b>Tell perdes apart:</b> listen to A and B, then say which one X was.</li>
         <li><b>Name the makam:</b> listen to a short phrase and pick its makam.</li></ol>`),
+    archive: L(`<p><b>Ne işe yarar:</b> SymbTr koleksiyonundaki 2200 eseri bulup notasından çalışmak.</p>
+      <ol><li>Ada, bestekâra, makama ya da usule göre ara; "Süzgeçler" ile makam, form, usul, bestekâr ve seviye seç.</li>
+        <li>Esere dokun. <b>Çal</b> ile dinle, tempoyu düşür. Notaya dokununca çalma oradan başlar.</li>
+        <li>Zor bir yer için <b>A–B</b>'ye bas, ilk ve son ölçüye dokun: o kısım tekrar tekrar çalar. Bölüm düğmeleri (Aranağme, Hane, Teslim…) de aynı işi yapar.</li>
+        <li><b>Dem</b> karar perdesinde dron açar; <b>Eşlik</b> metronom ya da usulün düm-tek vuruşlarını ekler. <b>Melodiyi kapat</b> ile yalnız eşlik kalır, sen çalarsın.</li>
+        <li>Mikrofonla: <b>Beni takip et</b> doğru notayı çaldıkça ilerler; <b>Tempolu çal</b> perde ve zamanlamanı ölçer; <b>Merdiven</b> tempoyu adım adım artırır.</li>
+        <li>"Görünüm ve transpoze": perde perde transpoze, oktav, nota boyutu, sözler, perde adları, notayı izle, tam ekran, yazdır.</li>
+        <li>"Eseri öğren" yedi adımda dinlemeden kendin çalmaya götürür. "Eserlerime ekle" eseri Etüt ve eserler listene koyar.</li></ol>`,
+      `<p><b>What it's for:</b> finding any of the 2200 pieces in the SymbTr collection and practising from the score.</p>
+      <ol><li>Search by title, composer, makam or usul; use "Filters" for makam, form, usul, composer and level.</li>
+        <li>Tap a piece. <b>Play</b> to listen, lower the tempo. Tapping a note starts playback there.</li>
+        <li>For a hard passage press <b>A–B</b> and tap the first and last bar: it loops. Section buttons do the same.</li>
+        <li><b>Drone</b> plays the tonic; <b>Accomp.</b> adds a metronome or the usul's düm-tek. <b>Mute melody</b> leaves only the accompaniment for you to play along.</li>
+        <li>With the mic: <b>Follow me</b> advances as you play the right notes; <b>Play in tempo</b> scores pitch and timing; <b>Ladder</b> raises the tempo step by step.</li>
+        <li>"View and transpose": transpose by perde, octave, score size, lyrics, perde names, follow the score, full screen, print.</li>
+        <li>"Learn the piece" takes you from listening to playing in seven steps. "Add to my pieces" puts it in Études & pieces.</li></ol>`),
     piece: L(`<p><b>Ne işe yarar:</b> Etütleri ve eserleri notadan çalmak.</p>
       <ol><li>Listeden bir etüt seç; notası dizekte görünür. Dinle ile önce duy.</li>
         <li><b>Serbest takip:</b> kendi hızında çal, doğru notada bir sonrakine geçer. <b>Tempolu çal:</b> metronomla çal, doğru nota ve zamanlama ölçülür.
@@ -240,6 +257,8 @@
     <div class="phub" id="phub">
       ${helpBox("", HUB_HELP)}
       <button type="button" class="hresume" id="hresume"></button>
+      <button type="button" class="hfeat" data-open="archive"><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
+        <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
       ${GROUPS.map(([g, name, members]) => `<section class="hgroup" aria-label="${name}">
         ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
         <div class="hcards">${members.map(card).join("")}</div></section>`).join("")}
@@ -349,6 +368,7 @@
     $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
     if(modules[id].enter) modules[id].enter();
     fitDescs();
+    markNotes();
     if(user){
       const st = history.state || {};
       if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id }, ""); pushed = true; }
@@ -364,6 +384,7 @@
   function showHub(){
     if(active && modules[active].leave) modules[active].leave();
     active = null; pushed = false;
+    markNotes();
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
     $("pex").hidden = true; $("phub").hidden = false;
     const last = store.get("ptab", "lessons"), r = $("hresume");
@@ -387,6 +408,21 @@
   const navBtn = document.querySelector('.nav [data-view="practice"]');
   if(navBtn) navBtn.addEventListener("click", () => { if(document.body.dataset.view === "practice" && active) back(); }, true);
   pnav.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) selectTab(b.dataset.tab, true); });
+  // Alt menüdeki Notalar: Çalışma'yı nota arşiviyle açar; arşivdeyken Çalışma değil Notalar seçili görünür
+  const notesBtn = $("navnotes");
+  function markNotes(){
+    const nb = document.getElementById("navnotes"), pb = document.querySelector('.nav [data-view="practice"]');
+    if(!nb) return;
+    const inP = document.body.dataset.view === "practice", on = inP && active === "archive";
+    if(on) nb.setAttribute("aria-current", "page"); else nb.removeAttribute("aria-current");
+    if(pb && inP){ if(on) pb.removeAttribute("aria-current"); else pb.setAttribute("aria-current", "page"); }
+  }
+  if(notesBtn) notesBtn.addEventListener("click", () => setTimeout(() => {
+    if(active === "archive" && document.body.dataset.view === "practice") window.scrollTo({ top:0, behavior:"smooth" });
+    else selectTab("archive", true);
+    markNotes();
+  }));
+  SK.on("view", markNotes);
   pnav.addEventListener("keydown", e => {
     const step = {ArrowRight:1, ArrowLeft:-1}[e.key];
     if(!step || !e.target.closest(".psubs")) return;
@@ -641,6 +677,7 @@
   const ctx = { SK, $, store, T, nn, num, sgn, esc, sleep, label, perdeOf, tgt, mkFreq, commaFreq, hit, needMic, holder,
     miniChart, paintMini, staffSvg, toneKv, toneTips, markScale, days, intStats, paintHeat, goalText, makamState,
     droneOn: c => { setDrone(c); if(!drone) startDrone(); },
+    droneOff: () => { if(drone) stopDrone(); },
     selectTab: id => selectTab(id, true),
     setPlaybackMute: v => { playbackMute = v; },
     markResetting: () => { resetting = true; } };

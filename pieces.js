@@ -3,7 +3,10 @@
 // Mantık repertoire.js'te; practice.js TRAINERS.piece ve TRAINER_STEPS.piece'i kendi yardımcılarıyla çağırır.
 
 // ---- Dizek ----
-// notes: [{ w, c, d, rest }]; opts: { meter:[n, birim], cur, marks:{ i: "ok"|"bad"|"miss" }, names (perde adları) }
+// notes: [{ w, c, d, rest, syl? }]; opts: { meter:[n, birim], cur, marks:{ i: "ok"|"bad"|"miss" }, names (perde adları) }
+// Nota arşivinin satırları için: base (data-i'ye eklenen genel sıra; cur ve marks genel sırayla), barAfter (ölçü
+// çizgisi konacak yerel sıralar; verilmezse ölçüden hesaplanır), showMeter:false, lyrics (heceler), label (satırın
+// üstündeki bölüm adı), width (satırı bu genişliğe yayar), fit (taşan satırı sıkıştırır), stretch:false (yayma), zoom, open (son çizgi ince)
 const SCORE_SVGNS = "http://www.w3.org/2000/svg";
 function scoreEl(tag, attrs, text){
   const e = document.createElementNS(SCORE_SVGNS, tag);
@@ -11,34 +14,69 @@ function scoreEl(tag, attrs, text){
   if(text != null) e.textContent = text;
   return e;
 }
-function drawScore(holder, notes, opts = {}){
-  const STEP = 4, BASE = 84, sy = s => BASE - s*STEP, H = opts.names ? 142 : 124;
+// Bir notanın dizekte kapladığı yer: önündeki işaret ya da süs payı ve kendi aralığı (hecesi ya da perde adı
+// gösteriliyorsa yazının sığacağı kadar)
+const scorePerdeName = n => n.rest ? "" : (n.c !== null ? (PERDES.find(q => q[0] === n.c) || [, ""])[1] : noteName(n.w).tr).replace(/^(Tiz|Kaba) /, "");
+function noteAdvance(n, lyrics, names){
+  const acc = !n.rest && (n.c !== null ? (turkishAccidental(n.c, n.w) || {}).k : staffPos(n.w).acc);
+  const pre = (acc ? 12 : 0) + (n.orn && (n.orn.kind === "carpma" || n.orn.kind === "giris") ? 12 : 0);
+  let own = 16 + 15*Math.sqrt(n.d);
+  if(lyrics && n.syl) own = Math.max(own, n.syl.trim().length*5.6 + 6);
+  if(names && !n.rest) own = Math.max(own, scorePerdeName(n).length*5 + 6);
+  return { pre, own };
+}
+// Yerleşim: süreye göre aralık, işaretli notaya ek yer. Dönen: { xs (nota yerleri), bars (ölçü çizgileri), end, start }
+function scoreLayout(notes, opts = {}){
+  const showMeter = opts.meter && opts.showMeter !== false;
   const bar = opts.meter ? opts.meter[0] * 4 / opts.meter[1] : 4;
-  // Yerleşim: süreye göre aralık, işaretli notaya ek yer
-  const xs = []; let x = 46, beats = 0;
+  const start = showMeter ? 46 : 34;
+  const xs = []; let x = start, beats = 0;
   const bars = [];
+  // Arşiv satırlarında perde adları ve heceler komşusuna değmesin: iki yazının yarı genişlikleri toplamı kadar ara
+  const roomy = opts.base !== undefined;
+  const half = n => roomy ? Math.max(opts.names && !n.rest ? scorePerdeName(n).length*2.5 : 0, opts.lyrics && n.syl ? n.syl.trim().length*2.8 : 0) : 0;
+  let prevHalf = 0;
   notes.forEach((n, i) => {
-    const acc = !n.rest && (n.c !== null ? (turkishAccidental(n.c, n.w) || {}).k : staffPos(n.w).acc);
-    x += (acc ? 12 : 0) + (n.orn && (n.orn.kind === "carpma" || n.orn.kind === "giris") ? 12 : 0);   // süs notası / kayış çizgisi yeri
+    const a = noteAdvance(n, opts.lyrics, opts.names && roomy);
+    x += a.pre;
+    const h = half(n);
+    if(i && h + prevHalf > 0) x = Math.max(x, xs[i-1] + prevHalf + h + 5);
+    prevHalf = h;
     xs.push(x);
-    x += 16 + 15*Math.sqrt(n.d);
+    x += a.own;
     beats += n.d;
-    if(Math.abs(beats/bar - Math.round(beats/bar)) < 1e-6 && i < notes.length - 1){ bars.push(x - 6); x += 6; }
+    const barHere = opts.barAfter ? opts.barAfter.has(i) : Math.abs(beats/bar - Math.round(beats/bar)) < 1e-6;
+    if(barHere && i < notes.length - 1){ bars.push(x - 6); x += 6; }
   });
-  const W = x + 14;
-  const svg = scoreEl("svg", { viewBox:`0 0 ${W} ${H}`, width:W, height:H, class:"score", role:"img",
+  return { xs, bars, end: x, start };
+}
+function drawScore(holder, notes, opts = {}){
+  const STEP = 4, BASE = 84 + (opts.label ? 10 : 0), sy = s => BASE - s*STEP;
+  const H = 124 + (opts.label ? 10 : 0) + (opts.names ? 18 : 0) + (opts.lyrics ? 14 : 0);
+  const base = opts.base || 0, showMeter = opts.meter && opts.showMeter !== false;
+  let { xs, bars, end: x, start } = scoreLayout(notes, opts);
+  let W = x + 14;
+  // width: satır bu genişliğe yayılır; fit ile taşan satır da (en çok %35) sıkıştırılır
+  if(opts.width && ((opts.width > W && opts.stretch !== false) || (opts.fit && W > opts.width))){
+    const k = Math.max(0.65, (opts.width - 14 - start)/(x - start)), sx = v => start + (v - start)*k;
+    xs = xs.map(sx); bars = bars.map(sx); W = start + (x - start)*k + 14;
+  }
+  const z = opts.zoom || 1;
+  const svg = scoreEl("svg", { viewBox:`0 0 ${W} ${H}`, width:Math.round(W*z), height:Math.round(H*z), class:"score", role:"img",
     "aria-label": L("Nota: ", "Score: ") + notes.length + L(" nota", " notes") });
+  if(opts.label) svg.appendChild(scoreEl("text", { class:"slabel", x:6, y:12 }, opts.label));
   for(let s=0;s<=8;s+=2) svg.appendChild(scoreEl("line", { class:"sl", x1:4, x2:W-4, y1:sy(s), y2:sy(s) }));
   svg.appendChild(scoreEl("text", { class:"clef", x:6, y:sy(-1.5) }, "𝄞"));
-  if(opts.meter){
+  if(showMeter){
     svg.appendChild(scoreEl("text", { class:"meter", x:34, y:sy(5.2) }, String(opts.meter[0])));
     svg.appendChild(scoreEl("text", { class:"meter", x:34, y:sy(1.2) }, String(opts.meter[1])));
   }
   bars.forEach(bx => svg.appendChild(scoreEl("line", { class:"barl", x1:bx, x2:bx, y1:sy(8), y2:sy(0) })));
-  svg.appendChild(scoreEl("line", { class:"barl end", x1:W-6, x2:W-6, y1:sy(8), y2:sy(0) }));
+  svg.appendChild(scoreEl("line", { class: opts.open ? "barl" : "barl end", x1:W-6, x2:W-6, y1:sy(8), y2:sy(0) }));
   const dotted = d => [3, 1.5, 0.75, 0.375].some(v => Math.abs(d - v) < 1e-6);
   notes.forEach((n, i) => {
-    const g = scoreEl("g", { class:"sn" + (i === opts.cur ? " cur" : "") + (opts.marks && opts.marks[i] ? " " + opts.marks[i] : ""), "data-i": i });
+    const gi = base + i;
+    const g = scoreEl("g", { class:"sn" + (gi === opts.cur ? " cur" : "") + (opts.marks && opts.marks[gi] ? " " + opts.marks[gi] : ""), "data-i": gi });
     const nx = xs[i];
     if(n.rest){
       // Sus işaretleri (basit çizimler)
@@ -84,9 +122,9 @@ function drawScore(holder, notes, opts = {}){
       else if(o.kind === "dusus") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx+8} ${y+1} L${nx+17} ${y+8}` }));
     }
     if(opts.names){
-      const pn = n.c !== null ? (PERDES.find(q => q[0] === n.c) || [, ""])[1] : noteName(n.w).tr;
-      g.appendChild(scoreEl("text", { class:"pname", x:nx, y:H - 4 }, pn.replace(/^(Tiz|Kaba) /, "")));
+      g.appendChild(scoreEl("text", { class:"pname", x:nx, y:H - (opts.lyrics ? 18 : 4) }, scorePerdeName(n)));
     }
+    if(opts.lyrics && n.syl) g.appendChild(scoreEl("text", { class:"syl", x:nx, y:H - 4 }, n.syl.trim()));
     svg.appendChild(g);
   });
   holder.replaceChildren(svg);
@@ -106,16 +144,20 @@ function curScore(svg, i, holder){
 
 // ---- Eser çalar: serbest takip, tempolu çalma, dinleme ----
 // piece: { name, notes, tempo, meter, makam }; holder: dizeğin konacağı kaydırılabilir kutu; info: geri bildirim öğesi
-function piecePlayer(ctx, piece, holder, info, onDone){
+// view (isteğe bağlı, nota arşivinin satırlı görünümü): { draw(names), cur(i), mark(i, cls), el(i) }
+function piecePlayer(ctx, piece, holder, info, onDone, view){
   const { SK } = ctx;
   const notes = piece.notes, mk = piece.makam ? makamById(piece.makam) : null;
   const playable = notes.map((n, i) => n.rest ? null : i).filter(i => i !== null);
   let names = ctx.store.get("piece.names", true);
-  let sc = drawScore(holder, notes, { meter: piece.meter, names });
+  let sc = null;
+  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm }); }, cur: i => curScore(sc.svg, i, holder),
+                   mark: (i, cls) => markScore(sc.svg, i, cls), el: i => sc.svg.querySelector(`g.sn[data-i="${i}"]`) };
+  view.draw(names);
   let mode = null, k = 0, miss = 0, release = false, hold = null, t0 = null, run = null, playToken = null;
   const say = (cls, t) => { info.className = "fb " + cls; info.textContent = t; };
   const freqOf = n => n.c !== null && mk ? ctx.mkFreq(mk, n.c) : n.c !== null ? ctx.commaFreq(n.c) : undefined;
-  function redraw(){ sc = drawScore(holder, notes, { meter: piece.meter, names }); }
+  function redraw(){ view.draw(names); }
   const ornSpec = n => ({ ...n.orn, note:n.w, comma: n.c !== null ? n.c : undefined, makam: piece.makam || undefined });
   // Süslemeli notanın örnek sesi notanın süresine sığdırılır (düşüşte kısalan ana nota olur)
   function ornFit(n, durMs){
@@ -131,7 +173,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
   // Serbest takip: sıradaki notayı doğru çalınca ilerler
   function startFree(){
     stop(); mode = "free"; k = 0; miss = 0; release = false; t0 = null; hold = { w:null, since:0, fired:false };
-    redraw(); curScore(sc.svg, playable[0], holder);
+    redraw(); view.cur(playable[0]);
     say("", L("Sıradaki notayı çal; doğru çalınca ilerler.", "Play the next note; it moves on when correct."));
     if(ctx.store.get("piece.fing", true)) SK.showNote(notes[playable[0]].w);
   }
@@ -143,14 +185,14 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     if(hold.fired) return;
     if(r.written === want && ms >= 180){
       hold.fired = true; if(t0 === null) t0 = t;
-      markScore(sc.svg, idx, "ok"); k++;
+      view.mark(idx, "ok"); k++;
       release = k < playable.length && notes[playable[k]].w === want;
       if(k >= playable.length){
         say("good", L("Bitti! ", "Done! ") + miss + L(" hata · ", " mistakes · ") + ctx.num((t - t0)/1000) + L(" sn", " s"));
         ctx.store.set("piece.done", ctx.store.get("piece.done", 0) + 1);
         mode = null; if(onDone) onDone({ v: miss, mode:"free" }); return;
       }
-      curScore(sc.svg, playable[k], holder); say("", "");
+      view.cur(playable[k]); say("", "");
       if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(notes[playable[k]].w);
     }else if(r.written !== want && ms >= 400){
       hold.fired = true; miss++;
@@ -173,7 +215,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     const det = new OnsetDetector(), onsets = [], stable = [];
     const off = SK.level(f => { const o = det.push(f); if(o !== null) onsets.push(o); });
     const timers = [];
-    times.forEach(e => timers.push(setTimeout(() => { if(mode === "tempo") curScore(sc.svg, e.i, holder); }, Math.max(0, e.t - performance.now()))));
+    times.forEach(e => timers.push(setTimeout(() => { if(mode === "tempo") view.cur(e.i); }, Math.max(0, e.t - performance.now()))));
     // Süsleme: işaretli her notanın ham sesi nota bitince kopyalanır (tampon 8 sn tutar; düşüşte notanın sonu, diğerlerinde ilk 3 sn alınır); çözümleme eser bitince yapılır,
     // çalarken ana iş parçacığı nota başlarını kaçırmasın. Önceki nota çarpmanın komşu perdesindeyse ölçülmez.
     const latO = ctx.store.get("tech.lat", ctx.store.get("rhythm.lat", 0)), ornPcm = [];
@@ -192,7 +234,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
     const ornEval = () => ornPcm.map(({ i, n, durMs, p }) => {
       const r = ornamentEval(ornamentTrack(p.data, p.sampleRate, { T: SK.T, expectHz: freqOf(n) || ctx.commaFreq((n.w - 67)*53/12), minRms: SK.minRms(), minHz: SK.pitchRange().min, maxHz: SK.pitchRange().max }),
                              { ...ornSpec(n), mainMin: Math.min(300, durMs*0.4) });
-      const g = sc.svg.querySelector(`g.sn[data-i="${i}"]`);
+      const g = view.el(i);
       if(g && r.measured && !r.ok) g.classList.add("ornmiss");
       return r;
     });
@@ -205,7 +247,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
       const lat = ctx.store.get("rhythm.lat", 0);
       const pitchAt = t => { const s = stable.find(x => x.t >= t - 30 && x.t <= t + 300); return s ? s.w : null; };
       const res = alignPerformance(times, onsets.map(o => o - lat), t => pitchAt(t + lat), 200);
-      res.notes.forEach(r => markScore(sc.svg, r.i, r.state === "ok" ? "ok" : r.state === "pitch" ? "bad" : "miss"));
+      res.notes.forEach(r => view.mark(r.i, r.state === "ok" ? "ok" : r.state === "pitch" ? "bad" : "miss"));
       const pct2 = Math.round(res.pitchRate*100), os = ornamentScore(ornEval());
       const ornTxt = os.pct === null ? "" : L(" · süsleme %" + os.pct, " · ornaments " + os.pct + "%");
       say(pct2 >= 80 ? "good" : "bad", L("Doğru nota %", "Correct notes ") + pct2 + (LANG === "en" ? "%" : "") + " · " + res.wrong + L(" yanlış · ", " wrong · ") + res.missed + L(" kaçan", " missed") +
@@ -217,22 +259,33 @@ function piecePlayer(ctx, piece, holder, info, onDone){
       else if(onDone) onDone({ v: pct2, mode:"tempo" });
     }, Math.max(0, endAt - performance.now())));
   }
-  // Dinle: notaları tempoda çalar
-  async function listen(pct = 1){
+  // Dinle: notaları tempoda çalar. Zaman mutlak tutulur (gecikmeler birikmez).
+  // o: { from, to (hariç), loop, mute (melodi sesi çıkmaz, imleç ilerler), onStart(t0, beatMs, from) her turun başında
+  //      (t0 performance.now() cinsinden), onNote(i), onEnd() }
+  async function listen(pct = 1, o = {}){
     stop(); redraw();
     const token = {}; playToken = token;
-    const beatMs = 60000/(piece.tempo*pct);
-    for(let i=0;i<notes.length;i++){
-      if(playToken !== token) return;
-      const n = notes[i];
-      if(n.rest) SK.stopSound();
-      else if(n.orn){ curScore(sc.svg, i, holder); SK.playGlide(ornFit(n, n.d*beatMs*0.92)); }
-      else { curScore(sc.svg, i, holder); SK.play(n.w, freqOf(n)); }
-      await new Promise(r => setTimeout(r, n.d*beatMs*0.92));
-      if(playToken !== token) return;
-      SK.stopSound(); await new Promise(r => setTimeout(r, n.d*beatMs*0.08));
-    }
-    if(playToken === token){ SK.stopSound(); playToken = null; }
+    const beatMs = 60000/(piece.tempo*pct), from = o.from || 0, to = o.to != null ? o.to : notes.length;
+    const wait = t => new Promise(r => setTimeout(r, Math.max(0, t - performance.now())));
+    do{
+      let t = performance.now() + 80;
+      if(o.onStart) o.onStart(t, beatMs, from);
+      for(let i=from;i<to;i++){
+        await wait(t); if(playToken !== token) return;
+        const n = notes[i], dur = n.d*beatMs;
+        if(n.rest) SK.stopSound();
+        else{
+          view.cur(i);
+          if(!o.mute){ if(n.orn) SK.playGlide(ornFit(n, dur*0.92)); else SK.play(n.w, freqOf(n)); }
+        }
+        if(o.onNote) o.onNote(i);
+        await wait(t + dur*0.92); if(playToken !== token) return;
+        if(!o.mute) SK.stopSound();
+        t += dur;
+      }
+      await wait(t);
+    }while(o.loop && playToken === token);
+    if(playToken === token){ SK.stopSound(); playToken = null; if(o.onEnd) o.onEnd(); }
   }
   // Tempo merdiveni: %60'tan başlar, temiz çalışta %5 artar, iki temiz olmayan çalışta %5 iner (en çok %120).
   // report(pct): her çalıştan önce yüzde (kaydırıcıyı güncellemek için)
@@ -252,7 +305,7 @@ function piecePlayer(ctx, piece, holder, info, onDone){
   function halt(){ playToken = null; if(run){ run.stop(); run = null; } mode = null; }
   function stop(){ if(ladder){ ladder.stop(); ladder = null; } halt(); }
   return {
-    startFree, startTempo, startLadder, listen, stop,
+    startFree, startTempo, startLadder, listen, stop, playing: () => !!playToken || !!mode || !!ladder,
     toggleNames(){ names = !names; ctx.store.set("piece.names", names); redraw(); },
     note(r, t){
       if(mode === "free") freeNote(r, t);

@@ -22,7 +22,7 @@ Mikrofondan çalınan sesi dinler; ses yalnızca cihazda işlenir, uygulama inte
 ## Çalışma bölümü
 
 Sekmeler beş gruptadır: **Dersler**, **Teknik** (Parmak testi, Dizek haritası, Uzun ton, Ritim, Hız, Süsleme), **Makam** (Dizi, Taklit, Seyir,
-Kulak), **Eserler** (Etüt ve eserler, Kayıt) ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
+Kulak), **Eserler** (Nota arşivi, Etüt ve eserler, Çevir, Kayıt) ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
 alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma açılır.
 
 | Sekme | İçerik |
@@ -37,6 +37,7 @@ alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma 
 | Ritim | Kalıplar ve usuller (Sofyan, Semâî, Düyek, Aksak, Ağır Aksak, Curcuna); erken/geç ve tutarlılık; metronomsuz iç tempo; hoparlörle ya da çalarak gecikme ayarı |
 | Kulak | Tiz mi pes mi (uyarlanır merdivenle koma eşiği), perde ayırt (ABX, 1 komaya kadar), makam tanı |
 | Seyir | Serbest çalma / taksim: perdelerde süre, dizi dışı, güçlü vurgusu, açılış, karar |
+| Nota arşivi | Alt menüdeki **Notalar** düğmesiyle açılır. SymbTr'den 2200 eser (155 makam, 88 usul, 56 form), uygulamanın içinde. Ad, bestekâr, makam ve usule göre arama; makam, form, usul, bestekâr, seviye, sözlü ve favori süzgeçleri; sıralama. Eser ekranında satırlara bölünmüş ya da tek şerit nota, AEU koma işaretleri, perde adları ve güfte heceleri; çal, notaya dokununca oradan çal, tempo %25–150, A–B ölçü döngüsü, bölüm ve cümle döngüsü, dem (karar perdesi), metronom ya da usul (düm-tek) eşliği, melodiyi kapat; mikrofonla takip, tempolu çalma ve merdiven; perde perde transpoze ve oktav, nota boyutu, notayı izle, tam ekran, yazdır; yedi adımlık "Eseri öğren", benzer eserler, son açılanlar ve favoriler; "Eserlerime ekle" |
 | Etüt ve eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 17 özgün etüt (biri hızlı, ikisi süslemeli: tril, çarpma, mordan, kayış işaretleri dizekte); kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip, metronomla tempolu çalma (perde + zamanlama) ve %60'tan başlayan tempo merdiveni |
 | Kayıt | Kayıt, nota dökümü, zaman–koma grafiği (perde eğrisi), pes/tiz/kayma/titreklik işaretleri ve en çok kaçan perdeler, kaydı dosya olarak paylaşma |
 | İlerleme | Seri, günlük hedef, son 14 gün, test, uzun ton, entonasyon, ritim, kulak eşiği, seyir, eserler |
@@ -90,6 +91,7 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `drills.js` | Parmak testi, Uzun ton, Dizi (makam), Taklit, Kayıt ve İlerleme sekmeleri |
 | `lessonview.js` | Dersler sekmesi: ders listesi, ders sayfası ve adım çalıştırıcıları |
 | `trainers.js`, `pieces.js` | Ritim, Kulak, Seyir ve Eserler sekmeleri, yeni ders adımları |
+| `archive.js`, `notalar/` | Nota arşivi sekmesi ve verisi (`notalar/index.json` dizin, her eser ayrı dosya); `scripts/symbtr.js` SymbTr deposundan üretir |
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |
 | `i18n.js` | Tema ve dil; yeni metinler `L("Türkçe", "English")` ile, eskiler sözlükte |
 | `fonts/` | Uygulamanın içindeki fontlar (`npm run fonts`) |
@@ -101,6 +103,12 @@ Parmak verisi ve mandal adları: [Woodwind Fingering Guide — Oehler/Albert](ht
 [mandal açıklaması](https://www.wfg.woodwind.org/clarinet/cl_fing.html). Temel parmaklar `ocl_bas_1–3`, alternatifler
 `ocl_alt_1–4` sayfalarından; Albert sistemde olmayan mandalları kullanan Oehler parmakları alınmadı.
 Fontlar Google Fonts'tan (SIL Open Font License).
+
+Nota arşivi: [SymbTr](https://github.com/MTG/SymbTr) (M. K. Karaosmanoğlu, "A Turkish makam music symbolic database for
+music information retrieval: SymbTr", ISMIR 2012; Music Technology Group, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.
+`notalar/` bu koleksiyondan türetilmiştir ve aynı lisansla, ticari olmayan amaçla paylaşılır. Yeniden üretmek için:
+`node scripts/symbtr.js <SymbTr deposu>`. Koleksiyonda bestekârı 70 yıldan kısa süre önce ölmüş eserler de var
+(FSEK md. 27); mağaza yayınında telif bildirimi gelirse betikte bestekâr süzgeci eklenebilir.
 
 ## Planlama
 

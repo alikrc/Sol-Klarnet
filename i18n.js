@@ -147,7 +147,7 @@ const EXACT = {
   "WFG mandal açıklamasına": "WFG key guide",
   "göre. Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.": ". Perde names follow the AEU 53-comma system, Rast = written G. Range: written E3 – E♭7.",
   // Çalışma: genel
-  "Çalışma": "Practice", "Akort": "Tuner", "Parmak": "Fingering", "Ayarlar": "Settings", "Ana gezinme": "Main navigation",
+  "Çalışma": "Practice", "Akort": "Tuner", "Parmak": "Fingering", "Ayarlar": "Settings", "Notalar": "Scores", "Ana gezinme": "Main navigation",
   "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy",
   "Parmak pozisyonunu göster": "Show fingering", "Nota şeridi": "Note strip", "Mikrofon": "Mic", "Çalınan perde ve sapma": "Played perde and deviation", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",
   "Parmak testi": "Fingering quiz", "Uzun ton": "Long tone", "Makam": "Makam", "Taklit": "Echo", "Eser takibi": "Melody follow",
