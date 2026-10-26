@@ -77,13 +77,18 @@ const MAKAMS = [
   { id:"acemasiran", name:"Acemaşîran", durak:-9, guclu:22, yeden:-13,
     asc:[-9,0,9,13,22,31,40,44], desc:[-9,0,9,13,22,31,40,44],
     seyir:"İnici. Acem Aşîran'da Çargâh beşlisi + Çargâh'ta Çargâh dörtlüsü; Acem ve Kürdî perdeleri kullanılır.",
-    seyirEn:"Descending. Çargâh pentachord on Acem Aşîran + Çargâh tetrachord on Çargâh; uses the Acem and Kürdî perdes." }
+    seyirEn:"Descending. Çargâh pentachord on Acem Aşîran + Çargâh tetrachord on Çargâh; uses the Acem and Kürdî perdes." },
+  // ---- Trakya ve Roman oyun havalarında sık kullanılan makam ----
+  { id:"nikriz", name:"Nikriz", durak:0, guclu:31, yeden:-5,
+    asc:[0,9,13,26,31,40,44,53], desc:[0,9,13,26,31,40,44,53],
+    seyir:"Çıkıcı. Rast'ta Nikriz beşlisi (Kürdî, Nim Hicaz) + Nevâ'da Bûselik dörtlüsü. Nevâ'da yarım, Rast'ta tam karar; Roman ve Trakya oyun havalarında çok sevilir.",
+    seyirEn:"Ascending. Nikriz pentachord on Rast (Kürdî, Nim Hicaz) + Bûselik tetrachord on Nevâ. Half cadence on Nevâ, final on Rast; a favourite of Roman and Thracian dance tunes." }
 ];
 // Seyir türü: ezginin dizide nereden başlayıp nasıl gezindiği (seyir analizinde kullanılır)
 const SEYIR_TYPE = { rast:"cikici", ussak:"cikici", huseyni:"inici-cikici", hicaz:"cikici", huzzam:"cikici",
   segah:"cikici", saba:"cikici", kurdi:"cikici", nihavend:"cikici", bayati:"inici-cikici", karcigar:"inici-cikici",
   humayun:"cikici", uzzal:"cikici", zirguleli:"cikici", suzinak:"cikici", hicazkar:"inici-cikici",
-  kurdilihicazkar:"inici", mahur:"inici", acemasiran:"inici" };
+  kurdilihicazkar:"inici", mahur:"inici", acemasiran:"inici", nikriz:"cikici" };
 // İcra akordu: yaygın uygulamada AEU değerinden sapan perdeler (koma, perdenin mod 53 değerine göre).
 // Kaynak: icra ölçümleri üzerine yayınlar ve geleneksel ifade ("Uşşak Segâh'ı pes", "Saba Çargâh'ı pes",
 // "Hüzzam'da Hisar tiz"). Yaklaşıktır; bir hocayla kontrol edilmeli.
@@ -140,7 +145,13 @@ const USULS = [
   { id:"duyek",   name:"Düyek",      meter:"8/8",  strokes:[["T",1],["D",2],["T",1],["D",2],["T",2]] },
   { id:"aksak",   name:"Aksak",      meter:"9/8",  strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] },
   { id:"agiraksak", name:"Ağır Aksak", meter:"9/4", strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] },
-  { id:"curcuna", name:"Curcuna",    meter:"10/8", strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",2]] }
+  { id:"curcuna", name:"Curcuna",    meter:"10/8", strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",2]] },
+  // Trakya, Rumeli ve Roman oyun havaları (halk: true). Vuruş kalıpları yaygın darbuka çalışından; bir hocaya kontrol ettirilmeli.
+  { id:"kasap",      name:"Kasap havası", meter:"2/4", halk:true, strokes:[["D",1],["T",1]] },
+  { id:"ciftetelli", name:"Çiftetelli",   meter:"8/8", halk:true, strokes:[["D",1],["T",2],["T",1],["D",1],["D",1],["T",2]] },
+  { id:"karsilama",  name:"Karşılama",    meter:"9/8", halk:true, strokes:[["D",2],["T",2],["D",2],["T",3]] },
+  { id:"roman",      name:"Roman havası", meter:"9/8", halk:true, strokes:[["D",2],["T",2],["T",2],["D",1],["T",2]] },
+  { id:"rumeli",     name:"Rumeli",       meter:"7/8", halk:true, strokes:[["D",2],["T",2],["T",3]] }
 ];
 // Usulü birim zaman dilimlerine açar: her dilim "D", "T" ya da "" (vuruşun devamı)
 function usulSlots(u){

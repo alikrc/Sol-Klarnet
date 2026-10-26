@@ -1,5 +1,18 @@
 # Sol Klarnet — Backlog
 
+## Oyun havaları, eşlik, kulaktan çıkarma, okuma ve yol haritası — tamamlandı (26 Ekim 2026)
+
+Tasarım: [docs/superpowers/specs/2026-10-26-oyun-havalari-design.md](superpowers/specs/2026-10-26-oyun-havalari-design.md).
+
+- Trakya ve Roman ünitesi (8 ders), beş oyun havası usulü (kasap, çiftetelli, karşılama, Roman havası, Rumeli),
+  Nikriz makamı, yedi özgün etüt; toplam ders 59 → 72
+- Eşlik sekmesi (darbuka, bas, ud), etüt ve nota arşivinde orkestra eşliği; arşivde “Oyun havaları” süzgeci
+- Kulaktan çıkar: perdeyi bozmadan yavaşlatma, kaydırma, A–B döngü, işaretler, perde izi, Çevir'e aktarma
+- Deşifre, Dikte (ritim, ezgi), Kulak'ta aralık; ilgili dersler ve günlük plan adımları; günlük plan hedef süresine sığar
+- Yol haritası: altı aşama, kilometre taşları, haftalık görünüm, kalan süre tahmini
+- Gerçek mikrofonla ve telefon hoparlörüyle denenmedi; Playwright'ta sahte mikrofonla açıldı
+
+
 ## Perde eğrisi — tamamlandı (24 Ekim 2026)
 
 Tasarım: [docs/superpowers/specs/2026-10-24-perde-egrisi-design.md](superpowers/specs/2026-10-24-perde-egrisi-design.md),
@@ -67,7 +80,10 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 3. **WFG izni:** Parmak verisi Woodwind Fingering Guide'dan; ücretli yayınlanacaksa sahibinden izin istenmeli.
 4. **Mağaza:** Play geliştirici hesabı, yükleme anahtarı, kapalı test; iOS için Mac + Xcode + Apple geliştirici hesabı;
    mağaza ekran görüntüleri ve tanıtım görseli.
-5. **Repertuvar:** Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
+5. **Oyun havaları:** Beş halk usulünün düm-tek kalıpları (`learn.js` USULS, `band.js` BAND_STYLES), Nikriz dizisi ve yedi
+   Trakya/Roman etüdü (`repertoire.js`, level 6) bir Trakya ya da Roman klarnetçisine dinletilmeli. Eşlikle usule oturma eşiği
+   (±60 ms) ve eşlik sızıntısının ayıklanması telefon hoparlörüyle denenmeli.
+6. **Repertuvar:** Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
    seçki eklenecekse lisans koşulları kontrol edilmeli.
 
 ## Sonraki adım fikirleri

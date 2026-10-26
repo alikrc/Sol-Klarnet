@@ -24,8 +24,8 @@
     if(s === "hello") body = `
       <div class="eyebrow">${L("Hoş geldin", "Welcome")}</div>
       <h2 class="obtitle">${L("Sol klarneti sıfırdan ustalığa", "The G clarinet, from zero to mastery")}</h2>
-      <p>${L("Bu uygulama çaldığını mikrofondan dinler: perdeni koma koma ölçer, parmak pozisyonunu gösterir, ritmini, ses kaliteni ve makam seyrini değerlendirir. 59 derslik müfredat klarneti ilk kez eline alan birini taksim yapabilecek seviyeye kadar götürür.",
-        "This app listens to you through the microphone: it measures your pitch comma by comma, shows the fingering, and assesses your rhythm, tone and makam seyir. The 59-lesson course takes someone who has never held a clarinet all the way to playing a taksim.")}</p>
+      <p>${L("Bu uygulama çaldığını mikrofondan dinler: perdeni koma koma ölçer, parmak pozisyonunu gösterir, ritmini, ses kaliteni ve makam seyrini değerlendirir. 72 derslik müfredat klarneti ilk kez eline alan birini taksim yapabilecek seviyeye kadar götürür.",
+        "This app listens to you through the microphone: it measures your pitch comma by comma, shows the fingering, and assesses your rhythm, tone and makam seyir. The 72-lesson course takes someone who has never held a clarinet all the way to playing a taksim.")}</p>
       <p class="muted">${L("Ses yalnızca cihazında işlenir, hiçbir yere gönderilmez.", "Audio is processed only on your device and never sent anywhere.")}</p>
       <div class="seg" role="radiogroup" aria-label="${L("Dil", "Language")}">
         <button type="button" role="radio" data-lang="tr" aria-checked="${pickd.lang === "tr"}">Türkçe</button>

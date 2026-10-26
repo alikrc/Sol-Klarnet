@@ -34,6 +34,7 @@ const UNITS = [
   { id:"hiz", name:{ tr:"Hız ve teknik", en:"Speed and technique" } },
   { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" } },
   { id:"makam",  name:{ tr:"Makamlar", en:"Makams" } },
+  { id:"trakya", name:{ tr:"Trakya ve Roman", en:"Thracian and Roman" } },
   { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" } }
 ];
 
@@ -974,6 +975,224 @@ const HIZ = [
     ] }
 ];
 
+// ---- Trakya ve Roman ünitesi ----
+// Oyun havaları: kasap havası (2/4), karşılama ve Roman havası (9/8), çiftetelli (8/8), Rumeli (7/8), Nikriz makamı,
+// Trakya üslubu (kayış, çarpma, düşüş) ve oyun havası öncesi taksim. Etütler repertoire.js'te (level 6), usuller learn.js'te.
+const TRAKYA = [
+  { id:"trakya-giris", unit:"trakya", notes:[],
+    title:{ tr:"Trakya ve Roman klarneti, kasap havası", en:"Thracian and Roman clarinet, the kasap dance" },
+    text:[
+      { tr:"Sol klarnet Trakya'da, Rumeli'de ve Roman müzisyenlerin elinde oyun havasının baş sazıdır. Bu üslupta ses parlak ve güçlüdür; ezgi bol çarpma, kayış ve düşüşle süslenir, usul ise hiç bırakılmaz.",
+        en:"The G clarinet is the lead instrument of dance music in Thrace, the Balkans (Rumeli) and among Roman musicians. In this style the tone is bright and strong; the tune is full of grace notes, slides and falls, and the usul never lets go." },
+      { tr:"En sık usuller: kasap havası (2/4), karşılama ve Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) ve Rumeli havaları (7/8, 2+2+3). Makam olarak Hicaz, Kürdî, Uşşak, Hüseynî ve Nikriz öne çıkar.",
+        en:"The most common usuls: kasap (2/4), karşılama and Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) and Rumeli tunes (7/8, 2+2+3). The usual makams are Hicaz, Kürdî, Uşşak, Hüseynî and Nikriz." },
+      { tr:"Bu müzik kulaktan öğrenilir. Ünitedeki etütler bu üslupta yazıldı; asıl repertuvarı ustaların kayıtlarından Kulaktan çıkar aracıyla yavaşlatarak, Eşlik sekmesinde darbuka ve bas eşliğinde çalarak öğren.",
+        en:"This music is learned by ear. The études in this unit are written in the style; learn the real repertoire from masters' recordings with the Learn by ear tool (slowed down), and play along with darbuka and bass in the Play-along tab." }
+    ],
+    tips:[
+      { tr:"Kasap havasında her vuruş bir adım gibidir: düm ve tek eşit, canlı ve sürekli.", en:"In the kasap every beat is a step: düm and tek even, lively and steady." },
+      { tr:"Önce usulü elinle vur, sonra ezgiyi çal.", en:"First tap the usul with your hand, then play the tune." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Bu üniteyi nasıl çalışmalı?", en:"How to work through this unit" }, body:[
+        { tr:"Her derste önce usulü metronomla çal (Ritim adımı), sonra etüdü serbest takiple notaları oturt, en son tempolu çal. Takıldığın etüdü Etüt ve eserler'de Merdiven ile hızlandır.",
+          en:"In each lesson first play the usul with the metronome (the Rhythm step), then settle the notes in follow mode, and finally play in tempo. Speed up an étude you are stuck on with the Ladder in Études & pieces." },
+        { tr:"Günde bir kez Eşlik sekmesini aç: usulü ve makamı seç, darbuka ve bas çalarken serbestçe çal. Orkestrayla çalmak usulü vücuduna oturtur.",
+          en:"Open the Play-along tab once a day: pick the usul and the makam and play freely while the darbuka and bass play. Playing with a band puts the usul into your body." } ] },
+      { type:"rhythm", usul:"kasap", tempo:100, bars:4, min:60 },
+      { type:"piece", id:"e-kasap", mode:"free", min:6 },
+      { type:"piece", id:"e-kasap", mode:"tempo", min:60 }
+    ] },
+  { id:"karsilama", unit:"trakya", notes:[], makam:"hicaz",
+    title:{ tr:"Karşılama (9/8)", en:"Karşılama (9/8)" },
+    text:[
+      { tr:"Karşılama, karşılıklı oynanan bir Trakya oyunudur. Ölçü dokuz sekizliktir ve 2+2+2+3 diye sayılır: üç kısa vuruş ve bir uzun vuruş. Uzun vuruş oyuncunun ağırlığını verdiği yerdir; aceleye getirme.",
+        en:"Karşılama is a Thracian dance danced face to face. The bar has nine eighths counted 2+2+2+3: three short beats and one long one. The long beat is where the dancer puts their weight; don't rush it." },
+      { tr:"Etüt Hicaz'dadır: Dügâh'ta Hicaz dörtlüsü (Dik Kürdî, Nim Hicaz), Nevâ'da yarım karar.",
+        en:"The étude is in Hicaz: the Hicaz tetrachord on Dügâh (Dik Kürdî, Nim Hicaz), half cadence on Nevâ." }
+    ],
+    tips:[
+      { tr:"Saymayı “bir-iki, bir-iki, bir-iki, bir-iki-üç” diye yap.", en:"Count “one-two, one-two, one-two, one-two-three”." }
+    ],
+    steps:[
+      { type:"rhythm", usul:"karsilama", tempo:180, bars:3, min:55 },
+      { type:"scale", makam:"hicaz", min:0.55 },
+      { type:"piece", id:"e-karsilama", mode:"free", min:5 },
+      { type:"piece", id:"e-karsilama", mode:"tempo", min:60 }
+    ] },
+  { id:"roman-havasi", unit:"trakya", notes:[], makam:"kurdi",
+    title:{ tr:"Roman havası (9/8)", en:"Roman havası (9/8)" },
+    text:[
+      { tr:"Roman havası da 9/8'dir ama vurgusu farklıdır: son grup (3) “düm-tek” diye ikiye bölünür ve ölçünün sonunda bir sıçrama hissi verir. Ezgiler kısa, tekrar eden motiflerden kurulur.",
+        en:"The Roman havası is also 9/8 but with a different accent: the last group (3) splits into “düm-tek”, giving a lift at the end of the bar. Tunes are built from short, repeating motifs." },
+      { tr:"Aynı nota art arda gelince dil yerine çarpmalı tekrar dene (Süsleme ünitesi); Roman klarnetinin karakteri buradan gelir.",
+        en:"When the same note repeats, try a grace-note split instead of tonguing (Ornaments unit); this is where the character of Roman clarinet comes from." }
+    ],
+    tips:[
+      { tr:"Tempo merdiveniyle yavaştan başla; hızlanınca 9/8'in uzun vuruşu kısalmasın.", en:"Start slow with the tempo ladder; as you speed up, don't shorten the long beat of 9/8." }
+    ],
+    steps:[
+      { type:"rhythm", usul:"roman", tempo:180, bars:3, min:55 },
+      { type:"scale", makam:"kurdi", min:0.55 },
+      { type:"piece", id:"e-roman", mode:"tempo", min:60 },
+      { type:"piece", id:"e-roman", mode:"ladder", min:100 }
+    ] },
+  { id:"nikriz", unit:"trakya", notes:[], makam:"nikriz",
+    title:{ tr:"Nikriz makamı", en:"Makam Nikriz" },
+    text:[
+      { tr:"Nikriz, Rast'ta Nikriz beşlisi (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) ile Nevâ'da Bûselik dörtlüsünden kurulur. Kürdî ile Nim Hicaz arasındaki artık ikili Nikriz'e Roman müziğinde sevilen rengini verir.",
+        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) with a Bûselik tetrachord on Nevâ. The augmented second between Kürdî and Nim Hicaz gives Nikriz the colour loved in Roman music." },
+      { tr:"Güçlü Nevâ'dır; Nevâ'da yarım karar, Rast'ta tam karar verilir. Rast'a çoğunlukla Irak üzerinden (yeden) gelinir.",
+        en:"The dominant is Nevâ; half cadence on Nevâ, final on Rast. Rast is usually approached through Irak (the leading note)." }
+    ],
+    tips:[
+      { tr:"Nim Hicaz (yazılı Do♯5) çoğu klarnette biraz pes çıkar; Nevâ'ya giderken yerini kulakla kontrol et.", en:"Nim Hicaz (written C♯5) comes out a little flat on most clarinets; check it by ear on the way to Nevâ." }
+    ],
+    steps:[
+      { type:"listen", commas:[0, 9, 13, 26, 31, 26, 13, 9, 0] },
+      { type:"scale", makam:"nikriz", min:0.55 },
+      { type:"mimic", makam:"nikriz", len:5 },
+      { type:"piece", id:"e-nikriz", mode:"tempo", min:65 }
+    ] },
+  { id:"ciftetelli", unit:"trakya", notes:[], makam:"nikriz",
+    title:{ tr:"Çiftetelli (8/8)", en:"Çiftetelli (8/8)" },
+    text:[
+      { tr:"Çiftetelli sekiz sekizliktir; vuruşlar eşit değil, kaydırmalıdır: “düm . tek tek düm düm tek .” Ezgi uzun-kısa (noktalı) adımlarla salınır.",
+        en:"Çiftetelli has eight eighths with uneven, syncopated strokes: “düm . tek tek düm düm tek .” The tune sways in long-short (dotted) steps." }
+    ],
+    tips:[
+      { tr:"Noktalı dörtlükten sonra gelen sekizliği kısa ve hafif çal; vurgu bir sonraki notadadır.", en:"Play the eighth after a dotted quarter short and light; the accent falls on the next note." }
+    ],
+    steps:[
+      { type:"rhythm", usul:"ciftetelli", tempo:160, bars:3, min:55 },
+      { type:"piece", id:"e-ciftetelli", mode:"free", min:5 },
+      { type:"piece", id:"e-ciftetelli", mode:"tempo", min:60 }
+    ] },
+  { id:"rumeli", unit:"trakya", notes:[], makam:"huseyni",
+    title:{ tr:"Rumeli havası (7/8)", en:"Rumeli tune (7/8)" },
+    text:[
+      { tr:"Rumeli ve Balkan oyun havalarında 7/8 sık görülür: 2+2+3 diye sayılır, son vuruş uzundur. Etüt Hüseynî'dedir; çıkarken Evç, inerken Acem kullanılır.",
+        en:"7/8 is common in Rumeli and Balkan dance tunes: counted 2+2+3, with a long last beat. The étude is in Hüseynî; Evç going up, Acem coming down." }
+    ],
+    tips:[
+      { tr:"“Bir-iki, bir-iki, bir-iki-üç”: uzun vuruşta nefesini bırakma.", en:"“One-two, one-two, one-two-three”: don't drop your breath on the long beat." }
+    ],
+    steps:[
+      { type:"rhythm", usul:"rumeli", tempo:200, bars:3, min:55 },
+      { type:"piece", id:"e-rumeli", mode:"free", min:5 },
+      { type:"piece", id:"e-rumeli", mode:"tempo", min:60 }
+    ] },
+  { id:"trakya-uslup", unit:"trakya", notes:[], makam:"hicaz",
+    title:{ tr:"Trakya üslubu: kayış, çarpma, düşüş", en:"Thracian style: slides, grace notes, falls" },
+    text:[
+      { tr:"Bu üslubu notadan çok süslemeler belirler: uzun notaya alttan kayarak girilir, vurgulu notalar çarpmayla, cümle sonları düşüşle süslenir. Ağır Roman bunların hepsini yavaş tempoda duyurur.",
+        en:"This style is defined more by ornaments than by notes: long notes are entered with a slide from below, accented notes get grace notes, phrase ends get falls. The slow Roman (ağır Roman) shows all of them at a slow tempo." }
+    ],
+    tips:[
+      { tr:"Süslemeyi abartma: ana nota hep daha uzun ve daha güçlü kalmalı.", en:"Don't overdo it: the main note must stay longer and stronger." }
+    ],
+    steps:[
+      { type:"glide", from:69, to:74, n:2 },
+      { type:"listen", notes:[74], orn:{ kind:"carpma", dir:"up" } },
+      { type:"ornament", kind:"carpma", dir:"up", note:74, makam:"hicaz", comma:31, n:4 },
+      { type:"ornament", kind:"dusus", note:74, makam:"hicaz", comma:31, n:3 },
+      { type:"piece", id:"e-agir-roman", mode:"tempo", min:55 }
+    ] },
+  { id:"trakya-taksim", unit:"trakya", notes:[], makam:"hicaz",
+    title:{ tr:"Oyun havası öncesi taksim", en:"The taksim before a dance tune" },
+    text:[
+      { tr:"Trakya ve Roman müziğinde oyun havasından önce kısa, usulsüz bir taksim çalınır: makamı tanıtır ve oyuna hazırlar. Genellikle güçlü civarında başlar, birkaç cümlede durağa iner ve oyun havası hemen başlar.",
+        en:"In Thracian and Roman music a short, unmetered taksim comes before the dance tune: it presents the makam and prepares the dance. It usually starts near the dominant, comes down to the final in a few phrases, and the dance starts straight away." },
+      { tr:"Taksimden sonra Eşlik sekmesinde aynı makamda Roman havası ya da karşılama usulünü aç ve doğaçla.",
+        en:"After the taksim, open the Roman havası or karşılama usul in the same makam in the Play-along tab and improvise." }
+    ],
+    tips:[
+      { tr:"Ustaların taksimlerini Kulaktan çıkar aracında %50 hızda dinle; bir cümleyi döngüye al ve taklit et.", en:"Listen to masters' taksims at 50% speed in the Learn by ear tool; loop one phrase and imitate it." }
+    ],
+    steps:[
+      { type:"seyir", makam:"hicaz", sec:45, min:55 },
+      { type:"seyir", makam:"kurdi", sec:45, min:55 },
+      { type:"seyir", makam:"nikriz", sec:45, min:55 }
+    ] }
+];
+
+// ---- Okuma ve kulak ----
+// sight: deşifre (ilk görüşte okuma; ezgi her seferinde yeniden üretilir, reading.js), dictation: ezgi ya da ritim dikte,
+// ear mode:"interval": aralık tanıma. İkinci basamak İleri seviye ünitesinde.
+const OKUMA1 = [
+  { id:"desifre-1", unit:"teknik", notes:[],
+    title:{ tr:"Deşifre: ilk görüşte okuma", en:"Sight-reading" },
+    text:[
+      { tr:"Deşifre, daha önce görmediğin bir notayı ilk seferde çalmaktır. Her turda yeni bir ezgi üretilir; önce birkaç saniye göz gezdirirsin, sonra bir ölçü sayımla tempoda çalarsın.",
+        en:"Sight-reading is playing music you have never seen, first time. A new tune is generated every round; you get a few seconds to look it over, then play in tempo after a one-bar count-in." },
+      { tr:"Durma, düzeltme: yanlış notayı geç, tempoyu tut. Önce ölçünün başlarına, sonra atlamalara bak.",
+        en:"Don't stop or fix: let a wrong note go and keep the tempo. Look first at where the bars start, then at the leaps." }
+    ],
+    tips:[
+      { tr:"Göz bir iki nota ileride olsun: çaldığın notaya değil, sıradakine bak.", en:"Keep your eyes a note or two ahead: look at the next note, not the one you are playing." }
+    ],
+    steps:[
+      { type:"sight", level:1, min:70 },
+      { type:"sight", level:2, min:65 }
+    ] },
+  { id:"dikte-1", unit:"teknik", notes:[],
+    title:{ tr:"Dikte: duyduğunu yaz", en:"Dictation: write what you hear" },
+    text:[
+      { tr:"Dikte kulakla notayı birleştirir: uygulama kısa bir ritim ya da ezgi çalar, sen onu yazarsın. Kulaktan çıkarmanın ilk adımı budur.",
+        en:"Dictation joins the ear and the page: the app plays a short rhythm or tune and you write it down. It is the first step towards learning by ear." },
+      { tr:"Ritim diktesinde duyduğun ritmi dört nota arasından seç. Ezgi diktesinde ilk nota verilir; kalan notaları sırayla düğmelerden seç.",
+        en:"In rhythm dictation pick the rhythm you heard from four options. In melodic dictation the first note is given; pick the remaining notes in order from the buttons." }
+    ],
+    tips:[
+      { tr:"Ezgiyi önce içinden söyle; yukarı mı aşağı mı, adım mı atlama mı, ona karar ver.", en:"Sing the tune in your head first; decide whether it goes up or down, steps or leaps." }
+    ],
+    steps:[
+      { type:"dictation", mode:"rhythm", level:1, n:6, min:5 },
+      { type:"dictation", mode:"melody", level:1, n:6, min:4 }
+    ] },
+  { id:"aralik", unit:"teknik", notes:[],
+    title:{ tr:"Aralıklar: Batı ve makam aralıkları", en:"Intervals: Western and makam" },
+    text:[
+      { tr:"İki ses arasındaki uzaklığa aralık denir. Batı müziğinde ikili, üçlü, dörtlü, beşli ve oktav; makam müziğinde ise koma cinsinden bakiye (4), küçük mücenneb (5), büyük mücenneb (8), tanini (9) ve artık ikili (12–13) vardır.",
+        en:"The distance between two notes is an interval. Western music has seconds, thirds, fourths, fifths and the octave; makam music measures in commas: bakiye (4), small mücenneb (5), large mücenneb (8), tanini (9) and the augmented second (12–13)." },
+      { tr:"Makam aralıklarını duymak, Uşşak'ın Segâh'ını Rast'ın Segâh'ından, Hicaz'ın artık ikilisini Kürdî'den ayırmanı sağlar.",
+        en:"Hearing makam intervals lets you tell Uşşak's Segâh from Rast's, and Hicaz's augmented second from Kürdî." }
+    ],
+    tips:[
+      { tr:"Bildiğin ezgilerle eşleştir: dörtlü “düğün marşının” ilk iki notası gibi, Hicaz'ın artık ikilisi Roman havalarının rengi.", en:"Match intervals with tunes you know; Hicaz's augmented second is the colour of Roman tunes." }
+    ],
+    steps:[
+      { type:"ear", mode:"interval", pool:"bati", n:10, min:7 },
+      { type:"ear", mode:"interval", pool:"makam", n:10, min:6 }
+    ] }
+];
+const OKUMA2 = [
+  { id:"desifre-2", unit:"ileri", notes:[],
+    title:{ tr:"Deşifre: makam perdeleri ve aksak usuller", en:"Sight-reading: makam perdes and limping usuls" },
+    text:[
+      { tr:"Bu basamakta ezgiler makam dizilerinden üretilir: koma işaretli perdeler (Segâh, Dik Kürdî, Nim Hicaz…) ve 9/8, 7/8 gibi aksak ölçüler gelir.",
+        en:"At this stage tunes are generated from makam scales: perdes with comma accidentals (Segâh, Dik Kürdî, Nim Hicaz…) and limping metres such as 9/8 and 7/8." }
+    ],
+    tips:[
+      { tr:"Koma işaretini gördüğünde parmağı ve perdeyi birlikte düşün: ♭1 Segâh, ♯4 Nim Hicaz gibi.", en:"When you see a comma accidental think of the fingering and the perde together: ♭1 is Segâh, ♯4 Nim Hicaz, and so on." }
+    ],
+    steps:[
+      { type:"sight", level:3, min:65 },
+      { type:"sight", level:4, min:60 }
+    ] },
+  { id:"dikte-2", unit:"ileri", notes:[],
+    title:{ tr:"Dikte: makam ezgileri ve usuller", en:"Dictation: makam tunes and usuls" },
+    text:[
+      { tr:"Ezgiler artık makam perdelerinden gelir ve daha uzundur; ritimler aksak usullerden seçilir.",
+        en:"Tunes now come from makam perdes and are longer; rhythms come from limping usuls." }
+    ],
+    tips:[],
+    steps:[
+      { type:"dictation", mode:"rhythm", level:3, n:6, min:4 },
+      { type:"dictation", mode:"melody", level:3, n:6, min:4 }
+    ] }
+];
+
 // Yeni dersleri müfredattaki yerlerine yerleştir
 LESSONS.unshift(...BASLANGIC);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "vibrato") + 1, 0, ...TEKNIK2);
@@ -981,6 +1200,9 @@ LESSONS.splice(LESSONS.findIndex(l => l.id === "huzzam") + 1, 0, ...MAKAM2);
 LESSONS.push(...ILERI);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "rast-giris"), 0, ...SUSLEME);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "sus-carpma"), 0, ...HIZ);
+LESSONS.splice(LESSONS.findIndex(l => l.id === "kulak-1") + 1, 0, ...OKUMA1);
+LESSONS.splice(LESSONS.findIndex(l => l.id === "taksim-giris"), 0, ...TRAKYA);
+LESSONS.push(...OKUMA2);
 
 const lessonById = id => LESSONS.find(l => l.id === id) || null;
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
@@ -1053,7 +1275,11 @@ function stepTitle(step, lang = "tr"){
     }
     case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn");
     case "seyir": return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
-    case "ear": return (en ? "Ear: " : "Kulak: ") + (step.mode === "makam" ? (en ? "name the makam" : "makamı tanı") : (en ? "tell the perdes apart (level " : "perde ayırt (seviye ") + (step.level || 1) + ")") +
+    case "sight": return (en ? "Sight-reading: level " : "Deşifre: seviye ") + step.level + " · " + (en ? "at least " + step.min + "% correct notes" : "en az %" + step.min + " doğru nota");
+    case "dictation": return (step.mode === "rhythm" ? (en ? "Rhythm dictation" : "Ritim dikte") : (en ? "Melodic dictation" : "Ezgi dikte")) + (en ? ": level " : ": seviye ") + step.level +
+      " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");
+    case "ear": if(step.mode === "interval") return (en ? "Ear: name the interval (" : "Kulak: aralık tanı (") + (step.pool === "makam" ? (en ? "makam" : "makam") : (en ? "Western" : "Batı")) + ") · " + step.min + "/" + step.n + (en ? " correct" : " doğru");
+      return (en ? "Ear: " : "Kulak: ") + (step.mode === "makam" ? (en ? "name the makam" : "makamı tanı") : (en ? "tell the perdes apart (level " : "perde ayırt (seviye ") + (step.level || 1) + ")") +
       " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");
   }
   return step.type;
@@ -1067,7 +1293,7 @@ function stepOk(step, res){
     case "listen": return true;
     case "hold": return v >= step.min && (step.quality == null || (res.q || 0) >= step.quality);
     case "read": return v >= 1;
-    case "rhythm": case "seyir": case "ear": return v >= step.min;
+    case "rhythm": case "seyir": case "ear": case "sight": case "dictation": return v >= step.min;
     case "dynamics": return v >= 1;
     case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
     case "tech": return v >= step.target;
@@ -1133,6 +1359,12 @@ function unlocked(lesson, prog, all = false){
     return open && (lesson.id !== "sus-makam" || (d("ussak") && d("hicaz")));
   }
   if(lesson.unit === "makam") return LESSONS[i-1].unit === "makam" ? lessonDone(LESSONS[i-1], prog) : base();
+  // Trakya ve Roman: temeller ve usul dersi yeter (makam ünitesini bitirmek gerekmez), ünite içinde sırayla
+  if(lesson.unit === "trakya"){
+    if(LESSONS[i-1].unit === "trakya") return lessonDone(LESSONS[i-1], prog);
+    const us = lessonById("usul");
+    return base() && !!us && lessonDone(us, prog);
+  }
   return lessonDone(LESSONS[i-1], prog);
 }
 // Kaldığın yer: açık ve bitmemiş ilk ders
@@ -1190,6 +1422,8 @@ function seeded(str){
   return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
 }
 
+// Günlük plandaki adımların yaklaşık süresi (dakika)
+const DAILY_MIN = { hold:1, quiz:2, scale:2, mimic:2, notes:1, rhythm:2, piece:3, ear:2, seyir:2, ornament:2, tech:3, sight:3, dictation:3 };
 // Günlük çalışma: ısınma uzun tonu (en çok sapan nota), zorlanılan notalardan test, bir makam dizisi ve taklit.
 // ctx: { prog, intStats: {[w]: {n,sum}}, quizStats: {[w]: {n,wrong,ms}}, day: "YYYY-MM-DD" }
 function dailyPlan(ctx){
@@ -1234,6 +1468,22 @@ function dailyPlan(ctx){
     const st = hz[Math.floor(rng()*hz.length)].steps.find(s => s.type === "tech");
     const best = (ctx.techBest || {})[LSK().patternKey(st.pattern)], start = best ? best - 8 : st.start;
     steps.push({ ...st, start, target: start + 12 });
+  }
+  // 11. Oyun havası: bitirilen Trakya ve Roman derslerinin etütlerinden biri, tempolu
+  const tr = LESSONS.filter(l => l.unit === "trakya" && lessonDone(l, ctx.prog) && l.steps.some(s => s.type === "piece"));
+  if(tr.length){ const st = tr[Math.floor(rng()*tr.length)].steps.find(s => s.type === "piece"); steps.push({ type:"piece", id: st.id, mode:"tempo", min:65 }); }
+  // 12. Deşifre ve dikte: ilgili ders bittiyse kısa birer tur (ileri basamak bittiyse onun seviyesinde)
+  if(done("desifre-1")) steps.push({ type:"sight", level: done("desifre-2") ? 3 + Math.floor(rng()*2) : 1 + Math.floor(rng()*2), min:70 });
+  if(done("dikte-1")) steps.push({ type:"dictation", mode: rng() < 0.5 ? "melody" : "rhythm", level: done("dikte-2") ? 3 : 2, n:5, min:4 });
+  // Süre sınırı (ctx.goalMin, dk): ısınma ve parmak testi hep kalır; diğerlerinden günün sırasıyla sığanlar seçilir,
+  // seçilenler plandaki yerlerinde kalır. Kalanlar başka günlerde gelir.
+  const budget = ctx.goalMin || 0;
+  if(budget && steps.length > 2){
+    const cost = st => DAILY_MIN[st.type] || 2;
+    let total = steps.slice(0, 2).reduce((a, st) => a + cost(st), 0);
+    const rest = steps.slice(2).map((st, i) => ({ st, i, r: rng() })).sort((a, b) => a.r - b.r), keep = [];
+    for(const x of rest) if(total + cost(x.st) <= budget || !keep.length){ keep.push(x); total += cost(x.st); }
+    steps.splice(2, steps.length, ...keep.sort((a, b) => a.i - b.i).map(x => x.st));
   }
   return { id:"daily", unit:null, notes:[], daily:true,
            title:{ tr:"Bugünün çalışması", en:"Today's practice" },

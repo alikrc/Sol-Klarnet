@@ -23,7 +23,7 @@ TRAINERS.lessons = function(ctx){
     const day = dayKey(new Date());
     // Gün içinde hiçbir adıma başlanmadıysa plan yeniden kurulur (o arada bitirilen dersler de girsin)
     if(!daily || daily.day !== day || !Object.keys(daily.p.s).length){
-      const plan = dailyPlan({ prog, intStats, quizStats: store.get("quiz.stats", {}), day, techBest: techBestMap(store) });
+      const plan = dailyPlan({ prog, intStats, quizStats: store.get("quiz.stats", {}), day, techBest: techBestMap(store), goalMin: store.get("goal.min", 15) });
       daily = { day, plan: plan.steps, p:{ s:{} } };
       store.set("lesson.daily", daily);
     }
@@ -70,7 +70,8 @@ TRAINERS.lessons = function(ctx){
       case "read": return L("okundu", "read");
       case "rhythm": case "seyir": return r.v + L(" puan", " points");
       case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
-      case "ear": return r.v + "/" + st.n;
+      case "ear": case "dictation": return r.v + "/" + st.n;
+      case "sight": return "%" + r.v;
       case "piece": return st.mode === "free" ? r.v + L(" hata", " mistakes") : st.mode === "ladder" ? "%" + r.v + L(" tempo", " tempo") : "%" + r.v;
       case "tech": return "♩=" + r.v;
       case "ornament": return st.kind === "tril" ? num(r.v) + L(" dönüş/sn", " turns/s") : r.v + "/" + st.n;

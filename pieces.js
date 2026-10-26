@@ -142,6 +142,24 @@ function curScore(svg, i, holder){
   }
 }
 
+// ---- Orkestra eşliği (band.js) ----
+// Eserin bütün ölçüleri için darbuka, bas ve ud olaylarını start (ses saati, sn) anından kurar. Usul eserin ölçüsüne
+// uyuyorsa onun kalıbı, yoksa ölçünün vuruş grupları. Kök eserin son notası (karar). micSafe: bas perde bulucunun altında.
+function pieceBand(ctx, piece, a, start, beatMs, micSafe){
+  const [num, den] = piece.meter || [4, 4], u = piece.usul ? USULS.find(x => x.id === piece.usul && x.meter === num + "/" + den) : null;
+  const strokes = u ? u.strokes : meterStrokes(num, den), barQ = num*4/den;
+  const beats = piece.notes.reduce((x, n) => x + n.d, 0), bars = [];
+  for(let i = 0; i*barQ < beats - 1e-6; i++) bars.push({ startMs: i*barQ*beatMs, unitMs: 4/den*beatMs, usul: u ? u.id : null, strokes });
+  const mk = piece.makam ? makamById(piece.makam) : null, last = [...piece.notes].reverse().find(n => !n.rest && n.c !== null);
+  const karar = last ? last.c : mk ? mk.durak : 0;
+  const o = { freq: c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c), micSafe, minHz: ctx.SK.pitchRange().min, vol:{ drum:0.9, bass:0.8, chord:0.55 } };
+  const out = a.createGain(); out.gain.value = 0.8; out.connect(a.destination);
+  for(const ev of bandEventsFor(bars, mk, karar, {})) bandPlay(a, out, ev, start + ev.t/1000, o);
+  ctx.setBandFreqs(bandChordFreqs(o, karar, fifthOf(mk, karar)));
+  let done = false;
+  return { stop(){ if(done) return; done = true; out.gain.setTargetAtTime(0, a.currentTime, 0.02); setTimeout(() => out.disconnect(), 300); ctx.setBandFreqs([]); } };
+}
+
 // ---- Eser çalar: serbest takip, tempolu çalma, dinleme ----
 // piece: { name, notes, tempo, meter, makam }; holder: dizeğin konacağı kaydırılabilir kutu; info: geri bildirim öğesi
 // view (isteğe bağlı, nota arşivinin satırlı görünümü): { draw(names), cur(i), mark(i, cls), el(i) }
@@ -154,7 +172,8 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm }); }, cur: i => curScore(sc.svg, i, holder),
                    mark: (i, cls) => markScore(sc.svg, i, cls), el: i => sc.svg.querySelector(`g.sn[data-i="${i}"]`) };
   view.draw(names);
-  let mode = null, k = 0, miss = 0, release = false, hold = null, t0 = null, run = null, playToken = null;
+  let mode = null, k = 0, miss = 0, release = false, hold = null, t0 = null, run = null, playToken = null, band = null;
+  const stopBand = () => { if(band){ band.stop(); band = null; } };
   const say = (cls, t) => { info.className = "fb " + cls; info.textContent = t; };
   const freqOf = n => n.c !== null && mk ? ctx.mkFreq(mk, n.c) : n.c !== null ? ctx.commaFreq(n.c) : undefined;
   function redraw(){ view.draw(names); }
@@ -210,8 +229,13 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     const unit = 4/(piece.meter ? piece.meter[1] : 4), clickMs = beatMs*unit, perBar = piece.meter ? piece.meter[0] : 4;
     const lead = 0.3, start = a.currentTime + lead, startPerf = ctxToPerf(a, start);
     const { times, beats } = noteTimes(notes, startPerf + perBar*clickMs, beatMs);
-    const totalClicks = perBar + Math.ceil(beats/unit), metOn = ctx.store.get("piece.met", true);
-    for(let i=0;i<totalClicks;i++) if(i < perBar || metOn) ctx.hit(a, i % perBar === 0 ? "D" : "T", start + i*clickMs/1000, i < perBar ? 1 : 0.55);
+    const totalClicks = perBar + Math.ceil(beats/unit), metOn = ctx.store.get("piece.met", true), bandOn = ctx.store.get("piece.band", false);
+    // Orkestra açıksa metronom yalnızca sayımda çalar; grup sayımdan sonra başlar (bas mikrofonu şaşırtmasın diye pes)
+    const clicks = [];
+    for(let i=0;i<totalClicks;i++) if(i < perBar || (metOn && !bandOn)) clicks.push(i);
+    clicks.forEach(i => ctx.hit(a, i % perBar === 0 ? "D" : "T", start + i*clickMs/1000, i < perBar ? 1 : 0.55));
+    stopBand();
+    if(bandOn) band = pieceBand(ctx, piece, a, start + perBar*clickMs/1000, beatMs, true);
     const det = new OnsetDetector(), onsets = [], stable = [];
     const off = SK.level(f => { const o = det.push(f); if(o !== null) onsets.push(o); });
     const timers = [];
@@ -240,10 +264,10 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     });
     say("", L("Sayım… ", "Count-in… ") + perBar + L(" vuruş dinle, sonra çal.", " beats, then play."));
     timers.push(setTimeout(() => { if(mode === "tempo") say("", L("Çal!", "Play!")); }, Math.max(0, startPerf + perBar*clickMs - performance.now())));
-    run = { stable, stop(){ timers.forEach(clearTimeout); off(); } };
+    run = { stable, stop(){ timers.forEach(clearTimeout); off(); stopBand(); } };
     const endAt = startPerf + perBar*clickMs + beats*beatMs + 700;
     timers.push(setTimeout(() => {
-      off(); if(mode !== "tempo") return;
+      off(); stopBand(); if(mode !== "tempo") return;
       const lat = ctx.store.get("rhythm.lat", 0);
       const pitchAt = t => { const s = stable.find(x => x.t >= t - 30 && x.t <= t + 300); return s ? s.w : null; };
       const res = alignPerformance(times, onsets.map(o => o - lat), t => pitchAt(t + lat), 200);
@@ -253,7 +277,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
       say(pct2 >= 80 ? "good" : "bad", L("Doğru nota %", "Correct notes ") + pct2 + (LANG === "en" ? "%" : "") + " · " + res.wrong + L(" yanlış · ", " wrong · ") + res.missed + L(" kaçan", " missed") +
         (res.notes.some(r => r.state === "ok") ? " · " + (Math.abs(res.mean) < 25 ? L("zamanlama yerinde", "timing on the beat") : Math.round(Math.abs(res.mean)) + (res.mean < 0 ? L(" ms erken", " ms early") : L(" ms geç", " ms late"))) + " ±" + Math.round(res.sd) + " ms" : "") + ornTxt);
       const best = ctx.store.get("piece.best", {}), id = piece.id || piece.name;
-      if(!best[id] || pct2 > best[id]){ best[id] = pct2; ctx.store.set("piece.best", best); }
+      if(!piece.noBest && (!best[id] || pct2 > best[id])){ best[id] = pct2; ctx.store.set("piece.best", best); }
       mode = null; run = null;
       if(onResult) onResult(res);
       else if(onDone) onDone({ v: pct2, mode:"tempo" });
@@ -261,7 +285,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   }
   // Dinle: notaları tempoda çalar. Zaman mutlak tutulur (gecikmeler birikmez).
   // o: { from, to (hariç), loop, mute (melodi sesi çıkmaz, imleç ilerler), onStart(t0, beatMs, from) her turun başında
-  //      (t0 performance.now() cinsinden), onNote(i), onEnd() }
+  //      (t0 performance.now() cinsinden), onNote(i), onEnd(), band (baştan çalınıyorsa orkestra eşliği) }
   async function listen(pct = 1, o = {}){
     stop(); redraw();
     const token = {}; playToken = token;
@@ -270,6 +294,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     do{
       let t = performance.now() + 80;
       if(o.onStart) o.onStart(t, beatMs, from);
+      if(o.band && from === 0){ stopBand(); const a = SK.audioCtx(); band = pieceBand(ctx, piece, a, a.currentTime + (t - performance.now())/1000, beatMs, false); }
       for(let i=from;i<to;i++){
         await wait(t); if(playToken !== token) return;
         const n = notes[i], dur = n.d*beatMs;
@@ -302,7 +327,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
       }
     });
   }
-  function halt(){ playToken = null; if(run){ run.stop(); run = null; } mode = null; }
+  function halt(){ playToken = null; if(run){ run.stop(); run = null; } stopBand(); mode = null; }
   function stop(){ if(ladder){ ladder.stop(); ladder = null; } halt(); }
   return {
     startFree, startTempo, startLadder, listen, stop, playing: () => !!playToken || !!mode || !!ladder,
@@ -345,6 +370,7 @@ TRAINERS.piece = function(ctx){
     <div class="pbar">
       <label class="chk"><input type="checkbox" id="pcfing"> ${L("parmağı göster", "show fingering")}</label>
       <label class="chk"><input type="checkbox" id="pcmet"> ${L("metronom", "metronome")}</label>
+      <label class="chk"><input type="checkbox" id="pcband"> ${L("orkestra (darbuka, bas, ud)", "band (darbuka, bass, oud)")}</label>
       <label class="chk"><input type="checkbox" id="pcnames"> ${L("perde adları", "perde names")}</label>
     </div>
     <details class="pcadd"><summary>${L("Eser ekle: yaz ya da MusicXML içe aktar", "Add a piece: type it or import MusicXML")}</summary>
@@ -364,9 +390,9 @@ TRAINERS.piece = function(ctx){
     </details>`;
   let user = store.get("piece.user", []).map(normPiece);
   let player = null;
-  const LEVEL = { 1: L("Başlangıç", "Beginner"), 2: L("Temel", "Basic"), 3: L("Makam", "Makam"), 4: L("Makam (ileri)", "Makam (advanced)"), 5: L("Usul", "Usul") };
+  const LEVEL = { 1: L("Başlangıç", "Beginner"), 2: L("Temel", "Basic"), 3: L("Makam", "Makam"), 4: L("Makam (ileri)", "Makam (advanced)"), 5: L("Usul", "Usul"), 6: L("Trakya ve Roman", "Thracian and Roman") };
   function all(){
-    return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo:e.tempo, meter:e.meter, makam:e.makam, group: LEVEL[e.level] })),
+    return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo:e.tempo, meter:e.meter, makam:e.makam, usul:e.usul, group: LEVEL[e.level] })),
             ...user.map((p, i) => ({ ...p, key:"u"+i, own:true, group: L("Kendi eserlerim", "My pieces") }))];
   }
   function fillSel(keep){
@@ -399,6 +425,8 @@ TRAINERS.piece = function(ctx){
   $("pcfing").addEventListener("change", () => store.set("piece.fing", $("pcfing").checked));
   $("pcmet").checked = store.get("piece.met", true);
   $("pcmet").addEventListener("change", () => store.set("piece.met", $("pcmet").checked));
+  $("pcband").checked = store.get("piece.band", false);
+  $("pcband").addEventListener("change", () => store.set("piece.band", $("pcband").checked));
   $("pcnames").checked = store.get("piece.names", true);
   $("pcnames").addEventListener("change", () => player && player.toggleNames());
   const pct = () => +$("pcpct").value/100;
@@ -406,7 +434,7 @@ TRAINERS.piece = function(ctx){
   $("pctempo").addEventListener("click", () => player.startTempo(pct()));
   $("pcladder").addEventListener("click", () => player.startLadder(120, p => { $("pcpct").value = p; $("pcpctv").textContent = p + "%"; }));
   $("pcfree").addEventListener("click", async () => { await ctx.needMic(); player.startFree(); });
-  $("pclisten").addEventListener("click", () => player.listen(pct()));
+  $("pclisten").addEventListener("click", () => player.listen(pct(), { band: $("pcband").checked }));
   $("pcstop").addEventListener("click", () => { player.stop(); SK.stopSound(); });
   const msg = t => { $("pcmsg").textContent = t; };
   function addUser(p){
@@ -454,7 +482,13 @@ TRAINERS.piece = function(ctx){
     addUser(p); ctx.selectTab("piece");
   };
   return {
-    enter(){ if(!player) load(); else { const p = all().find(x => x.key === $("pcsel").value); SK.setTempContext(p && p.makam || null); } },
+    // Başka sekmeden seçilen eser (ör. Eşlik'teki "Bu usulde etüt çal") store'daki piece.sel ile gelir
+    enter(){
+      $("pcband").checked = store.get("piece.band", false);
+      const want = store.get("piece.sel", null);
+      if(want && want !== $("pcsel").value && [...$("pcsel").options].some(o => o.value === want)){ $("pcsel").value = want; load(); return; }
+      if(!player) load(); else { const p = all().find(x => x.key === $("pcsel").value); SK.setTempContext(p && p.makam || null); }
+    },
     leave(){ if(player) player.stop(); SK.setTempContext(null); },
     note(r, t){ if(player) player.note(r, t); },
     silence(t){ if(player) player.silence(t); }
@@ -467,9 +501,9 @@ TRAINER_STEPS.piece = function(st, stage, done, ctx){
   const e = etudeById(st.id);
   stage.innerHTML = `<div class="scorewrap"></div><div class="fb"></div>
     <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : st.mode === "ladder" ? L("Merdiveni başlat", "Start the ladder") : L("Sayımla başla", "Start with count-in")}</button></div>`;
-  const p = { id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam };
+  const p = { id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam, usul: e.usul };
   const pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
-  stage.querySelector("[data-l]").addEventListener("click", () => pl.listen());
+  stage.querySelector("[data-l]").addEventListener("click", () => pl.listen(1, { band: ctx.store.get("piece.band", false) }));
   stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : st.mode === "ladder" ? pl.startLadder(st.min) : pl.startTempo());
   return { note: (r, t) => pl.note(r, t), silence: t => pl.silence(t), stop(){ pl.stop(); } };
 };

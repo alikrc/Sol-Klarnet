@@ -19,6 +19,9 @@ function archUsul(slug, num, den){
 }
 const archFold = s => String(s || "").toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g, "i");
 const ARCH_LV = { 1: L("Başlangıç", "Beginner"), 2: L("Orta", "Intermediate"), 3: L("İleri", "Advanced") };
+// Hızlı süzgeç "Oyun havaları": Trakya, Rumeli ve oyun formları (karşılama, köçekçe, sirto, longa…) ve oyun usulleri
+const ARCH_DANCE_F = new Set(["oyunhavasi","karsilama","kocekce","rumeliturkusu","sirto","longa","zeybek","tavsanca","oyun"]);
+const archDance = e => ARCH_DANCE_F.has(e.f) || e.u === "oynak" || e.u === "raksaksagi" || /roman|kasap|ciftetelli|karsilama/.test(e.id);
 const archDur = s => Math.floor(s/60) + ":" + String(s % 60).padStart(2, "0");
 // Eser dosyasındaki nota [c, d, süs?, hece?] → { w, c, d, rest, orn?, syl? }
 const ARCH_ORN = { "tr":{ kind:"tril", dir:"up" }, "m+":{ kind:"mordan", dir:"up" }, "m-":{ kind:"mordan", dir:"down" },
@@ -112,6 +115,7 @@ TRAINERS.archive = function(ctx){
     const f = filt(), fv = favs(), words = archFold(f.q).split(/\s+/).filter(Boolean);
     let r = INDEX.list.filter(e => (!f.mk || e.mk === f.mk) && (!f.f || e.f === f.f) && (!f.u || e.u === f.u) && (!f.b || e.b === f.b) &&
       (!f.lv || e.lv === +f.lv) && (!f.lyr || e.lyr) && (!f.fav || fv.has(e.id)) && words.every(w => e.hay.includes(w)));
+    if(quick === "dance") r = r.filter(archDance);
     if(quick === "recent"){ const rec = store.get("arch.recent", []); r = rec.map(byId).filter(e => e && r.includes(e)); return r; }
     const cmp = { name: (a, b) => a.t.localeCompare(b.t, "tr"), makam: (a, b) => a.mkn.localeCompare(b.mkn, "tr") || a.t.localeCompare(b.t, "tr"),
                   easy: (a, b) => a.lv - b.lv || a.n - b.n, short: (a, b) => a.s - b.s }[f.sort] || ((a, b) => a.t.localeCompare(b.t, "tr"));
@@ -127,7 +131,7 @@ TRAINERS.archive = function(ctx){
     if(!INDEX) return;
     store.set("arch.filter", filt());
     const r = results(), fv = favs();
-    $("arquick").innerHTML = [["all", L("Bütün eserler", "All pieces")], ["recent", L("Son açtıklarım", "Recently opened")], ["fav", L("Favorilerim", "My favourites") + " (" + fv.size + ")"]]
+    $("arquick").innerHTML = [["all", L("Bütün eserler", "All pieces")], ["dance", L("Oyun havaları", "Dance tunes")], ["recent", L("Son açtıklarım", "Recently opened")], ["fav", L("Favorilerim", "My favourites") + " (" + fv.size + ")"]]
       .map(([k, t]) => `<button type="button" class="chipbtn" data-quick="${k}" aria-pressed="${quick === k || (k === "fav" && quick === "all" && $("arffav").checked) ? "true" : "false"}">${t}</button>`).join("");
     $("arcount").textContent = r.length + L(" eser", " pieces") + (r.length !== INDEX.list.length ? L(" bulundu", " found") : "");
     $("arrows").innerHTML = r.length ? r.slice(0, shown).map(e => row(e, fv)).join("") :
@@ -144,7 +148,7 @@ TRAINERS.archive = function(ctx){
   $("armore").addEventListener("click", () => { shown += 40; renderList(); });
   $("arquick").addEventListener("click", e => {
     const b = e.target.closest("[data-quick]"); if(!b) return;
-    quick = b.dataset.quick === "recent" ? "recent" : "all";
+    quick = b.dataset.quick === "recent" || b.dataset.quick === "dance" ? b.dataset.quick : "all";
     $("arffav").checked = b.dataset.quick === "fav";
     shown = 40; renderList();
   });
@@ -228,7 +232,7 @@ TRAINERS.archive = function(ctx){
           <button type="button" class="stopbtn" id="arab" aria-pressed="false">A–B</button>
           <button type="button" class="stopbtn" id="ardem" aria-pressed="false">${L("Dem", "Drone")}</button>
           <label class="arsel">${L("Eşlik", "Accomp.")} <select id="aracc" aria-label="${L("Eşlik", "Accompaniment")}">
-            <option value="off">${L("Sessiz", "None")}</option><option value="met">${L("Metronom", "Metronome")}</option><option value="usul">${L("Usul (düm-tek)", "Usul (düm-tek)")}</option></select></label>
+            <option value="off">${L("Sessiz", "None")}</option><option value="met">${L("Metronom", "Metronome")}</option><option value="usul">${L("Usul (düm-tek)", "Usul (düm-tek)")}</option><option value="band">${L("Orkestra (darbuka, bas, ud)", "Band (darbuka, bass, oud)")}</option></select></label>
           <button type="button" class="stopbtn" id="armute" aria-pressed="false">${L("Melodiyi kapat", "Mute melody")}</button>
         </div>
         <div class="pbar">
@@ -506,6 +510,7 @@ TRAINERS.archive = function(ctx){
   function startAcc(kind, t0, beatMs, from, to){
     stopAcc();
     if(kind === "off") return;
+    if(kind === "band") return startBand(t0, beatMs, from, to);
     const a = SK.audioCtx(), strokes = [], b0 = cur.beatAt[from], b1 = cur.beatAt[to];
     cur.ms.forEach(m => {
       const mb = cur.beatAt[m.from], me = cur.beatAt[m.to];
@@ -525,7 +530,37 @@ TRAINERS.archive = function(ctx){
       if(next >= strokes.length){ clearInterval(accTimer); accTimer = null; }
     }, 25);
   }
-  function stopAcc(){ if(accTimer){ clearInterval(accTimer); accTimer = null; } }
+  // Orkestra: band.js'in darbuka, bas ve ud olayları ölçü ölçü (usul kalıbı ya da ölçünün vuruş grupları), kök karar perdesi
+  let accOut = null;
+  function startBand(t0, beatMs, from, to){
+    const a = SK.audioCtx(), b0 = cur.beatAt[from], b1 = cur.beatAt[to], bars = [];
+    cur.ms.forEach(m => {
+      const mb = cur.beatAt[m.from], me = cur.beatAt[m.to];
+      if(me <= b0 || mb >= b1) return;
+      const [, num, den, uname] = m.meter, id = archFold(uname).replace(/[^a-z]/g, "") || cur.e.u;
+      const known = USULS.some(u => u.id === id && u.meter === num + "/" + den);
+      bars.push({ startMs: (mb - b0)*beatMs, unitMs: 4/den*beatMs, usul: known ? id : null, strokes: archUsul(id, num, den) });
+    });
+    const mkId = cur.tr && cur.tr.steps ? null : archMakam(cur.e.mk), mk = mkId ? makamById(mkId) : null;
+    const end = (b1 - b0)*beatMs, evs = bandEventsFor(bars, mk, cur.karar, {}).filter(e => e.t >= -1 && e.t < end - 1);
+    const o = { freq: c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c), micSafe: false, vol:{ drum:0.9, bass:0.8, chord:0.6 } };
+    accOut = a.createGain(); accOut.gain.value = 0.8; accOut.connect(a.destination);
+    const out = accOut;
+    ctx.setBandFreqs(bandChordFreqs(o, cur.karar, fifthOf(mk, cur.karar)));
+    let next = 0;
+    accTimer = setInterval(() => {
+      const now = performance.now();
+      while(next < evs.length && t0 + evs[next].t < now + 150){
+        const ev = evs[next++];
+        bandPlay(a, out, ev, a.currentTime + Math.max(0, (t0 + ev.t - now)/1000), o);
+      }
+      if(next >= evs.length){ clearInterval(accTimer); accTimer = null; }
+    }, 25);
+  }
+  function stopAcc(){
+    if(accTimer){ clearInterval(accTimer); accTimer = null; }
+    if(accOut){ const g = accOut; accOut = null; g.gain.setTargetAtTime(0, SK.audioCtx().currentTime, 0.02); setTimeout(() => g.disconnect(), 300); ctx.setBandFreqs([]); }
+  }
   // Dem: karar perdesinde dron (dron aralığına oktavla taşınır)
   function setDem(on){
     S.dem = on;

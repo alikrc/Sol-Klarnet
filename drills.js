@@ -724,6 +724,18 @@ TRAINERS.progress = function(ctx){
     if(c.length) parts.push(L("son " + c.length + " çarpmada başarı %" + pct, "grace notes, last " + c.length + ": " + pct + "%"));
     return parts.join(" · ") || "—";
   }
+  // Deşifre: seviye başına en iyi; dikte: tür ve seviye başına en iyi (10 soruda)
+  function readLine(){
+    const sb = store.get("sight.best", {}), db = store.get("dict.best", {}), parts = [];
+    Object.entries(sb).forEach(([lv, v]) => parts.push(L("deşifre seviye ", "sight-reading level ") + lv + " <strong>%" + v + "</strong>"));
+    Object.entries(db).forEach(([k, v]) => parts.push((k.startsWith("melody") ? L("ezgi diktesi ", "melodic dictation ") : L("ritim diktesi ", "rhythm dictation ")) + k.slice(-1) + " <strong>" + v + "/10</strong>"));
+    return parts.join(" · ") || "—";
+  }
+  // Eşlik: çalınan ölçü toplamı ve en iyi usule oturma
+  function bandLine(){
+    const h = store.get("band.hist", []), g = h.filter(x => x.grid != null).map(x => x.grid);
+    return h.length ? h.reduce((a, x) => a + x.bars, 0) + L(" ölçü", " bars") + (g.length ? " · " + L("en iyi usule oturma ", "best groove ") + "<strong>%" + Math.max(...g) + "</strong>" : "") : "—";
+  }
   // İlerleme sayfası: ritim, kulak, seyir ve eser sonuçları
   function moreStats(){
     const rh = store.get("rhythm.hist", []), ear = store.get("ear.best", {}), sy = store.get("seyir.hist", []), pb = store.get("piece.best", {});
@@ -739,6 +751,8 @@ TRAINERS.progress = function(ctx){
       <div class="label">${L("Seyir (taksim)", "Seyir (taksim)")}</div><p>${sy.length ? L("son 10 ortalama ", "last 10 average ") + "<strong>" + avg(sy10) + "</strong> · " + Object.entries(syBy).map(([id, v]) => makamById(id).name + " " + v).join(" · ") : "—"}</p>
       <div class="label">${L("Hız", "Speed")}</div><p>${techLine()}</p>
       <div class="label">${L("Süsleme", "Ornaments")}</div><p>${ornLine()}</p>
+      <div class="label">${L("Deşifre ve dikte", "Sight-reading and dictation")}</div><p>${readLine()}</p>
+      <div class="label">${L("Eşlikle çalma", "Playing with the band")}</div><p>${bandLine()}</p>
       <div class="label">${L("Eserler (tempolu, en iyi)", "Pieces (in tempo, best)")}</div><p>${Object.entries(pb).map(([id, v]) => { const e = etudeById(id); return (e ? pick(e.name, LANG) : id) + " %" + v; }).join(" · ") || "—"}</p>`;
   }
   const P = $("pp-progress");

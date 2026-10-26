@@ -180,6 +180,7 @@ const TRAINERS = {
           <button type="button" role="radio" data-m="pitch">${L("Tiz mi pes mi", "Higher or lower")}</button>
           <button type="button" role="radio" data-m="abx">${L("Perde ayırt", "Perde ABX")}</button>
           <button type="button" role="radio" data-m="makam">${L("Makam tanı", "Makam ID")}</button>
+          <button type="button" role="radio" data-m="interval">${L("Aralık", "Interval")}</button>
         </div>
         <select id="ealevel" aria-label="${L("Seviye", "Level")}"></select>
         <button class="primary small" id="eastart" type="button">${L("Başlat", "Start")}</button>
@@ -190,7 +191,8 @@ const TRAINERS = {
     const LEVELS = {
       pitch: [],
       abx: [["1", L("Kolay (4–5 koma)", "Easy (4–5 commas)")], ["2", L("Orta (2–3 koma)", "Medium (2–3 commas)")], ["3", L("Zor (1 koma)", "Hard (1 comma)")]],
-      makam: [["basic", L("Temel 9 makam", "9 basic makams")], ["all", L("Bütün makamlar", "All makams")]]
+      makam: [["basic", L("Temel 9 makam", "9 basic makams")], ["all", L("Bütün makamlar", "All makams")]],
+      interval: [["bati", L("Batı aralıkları", "Western intervals")], ["makam", L("Makam aralıkları (koma)", "Makam intervals (commas)")]]
     };
     function setMode(m){
       mode = m; store.set("ear.mode", m); game = null;
@@ -241,7 +243,18 @@ const TRAINERS = {
       await g.play();
       if(game === g) stage.querySelectorAll(".opt").forEach(b => b.disabled = false);
     }
-    const ROUND = { pitch: pitchRound, abx: abxRound, makam: makamRound };
+    // Aralık: iki ses art arda; aralığın adını seç (Batı: yarım ses, makam: koma)
+    async function intervalRound(){
+      const g = game, iq = intervalQuestion($("ealevel").value);
+      g.q = { ans: String(iq.answer), done:false };
+      stage.innerHTML = `<div class="qcount">${L("Soru ", "Question ")}${g.k + 1}/12 · ${g.right} ${L("doğru", "correct")}</div>
+        <div class="qopts">${iq.choices.map(([n, nm]) => `<button class="opt" type="button" data-a="${n}" disabled>${pick(nm, LANG)}</button>`).join("")}</div>
+        <div class="pbar"><button class="stopbtn" type="button" data-again>${L("Tekrar dinle", "Listen again")}</button></div><div class="fb" aria-live="polite"></div>`;
+      g.play = async () => { await tone(iq.a, 800); await tone(iq.b, 900); };
+      await g.play();
+      if(game === g) stage.querySelectorAll(".opt").forEach(b => b.disabled = false);
+    }
+    const ROUND = { pitch: pitchRound, abx: abxRound, makam: makamRound, interval: intervalRound };
     $("eastart").addEventListener("click", () => {
       game = { k:0, right:0, sc: new Staircase(6, 0.25, 12) };
       ROUND[mode]();
@@ -268,13 +281,14 @@ const TRAINERS = {
         stage.innerHTML = `<div class="result"><div class="big">${g.right}</div><div>${L("art arda doğru", "in a row")}${rec ? " · " + L("yeni rekor", "new record") : ""}</div></div>`;
         game = null; return;
       }
-      const N = mode === "pitch" ? 30 : mode === "abx" ? 12 : Infinity;
+      const N = mode === "pitch" ? 30 : mode === "abx" || mode === "interval" ? 12 : Infinity;
       if(g.k >= N){
         if(mode === "pitch"){
           const th = g.sc.threshold() || g.sc.d, rec = saveBest("pitch", Math.round(th*100)/100, true);
           stage.innerHTML = `<div class="result"><div class="big">${ctx.num(th)}</div><div>${L("koma: ayırt edebildiğin en küçük fark", "commas: the smallest difference you can hear")}${rec ? " · " + L("yeni rekor", "new record") : ""}</div></div>
             <div class="muted">${th <= 1 ? L("Bir komayı duyabiliyorsun: Segâh ile Bûselik'i ayırmaya hazırsın.", "You can hear one comma: ready to tell Segâh from Bûselik.") : th <= 2.5 ? L("İyi; 1 komaya inmek için her gün birkaç tur yap.", "Good; a few rounds a day will get you to 1 comma.") : L("Kulak eğitimi zamanla gelişir; dronla uzun ton çalışmak çok yardımcı olur.", "Ear training improves over time; long tones over a drone help a lot.")}</div>`;
         }else{
+          if(mode === "interval") saveBest("interval." + $("ealevel").value, g.right, false);
           stage.innerHTML = `<div class="result"><div class="big">${g.right}/${g.k}</div><div>${L("doğru", "correct")}</div></div>`;
         }
         store.set("ear.rounds", (store.get("ear.rounds", 0)) + 1);
@@ -832,7 +846,12 @@ const TRAINER_STEPS = {
     async function ask(){
       if(!alive) return;
       if(k >= st.n){ stage.innerHTML = `<div class="result"><div class="big">${right}/${st.n}</div><div>${L("doğru", "correct")}</div></div>`; return done({ v:right }); }
-      if(st.mode === "makam"){
+      if(st.mode === "interval"){
+        const iq = intervalQuestion(st.pool || "bati");
+        q = { ans: String(iq.answer), done:false };
+        stage.innerHTML = `<div class="qcount">${k + 1}/${st.n}</div><div class="qopts">${iq.choices.map(([n, nm]) => `<button class="opt" type="button" data-a="${n}" disabled>${pick(nm, LANG)}</button>`).join("")}</div><div class="fb"></div>`;
+        q.play = async () => { await tone(iq.a, 800); await tone(iq.b, 900); };
+      }else if(st.mode === "makam"){
         const qq = makamChoices(st.pool), mk = makamById(qq.answer);
         q = { ans: qq.answer, done:false };
         stage.innerHTML = `<div class="qcount">${k + 1}/${st.n}</div><div class="qopts">${qq.choices.map(id => `<button class="opt" type="button" data-a="${id}" disabled>${makamById(id).name}</button>`).join("")}</div><div class="fb"></div>`;

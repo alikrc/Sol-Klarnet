@@ -19,22 +19,27 @@
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // ---- İskelet ----
-  // On bir alıştırma beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
+  // Alıştırmalar beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
   // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
-  const TABS = [["lessons","Dersler"],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
-                ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],
-                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
-  const GROUPS = [["lessons","Dersler",["lessons","videos"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","staffmap","long","rhythm","hiz","susleme"]],
-                  ["makam","Makam",["makam","mimic","seyir","ear"]],
-                  ["pieces",L("Eserler", "Pieces"),["archive","piece","convert","rec"]],
+  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
+                ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
+                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
+  const GROUPS = [["lessons","Dersler",["lessons","roadmap","videos"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","staffmap","desifre","long","rhythm","hiz","susleme"]],
+                  ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
+                  ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
   const tabName = id => TABS.find(t => t[0] === id)[1];
   // Ana sayfa kartlarındaki kısa açıklamalar
   const BLURB = {
     lessons: L("Adım adım dersler, mikrofonla değerlendirilir", "Step-by-step lessons, checked with the microphone"),
+    roadmap: L("Sıfırdan ustalığa altı aşama: neredesin, ne kaldı?", "Six stages from zero to mastery: where are you, what's left?"),
+    desifre: L("Görmediğin notayı ilk seferde çal", "Play music you've never seen, first time"),
+    dikte: L("Duyduğun ritmi ve ezgiyi yaz", "Write down the rhythm and tune you hear"),
+    band: L("Darbuka, bas ve udla birlikte çal", "Play with darbuka, bass and oud"),
+    kulaktan: L("Usta kaydını yavaşlat, döngüye al, çıkar", "Slow down, loop and learn a master's recording"),
     quiz: L("Notaları ve parmakları ezberle: çal, bul, oku", "Memorise notes and fingerings: play, find, read"),
     staffmap: L("Hangi nota dizekte nerede: Si4 mü, Si5 mi?", "Where each note sits: B4 or B5?"),
     long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
@@ -44,7 +49,7 @@
     makam: L("Makam dizisini çık ve in", "Play the makam scale up and down"),
     mimic: L("Duyduğun ezgiyi tekrar çal", "Play back the phrase you hear"),
     seyir: L("Serbest çal, seyrini gör", "Play freely, see your seyir"),
-    ear: L("Koma farklarını duymayı öğren", "Learn to hear comma differences"),
+    ear: L("Koma farklarını ve aralıkları duymayı öğren", "Learn to hear commas and intervals"),
     archive: L("2200 eser: ara, dinle, yavaşlat, birlikte çal", "2200 pieces: search, listen, slow down, play along"),
     piece: L("Etütleri ve kendi eserlerini çal", "Play études and your own pieces"),
     convert: L("PDF, resim ya da sesten esere", "From a PDF, picture or recording to a piece"),
@@ -59,26 +64,76 @@
     <p>Bir karta dokun, alıştırma açılır. Üstteki sekmeler aynı gruptaki diğer alıştırmalardır; “‹ Çalışma” ana sayfaya döner.
       Çoğu alıştırma mikrofon ister: sağ üstteki <b>Mikrofon</b>'a bas. Her alıştırmanın başında kendi “Nasıl kullanılır?” notu var.</p>
     <p><b>Kısa yol haritası:</b></p>
-    <ol><li>Her gün Dersler → Bugünün çalışması.</li>
+    <ol><li>Her gün Dersler → Bugünün çalışması. Nerede olduğunu Yol haritası gösterir.</li>
       <li>Bir nota hep pes ya da tiz çıkıyorsa Uzun ton, sonra Kayıt ile kendini dinle.</li>
       <li>Parmaklar yavaşsa Hız.</li>
-      <li>Makamı oturtmak için Dizi → Taklit → Seyir.</li></ol>`,
+      <li>Makamı oturtmak için Dizi → Taklit → Seyir.</li>
+      <li>Oyun havası için Eşlik'te darbukayla çal; ustaları Kulaktan çıkar ile yavaşlatıp dinle.</li></ol>`,
     `<p><b>You don't need all of them.</b> Follow <b>Lessons</b> in order every day; lessons open the exercise you need when it's time.
       The other cards are for working on one topic on its own.</p>
     <p>Tap a card to open the exercise. The tabs at the top are the other exercises in the same group; “‹ Practice” goes back.
       Most exercises need the microphone: tap <b>Microphone</b> at the top right. Each exercise has its own “How to use” note.</p>
     <p><b>A simple route:</b></p>
-    <ol><li>Every day: Lessons → Today's practice.</li>
+    <ol><li>Every day: Lessons → Today's practice. The Roadmap shows where you are.</li>
       <li>If a note keeps coming out flat or sharp: Long tone, then listen to yourself with Recording.</li>
       <li>If your fingers are slow: Speed.</li>
-      <li>To settle a makam: Scale → Mimic → Seyir.</li></ol>`);
+      <li>To settle a makam: Scale → Mimic → Seyir.</li>
+      <li>For dance tunes, play with the darbuka in Play-along; slow masters down in Learn by ear.</li></ol>`);
   const HELP = {
-    lessons: L(`<p><b>Ne işe yarar:</b> Sıfırdan ileri seviyeye adım adım 59 ders. Her ders birkaç adımdır: oku, dinle, çal.</p>
+    roadmap: L(`<p><b>Ne işe yarar:</b> Uzun yolu görmek: sıfırdan ustalığa altı aşama, her birinde dersler ve ölçülen kilometre taşları.</p>
+      <ol><li>Üstte hedef tarzını seç: oyun havaları seçersen Trakya ve Roman aşaması makamlardan önce gelir.</li>
+        <li>“Bu hafta” kaç gün hedefine ulaştığını, “Bu haftanın odağı” sıradaki dersi ve eksik ilk kilometre taşını gösterir.</li>
+        <li>Bir kilometre taşına dokun: ilgili alıştırma açılır. Taşlar oradaki en iyi sonucundan hesaplanır.</li>
+        <li>Tahmin son dört haftadaki hızına göredir; yeterli veri yoksa haftada 5 gün, günlük hedef kadar çalışacağın varsayılır.</li></ol>`,
+      `<p><b>What it's for:</b> seeing the long road: six stages from zero to mastery, each with lessons and measured milestones.</p>
+      <ol><li>Choose your goal style at the top: with dance tunes, the Thracian and Roman stage comes before the makams.</li>
+        <li>“This week” shows how many days you reached your goal; “This week's focus” shows the next lesson and the first missing milestone.</li>
+        <li>Tap a milestone to open its exercise. Milestones come from your best result there.</li>
+        <li>The estimate uses your pace over the last four weeks; without enough data it assumes 5 days a week at your daily goal.</li></ol>`),
+    desifre: L(`<p><b>Ne işe yarar:</b> Notayı ilk görüşte okuyup çalmak (deşifre).</p>
+      <ol><li>Seviyeyi seç: 1 ve 2 Batı notaları, 3 ve 4 makam perdeleri ve aksak ölçüler.</li>
+        <li>“Yeni ezgi”ye bas. İnceleme süresi boyunca notaya bak; süre bitince bir ölçü sayım çalar, sonra tempoda çal.</li>
+        <li>Durma, geri dönme: yanlışı geç, tempoyu tut. Bitince doğru nota oranı görünür ve “Doğrusunu dinle” açılır.</li>
+        <li>Bir seviyede üç tur üst üste %80'i geçince sonrakine geç.</li></ol>`,
+      `<p><b>What it's for:</b> reading and playing music at first sight.</p>
+      <ol><li>Choose a level: 1 and 2 are Western notes, 3 and 4 makam perdes and limping metres.</li>
+        <li>Press “New tune”. Look at the score during the preview; then a one-bar count-in plays and you play in tempo.</li>
+        <li>Don't stop or go back: let mistakes go and keep the tempo. Afterwards you see the share of correct notes and “Hear it” unlocks.</li>
+        <li>Move up after 80% three rounds in a row.</li></ol>`),
+    dikte: L(`<p><b>Ne işe yarar:</b> Duyduğunu notaya dökmek: kulaktan çalmanın ve kulaktan çıkarmanın temeli.</p>
+      <ol><li><b>Ritim:</b> bir ölçü sayımdan sonra kısa bir ritim çalar; dört nota arasından duyduğunu seç.</li>
+        <li><b>Ezgi:</b> makamdan kısa bir ezgi çalar; ilk nota verilir. Kalan notaları sırayla perde düğmelerinden seç ya da mikrofon açıkken klarnetle çal.</li>
+        <li>“Tekrar dinle” istediğin kadar çalar. Yanlışta doğrusu dizekte gösterilir.</li></ol>`,
+      `<p><b>What it's for:</b> writing down what you hear: the basis of playing and learning by ear.</p>
+      <ol><li><b>Rhythm:</b> after a one-bar count-in a short rhythm plays; pick it from four scores.</li>
+        <li><b>Melody:</b> a short makam tune plays; the first note is given. Pick the rest in order from the perde buttons, or play them on the clarinet with the mic on.</li>
+        <li>“Listen again” replays as often as you like. When wrong, the answer is shown on the staff.</li></ol>`),
+    band: L(`<p><b>Ne işe yarar:</b> Darbuka, bas ve udla birlikte çalmak: oyun havasını usule oturtmanın en hızlı yolu.</p>
+      <ol><li>Usulü (Roman havası, karşılama, çiftetelli, kasap, Rumeli ya da klasik usuller) ve makamı seç; tempo usulün birimidir (9/8'de sekizlik).</li>
+        <li>Başlat'a bas; grup döngüde çalar. Üstüne etüdü, bildiğin bir havayı ya da doğaçlamanı çal. “Akor değişsin” bası ve udu durak ile güçlü arasında gezdirir.</li>
+        <li>Mikrofon açıksa ve “değerlendir” seçiliyse durdurunca usule oturma yüzden ve seyir puanı görünür.</li>
+        <li>Kulaklık kullan ya da Ayarlar'da Hoparlör modunu aç: mikrofon grubu değil seni duysun. Etüt ve eserlerde ve nota arşivinde de “orkestra” eşliği var.</li></ol>`,
+      `<p><b>What it's for:</b> playing with darbuka, bass and oud: the fastest way to get a dance tune into the groove.</p>
+      <ol><li>Pick the usul (Roman havası, karşılama, çiftetelli, kasap, Rumeli or a classical usul) and the makam; the tempo counts the usul's unit (eighths in 9/8).</li>
+        <li>Press Start; the band loops. Play an étude, a tune you know or improvise on top. “Chord changes” moves bass and oud between the tonic and the dominant.</li>
+        <li>With the mic on and “assess” ticked, stopping shows how well you sat in the groove and a seyir score.</li>
+        <li>Use headphones or Speaker mode in Settings so the mic hears you, not the band. Études & pieces and the score archive also have a “band” accompaniment.</li></ol>`),
+    kulaktan: L(`<p><b>Ne işe yarar:</b> Usta kayıtlarından kulakla öğrenmek (Trakya ve Roman geleneğinde asıl öğrenme yolu).</p>
+      <ol><li>“Ses / video dosyası aç” ile telefondaki kaydı seç (MP3, M4A, WAV, MP4…). Dosya cihazdan çıkmaz.</li>
+        <li>Dalga biçimine dokun: oradan çalar. Parmağını sürükle: o bölge seçilir ve döngüye girer. A ve B düğmeleri de çalan yerden seçer.</li>
+        <li>Hızı düşür (%50 iyi bir başlangıç): perde değişmez. Kayıt başka ahenkteyse “Perde” ve “İnce ayar” ile klarnetine uydur.</li>
+        <li>Alttaki şerit çalan yerin perdesini yazar. İşaret koyarak cümleleri ayır; “Seçili bölgeyi notaya dök” notayı Çevir'de açar.</li></ol>`,
+      `<p><b>What it's for:</b> learning by ear from masters' recordings (the real way of learning in the Thracian and Roman tradition).</p>
+      <ol><li>Use “Open an audio / video file” to choose a recording on your phone (MP3, M4A, WAV, MP4…). The file never leaves the device.</li>
+        <li>Tap the waveform to play from there. Drag to select a passage; it loops. The A and B buttons select from the playing position too.</li>
+        <li>Lower the speed (50% is a good start): the pitch stays the same. If the recording is in another key, match your clarinet with “Pitch” and “Fine”.</li>
+        <li>The strip below shows the perde being played. Add markers to split phrases; “Turn the selection into notes” opens the notes in Convert.</li></ol>`),
+    lessons: L(`<p><b>Ne işe yarar:</b> Sıfırdan ileri seviyeye adım adım 72 ders. Her ders birkaç adımdır: oku, dinle, çal.</p>
       <ol><li>Üstteki “Bugünün çalışması” o gün ne çalışacağını söyler; oradan başla.</li>
         <li>Bir derse dokun, adımları sırayla geç. Dinleme adımında önce örneği dinle.</li>
         <li>Çalma adımında mikrofonu aç ve çal; uygulama seni dinler, geçince sonraki adım açılır.</li>
         <li>Bir ders bitince sonraki ders açılır. Takılırsan dersi tekrar et.</li></ol>`,
-      `<p><b>What it's for:</b> 59 step-by-step lessons from zero to advanced. Each lesson has a few steps: read, listen, play.</p>
+      `<p><b>What it's for:</b> 72 step-by-step lessons from zero to advanced. Each lesson has a few steps: read, listen, play.</p>
       <ol><li>“Today's practice” at the top tells you what to work on today; start there.</li>
         <li>Tap a lesson and go through its steps. On listening steps, listen to the example first.</li>
         <li>On playing steps, turn on the microphone and play; the app listens and opens the next step when you pass.</li>
@@ -163,11 +218,13 @@
         <li>Play freely like a taksim until the time is up.</li>
         <li>The app tells you where you dwelt, whether you left the scale, whether you stressed the dominant and whether you ended on the tonic.</li></ol>`),
     ear: L(`<p><b>Ne işe yarar:</b> Koma farklarını duymayı öğrenmek. Klarnet gerekmez, kulaklık önerilir.</p>
-      <ol><li><b>Tiz mi pes mi:</b> İki ses çalar; ikincisi tiz mi pes mi seç. Bildikçe fark küçülür, sonunda duyabildiğin en küçük fark görünür.</li>
+      <ol><li><b>Aralık:</b> İki ses art arda çalar; aralığın adını seç (Batı: ikili, üçlü…; makam: bakiye, mücenneb, tanini, artık ikili).</li>
+        <li><b>Tiz mi pes mi:</b> İki ses çalar; ikincisi tiz mi pes mi seç. Bildikçe fark küçülür, sonunda duyabildiğin en küçük fark görünür.</li>
         <li><b>Perde ayırt:</b> A ve B perdelerini dinle, sonra X hangisiydi seç.</li>
         <li><b>Makam tanı:</b> Kısa bir ezgi dinle, makamını seç.</li></ol>`,
       `<p><b>What it's for:</b> learning to hear comma differences. No clarinet needed; headphones help.</p>
-      <ol><li><b>Higher or lower:</b> two notes play; choose whether the second is higher or lower. The gap shrinks as you get it right, and finally shows the smallest difference you can hear.</li>
+      <ol><li><b>Interval:</b> two notes play one after the other; name the interval (Western: seconds, thirds…; makam: bakiye, mücenneb, tanini, augmented second).</li>
+        <li><b>Higher or lower:</b> two notes play; choose whether the second is higher or lower. The gap shrinks as you get it right, and finally shows the smallest difference you can hear.</li>
         <li><b>Tell perdes apart:</b> listen to A and B, then say which one X was.</li>
         <li><b>Name the makam:</b> listen to a short phrase and pick its makam.</li></ol>`),
     archive: L(`<p><b>Ne işe yarar:</b> SymbTr koleksiyonundaki 2200 eseri bulup notasından çalışmak.</p>
@@ -259,6 +316,8 @@
       <button type="button" class="hresume" id="hresume"></button>
       <button type="button" class="hfeat" data-open="archive"><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
+      <button type="button" class="hfeat" data-open="band"><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
+        <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
       ${GROUPS.map(([g, name, members]) => `<section class="hgroup" aria-label="${name}">
         ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
         <div class="hcards">${members.map(card).join("")}</div></section>`).join("")}
@@ -285,7 +344,8 @@
         <div class="tbody" id="tmetbody" hidden>
           <div class="reg thelp">${L("▶ ile başlat, ■ ile durdur. Tempoyu − / + ile ya da sayıyı yazarak değiştir. Usul seçersen düm ve tek vuruşları farklı sesle çalar; noktalar ölçüdeki yeri gösterir.", "Start with ▶, stop with ■. Change the tempo with − / + or by typing it. With an usul, düm and tek strokes sound different; the dots show where you are in the bar.")}</div>
           <label class="tfield"><span class="label">Usul</span>
-            <select id="usul" aria-label="Usul">${USULS.map(u => `<option value="${u.id}">${u.name} ${u.meter}</option>`).join("")}</select></label>
+            <select id="usul" aria-label="Usul"><optgroup label="${L("Klasik usuller", "Classical usuls")}">${USULS.filter(u => !u.halk).map(u => `<option value="${u.id}">${u.name} ${u.meter}</option>`).join("")}</optgroup>
+              <optgroup label="${L("Oyun havaları", "Dance tunes")}">${USULS.filter(u => u.halk).map(u => `<option value="${u.id}">${u.name} ${u.meter}</option>`).join("")}</optgroup></select></label>
           <div class="tfield"><span class="label">Tempo</span>
             <div class="stepper">
               <button class="mini" type="button" data-tempo="-4" aria-label="${L("Yavaşlat", "Slower")}">−</button>
@@ -556,20 +616,25 @@
   // Kayıt dinletilirken ya da dron çalarken mikrofon o sesi nota saymasın.
   // Dronun hoparlörden mikrofona sızan seviyesi son 10 saniyenin alt %10'luk dilimiyle (nefes aralarından) izlenir; bunun iki katından
   // güçlü ses öğrencinin sesidir (durağı dronla birlikte çalmak da ölçülür). Sızıntı düzeyindeki her ölçüm yok sayılır.
-  let playbackMute = false, droneLv = [];
+  // Eşlik grubu (band.js) çalarken ud ve basın perdeleri de aynı yolla ayıklanır (bandFreqs, duyulan Hz)
+  let playbackMute = false, droneLv = [], bandFreqs = [];
   SK.on("level", d => {
-    if(!drone) return;
+    if(!drone && !bandFreqs.length) return;
     droneLv.push(d.rms); if(droneLv.length > 220) droneLv.shift();
   });
   const droneFloor = () => droneLv.length < 10 ? Infinity : [...droneLv].sort((a,b) => a-b)[Math.floor(droneLv.length*0.1)];
   SK.ignore = (f, rms) => {
     if(playbackMute) return true;
-    if(!drone) return false;
+    if(!drone && !bandFreqs.length) return false;
     const floor = droneFloor();
     if(rms < floor*1.3) return true;
-    const c = 1200*Math.log2(f/drone.f), r = ((c % 1200) + 1200) % 1200;
-    return Math.min(r, 1200 - r) < 25 && !(rms > floor*2);
+    const near = g => { const c = 1200*Math.log2(f/g), r = ((c % 1200) + 1200) % 1200; return Math.min(r, 1200 - r) < 25; };
+    return ((drone && near(drone.f)) || bandFreqs.some(near)) && !(rms > floor*2);
   };
+  function setBandFreqs(fs){
+    if(fs.length && !bandFreqs.length && !drone) droneLv = [];
+    bandFreqs = fs.slice();
+  }
   document.addEventListener("visibilitychange", () => { if(document.hidden){ stopMet(); stopDrone(); } });
 
   // Günlük hedef: bugünkü sesli çalma süresi / hedef (dakika)
@@ -680,6 +745,7 @@
     droneOff: () => { if(drone) stopDrone(); },
     selectTab: id => selectTab(id, true),
     setPlaybackMute: v => { playbackMute = v; },
+    setBandFreqs,
     markResetting: () => { resetting = true; } };
   TABS.forEach(([id]) => { modules[id] = TRAINERS[id](ctx); });
 
