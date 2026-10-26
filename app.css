@@ -161,8 +161,7 @@ svg.chart .hole:focus-visible circle,svg.chart .key:focus-visible rect{stroke:va
 .sw.closed{background:var(--accent);border-color:var(--accent-ink)}
 .sw.key{border-radius:4px;width:18px;border-width:1px;background:var(--metal)}
 .sw.key.on{background:var(--accent);border-color:var(--accent-ink)}
-details.code{margin-top:10px;font-size:11.5px;color:var(--muted)}
-details.code summary{cursor:pointer}
+.fcodelab{margin-top:12px}
 .fcode{display:block;font-family:var(--mono);font-size:12px;color:var(--teal);
   background:var(--sunk);border-radius:8px;padding:8px 10px;margin-top:6px;overflow-x:auto;white-space:nowrap}
 
@@ -522,6 +521,29 @@ body:not([data-view="review"]) #reviewview,
 body[data-view="practice"] .strip, body[data-view="settings"] .strip, body[data-view="review"] .strip{display:none}
 body[data-view="practice"] .grid, body[data-view="settings"] .grid, body[data-view="review"] .grid{display:none}
 body[data-view="review"] .page{max-width:900px}
+/* Parmak şeması görünürken şerit ekranın altına yapışır: nota seçerken klarnet görünür kalsın.
+   Geniş ekranda şema Akort görünümünde de yan tarafta (aşağıdaki 1100px kuralı). */
+body[data-view="finger"] .strip{position:sticky;bottom:calc(var(--nav-h) + var(--sab) + 8px);z-index:10;
+  padding-top:12px;padding-bottom:4px;box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+body[data-view="finger"] .striphead{margin-bottom:6px}
+body[data-view="finger"] .striphead h2{margin:0}
+body[data-view="finger"] .striphead .reg,body[data-view="finger"] .kbdhint{display:none}
+body[data-view="finger"] .rail{padding-bottom:8px}
+body[data-view="finger"] .note{padding:6px;gap:2px}
+body[data-view="finger"] .note .pn{min-height:0}
+@media (min-width:1100px){
+  body[data-view="tune"] .strip{position:sticky;bottom:calc(var(--sab) + 12px);z-index:10;
+    padding-top:12px;padding-bottom:4px;box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+  body[data-view="tune"] .striphead{margin-bottom:6px}
+  body[data-view="tune"] .striphead h2{margin:0}
+  body[data-view="tune"] .striphead .reg,body[data-view="tune"] .kbdhint{display:none}
+  body[data-view="tune"] .rail{padding-bottom:8px}
+  body[data-view="tune"] .note{padding:6px;gap:2px}
+  body[data-view="tune"] .note .pn{min-height:0}
+}
+/* Yapışkan şerit şemanın altını örtmesin: şema şerit kadar kısalır */
+@media (min-width:768px){body[data-view="finger"] svg.chart{max-height:max(320px,min(640px,calc(100dvh - var(--bar-h) - 400px)))}}
+@media (min-width:1100px){body[data-view="tune"] svg.chart{max-height:max(320px,min(640px,calc(100dvh - var(--bar-h) - 400px)))}}
 
 /* Akort kartında makam bağlamı */
 .ctxrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
@@ -602,6 +624,7 @@ footer{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;max-wid
   .nav button{min-height:64px;padding:6px 4px}
   .page{padding:24px calc(24px + var(--sar)) calc(40px + var(--sab)) 24px;gap:18px}
   .card{padding:22px}
+  body[data-view="finger"] .strip{bottom:calc(var(--sab) + 12px)}
 }
 /* Geniş ekran: akort ve parmak şeması yan yana (ayrı "Parmak" sekmesine gerek kalmaz) */
 @media (min-width:1100px){

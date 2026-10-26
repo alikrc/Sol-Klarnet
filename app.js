@@ -222,10 +222,10 @@
   // Notanın parmakları arasında seçim: Temel / Alt. 1 / Alt. 2 …
   const altsEl = $("alts"), altNoteEl = $("altnote");
   let fingerList = [], fingerIdx = 0, fingerWritten = null;
-  // Talimat bölümü açılıp kapanabilir; tercih tarayıcıda saklanır
+  // Şemanın altındaki talimat ve açıklamalar açılıp kapanabilir; varsayılan kapalı, tercih tarayıcıda saklanır
   const detailEl = $("fingerdetail"), altCountEl = $("altcount");
-  detailEl.open = store.get("detailOpen", true);
-  detailEl.addEventListener("toggle", () => store.set("detailOpen", detailEl.open));
+  detailEl.open = store.get("fingerMoreOpen", false);
+  detailEl.addEventListener("toggle", () => store.set("fingerMoreOpen", detailEl.open));
 
   function showFingerings(list, written){
     fingerList = list; fingerWritten = written; fingerIdx = 0;
