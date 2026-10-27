@@ -399,16 +399,39 @@ TRAINERS.mimic = function(ctx){
 };
 
 // ======== Kayıt ve nota dökümü ========
+// Kayıt geçmişi (IndexedDB "sol-klarnet"): recMeta { id, ts, dur, makam, sum (skills.js recSummary), trace (seyreltilmiş), notes, keep? },
+// recAudio: id → ses dosyası. En yeni REC_KEEP kayıt ve ★ ile saklananlar tutulur.
+const REC_KEEP = 50;
+const RECDB = (() => {
+  let dbp = null;
+  const req = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open("sol-klarnet", 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore("recMeta", { keyPath:"id" }); r.result.createObjectStore("recAudio"); };
+    r.onsuccess = () => res(r.result); r.onerror = () => { dbp = null; rej(r.error); };
+  }));
+  const write = async fn => { const db = await open(); return new Promise((res, rej) => {
+    const t = db.transaction(["recMeta", "recAudio"], "readwrite"); t.oncomplete = () => res(); t.onerror = t.onabort = () => rej(t.error); fn(t);
+  }); };
+  return {
+    async list(){ return req((await open()).transaction("recMeta").objectStore("recMeta").getAll()); },
+    async audio(id){ return req((await open()).transaction("recAudio").objectStore("recAudio").get(id)); },
+    put(meta, blob){ return write(t => { t.objectStore("recMeta").put(meta); if(blob) t.objectStore("recAudio").put(blob, meta.id); }); },
+    del(id){ return write(t => { t.objectStore("recMeta").delete(id); t.objectStore("recAudio").delete(id); }); }
+  };
+})();
 TRAINERS.rec = function(ctx){
   const { SK, $, nn, num, sgn, needMic, setPlaybackMute, selectTab } = ctx;
   const P = $("pp-rec");
   P.innerHTML = `
-    <p class="pdesc">${L("Çaldığını kaydet; sonra dinle ve çalınan notaları koma sapmalarıyla gör. Kayıt cihazda tutulur ve sayfa kapanınca silinir; saklamak ya da hocana göndermek için “Kaydı kaydet / paylaş”ı kullan.", "Record your playing, then listen and see the notes with their comma deviations. The recording stays on the device and is discarded when the page closes; use “Save / share the recording” to keep it or send it to your teacher.")}</p>
+    <p class="pdesc">${L("Çaldığını kaydet; sonra dinle ve çalınan notaları koma sapmalarıyla gör. Kayıtlar bu cihazda tarihle saklanır (son " + REC_KEEP + "; ★ ile işaretlediklerin silinmez). Eski bir kaydınla bugünkünü yan yana dinleyip perde eğrilerini üst üste görebilirsin. Hocana göndermek için “Kaydı kaydet / paylaş”ı kullan.", "Record your playing, then listen and see the notes with their comma deviations. Recordings are kept on this device with their date (the last " + REC_KEEP + "; the ones you star are never removed). Listen to an old one next to today's and see both pitch curves on top of each other. Use “Save / share the recording” to send one to your teacher.")}</p>
     <div class="pbar">
       <button class="primary small" id="rcbtn" type="button">Kaydı başlat</button>
       <span class="ltclock small" id="rctime"></span>
     </div>
-    <div class="stage" id="rcstage"><div class="muted">Kayıt yok.</div></div>`;
+    <div class="stage" id="rcstage"><div class="muted">Kayıt yok.</div></div>
+    <div class="stage rccmp" id="rccmp" hidden></div>
+    <details class="rchist" id="rchistd" open><summary>${L("Kayıtlarım", "My recordings")} <small id="rchn"></small></summary><div id="rchist"></div></details>`;
   const stage = $("rcstage");
   let rec = null, notes = [], url = null, addTok = null;   // addTok: süren "Eserlere ekle" çözümü (yeni kayıt ya da sekmeden çıkış iptal eder)
   // Not sütunundaki kısa adlar; hata türleri kalın, bilgi türleri soluk
@@ -424,7 +447,7 @@ TRAINERS.rec = function(ctx){
     let mr = null;
     try{ mr = new MediaRecorder(stream); }catch(e){ mr = null; }
     // Ham ses de tutulur (en çok 3 dk): "Eserlere ekle" sesten ölçülü notaya çevirir
-    rec = { mr, chunks, frames:[], raw:[], glides:[], cap: SK.pcmCapture(180), t0: performance.now(), timer: setInterval(() => {
+    rec = { mr, chunks, frames:[], raw:[], glides:[], tq:[], save:true, cap: SK.pcmCapture(180), t0: performance.now(), timer: setInterval(() => {
       $("rctime").textContent = num((performance.now() - rec.t0)/1000) + " sn";
     }, 200) };
     if(mr){
@@ -492,6 +515,16 @@ TRAINERS.rec = function(ctx){
       <button class="stopbtn" id="rcpiece" type="button">${L("Eserlere ekle", "Add to pieces")}</button><span class="muted" id="rcmsg"></span></div>`;
     if(curve) curve.stop();
     curve = curveView($("rccurve"), { trace, issues, ctx:tctx, dur });
+    // Geçmişe kaydet: en az 3 sn ve bir nota (deneme gösterimleri r.save taşımaz)
+    if(r.save && dur >= 3000 && notes.length){
+      const meta = { id: Date.now(), ts: Date.now(), dur: Math.round(dur), makam: (SK.tuningMakam && SK.tuningMakam()) || null,
+        sum: recSummary(issues, r.tq), trace: thinTrace(trace), notes: notes.length };
+      (async () => {
+        const blob = url ? await (await fetch(url)).blob() : null;
+        try{ await RECDB.put(meta, blob); await prune(); }catch(e){ console.warn("kayıt saklanamadı", e); }
+        lastId = meta.id; histRender();
+      })();
+    }
     stage.querySelectorAll("[data-note]").forEach(b => b.addEventListener("click", () => SK.showNote(+b.dataset.note)));   // data-goto Akort'u açar
     if($("rclong")) $("rclong").addEventListener("click", () => selectTab("long"));
     stage.querySelector(".rtable tbody").addEventListener("click", e => { const tr = e.target.closest("tr[data-i]"); if(tr){ const t = notes[+tr.dataset.i].start; curve.show(t); seek(t); } });
@@ -687,11 +720,96 @@ TRAINERS.rec = function(ctx){
       stop(){ if(st.raf) cancelAnimationFrame(st.raf); st.raf = 0; }
     };
   }
-  window.addEventListener("resize", () => { if(curve) curve.draw(); });
+  window.addEventListener("resize", () => { if(curve) curve.draw(); if(cmpDraw) cmpDraw(); });
+
+  // ---- Kayıt geçmişi ve karşılaştırma ----
+  let lastId = null, histUrls = [], cmpDraw = null;
+  const fmtWhen = ts => new Date(ts).toLocaleString(LANG === "en" ? "en-GB" : "tr", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  const pctTxt = v => v == null ? "—" : "%" + v;
+  async function prune(){
+    const all = (await RECDB.list()).sort((a, b) => b.ts - a.ts);
+    for(const m of all.filter(m => !m.keep).slice(REC_KEEP)) await RECDB.del(m.id);
+  }
+  async function histRender(){
+    let all = [];
+    try{ all = (await RECDB.list()).sort((a, b) => b.ts - a.ts); }catch(e){ $("rchist").innerHTML = `<div class="muted">${L("Bu tarayıcıda kayıtlar saklanamıyor.", "Recordings can't be kept in this browser.")}</div>`; return; }
+    $("rchn").textContent = all.length || "";
+    if(!all.length){ $("rchist").innerHTML = `<div class="muted">${L("Henüz saklanan kayıt yok. 3 saniyeden uzun her kayıt buraya eklenir.", "No saved recordings yet. Every recording longer than 3 seconds is added here.")}</div>`; return; }
+    const base = recBaseline(all, Date.now(), all[0].id);
+    $("rchist").innerHTML = (base ? `<div class="pbar"><button class="primary small" type="button" data-cmp="${base.id}" data-with="${all[0].id}">${L("Son kaydı " + Math.max(1, Math.round((all[0].ts - base.ts)/864e5)) + " gün önceki kayıtla karşılaştır", "Compare the latest recording with one from " + Math.max(1, Math.round((all[0].ts - base.ts)/864e5)) + " days earlier")}</button></div>` : "") +
+      `<div class="tablewrap"><table class="rtable rchtab"><thead><tr><th>${L("Tarih", "Date")}</th><th>${L("Süre", "Length")}</th><th>Makam</th><th>${L("Yerinde", "On pitch")}</th><th>${L("Sapma", "Deviation")}</th><th>${L("Temizlik", "Clarity")}</th><th></th></tr></thead><tbody>
+      ${all.map((m, i) => `<tr${m.id === lastId ? ` class="now"` : ""}><td>${fmtWhen(m.ts)}</td><td>${num(m.dur/1000, 0)} ${L("sn", "s")}</td><td>${m.makam ? makamById(m.makam).name : "—"}</td>
+        <td>${pctTxt(m.sum.pct)}</td><td>${m.sum.dev == null ? "—" : num(m.sum.dev) + " k"}</td><td>${pctTxt(m.sum.clarity)}</td>
+        <td class="rchbtns">${i ? `<button class="stopbtn small" type="button" data-cmp="${m.id}" data-with="${all[0].id}">${L("Son kayıtla karşılaştır", "Compare with latest")}</button>` : ""}
+          <button class="stopbtn small${m.keep ? " on" : ""}" type="button" data-keep="${m.id}" title="${L("Sakla (silinmesin)", "Keep (never remove)")}" aria-label="${L("Sakla", "Keep")}">${m.keep ? "★" : "☆"}</button>
+          <button class="stopbtn small" type="button" data-del="${m.id}" aria-label="${L("Sil", "Delete")}">✕</button></td></tr>`).join("")}</tbody></table></div>`;
+  }
+  $("rchist").addEventListener("click", async e => {
+    const b = e.target.closest("button"); if(!b) return;
+    const all = await RECDB.list(), byId = id => all.find(m => m.id === +id);
+    if(b.dataset.keep){ const m = byId(b.dataset.keep); m.keep = !m.keep; await RECDB.put(m, null); return histRender(); }
+    if(b.dataset.del){ if(!confirm(_t("Bu kayıt silinsin mi?"))) return; await RECDB.del(+b.dataset.del); $("rccmp").hidden = true; return histRender(); }
+    if(b.dataset.cmp) showCompare(byId(b.dataset.cmp), byId(b.dataset.with));
+  });
+  // a eski, b yeni: sayılar, iki oynatıcı ve üst üste perde eğrileri (her iz kendi ilk notasından başlar)
+  async function showCompare(a, b){
+    if(!a || !b) return;
+    if(a.ts > b.ts) [a, b] = [b, a];
+    histUrls.forEach(u => URL.revokeObjectURL(u)); histUrls = [];
+    const src = async m => { const bl = await RECDB.audio(m.id); if(!bl) return null; const u = URL.createObjectURL(bl); histUrls.push(u); return u; };
+    const [ua, ub] = [await src(a), await src(b)], c = recCompare(a.sum, b.sum);
+    const cell = (lab, x, f, lowerTxt) => `<div><span class="label">${lab}</span>${x ? `${f(x.a)} → <b>${f(x.b)}</b> <small class="${x.same ? "muted" : x.better ? "good" : "bad"}">${x.same ? "=" : (x.diff > 0 ? "+" : "") + (lowerTxt ? num(x.diff) : x.diff)}${x.same ? "" : x.better ? " ↑" : " ↓"}</small>` : "—"}</div>`;
+    const days = Math.max(0, Math.round((b.ts - a.ts)/864e5));
+    const P = $("rccmp"); P.hidden = false;
+    P.innerHTML = `<div class="label">${L("Karşılaştırma", "Comparison")} · ${days ? days + L(" gün arayla", " days apart") : L("aynı gün", "same day")}</div>
+      <div class="kv">${cell(L("Yerinde nota", "Notes on pitch"), c.pct, pctTxt)}${cell(L("Ortalama sapma", "Average deviation"), c.dev, v => num(v) + " k", true)}${cell(L("Ses temizliği", "Tone clarity"), c.clarity, pctTxt)}</div>
+      <p class="muted small">${!c.pct ? "" : c.pct.same && (!c.dev || c.dev.same) ? L("Entonasyonda kayda değer fark yok.", "No notable difference in intonation.") : (c.pct.better || c.pct.same) && (!c.dev || c.dev.better || c.dev.same) ? L("Entonasyonun iyileşmiş.", "Your intonation has improved.") : c.pct.better || (c.dev && c.dev.better) ? L("Entonasyonda karışık sonuç: bir ölçü iyileşmiş, biri gerilemiş.", "Mixed intonation result: one measure improved, one slipped.") : L("Bu kayıtta entonasyon eskisinden zayıf; aynı ezgiyi dronla yavaş çalışmayı dene.", "Intonation is weaker than before here; try the same tune slowly with the drone.")}
+        ${L("Aynı ezgiyi ya da aynı makamı çaldığın kayıtlar karşılaştırılırsa fark daha anlamlı olur.", "The difference means more when both recordings are the same tune or makam.")}</p>
+      <div class="rccmpa">
+        <div><span class="label rcold">${L("Eski", "Older")} · ${fmtWhen(a.ts)}</span>${ua ? `<audio controls src="${ua}"></audio>` : `<div class="muted small">${L("ses yok", "no audio")}</div>`}</div>
+        <div><span class="label rcnew">${L("Yeni", "Newer")} · ${fmtWhen(b.ts)}</span>${ub ? `<audio controls src="${ub}"></audio>` : `<div class="muted small">${L("ses yok", "no audio")}</div>`}</div></div>
+      <canvas class="trace curve" id="rccmpc" aria-label="${L("İki kaydın perde eğrisi", "Pitch curves of both recordings")}"></canvas>
+      <div class="muted small">${L("Kesikli: eski kayıt · düz: yeni kayıt. İkisi de ilk notasından başlatıldı.", "Dashed: older · solid: newer. Both start at their first note.")}</div>`;
+    P.querySelectorAll("audio").forEach(au => { au.addEventListener("play", () => setPlaybackMute(true)); au.addEventListener("pause", () => setPlaybackMute(false)); });
+    const canvas = $("rccmpc");
+    const norm = tr => { const i = tr.findIndex(f => f.comma != null); if(i < 0) return []; const t0 = tr[i].t; return tr.slice(i).map(f => ({ t: f.t - t0, comma: f.comma })); };
+    const ta = norm(a.trace), tb = norm(b.trace);
+    cmpDraw = () => {
+      const dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
+      if(!W || !H || !canvas.isConnected) return;
+      canvas.width = Math.round(W*dpr); canvas.height = Math.round(H*dpr);
+      const g = canvas.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+      const cs = getComputedStyle(document.documentElement), col = n => cs.getPropertyValue(n).trim();
+      const vals = [...ta, ...tb].filter(f => f.comma != null).map(f => f.comma).sort((x, y) => x - y);
+      if(!vals.length) return;
+      const q = p => vals[Math.min(vals.length - 1, Math.floor(p*vals.length))];
+      let lo = q(0.02) - 3, hi = q(0.98) + 3; if(hi - lo < 12){ const m = (hi + lo)/2; lo = m - 6; hi = m + 6; }
+      const LEFT = 92, BOT = 16, span = Math.max(1000, ...[ta, tb].map(t => t.length ? t[t.length-1].t : 0));
+      const x = t => LEFT + t/span*(W - LEFT), y = c => 6 + (hi - c)/(hi - lo)*(H - BOT - 12);
+      g.font = "500 10px " + col("--ui"); g.textBaseline = "middle"; let lastY = -1e9;
+      for(const [c, name] of [...PERDES].reverse()){
+        if(c < lo || c > hi) continue;
+        const yy = y(c); g.strokeStyle = col("--line"); g.lineWidth = 1; g.beginPath(); g.moveTo(LEFT, yy); g.lineTo(W, yy); g.stroke();
+        if(yy - lastY >= 13){ g.fillStyle = col("--muted"); g.fillText(name, 8, yy); lastY = yy; }
+      }
+      const line = (tr, color, dash) => {
+        g.strokeStyle = color; g.lineWidth = 2; g.setLineDash(dash); g.beginPath(); let pen = false;
+        for(const f of tr){ if(f.comma == null){ pen = false; continue; } const xx = x(f.t), yy = Math.max(2, Math.min(H - BOT, y(f.comma))); if(pen) g.lineTo(xx, yy); else { g.moveTo(xx, yy); pen = true; } }
+        g.stroke(); g.setLineDash([]);
+      };
+      line(ta, col("--muted"), [5, 4]); line(tb, col("--accent"), []);
+      const step = [1, 2, 5, 10, 15, 30, 60, 120].map(v => v*1000).find(v => v/span*(W - LEFT) >= 36) || 300000;
+      g.fillStyle = col("--muted"); g.font = "500 10px " + col("--mono"); g.textBaseline = "bottom";
+      for(let t = 0; t <= span; t += step) g.fillText(num(t/1000, 0), x(t) + 2, H);
+    };
+    cmpDraw();
+    P.scrollIntoView({ block:"nearest" });
+  }
+  histRender();
   // Tarayıcı panelinde mikrofon olmadan denemek için (adrese ?debug eklenince)
   if(/[?&]debug(=|&|$)/.test(location.search)) window.SKDEBUG = Object.assign(window.SKDEBUG || {}, { recPresent: present });
   let prevW = null, gap = [];
-  SK.on("raw", d => { if(rec){ gap.push({ t:d.t, comma:d.comma }); rec.raw.push({ t:d.t, comma:d.comma }); } });
+  SK.on("raw", d => { if(rec){ gap.push({ t:d.t, comma:d.comma }); rec.raw.push({ t:d.t, comma:d.comma }); rec.tq.push({ rms:d.rms, clarity:d.clarity }); } });
   SK.on("note", d => {
     if(!rec) return;
     rec.frames.push({ t:d.t, written:d.r.written, comma:d.r.comma });
@@ -700,7 +818,7 @@ TRAINERS.rec = function(ctx){
   });
   SK.on("silence", d => { if(rec){ rec.frames.push({ t:d.t, written:null }); rec.raw.push({ t:d.t, comma:null }); prevW = null; gap = []; } });
   // Başka sekmeye geçilince kayıt arka planda sürmesin; döküm hazır olur
-  return { leave(){ addTok = null; if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
+  return { enter(){ histRender(); }, leave(){ addTok = null; if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
 };
 
 // ======== İlerleme ========

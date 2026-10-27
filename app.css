@@ -867,3 +867,16 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .badge.unit.got{border-color:var(--accent)}
 .badge em{font:600 10px var(--ui);color:var(--accent);font-style:normal;text-transform:uppercase}
 @media (hover:hover){.rmmile:hover{border-color:var(--teal)}}
+
+/* Kayıt geçmişi ve karşılaştırma */
+.rchist{margin-top:12px}
+.rchist summary{font-weight:600;cursor:pointer;margin-bottom:6px}
+.rchtab td{white-space:nowrap}
+.rchbtns{display:flex;gap:4px;justify-content:flex-end}
+.rchbtns .on{color:var(--accent);border-color:var(--accent)}
+.rccmpa{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:8px 0}
+.rccmpa audio{width:100%}
+.rccmpa .rcold{color:var(--muted)}
+.rccmpa .rcnew{color:var(--accent)}
+.rccmp small.good{color:var(--ok)}
+.rccmp small.bad{color:var(--accent)}

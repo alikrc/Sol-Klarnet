@@ -973,7 +973,44 @@ function intonationSummary(issues){
   return { total:issues.length, measured:m.length, ok, perdes };
 }
 
+// ---- Kayıt geçmişi ve karşılaştırma ----
+// Saklanan kaydın özeti: ölçülen nota sayısı, yerinde olanların oranı, ölçülen notaların ortalama |sapma|'sı (koma) ve
+// ses temizliği (perdeli karelerin netliği, toneQuality ölçeğinde). tq: [{ rms, clarity }] perdeli kareler.
+function recSummary(issues, tq){
+  const m = issues.filter(x => !x.short), s = intonationSummary(issues), t = toneQuality(tq || []);
+  return { notes: issues.length, measured: m.length, ok: s.ok, pct: m.length ? Math.round(s.ok/m.length*100) : null,
+    dev: m.length ? Math.round(SLEARN.mean(m.map(x => Math.abs(x.delta)))*100)/100 : null, clarity: t ? t.clarity : null };
+}
+// İki kaydın farkı (b − a; a eski, b yeni). better: o kalemde yeni kayıt daha iyi mi (sapmada küçük iyi)
+function recCompare(a, b){
+  // Sapmada 0,1 komadan, yüzdelerde 1 puandan küçük fark "aynı" sayılır
+  const d = (k, eps, lower) => { if(a[k] == null || b[k] == null) return null;
+    const diff = Math.round((b[k] - a[k])*100)/100, same = Math.abs(diff) < eps;
+    return { a: a[k], b: b[k], diff, same, better: !same && (lower ? diff < 0 : diff > 0) }; };
+  return { pct: d("pct", 1), dev: d("dev", 0.1, true), clarity: d("clarity", 1) };
+}
+// Karşılaştırma için eski kayıt: hedef günden (varsayılan 30 gün önce) en yakın, en az 7 gün önceki kayıt; yoksa en eskisi.
+// list: [{ id, ts }] (ts ms); kendisi (selfId) hariç
+function recBaseline(list, now, selfId = null, days = 30){
+  const xs = list.filter(r => r.id !== selfId && r.ts < now);
+  if(!xs.length) return null;
+  const old = xs.filter(r => now - r.ts >= 7*864e5), want = now - days*864e5;
+  const pool = old.length ? old : xs;
+  return pool.reduce((best, r) => Math.abs(r.ts - want) < Math.abs(best.ts - want) ? r : best);
+}
+// Perde izini saklamak için seyreltir: en çok step ms'de bir kare, koma iki ondalık; sessizlik (null) korunur
+function thinTrace(trace, step = 40){
+  const out = []; let last = -Infinity;
+  for(const f of trace){
+    if(f.comma == null){ if(out.length && out[out.length-1].comma != null) out.push({ t: Math.round(f.t), comma:null }); continue; }
+    if(f.t - last < step) continue;
+    last = f.t; out.push({ t: Math.round(f.t), comma: Math.round(f.comma*100)/100 });
+  }
+  return out;
+}
+
 if(typeof module !== "undefined") module.exports = {
+  recSummary, recCompare, recBaseline, thinTrace,
   INTON, INTON_ERRORS, firstIndexAt, cleanTrace, intonationIssues, intonationSummary,
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
