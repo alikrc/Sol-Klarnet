@@ -68,8 +68,8 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 
 ## İnsan gerektiren işler (kodla çözülemez)
 
-1. **Uzman doğrulaması:** Bir Sol klarnet hocası Ayarlar → Uzman kontrolü ekranından 124 parmağı, 19 makamın dizisini,
-   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. Ders metinleri ve 17 etüt de gözden geçirilmeli. Hız ünitesinin gam/arpej seçimi, hedef tempoları ve hızlı Hicaz etüdü
+1. **Uzman doğrulaması:** Bir Sol klarnet hocası Ayarlar → Uzman kontrolü ekranından 124 parmağı, 20 makamın (Nikriz dahil) dizisini,
+   seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. 72 dersin metinleri ve 24 etüt de gözden geçirilmeli. Hız ünitesinin gam/arpej seçimi, hedef tempoları ve hızlı Hicaz etüdü
    (`e-hiz-hicaz`) de kontrol edilmeli. Süslemeler (Uzman kontrolü → Süslemeler): tanımlar,
    örnek sesler, ölçüm eşikleri (`skills.js` `ORN`; ör. tril düzeni ≤ 0,2, çarpma 20–120 ms) ve iki süslemeli etüt.
    Yanlış bulunanlar `core.js` (FINGERINGS, ALT_FINGERINGS), `learn.js` (MAKAMS, SEYIR_TYPE, ICRA) ve
@@ -86,11 +86,26 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 6. **Repertuvar:** Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
    seçki eklenecekse lisans koşulları kontrol edilmeli.
 
-## Sonraki adım fikirleri
+## Sonraki adımlar (öncelik sırasıyla, 27 Ekim 2026)
 
-- Grupetto (çevirme) süslemesi; serbest çalmada ve taksimde (Seyir) süsleme tanıma
-
-- Nim perdeler için çeyrek ses parmakları (WFG `ocl_qt_1`)
+1. **Gerçek klarnetle deneme (proje sahibi):** Telefonda Eşlik, Kulaktan çıkar ve Trakya etütleri gerçek klarnetle
+   çalınmalı. Bakılacaklar: eşlik hoparlörden mikrofona sızıp nota sanılıyor mu (`practice.js` `bandFreqs` ayıklaması),
+   usule oturma yüzdesi gerçekçi mi (±60 ms), uzun dosyada yavaşlatma telefonda ne kadar sürüyor. Bulgulara göre düzeltilir.
+2. **Eski kaydınla karşılaştırma:** Kayıtlar tarihle saklanır; "1 ay önceki ve bugünkü" kayıt yan yana dinlenir, perde
+   eğrileri üst üste çizilir, entonasyon ve ses temizliği farkı sayıyla gösterilir. Kayıt altyapısı (Kayıt sekmesi,
+   `skills.js` `intonationIssues`) hazır.
+3. **Aralıklı tekrar:** Bitirilen derslerin adımları artan aralıklarla (1, 3, 7, 21 gün) günlük plana geri gelir;
+   başarısız tekrarda aralık kısalır. `lessons.js` `dailyPlan`'a tekrar kuyruğu eklenir.
+4. **Ünite sonu sınavları ve rozetler:** Her ünitenin sonunda karışık adımlardan bir sınav; geçince aşama rozeti
+   ("Trakya ve Roman ustası" gibi). Haftalık özet ve seri ödülleri. Yol haritasında rozetler görünür.
+5. **Daha fazla oyun havası:** Sirto, köçekçe, zeybek, Ağır Roman çeşitleri için etütler; eşlikte usul başına ikinci
+   darbuka çalışı ve dolgu (fill) ölçüleri; Roman havasında çarpmalı tekrar alıştırması.
+6. **Mağazaya çıkış:** Mağaza ekran görüntüleri, kısa ve uzun açıklama, tanıtım görseli (kodla hazırlanabilir);
+   Play Console hesabı, yükleme anahtarı ve kapalı test (proje sahibi). Ayrıntı: [TODO.md](TODO.md).
+7. **Süsleme ve perde:** Grupetto (çevirme) süslemesi; serbest çalmada ve taksimde (Seyir) süsleme tanıma; nim perdeler
+   için çeyrek ses parmakları (WFG `ocl_qt_1`).
+8. **Daha sonra:** Kamerayla duruş ve ağız kontrolü; hoca–öğrenci modu (ödev, kayda yorum); cihazlar arası eşitleme.
+   Son ikisi internet ister: önce gizlilik kararı ("uygulama internete bağlanmaz" ilkesi) verilmeli.
 
 
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/f9c1b6aa-5fdc-475c-914d-1701a7b8a2b9)
