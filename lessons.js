@@ -977,7 +977,7 @@ const HIZ = [
 
 // ---- Trakya ve Roman ünitesi ----
 // Oyun havaları: kasap havası (2/4), karşılama ve Roman havası (9/8), çiftetelli (8/8), Rumeli (7/8), Nikriz makamı,
-// Trakya üslubu (kayış, çarpma, düşüş) ve oyun havası öncesi taksim. Etütler repertoire.js'te (level 6), usuller learn.js'te.
+// sirto (2/4), köçekçe (aksak 9/8), zeybek (9/4), Ağır Roman ve çarpmalı tekrar, Trakya üslubu (kayış, çarpma, düşüş) ve oyun havası öncesi taksim. Etütler repertoire.js'te (level 6), usuller learn.js'te.
 const TRAKYA = [
   { id:"trakya-giris", unit:"trakya", notes:[],
     title:{ tr:"Trakya ve Roman klarneti, kasap havası", en:"Thracian and Roman clarinet, the kasap dance" },
@@ -1097,6 +1097,60 @@ const TRAKYA = [
       { type:"ornament", kind:"carpma", dir:"up", note:74, makam:"hicaz", comma:31, n:4 },
       { type:"ornament", kind:"dusus", note:74, makam:"hicaz", comma:31, n:3 },
       { type:"piece", id:"e-agir-roman", mode:"tempo", min:55 }
+    ] },
+  { id:"sirto-kocekce", unit:"trakya", notes:[], makam:"hicaz",
+    title:{ tr:"Sirto ve köçekçe", en:"Sirto and köçekçe" },
+    text:[
+      { tr:"Sirto Rumeli'den ve adalardan gelen 2/4'lük bir oyun havasıdır; kasaptan daha yaylıdır: ölçünün başı kısa-kısa-uzun sekizlik ve on altılıklarla sekerek ilerler.",
+        en:"The sirto is a 2/4 dance from Rumeli and the islands; it is springier than the kasap: the start of the bar skips forward in short-short-long eighths and sixteenths." },
+      { tr:"Köçekçeler köçeklerin dans ettiği oyun havası takımlarıdır; çoğu aksak 9/8'dir (2+2+2+3). Etüt Karcığar'dadır: Dügâh'ta Uşşak dörtlüsü, Nevâ'da Hicaz beşlisi (Hisar, Evç).",
+        en:"Köçekçe are suites of dance tunes for the köçek dancers; most are in limping 9/8 (2+2+2+3). The étude is in Karcığar: an Uşşak tetrachord on Dügâh and a Hicaz pentachord on Nevâ (Hisar, Evç)." }
+    ],
+    tips:[
+      { tr:"On altılıkları dille değil, bağlı ve hafif çal; vurgu ölçünün başında kalsın.", en:"Play the sixteenths slurred and light, not tongued; keep the accent at the start of the bar." }
+    ],
+    steps:[
+      { type:"rhythm", usul:"sirto", tempo:100, bars:4, min:60 },
+      { type:"piece", id:"e-sirto", mode:"free", min:6 },
+      { type:"piece", id:"e-sirto", mode:"tempo", min:60 },
+      { type:"rhythm", usul:"aksak", tempo:180, bars:3, min:55 },
+      { type:"scale", makam:"karcigar", min:0.55 },
+      { type:"piece", id:"e-kocekce", mode:"tempo", min:60 }
+    ] },
+  { id:"zeybek", unit:"trakya", notes:[], makam:"huseyni",
+    title:{ tr:"Zeybek (ağır 9/4)", en:"Zeybek (slow 9/4)" },
+    text:[
+      { tr:"Zeybek Ege'nin ağır, ağırbaşlı oyunudur. Ölçü dokuz dörtlüktür ve 2+2+2+3 diye sayılır; her vuruş bir adımdır, son uzun vuruşta oyuncu diz vurur ya da döner.",
+        en:"The zeybek is the slow, stately dance of the Aegean. The bar has nine quarters counted 2+2+2+3; each beat is a step, and on the last long beat the dancer kneels or turns." },
+      { tr:"Uzun notalar zeybeğin ruhudur: sesi sonuna kadar dolu tut, girişleri kayarak yap, cümle sonlarında düşüşle bırak.",
+        en:"Long notes are the soul of the zeybek: keep the sound full to the end, slide into the entries and let phrase ends go with a fall." }
+    ],
+    tips:[
+      { tr:"Acele etme: ağır tempoda usulü içinden say, uzun vuruşu kısaltma.", en:"Don't rush: count the usul in your head at the slow tempo and don't shorten the long beat." }
+    ],
+    steps:[
+      { type:"rhythm", usul:"zeybek", tempo:84, bars:2, min:55 },
+      { type:"hold", note:76, sec:8, min:55 },
+      { type:"piece", id:"e-zeybek", mode:"free", min:5 },
+      { type:"piece", id:"e-zeybek", mode:"tempo", min:60 }
+    ] },
+  { id:"agir-roman", unit:"trakya", notes:[], makam:"kurdi",
+    title:{ tr:"Ağır Roman ve çarpmalı tekrar", en:"Slow Roman and split repeated notes" },
+    text:[
+      { tr:"Roman klarnetinin imzası çarpmalı tekrardır: aynı nota art arda gelince dille kesilmez, üstteki notaya kısacık vurularak bölünür. Ağır Roman bunu yavaş tempoda, her tekrarda duyurur.",
+        en:"The signature of Roman clarinet is the split repeated note: when a note repeats it isn't tongued but split by a very short tap on the note above. The slow Roman makes it heard on every repeat." },
+      { tr:"Etüt Kürdî'dedir; aynı perdenin ikinci notasındaki ç+ işareti çarpmayı gösterir.",
+        en:"The étude is in Kürdî; the ç+ mark on the second of two equal notes shows the grace note." }
+    ],
+    tips:[
+      { tr:"Önce Nevâ'yı uzun tut ve Hüseynî parmağıyla üç kez böl; ses hiç kesilmesin.", en:"First hold Nevâ and split it three times with the Hüseynî finger; the sound must never stop." }
+    ],
+    steps:[
+      { type:"listen", notes:[74], orn:{ kind:"tekrar", dir:"up" } },
+      { type:"ornament", kind:"tekrar", dir:"up", note:74, makam:"kurdi", comma:31, n:3 },
+      { type:"ornament", kind:"tekrar", dir:"up", note:72, makam:"kurdi", comma:22, n:3 },
+      { type:"piece", id:"e-agir-roman-kurdi", mode:"free", min:6 },
+      { type:"piece", id:"e-agir-roman-kurdi", mode:"tempo", min:55 }
     ] },
   { id:"trakya-taksim", unit:"trakya", notes:[], makam:"hicaz",
     title:{ tr:"Oyun havası öncesi taksim", en:"The taksim before a dance tune" },

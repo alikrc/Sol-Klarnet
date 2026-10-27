@@ -151,7 +151,10 @@ const USULS = [
   { id:"ciftetelli", name:"Çiftetelli",   meter:"8/8", halk:true, strokes:[["D",1],["T",2],["T",1],["D",1],["D",1],["T",2]] },
   { id:"karsilama",  name:"Karşılama",    meter:"9/8", halk:true, strokes:[["D",2],["T",2],["D",2],["T",3]] },
   { id:"roman",      name:"Roman havası", meter:"9/8", halk:true, strokes:[["D",2],["T",2],["T",2],["D",1],["T",2]] },
-  { id:"rumeli",     name:"Rumeli",       meter:"7/8", halk:true, strokes:[["D",2],["T",2],["T",3]] }
+  { id:"rumeli",     name:"Rumeli",       meter:"7/8", halk:true, strokes:[["D",2],["T",2],["T",3]] },
+  { id:"sirto",      name:"Sirto",        meter:"2/4", halk:true, strokes:[["D",1],["T",1]] },
+  // Zeybek: ağır 9/4 (2+2+2+3), klasik Ağır Aksak'ın halk çalışı
+  { id:"zeybek",     name:"Zeybek",       meter:"9/4", halk:true, strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] }
 ];
 // Usulü birim zaman dilimlerine açar: her dilim "D", "T" ya da "" (vuruşun devamı)
 function usulSlots(u){

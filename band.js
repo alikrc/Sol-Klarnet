@@ -10,16 +10,30 @@ const BLEARN = typeof module !== "undefined" ? require("./learn.js") : { USULS, 
 // Hücre: usul biriminin yarısı ya da çeyreği (x/8 usullerde on altılık; x/4 usullerde kalıp uzunluğuna göre sekizlik ya da on altılık). drum: D düm, T tek, k hafif tek (ka), . boş;
 // bass: 1 kök, 5 kökün beşlisi (dizideki en yakın perde), 8 kökün oktavı, . boş (önceki nota sürer);
 // chord: x ud vuruşu (kök + beşli), . boş. Üç dizinin uzunluğu aynı ve usul biriminin 2 ya da 4 katı olmalı.
+// drum2: ikinci çalış (tek ölçülerde), fill: dolgu ölçüsü (cümlenin son ölçüsü); ikisi de drum ile aynı uzunlukta.
 const BAND_STYLES = {
-  kasap:      { drum:"D.kTD.Tk",                 bass:"1...5...",              chord:"..x...x." },
-  ciftetelli: { drum:"D.T.k.T.D.D.T.k.",         bass:"1.......5.1.....",      chord:"..x...x.....x..." },
-  karsilama:  { drum:"D.k.T.k.D.k.T.k.k.",       bass:"1.......5.........",    chord:"....x.......x....." },
-  roman:      { drum:"D.k.T.k.T.k.D.T.k.",       bass:"1...........5.....",    chord:"....x...x.....x..." },
-  rumeli:     { drum:"D.k.T.k.T.k.k.",           bass:"1.......5.....",        chord:"....x...x....." },
-  sofyan:     { drum:"D...k.T.T...k.k.",         bass:"1.......5.......",      chord:"....x...x...x..." },
-  semai:      { drum:"D...T.k.T.k.",             bass:"1.......5...",          chord:"....x...x..." },
-  aksak:      { drum:"D.k.T.T.D.k.T.k.k.",       bass:"1.......5.........",    chord:"....x.x.....x....." },
-  duyek:      { drum:"T.D...T.D...T.k.",         bass:"..1.....5.......",      chord:"x.....x.....x..." }
+  kasap:      { drum:"D.kTD.Tk",             drum2:"DkkTD.Tk",             fill:"D.kTTkTk",
+                bass:"1...5...",              chord:"..x...x." },
+  ciftetelli: { drum:"D.T.k.T.D.D.T.k.",     drum2:"D.T.k.T.D.D.T.kk",     fill:"D.T.k.T.TkTkTkTk",
+                bass:"1.......5.1.....",      chord:"..x...x.....x..." },
+  karsilama:  { drum:"D.k.T.k.D.k.T.k.k.",   drum2:"D.k.T.kkD.k.T.k.k.",   fill:"D.k.T.k.D.k.TkTkTk",
+                bass:"1.......5.........",    chord:"....x.......x....." },
+  roman:      { drum:"D.k.T.k.T.k.D.T.k.",   drum2:"D.k.T.kkT.k.D.T.kk",   fill:"D.k.T.k.T.k.TkTkTk",
+                bass:"1...........5.....",    chord:"....x...x.....x..." },
+  rumeli:     { drum:"D.k.T.k.T.k.k.",       drum2:"D.k.T.kkT.k.k.",       fill:"D.k.T.k.TkTkTk",
+                bass:"1.......5.....",        chord:"....x...x....." },
+  sirto:      { drum:"D..TD.T.",             drum2:"D..TD.Tk",             fill:"D.TkTkTk",
+                bass:"1...5...",              chord:"..x...x." },
+  zeybek:     { drum:"D...T.T.D...T.k.k.",   drum2:"D.k.T.T.D.k.T.k.k.",   fill:"D...T.T.D...TkTkTk",
+                bass:"1.......5.........",    chord:"....x.x.....x....." },
+  sofyan:     { drum:"D...k.T.T...k.k.",     drum2:"D.k.k.T.T.k.k.k.",     fill:"D...k.T.TkTkTkTk",
+                bass:"1.......5.......",      chord:"....x...x...x..." },
+  semai:      { drum:"D...T.k.T.k.",         drum2:"D.k.T.k.T.kk",         fill:"D...T.k.TkTk",
+                bass:"1.......5...",          chord:"....x...x..." },
+  aksak:      { drum:"D.k.T.T.D.k.T.k.k.",   drum2:"D.k.T.TkD.k.T.k.kk",   fill:"D.k.T.T.D.k.TkTkTk",
+                bass:"1.......5.........",    chord:"....x.x.....x....." },
+  duyek:      { drum:"T.D...T.D...T.k.",     drum2:"T.D.k.T.D.k.T.k.",     fill:"T.D...T.TkTkTkTk",
+                bass:"..1.....5.......",      chord:"x.....x.....x..." }
 };
 // Ölçü vuruş grupları (usulü bilinmeyen eserler için; nota arşivindeki ARCH_GROUPS ile aynı)
 const BAND_GROUPS = { "2/4":[1,1], "3/4":[1,1,1], "4/4":[2,1,1], "3/8":[1,1,1], "5/8":[2,3], "6/8":[3,3], "6/4":[3,3], "7/8":[3,2,2],
@@ -48,7 +62,20 @@ function bandStyle(usulId, strokes){
   const res = hand ? hand.drum.length/units : 0;
   if(hand && (res === 2 || res === 4)) return { ...hand, cells: hand.drum.length, res };
   const g = stylesFromStrokes(st);
-  return { ...g, cells: g.drum.length, res: 2 };
+  return { ...g, fill: autoFill(g.drum), cells: g.drum.length, res: 2 };
+}
+// Elle yazılmamış kalıbın dolgusu: son çeyrek tek-ka almaşığı
+function autoFill(drum){
+  const n = drum.length, k = Math.max(2, Math.round(n/4));
+  return drum.slice(0, n - k) + Array.from({ length:k }, (_, i) => i % 2 ? "k" : "T").join("");
+}
+// Ölçünün darbuka çalışı: cümlenin (4 ölçü; en çok 2 birimlik ölçülerde 8) son ölçüsü dolgu, tek ölçüler ikinci çalış.
+// o: { vary, fill } (ikisi de varsayılan açık)
+function bandDrum(style, bar, o = {}){
+  const len = style.cells/style.res <= 2 ? 8 : 4;
+  if(o.fill !== false && style.fill && bar % len === len - 1) return style.fill;
+  if(o.vary !== false && style.drum2 && bar % 2 === 1) return style.drum2;
+  return style.drum;
 }
 
 // Kökün beşlisi: makam dizisinde kök + 31 komaya en yakın perde (3 komadan uzaksa tam beşli)
@@ -68,11 +95,12 @@ function bandRoot(mk, bar, units, prog){
 }
 // Bir ölçünün olayları: [{ t (ms, ölçü başından), part: "drum"|"bass"|"chord", k (D/T/k), c (koma), c2 (beşli), dur (ms) }]
 // unitMs: usul biriminin süresi. parts: { drum, bass, chord } (varsayılan hepsi açık)
-function bandBarEvents(style, unitMs, root, fifth, parts = {}){
+// drum: bu ölçünün darbuka çalışı (bandDrum; verilmezse temel çalış)
+function bandBarEvents(style, unitMs, root, fifth, parts = {}, drum = style.drum){
   const cellMs = unitMs/(style.res || 2), out = [], on = p => parts[p] !== false;
   const n = style.cells;
   for(let i=0;i<n;i++){
-    const t = i*cellMs, dc = style.drum[i], bc = style.bass[i], cc = style.chord[i];
+    const t = i*cellMs, dc = drum[i], bc = style.bass[i], cc = style.chord[i];
     if(on("drum") && dc && dc !== ".") out.push({ t, part:"drum", k: dc });
     if(on("bass") && bc && bc !== "."){
       let j = i + 1; while(j < n && style.bass[j] === ".") j++;
@@ -84,9 +112,9 @@ function bandBarEvents(style, unitMs, root, fifth, parts = {}){
   return out;
 }
 // Tempo önerisi (usul birimi/dk): oyun havalarında yaygın hız, öğrenmek için biraz yavaş
-const BAND_TEMPO = { kasap:112, ciftetelli:176, karsilama:208, roman:216, rumeli:224, sofyan:96, semai:132, aksak:200, duyek:160, curcuna:200, agiraksak:110 };
+const BAND_TEMPO = { sirto:104, zeybek:96, kasap:112, ciftetelli:176, karsilama:208, roman:216, rumeli:224, sofyan:96, semai:132, aksak:200, duyek:160, curcuna:200, agiraksak:110 };
 
-if(typeof module !== "undefined") module.exports = { BAND_STYLES, BAND_GROUPS, BAND_TEMPO, meterStrokes, stylesFromStrokes, bandStyle, fifthOf, bandRoot, bandBarEvents, bandEventsFor };
+if(typeof module !== "undefined") module.exports = { BAND_STYLES, BAND_GROUPS, BAND_TEMPO, meterStrokes, stylesFromStrokes, bandStyle, autoFill, bandDrum, fifthOf, bandRoot, bandBarEvents, bandEventsFor };
 
 // ======== Ses (yalnızca tarayıcı) ========
 // Ses düğümleri: darbuka düm (perde bulucunun alt sınırının altında, nota sanılmaz), tek ve ka (süzülmüş gürültü),
@@ -195,6 +223,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
       <label class="chk"><input type="checkbox" id="bdbass"> ${L("bas", "bass")}</label>
       <label class="chk"><input type="checkbox" id="bdchord"> ud</label>
       <label class="chk"><input type="checkbox" id="bdprog"> ${L("akor değişsin (durak ↔ güçlü)", "chord changes (tonic ↔ dominant)")}</label>
+      <label class="chk"><input type="checkbox" id="bdvary"> ${L("darbuka çeşitlensin (ikinci çalış, dolgu)", "vary the darbuka (second pattern, fills)")}</label>
       <label class="chk"><input type="checkbox" id="bdeval"> ${L("değerlendir (mikrofon)", "assess (mic)")}</label>
       <label class="tnum">${L("Ses", "Volume")} <input id="bdvol" type="range" min="1" max="10" value="7" aria-label="${L("Eşlik ses düzeyi", "Band volume")}"></label>
     </div>
@@ -213,6 +242,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
   const parts = store.get("band.parts", { drum:true, bass:true, chord:true });
   $("bddrum").checked = parts.drum; $("bdbass").checked = parts.bass; $("bdchord").checked = parts.chord;
   $("bdprog").checked = store.get("band.prog", true);
+  $("bdvary").checked = store.get("band.vary", true);
+  $("bdvary").addEventListener("change", () => store.set("band.vary", $("bdvary").checked));
   $("bdeval").checked = store.get("band.eval", true);
   $("bdvol").value = store.get("band.vol", 7);
   function info(){
@@ -253,7 +284,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
       while(r.next < a.currentTime + 0.3){
         const root = bandRoot(m, r.bar, st.cells/st.res, $("bdprog").checked), fifth = fifthOf(m, root);
         const at = r.next, unitS = r.unitMs/1000;
-        for(const ev of bandBarEvents(st, r.unitMs, root, fifth, parts)) bandPlay(a, out, ev, at + ev.t/1000, o);
+        const vary = $("bdvary").checked, drum = bandDrum(st, r.bar, { vary, fill: vary });
+        for(const ev of bandBarEvents(st, r.unitMs, root, fifth, parts, drum)) bandPlay(a, out, ev, at + ev.t/1000, o);
         // Hücre zamanları (performance.now() çizgisinde) değerlendirme için
         const p0 = ctxToPerf(a, at);
         for(let i=0;i<st.cells;i++) r.grid.push(p0 + i*r.unitMs/st.res);
@@ -322,7 +354,7 @@ function bandEventsFor(bars, mk, karar, parts, prog = false){
   bars.forEach((b, i) => {
     const st = bandStyle(b.usul, b.strokes);
     const root = karar != null && !prog ? karar : bandRoot(mk, i, st.cells/st.res, prog);
-    for(const ev of bandBarEvents(st, b.unitMs, root, fifthOf(mk, root), parts)) out.push({ ...ev, t: b.startMs + ev.t });
+    for(const ev of bandBarEvents(st, b.unitMs, root, fifthOf(mk, root), parts, bandDrum(st, i))) out.push({ ...ev, t: b.startMs + ev.t });
   });
   return out.sort((x, y) => x.t - y.t);
 }
