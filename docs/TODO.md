@@ -7,7 +7,7 @@
 Bu beş madde alan adı kararından bağımsız; web sürümünü de iyileştirir ve önce bunlar yapılmalı.
 
 - [x] **PNG simgeler:** 192 ve 512 piksellik PNG simge, ayrıca kenarları kırpılabilen "maskable" sürüm (şu an yalnızca SVG var).
-- [ ] **Manifest'i tamamla:** `id` ve kısayollar (Akort, Dersler, Ritim, Eserler) eklendi; kalan: telefon ekran görüntüleri.
+- [x] **Manifest'i tamamla:** `id`, kısayollar (Akort, Dersler, Ritim, Eserler) ve telefon ekran görüntüleri.
 - [x] **Mobil görünüm:** Telefonda alt sekme geçişi ("Akort | Parmak"); çentikli ekranlar için güvenli alan boşlukları; aşağı çekince yenilemenin kapatılması. Geniş ekranda iki sütunlu düzen aynı kalır.
 - [x] **Fontları uygulamanın içine al:** `fonts/` (`npm run fonts`); internet izni kaldırıldı.
 - [x] **Gizlilik politikası sayfası:** (privacy.html) "Ses cihazda işlenir, hiçbir yere gönderilmez" diyen basit bir sayfa; mikrofon kullanan uygulamalar için Play Store zorunlu tutuyor.
@@ -22,7 +22,7 @@ Ayrıntılar ve yayın adımları: [ANDROID.md](ANDROID.md).
 - [ ] **Yükleme anahtarı:** `keytool` ile üret, depo dışında yedekle (ANDROID.md).
 - [ ] **GitHub Pages:** Gizlilik politikası URL'si için (Settings → Pages → `main` / root).
 - [ ] **Kapalı test:** Yeni kişisel hesaplarda üretimden önce zorunlu; Play Console'da güncel şartı kontrol et.
-- [ ] **Mağaza malzemeleri:** Telefon ekran görüntüleri, 1024×500 tanıtım görseli, kısa ve uzun açıklama.
+- [x] **Mağaza malzemeleri:** Telefon ekran görüntüleri (`store/screens/`, `npm run store-shots`), 1024×500 tanıtım görseli (`store/feature-graphic.png`), kısa ve uzun açıklama ([store/listing.md](../store/listing.md)).
 - [ ] **Formlar:** İçerik derecelendirme anketi ve veri güvenliği formu (veri toplanmaz).
 
 ## iOS (10 Ekim 2026)

@@ -88,5 +88,49 @@
         }
       ]
     }
+  ],
+  "screenshots": [
+    {
+      "src": "store/screens/1-akort.png",
+      "sizes": "1079x2158",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Akort: AEU perdesi ve koma sapması"
+    },
+    {
+      "src": "store/screens/2-dersler.png",
+      "sizes": "1079x2158",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Bugünün çalışması ve dersler"
+    },
+    {
+      "src": "store/screens/3-yol-haritasi.png",
+      "sizes": "1079x2158",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Yol haritası ve rozetler"
+    },
+    {
+      "src": "store/screens/4-nota-arsivi.png",
+      "sizes": "1079x2158",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Nota arşivi"
+    },
+    {
+      "src": "store/screens/5-eslik.png",
+      "sizes": "1079x2158",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Darbuka, bas ve udla eşlik"
+    },
+    {
+      "src": "store/screens/6-kayit.png",
+      "sizes": "1079x2158",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Eski kayıtla karşılaştırma"
+    }
   ]
 }

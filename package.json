@@ -16,7 +16,8 @@
     "ios:open": "npx cap open ios",
     "audio-check": "node scripts/audio-check.js",
     "omr-templates": "node scripts/omr-templates.js",
-    "release": "node scripts/release.js"
+    "release": "node scripts/release.js",
+    "store-shots": "node scripts/store-shots.js"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",

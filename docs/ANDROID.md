@@ -40,7 +40,8 @@ Web kodunda her değişiklikten sonra `npm run android:sync` çalıştırılmal�
 - **Gizlilik politikası URL'si:** `privacy.html` (GitHub Pages açılınca
   `https://alikrc.github.io/Sol-Klarnet/privacy.html`)
 - **Uygulama simgesi:** `store/play-icon-512.png`
-- **Tanıtım görseli** 1024×500 ve en az 2 telefon ekran görüntüsü (henüz yok)
+- **Tanıtım görseli** `store/feature-graphic.png` (1024×500) ve telefon ekran görüntüleri `store/screens/` (`npm run store-shots` yeniden üretir)
+- **Kısa ve uzun açıklama** (Türkçe, İngilizce): [store/listing.md](../store/listing.md)
 - **Veri güvenliği formu:** veri toplanmıyor ve paylaşılmıyor; mikrofon sesi yalnızca cihazda işleniyor; internet izni yok
 - **İçerik derecelendirmesi:** herkes; kategori: Müzik ve Ses ya da Eğitim
 - Yeni kişisel geliştirici hesaplarında üretime geçmeden önce kapalı test şartı var (Play Console'da güncelini kontrol et)
