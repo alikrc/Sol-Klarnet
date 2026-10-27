@@ -8,13 +8,13 @@ const RCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, n
 // Her öge "Ad:süre" (süre dörtlük cinsinden, verilmezse 1). Ad yazılı nota (Sol4, Si♭4, G4, Bb4) ya da AEU
 // perde adı olabilir (boşluk yerine alt çizgi: Dik_Kürdî). "-" ya da "Es" sus işaretidir. "|" ölçü çizgisi, yok sayılır.
 // Üçüncü kısım süsleme eki: "La4:2:tr" tril, "ç+"/"ç-" üstten/alttan çarpma (İngilizce g+/g-), "m+"/"m-" üst/alt
-// mordan, "k" kayarak giriş, "d" sonda düşüş. Süresiz ek: "La4::tr".
+// mordan, "k" kayarak giriş, "d" sonda düşüş, "gr" grupetto. Süresiz ek: "La4::tr".
 // Dönen: { notes:[{ w, c, d, rest, orn? }], errors:[] }  (w yazılı MIDI, c Rast'a göre koma ya da null, orn { kind, dir? })
 const ORN_CODES = { "tr":{ kind:"tril", dir:"up" }, "ç+":{ kind:"carpma", dir:"up" }, "ç-":{ kind:"carpma", dir:"down" },
   "g+":{ kind:"carpma", dir:"up" }, "g-":{ kind:"carpma", dir:"down" }, "m+":{ kind:"mordan", dir:"up" }, "m-":{ kind:"mordan", dir:"down" },
-  "k":{ kind:"giris" }, "d":{ kind:"dusus" } };
+  "k":{ kind:"giris" }, "d":{ kind:"dusus" }, "gr":{ kind:"grupetto" } };
 const ornCode = o => o.kind === "tril" ? "tr" : o.kind === "carpma" ? (o.dir === "down" ? "ç-" : "ç+") :
-                     o.kind === "mordan" ? (o.dir === "down" ? "m-" : "m+") : o.kind === "giris" ? "k" : "d";
+                     o.kind === "mordan" ? (o.dir === "down" ? "m-" : "m+") : o.kind === "giris" ? "k" : o.kind === "grupetto" ? "gr" : "d";
 const PERDE_BY_NAME = new Map(RCORE.PERDES.map(([c, n]) => [n.toLocaleLowerCase("tr"), c]));
 const LETTER_PC2 = { do:0, re:2, mi:4, fa:5, sol:7, la:9, si:11, c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
 function writtenToken(tok){
@@ -117,7 +117,7 @@ function parseMusicXML(xml){
       const tieStop = /<tie[^>]*type="stop"/.test(n), prev = notes[notes.length-1];
       if(tieStop && prev && !prev.rest && prev.w === w){ prev.d += dur; continue; }
       // Süsleme: işaret süs notasından önce gelir
-      const orn = /<trill-mark\b/.test(n) ? { kind:"tril", dir:"up" } : /<inverted-mordent\b/.test(n) ? { kind:"mordan", dir:"up" } :
+      const orn = /<trill-mark\b/.test(n) ? { kind:"tril", dir:"up" } : /<turn\b/.test(n) ? { kind:"grupetto" } : /<inverted-mordent\b/.test(n) ? { kind:"mordan", dir:"up" } :
                   /<mordent\b/.test(n) ? { kind:"mordan", dir:"down" } : g !== null && g !== w ? { kind:"carpma", dir: g > w ? "up" : "down" } : null;
       notes.push(orn ? { w, c, d:dur, rest:false, orn } : { w, c, d:dur, rest:false });
     }

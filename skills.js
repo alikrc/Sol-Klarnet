@@ -292,7 +292,9 @@ const ORN = {
   tekrar: [20, 80], tekrarDip: 0.3, tekrarMin: 3,
   mordanTotal: 300,
   trilSwitch: 6, trilSpan: 3, trilTwoLevel: 0.7, trilEven: 0.2,
-  giris: [80, 400], girisDepth: 3, dusus: [100, 500], dususDepth: 5, along: 0.6
+  giris: [80, 400], girisDepth: 3, dusus: [100, 500], dususDepth: 5, along: 0.6,
+  grupettoNote: 160, grupettoTotal: 450,  // grupetto: üç süs notası (üst, ana, alt) her biri ve toplamı en çok
+  scanStep: [3, 10]                       // serbest çalmada süs notası ile ana nota arası (koma)
 };
 // Komşu perdenin koması: makam verilmişse makam dizisinde ana perdenin hemen üstü/altı, yoksa yazılı komşu nota
 function ornamentNeighbor(spec){
@@ -310,10 +312,11 @@ function ornamentNeighbor(spec){
 }
 // Mikro notaları ana / komşu / başka diye etiketler; aradaki kısa geçiş parçalarını atar, aynı etiketli
 // ardışık parçaları birleştirir (geçişte pencere iki perdeyi birden görür).
-function ornamentParts(track, mainC, nbC){
+function ornamentParts(track, mainC, nbC, loC = null){
   const hop = track.length > 1 ? track[1].t - track[0].t : 5;
   const ps = microNotes(track, ORN.near).map(p => ({ ...p,
-    lab: Math.abs(p.comma - mainC) <= ORN.near ? "main" : nbC != null && Math.abs(p.comma - nbC) <= ORN.near ? "nb" : "other" }))
+    lab: Math.abs(p.comma - mainC) <= ORN.near ? "main" : nbC != null && Math.abs(p.comma - nbC) <= ORN.near ? "nb" :
+         loC != null && Math.abs(p.comma - loC) <= ORN.near ? "lo" : "other" }))
     .filter(p => p.lab !== "other" || p.end - p.start + hop >= 25);   // ham süreye göre: pencere düzeltmesi geçiş kırıntılarını büyütmesin
   const out = [];
   for(const p of ps){
@@ -338,8 +341,10 @@ function ornamentEval(track, spec){
   res.measured = true;
   const hop = track.length > 1 ? track[1].t - track[0].t : 5;
   const mainC = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
-  const nbC = ["carpma", "tekrar", "mordan", "tril"].includes(spec.kind) ? ornamentNeighbor(spec) : null;
-  const parts = ornamentParts(track, mainC, nbC);
+  const nbC = ["carpma", "tekrar", "mordan", "tril"].includes(spec.kind) ? ornamentNeighbor(spec)
+            : spec.kind === "grupetto" ? ornamentNeighbor({ ...spec, dir:"up" }) : null;
+  const loC = spec.kind === "grupetto" ? ornamentNeighbor({ ...spec, dir:"down" }) : null;
+  const parts = ornamentParts(track, mainC, nbC, loC);
   const mainMin = spec.mainMin != null ? spec.mainMin : ORN.mainMin;     // eserde kısa notalar için düşürülür
   const upW = spec.dir === "down" ? "alttaki" : "üstteki", upE = spec.dir === "down" ? "lower" : "upper";
   const mainCheck = m => {
@@ -395,6 +400,21 @@ function ornamentEval(track, spec){
       if(n.ms > ORN.grace[1] || b.start - a.start > ORN.mordanTotal){ res.tips.push(otip("Mordan yavaş: üç notayı daha hızlı bağla.", "The mordent is slow: join the three notes faster.")); break; }
       if(b.ms < mainMin){ res.tips.push(otip("Son notayı daha uzun tut.", "Hold the last note longer.")); break; }
       if(!mainCheck(b)) break;
+      res.ok = true;
+      break;
+    }
+    case "grupetto": {
+      // Üst komşu → ana → alt komşu → ana (uzun); öncesinde ana nota tutulmuş olabilir
+      const i = parts.findIndex((p, k) => p.lab === "nb" && parts[k+1] && parts[k+1].lab === "main" && parts[k+2] && parts[k+2].lab === "lo" &&
+                                          parts[k+3] && parts[k+3].lab === "main" && parts.slice(k+1, k+4).every((q, j) => q.start - parts[k+j].end - hop <= ORN.gapMax));
+      if(i < 0){ res.tips.push(otip("Grupetto duyulmadı: üstteki nota, ana nota, alttaki nota ve yine ana nota; dördü tek nefeste, ilk üçü kısa.",
+                                    "No turn heard: upper note, main note, lower note and the main note again; all in one breath, the first three short.")); break; }
+      const [u, m1, lo, m] = parts.slice(i, i + 4);
+      res.found = true; res.durMs = m.start - u.start; res.intervalErr = ((u.comma - nbC) + (lo.comma - loC))/2;
+      if([u, m1, lo].some(q => q.ms > ORN.grupettoNote) || res.durMs > ORN.grupettoTotal){
+        res.tips.push(otip("Grupetto yavaş: ilk üç notayı daha hızlı ve eşit çal.", "The turn is slow: play the first three notes faster and evenly.")); break; }
+      if(m.ms < mainMin){ res.tips.push(otip("Son ana notayı daha uzun tut.", "Hold the final main note longer.")); break; }
+      if(!mainCheck(m)) break;
       res.ok = true;
       break;
     }
@@ -489,6 +509,11 @@ function ornamentNotes(spec){
     case "tril": return [...rep(14, [{ comma:m, ms:70 }, { comma:n, ms:70 }]), { comma:m, ms:400 }];
     case "giris": return [{ comma:m - 5, ms:250, to:m }, { comma:m, ms:700 }];
     case "dusus": return [{ comma:m, ms:700 }, { comma:m, ms:300, to:m - 8 }];
+    case "grupetto": {
+      const u = spec.makam ? ornamentNeighbor({ ...spec, dir:"up" }) : snap(ornamentNeighbor({ ...spec, dir:"up" }));
+      const lo = spec.makam ? ornamentNeighbor({ ...spec, dir:"down" }) : snap(ornamentNeighbor({ ...spec, dir:"down" }));
+      return [{ comma:u, ms:90 }, { comma:m, ms:90 }, { comma:lo, ms:90 }, { comma:m, ms:900 }];
+    }
   }
   return [];
 }
@@ -503,6 +528,76 @@ function ornamentUnmeasured(reason, kind){
 // Eserde önceki nota çarpmanın komşu perdesindeyse süs notası ondan ayırt edilemez
 function ornamentAmbiguous(prevComma, spec){
   return spec.kind === "carpma" && prevComma != null && Math.abs(prevComma - ornamentNeighbor(spec)) <= ORN.near;
+}
+// ---- Serbest çalmada süsleme tanıma ----
+// Taksim ya da serbest çalmanın ham sesinden (ornamentTrack) hangi süslemelerin çalındığını bulur. Hedef nota bilinmediği
+// için parçalar birbirine göre okunur: süs notası ana notadan ORN.scanStep komada, kısa ve aralıksız.
+// Dönen: { counts: { carpma, tekrar, mordan, grupetto, tril, giris, dusus }, events: [{ kind, t, comma }], total, sec }
+function ornamentScan(track){
+  const counts = { carpma:0, tekrar:0, mordan:0, grupetto:0, tril:0, giris:0, dusus:0 }, events = [];
+  if(!track.length) return { counts, events, total:0, sec:0 };
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5;
+  // Tek karelik geçiş kırıntıları (pencere iki perdeyi birden görür) atılır; araları kırıntıyla bölünmüş aynı perdeler birleşir
+  const ps = [];
+  for(const p of microNotes(track, ORN.near).filter(p => p.end - p.start >= hop*1.5 && p.ms >= ORN.grace[0])){
+    const q = ps[ps.length-1];
+    if(q && Math.abs(q.comma - p.comma) <= ORN.near && p.start - q.end <= hop*4){ q.end = p.end; q.ms = partMs(track, q.start, q.end); }
+    else ps.push({ ...p });
+  }
+  const step = (a, b) => { const d = Math.abs(a.comma - b.comma); return d >= ORN.scanStep[0] && d <= ORN.scanStep[1]; };
+  const same = (a, b) => Math.abs(a.comma - b.comma) <= ORN.near;
+  const tight = (a, b) => b.start - a.end - hop <= ORN.gapMax;
+  const short = (p, max = ORN.grace[1]) => p.ms <= max;
+  const add = (kind, p) => { counts[kind]++; events.push({ kind, t: p.start, comma: p.comma }); };
+  for(let i = 0; i < ps.length; ){
+    const [a, b, c, d] = [ps[i], ps[i+1], ps[i+2], ps[i+3]];
+    // Tril: iki perde arasında en az 6 kısa almaşık parça
+    let j = i + 1;
+    while(ps[j] && short(ps[j], 150) && short(ps[j-1], 150) && tight(ps[j-1], ps[j]) && step(ps[j-1], ps[j]) && (j - i < 2 || same(ps[j], ps[j-2]))) j++;
+    if(j - i >= 7){ add("tril", a); i = j; continue; }
+    if(a && b && c && d && short(a, ORN.grupettoNote) && short(b, ORN.grupettoNote) && short(c, ORN.grupettoNote) && d.ms >= ORN.mainMin &&
+       tight(a, b) && tight(b, c) && tight(c, d) && same(b, d) && step(a, b) && step(c, b) && a.comma > b.comma && c.comma < b.comma){ add("grupetto", d); i += 4; continue; }
+    if(a && b && c && short(b) && c.ms >= 250 && tight(a, b) && tight(b, c) && same(a, c) && step(a, b)){
+      if(short(a, ORN.grupettoNote)){ add("mordan", c); i += 3; continue; }
+      if(a.ms >= 150 && b.ms <= ORN.tekrar[1]){
+        // Aynı notanın sonraki bölmeleri de bu tekrarın parçası
+        add("tekrar", c); i += 3;
+        while(ps[i] && ps[i+1] && short(ps[i], ORN.tekrar[1]) && tight(ps[i-1], ps[i]) && tight(ps[i], ps[i+1]) && same(ps[i+1], a) && step(ps[i], a)) i += 2;
+        continue;
+      }
+    }
+    if(a && b && short(a) && b.ms >= ORN.mainMin && tight(a, b) && step(a, b) && !(ps[i-1] && same(ps[i-1], a) && tight(ps[i-1], a))){ add("carpma", b); i += 2; continue; }
+    i++;
+  }
+  // Kayarak giriş ve düşüş: uzun notanın hemen öncesinde yükselen, sonrasında alçalıp sessizliğe giden kesintisiz ölçümler
+  for(const p of ps.filter(p => p.ms >= ORN.mainMin)){
+    const iA = firstIndexAt(track, p.start), iB = firstIndexAt(track, p.end + 1);
+    const before = []; for(let k = iA - 1; k >= 0 && track[k].comma !== null && before.length < 80; k--) before.unshift(track[k]);
+    const after = []; for(let k = iB; k < track.length && track[k].comma !== null && after.length < 100; k++) after.push(track[k]);
+    const mono = (seg, up) => seg.length > 1 && seg.slice(1).filter((f, k) => up ? f.comma > seg[k].comma : f.comma < seg[k].comma).length/(seg.length - 1) >= ORN.along;
+    if(before.length && p.comma - before[0].comma >= ORN.girisDepth && p.start - before[0].t >= ORN.giris[0] && p.start - before[0].t <= ORN.giris[1] && mono(before, true)) add("giris", p);
+    const silentAfter = iB + after.length >= track.length || track[iB + after.length].comma === null;
+    if(after.length && silentAfter && p.comma - after[after.length-1].comma >= ORN.dususDepth && after[after.length-1].t - p.end >= ORN.dusus[0] &&
+       after[after.length-1].t - p.end <= ORN.dusus[1] && mono(after, false)) add("dusus", p);
+  }
+  events.sort((x, y) => x.t - y.t);
+  const sec = (track[track.length-1].t - track[0].t)/1000;
+  return { counts, events, total: events.length, sec };
+}
+// Taksimde süsleme geri bildirimi (iki dilli)
+const ORN_SCAN_NAMES = { carpma:{ tr:"çarpma", en:"grace notes" }, tekrar:{ tr:"çarpmalı tekrar", en:"split repeats" }, mordan:{ tr:"mordan", en:"mordents" },
+  grupetto:{ tr:"grupetto", en:"turns" }, tril:{ tr:"tril", en:"trills" }, giris:{ tr:"kayarak giriş", en:"slide-ins" }, dusus:{ tr:"düşüş", en:"falls" } };
+function ornamentScanFeedback(scan, lang = "tr"){
+  const en = lang === "en", out = [], c = scan.counts;
+  const perMin = scan.sec > 0 ? scan.total/scan.sec*60 : 0;
+  if(!scan.total) out.push(en ? "No ornaments heard: slide into long notes from below and try a grace note or a fall at phrase ends."
+                              : "Süsleme duyulmadı: uzun notalara alttan kayarak gir, cümle sonlarında çarpma ya da düşüş dene.");
+  else if(perMin > 30) out.push(en ? "Lots of ornaments: make sure the main notes stay longer and stronger than the decorations."
+                                   : "Süsleme çok: ana notalar süslerden hep daha uzun ve güçlü kalsın.");
+  const kinds = Object.keys(c).filter(k => c[k]).length;
+  if(scan.total >= 3 && kinds === 1) out.push(en ? "You use one kind of ornament; mix in others (mordent, trill, slide) for colour."
+                                                  : "Hep aynı süslemeyi kullanıyorsun; renk için mordan, tril ya da kayış da kat.");
+  return out;
 }
 // ---- Hız ve teknik ----
 // Teknik kalıpları kurallarla üretilir: makam dizisi ya da Batı gamı, arpej, üçlü atlama, dörtlü grup, register geçişi.
@@ -1012,7 +1107,7 @@ function thinTrace(trace, step = 40){
 if(typeof module !== "undefined") module.exports = {
   recSummary, recCompare, recBaseline, thinTrace,
   INTON, INTON_ERRORS, firstIndexAt, cleanTrace, intonationIssues, intonationSummary,
-  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
+  ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentScan, ornamentScanFeedback, ORN_SCAN_NAMES, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase

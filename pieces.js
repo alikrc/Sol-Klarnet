@@ -120,6 +120,7 @@ function drawScore(holder, notes, opts = {}){
       }
       else if(o.kind === "giris") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-18-accW} ${y+7} L${nx-9-accW} ${y+1}` }));
       else if(o.kind === "dusus") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx+8} ${y+1} L${nx+17} ${y+8}` }));
+      else if(o.kind === "grupetto") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-7} ${oy-1} c0 -5 6 -5 7 0 c1 5 7 5 7 0` }));
     }
     if(opts.names){
       g.appendChild(scoreEl("text", { class:"pname", x:nx, y:H - (opts.lyrics ? 18 : 4) }, scorePerdeName(n)));

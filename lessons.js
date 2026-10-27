@@ -845,6 +845,23 @@ const SUSLEME = [
       { type:"piece", id:"e-sus-ussak", mode:"tempo", min:60 },
       { type:"piece", id:"e-sus-hicaz", mode:"tempo", min:55 }
     ] },
+  { id:"sus-grupetto", unit:"susleme", notes:[],
+    title:{ tr:"Grupetto (çevirme)", en:"The turn (grupetto)" },
+    text:[
+      { tr:"Grupetto, asıl notanın etrafında dönen dört notalık bir süstür: üstteki nota, asıl nota, alttaki nota ve yine asıl nota. İlk üçü çok kısa, sonuncusu uzundur; ezgiye yuvarlak bir dönüş katar.",
+        en:"The turn is a four-note ornament that circles the main note: the note above, the main note, the note below and the main note again. The first three are very short and the last one long; it gives the tune a rounded twist." },
+      { tr:"Makamda komşu notalar makamın dizisinden gelir: Hicaz'da Nevâ'nın üstü Hüseynî, altı Nim Hicaz'dır. Dört notayı tek nefeste, bağlı çal.",
+        en:"In a makam the neighbours come from its scale: in Hicaz, above Nevâ is Hüseynî and below it Nim Hicaz. Play all four notes slurred, in one breath." }
+    ],
+    tips:[
+      { tr:"Önce dört notayı yavaş ve eşit çal, sonra ilk üçünü sıkıştır; son nota hep uzun kalsın.", en:"First play the four notes slowly and evenly, then squeeze the first three; the last note always stays long." }
+    ],
+    steps:[
+      { type:"listen", notes:[69], orn:{ kind:"grupetto" } },
+      { type:"ornament", kind:"grupetto", note:69, n:3 },
+      { type:"listen", notes:[74], orn:{ kind:"grupetto" }, makam:"hicaz", commas:[31] },
+      { type:"ornament", kind:"grupetto", note:74, makam:"hicaz", comma:31, n:3 }
+    ] },
   { id:"sus-makam", unit:"susleme", notes:[],
     title:{ tr:"Makamda süsleme", en:"Ornaments within a makam" },
     text:[
@@ -1345,7 +1362,8 @@ const ORN_NAMES = {
   mordan:{ up:{ tr:"üst mordan", en:"upper mordent" }, down:{ tr:"alt mordan", en:"lower mordent" } },
   tril:{ tr:"tril", en:"trill" },
   giris:{ tr:"alttan kayarak giriş", en:"slide in from below" },
-  dusus:{ tr:"sonda düşüş", en:"fall at the end" } };
+  dusus:{ tr:"sonda düşüş", en:"fall at the end" },
+  grupetto:{ tr:"grupetto (çevirme)", en:"turn" } };
 const ornName = o => { const n = ORN_NAMES[o.kind]; return n.up ? n[o.dir === "down" ? "down" : "up"] : n; };
 
 // Adım başlığı: "Uzun ton: Sol4 · 8 sn · en az 55 puan"

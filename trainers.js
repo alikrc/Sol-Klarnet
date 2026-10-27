@@ -328,19 +328,23 @@ const TRAINERS = {
       const r = rec; rec = null; clearInterval(r.timer);
       $("systart").textContent = L("Başlat", "Start");
       const notes = segmentNotes(r.frames, 150), mk = mkNow(), res = seyirAnalysis(notes, mk);
-      if(!res){ stage.innerHTML = `<div class="muted">${L("Yeterince nota yok; en az birkaç uzun nota çal.", "Not enough notes; play at least a few long notes.")}</div>`; return; }
+      if(!res){ if(r.cap) r.cap.stop(); stage.innerHTML = `<div class="muted">${L("Yeterince nota yok; en az birkaç uzun nota çal.", "Not enough notes; play at least a few long notes.")}</div>`; return; }
       const hist = store.get("seyir.hist", []); hist.push({ d: dayKey(new Date()), mk: mk.id, score: res.score }); store.set("seyir.hist", hist.slice(-100));
       const perdes = Object.entries(res.time).sort((a, b) => +a[0] - +b[0]), max = Math.max(...perdes.map(([, v]) => v));
       stage.innerHTML = `<div class="result"><div class="big">${res.score}</div><div>${L("puan", "points")} · ${mk.name} · ${notes.length} ${L("nota", "notes")}</div></div>
         <ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
         <div class="label">${L("Perdelerde geçen süre", "Time on each perde")}</div>
         <div class="bars sybars">${perdes.map(([p, v]) => `<div class="barcol" title="${perdeName(+p)}: ${ctx.num(v/1000)} s"><i style="height:${Math.round(v/max*100)}%" class="${(+p - mk.durak) % 53 === 0 ? "durak" : (+p - mk.guclu) % 53 === 0 ? "guclu" : ""}"></i><small>${perdeName(+p)}</small></div>`).join("")}</div>
-        <div class="muted small">${L("Koyu: durak · turuncu: güçlü", "Dark: final · orange: dominant")}</div>`;
+        <div class="muted small">${L("Koyu: durak · turuncu: güçlü", "Dark: final · orange: dominant")}</div><div class="syorn"></div>`;
+      seyirOrnaments(ctx, r.cap, stage.querySelector(".syorn")).then(sc => {
+        if(!sc) return;
+        const h = store.get("seyir.hist", []); if(h.length){ h[h.length-1].orn = sc.total; store.set("seyir.hist", h); }
+      });
     }
     $("systart").addEventListener("click", async () => {
       if(rec){ finish(); return; }
       if(!(await ctx.needMic())) return;
-      rec = { frames:[], t0: performance.now(), timer: setInterval(() => {
+      rec = { frames:[], cap: SK.pcmCapture(dur + 5), t0: performance.now(), timer: setInterval(() => {
         const el = (performance.now() - rec.t0)/1000;
         const c = $("syclock"); if(c) c.innerHTML = ctx.num(el, 0) + ` <em>/ ${dur} ${L("sn", "s")}</em>`;
         if(el >= dur) finish();
@@ -354,6 +358,32 @@ const TRAINERS = {
   }
 };
 
+// ======== Serbest çalmada süsleme tanıma ========
+// Seyir sekmesi ve taksim adımı: çalış boyunca ham ses tutulur (SK.pcmCapture), bitince 5 sn'lik parçalar hâlinde
+// (arayüz donmasın) 10 ms adımla çözülür ve skills.js ornamentScan'e verilir. el: sonucun yazılacağı kutu.
+async function seyirOrnaments(ctx, cap, el){
+  const p = cap && cap.stop();
+  if(!p || !p.data.length){ el.innerHTML = ""; return null; }
+  if(p.busy && p.busy.length){ el.innerHTML = `<p class="muted small">${L("Dron ya da örnek ses çalarken süslemeler ölçülmez.", "Ornaments aren't measured while the drone or an example plays.")}</p>`; return null; }
+  const { SK } = ctx, sr = p.sampleRate, chunk = 5*sr, pad = 2048, hopMs = 10, track = [];
+  el.innerHTML = `<p class="muted small">${L("Süslemeler çözümleniyor…", "Finding ornaments…")}</p>`;
+  for(let s0 = 0; s0 < p.data.length; s0 += chunk){
+    await new Promise(r => setTimeout(r, 0));
+    if(!el.isConnected) return null;
+    const part = ornamentTrack(p.data.subarray(s0, Math.min(p.data.length, s0 + chunk + pad)), sr,
+      { T: SK.T, hopMs, minRms: SK.minRms(), minHz: SK.pitchRange().min, maxHz: SK.pitchRange().max });
+    const off = s0/sr*1000;
+    for(const f of part) if(f.t + off >= (track.length ? track[track.length-1].t + hopMs/2 : -1)) track.push({ ...f, t: f.t + off });
+    track.winMs = part.winMs;
+  }
+  const sc = ornamentScan(track), kinds = Object.keys(sc.counts).filter(k => sc.counts[k]);
+  el.innerHTML = `<div class="label">${L("Süslemeler", "Ornaments")}</div>
+    <div class="chiprow">${kinds.length ? kinds.map(k => `<span class="pchip good"><b>${sc.counts[k]}</b><small>${pick(ORN_SCAN_NAMES[k], LANG)}</small></span>`).join("") : `<span class="muted">—</span>`}</div>
+    <ul class="lstips">${ornamentScanFeedback(sc, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
+    <p class="muted small">${L("Tanıma yalnızca sentetik seslerle ayarlandı; kaçırdığı ya da fazladan bulduğu süs olabilir.", "Recognition was tuned on synthetic sounds only; it may miss or over-count some ornaments.")}</p>`;
+  return sc;
+}
+
 // ======== Süsleme denemesi ========
 // Ders adımı ve Süsleme sekmesi ortak kullanır. Ses başlayınca deneme başlar; en az 300 ms sesten sonra sessizlik
 // gelince (trilde süre dolunca) o aralığın ham sesi (SK.pcm) 5 ms adımla çözülür ve değerlendirilir.
@@ -362,7 +392,8 @@ const ORN_NB = ["carpma", "tekrar", "mordan", "tril"];
 function ornamentAttempt(ctx, spec, holder, onResult){
   const { SK } = ctx;
   const mainC = spec.comma != null ? spec.comma : (spec.note - 67)*53/12;
-  const nbC = ORN_NB.includes(spec.kind) ? ornamentNeighbor(spec) : null;
+  const nbC = ORN_NB.includes(spec.kind) ? ornamentNeighbor(spec) : spec.kind === "grupetto" ? ornamentNeighbor({ ...spec, dir:"up" }) : null;
+  const loC = spec.kind === "grupetto" ? ornamentNeighbor({ ...spec, dir:"down" }) : null;
   const expectHz = ctx.commaFreq(mainC);
   let start = null, last = null, busy = false, hold = false;   // hold: tril süresi doldu, kuyruğu yeni deneme sayma
   holder.innerHTML = `<svg class="orntrace" viewBox="0 0 300 90" preserveAspectRatio="none" role="img" aria-label="${L("Son denemenin perde eğrisi", "Pitch curve of the last attempt")}"></svg>`;
@@ -371,7 +402,7 @@ function ornamentAttempt(ctx, spec, holder, onResult){
   function draw(track){
     const pts = track.filter(f => f.comma !== null);
     if(!pts.length){ svg.innerHTML = ""; return; }
-    const lv = nbC != null ? [mainC, nbC] : [mainC];
+    const lv = nbC != null ? [mainC, nbC, ...(loC != null ? [loC] : [])] : [mainC];
     const lo = Math.max(Math.min(...lv) - 12, Math.min(...lv, ...pts.map(f => f.comma)) - 2);
     const hi = Math.min(Math.max(...lv) + 12, Math.max(...lv, ...pts.map(f => f.comma)) + 2);
     const t0 = track[0].t, t1 = Math.max(t0 + 1, track[track.length-1].t);
@@ -441,6 +472,8 @@ function ornamentGoal(spec, nn){
     case "tril": return L("Tril: ", "Trill: ") + m + " ↔ " + n + L(", en az " + spec.sec + " sn", ", at least " + spec.sec + " s");
     case "giris": return L("Kayarak giriş: birkaç koma pesten başla, " + m + " notasına kay", "Slide-in: start a few commas low and slide up to " + m);
     case "dusus": return L("Düşüş: " + m + " notasını tut, sonunda sesi aşağı bırak", "Fall: hold " + m + ", then let the pitch drop at the end");
+    case "grupetto": { const u = nn(commaToWritten(ornamentNeighbor({ ...spec, dir:"up" }))), d = nn(commaToWritten(ornamentNeighbor({ ...spec, dir:"down" })));
+      return L("Grupetto: ", "Turn: ") + u + " → " + m + " → " + d + " → " + m + L(" (ilk üçü kısa, son nota uzun)", " (first three short, last note long)"); }
   }
   return "";
 }
@@ -452,7 +485,7 @@ TRAINERS.susleme = function(ctx){
   const { SK, $, store, nn, num, label, needMic } = ctx;
   const P = $("pp-susleme");
   const KINDS = [["carpma", L("Çarpma", "Grace note")], ["tekrar", L("Çarpmalı tekrar", "Repeated note")], ["mordan", L("Mordan", "Mordent")],
-                 ["tril", L("Tril", "Trill")], ["giris", L("Kayarak giriş", "Slide-in")], ["dusus", L("Düşüş", "Fall")]];
+                 ["tril", L("Tril", "Trill")], ["giris", L("Kayarak giriş", "Slide-in")], ["dusus", L("Düşüş", "Fall")], ["grupetto", L("Grupetto", "Turn")]];
   P.innerHTML = `
     <p class="pdesc">${L("Bir süsleme seç, önce örneği dinle, sonra çal. Her denemeden sonra perde eğrin ve ne yapman gerektiği görünür.",
       "Pick an ornament, listen to the example, then play. After each attempt you see your pitch curve and what to fix.")}</p>
@@ -813,7 +846,7 @@ const TRAINER_STEPS = {
   },
 
   seyir(st, stage, done, ctx){
-    const mk = makamById(st.makam), frames = [], t0 = performance.now();
+    const mk = makamById(st.makam), frames = [], t0 = performance.now(), cap = ctx.SK.pcmCapture(st.sec + 5);
     let over = false;
     stage.innerHTML = `<div class="muted">${mk.name}: ${ctx.esc(seyirText(mk, LANG))}</div>
       <div class="ltclock lyc">0 <em>/ ${st.sec} ${L("sn", "s")}</em></div>
@@ -826,15 +859,16 @@ const TRAINER_STEPS = {
     function fin(){
       if(over) return; over = true; clearInterval(timer);
       const res = seyirAnalysis(segmentNotes(frames, 150), mk);
-      if(!res){ stage.querySelector(".lyr").innerHTML = `<div class="fb bad">${L("Yeterince nota yok.", "Not enough notes.")}</div>`; done({ v:0 }); return; }
-      stage.querySelector(".lyr").innerHTML = `<div class="result"><div class="big">${res.score}</div><div>${L("puan", "points")}</div></div><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`;
+      if(!res){ cap.stop(); stage.querySelector(".lyr").innerHTML = `<div class="fb bad">${L("Yeterince nota yok.", "Not enough notes.")}</div>`; done({ v:0 }); return; }
+      stage.querySelector(".lyr").innerHTML = `<div class="result"><div class="big">${res.score}</div><div>${L("puan", "points")}</div></div><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul><div class="syorn"></div>`;
+      seyirOrnaments(ctx, cap, stage.querySelector(".syorn"));
       done({ v: res.score });
     }
     stage.querySelector("[data-fin]").addEventListener("click", fin);
     return {
       note(r, t){ if(!over) frames.push({ t, written:r.written, comma:r.comma }); },
       silence(t){ if(!over) frames.push({ t, written:null }); },
-      stop(){ over = true; clearInterval(timer); }
+      stop(){ if(!over) cap.stop(); over = true; clearInterval(timer); }
     };
   },
 

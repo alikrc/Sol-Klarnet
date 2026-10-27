@@ -73,6 +73,9 @@
       def:L("Notaya en az " + ORN.girisDepth + " koma pesten, " + ORN.giris.join("–") + " ms içinde tek yönlü kayarak girilir.", "The note is entered from at least " + ORN.girisDepth + " commas below, sliding up within " + ORN.giris.join("–") + " ms.") },
     { id:"dusus", kind:"dusus", note:69, name:L("Sonda düşüş", "Fall at the end"),
       def:L("Notanın sonunda " + ORN.dusus.join("–") + " ms içinde en az " + ORN.dususDepth + " koma aşağı bırakılıp susulur.", "At the end of the note the pitch drops at least " + ORN.dususDepth + " commas within " + ORN.dusus.join("–") + " ms, into silence.") },
+    { id:"grupetto", kind:"grupetto", note:69, name:L("Grupetto (çevirme)", "Turn"),
+      def:L("Üst komşu – ana – alt komşu – ana; ilk üçü her biri en çok " + ORN.grupettoNote + " ms, toplamı en çok " + ORN.grupettoTotal + " ms, son nota en az " + ORN.mainMin + " ms.",
+            "Upper neighbour – main – lower neighbour – main; the first three at most " + ORN.grupettoNote + " ms each and " + ORN.grupettoTotal + " ms in all, the last note at least " + ORN.mainMin + " ms.") },
     { id:"et:e-sus-ussak", etude:"e-sus-ussak" },
     { id:"et:e-sus-hicaz", etude:"e-sus-hicaz" }
   ];
@@ -175,7 +178,7 @@
       if(o.etude){
         const e = etudeById(o.etude);
         return `<div class="rvmk"><h3 class="lstitle">${esc(pick(e.name, LANG))}</h3>
-          <p class="muted">${L("Etüt ve eserler sekmesinde dinlenebilir. Süsleme ekleri: k giriş, ç+ çarpma, m+/m- mordan, tr tril, d düşüş.", "Can be heard in the Études & pieces tab. Ornament marks: k slide-in, ç+ grace note, m+/m- mordent, tr trill, d fall.")}</p>
+          <p class="muted">${L("Etüt ve eserler sekmesinde dinlenebilir. Süsleme ekleri: k giriş, ç+ çarpma, m+/m- mordan, tr tril, gr grupetto, d düşüş.", "Can be heard in the Études & pieces tab. Ornament marks: k slide-in, ç+ grace note, m+/m- mordent, tr trill, gr turn, d fall.")}</p>
           <code class="fcode">${esc(e.text)}</code>${verdictBox("o:" + o.id)}</div>`;
       }
       return `<div class="rvmk"><h3 class="lstitle">${o.name}</h3><p>${o.def}</p>
