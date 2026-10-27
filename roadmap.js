@@ -3,7 +3,7 @@
 // hızından kalan sürenin tahmini ve haftalık görünüm. Hedef tarz seçilirse (oyun havaları / klasik) aşamaların sırası değişir.
 // Mantık tarayıcıda ve Node'da (require("./roadmap.js")); sekme dosyanın sonunda.
 
-const RMLESSONS = typeof module !== "undefined" ? require("./lessons.js") : { LESSONS, lessonDone, nextLesson };
+const RMLESSONS = typeof module !== "undefined" ? require("./lessons.js") : { LESSONS, UNITS, lessonDone, nextLesson, examFor };
 const RMLEARN = typeof module !== "undefined" ? require("./learn.js") : { dayKey, unlockedLevels };
 
 // Kilometre taşı: { id, title, tab (açılacak alıştırma), get(st) → ölçülen değer (null: henüz yok), target, lower (küçük iyi) }
@@ -70,7 +70,7 @@ function roadmapStats(get){
   sy.forEach(x => { syBy[x.mk] = Math.max(syBy[x.mk] || 0, x.score); });
   const ear = get("ear.best", {}), band = get("band.hist", []).filter(x => x.grid != null && x.bars >= 8);
   return {
-    prog: get("lesson.prog", {}), days: get("days", {}), goalMin: get("goal.min", 15),
+    prog: get("lesson.prog", {}), days: get("days", {}), goalMin: get("goal.min", 15), dailyDone: get("lesson.dailyDone", []),
     longBest, quizRegions: RMLEARN.unlockedLevels(get("quiz.recent", {})),
     rhythmBest: get("rhythm.best", 0), earPitch: ear.pitch != null ? ear.pitch : null, earMakam: ear.makam || 0,
     sightBest: get("sight.best", {}), dictBest: get("dict.best", {}),
@@ -121,7 +121,55 @@ function weekView(days, goalMin, today = new Date()){
   return out;
 }
 
-if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView };
+// ---- Rozetler ----
+// En uzun seri: en az 60 sn çalışılan art arda günler
+function bestStreak(days){
+  const ks = Object.keys(days).filter(k => days[k] >= 60).sort();
+  let best = 0, run = 0, prev = null;
+  for(const k of ks){
+    const [y, m, d] = k.split("-").map(Number), t = Date.UTC(y, m - 1, d)/864e5;
+    run = prev !== null && t - prev === 1 ? run + 1 : 1; prev = t; best = Math.max(best, run);
+  }
+  return best;
+}
+const RM_TIERS = {
+  streak: { days:[3, 7, 14, 30, 100], name: n => ({ tr: n + " gün seri", en: n + "-day streak" }) },
+  daily:  { days:[7, 30, 100], name: n => ({ tr: n + " günlük çalışma", en: n + " daily routines" }) },
+  hours:  { days:[5, 25, 100], name: n => ({ tr: n + " saat klarnet", en: n + " hours of clarinet" }) }
+};
+// Rozetler: ünite sınavları ve seri, günlük çalışma ve toplam süre basamakları.
+// Dönen: [{ id, group: "unit"|"streak"|"daily"|"hours", name:{tr,en}, got, v (şu anki değer), target }]
+function badgeList(st){
+  const out = [];
+  for(const u of RMLESSONS.UNITS){
+    const ex = RMLESSONS.examFor(u.id); if(!ex) continue;
+    const p = st.prog[ex.id];
+    out.push({ id:"unit-" + u.id, group:"unit", name:u.badge, got: !!(p && p.d), v: p && p.d ? 1 : 0, target:1, unit:u.id });
+  }
+  const val = { streak: bestStreak(st.days), daily: (st.dailyDone || []).length,
+                hours: Object.values(st.days).reduce((a, b) => a + b, 0)/3600 };
+  for(const [g, t] of Object.entries(RM_TIERS)) for(const n of t.days)
+    out.push({ id: g + n, group:g, name: t.name(n), got: val[g] >= n, v: val[g], target:n });
+  return out;
+}
+// Haftalık özet: bu hafta (pazartesiden bugüne) ve geçen hafta. Her biri { min, active, lessons, daily, goalDays }
+function weekSummary(st, today = new Date()){
+  const d0 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  d0.setDate(d0.getDate() - ((d0.getDay() + 6) % 7));
+  const span = (from, n) => {
+    const keys = []; for(let i=0;i<n;i++){ const d = new Date(from); d.setDate(from.getDate() + i); keys.push(RMLEARN.dayKey(d)); }
+    const set = new Set(keys), sec = keys.map(k => st.days[k] || 0);
+    return { min: Math.round(sec.reduce((a, b) => a + b, 0)/60), active: sec.filter(s => s >= 60).length,
+      goalDays: sec.filter(s => s >= st.goalMin*60).length,
+      lessons: Object.values(st.prog).filter(p => p.d && set.has(p.d)).length,
+      daily: (st.dailyDone || []).filter(k => set.has(k)).length };
+  };
+  const n = Math.round((new Date(today.getFullYear(), today.getMonth(), today.getDate()) - d0)/864e5) + 1;
+  const prev = new Date(d0); prev.setDate(d0.getDate() - 7);
+  return { cur: span(d0, n), prev: span(prev, 7), days: n };
+}
+
+if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary };
 
 // ======== Sekme ========
 if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
@@ -129,6 +177,27 @@ if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
   const P = $("pp-roadmap");
   const tx = x => pick(x, LANG);
   const DAYN = LANG === "en" ? ["Mo","Tu","We","Th","Fr","Sa","Su"] : ["Pt","Sa","Ça","Pe","Cu","Ct","Pz"];
+  // Haftalık özet: bu hafta ve geçen haftanın aynı kalemleri, artış/azalış okuyla
+  function weekHtml(){
+    const st = roadmapStats((k, d) => store.get(k, d)), w = weekSummary(st);
+    const row = (lab, a, b, unit = "") => `<div><span class="label">${lab}</span><b>${a}${unit}</b> <small class="muted">${L("geçen hafta ", "last week ")}${b}${unit}${a > b ? " ↑" : a < b && w.days === 7 ? " ↓" : ""}</small></div>`;
+    return `<details class="rmsum" open><summary>${L("Haftalık özet", "Weekly summary")}</summary><div class="kv">
+      ${row(L("Çalışma", "Practice"), w.cur.min, w.prev.min, L(" dk", " min"))}
+      ${row(L("Çalışılan gün", "Days practised"), w.cur.active, w.prev.active)}
+      ${row(L("Hedefe ulaşılan gün", "Goal days"), w.cur.goalDays, w.prev.goalDays)}
+      ${row(L("Biten ders", "Lessons finished"), w.cur.lessons, w.prev.lessons)}
+      ${row(L("Günlük çalışma", "Daily routines"), w.cur.daily, w.prev.daily)}</div></details>`;
+  }
+  // Rozetler: kazanılanlar renkli; yeni kazanılanlar bir kez "yeni" işaretiyle görünür
+  function badgesHtml(st){
+    const bs = badgeList(st), seen = new Set(store.get("badges.seen", [])), got = bs.filter(b => b.got);
+    const html = `<details class="rmbadges" open><summary>${L("Rozetler", "Badges")} <small>${got.length}/${bs.length}</small></summary><div class="badges">
+      ${bs.map(b => `<span class="badge ${b.group}${b.got ? " got" : ""}" title="${b.got ? "" : b.group === "unit" ? L("Ünite sınavını geç", "Pass the unit test") : (typeof b.v === "number" && b.v % 1 ? num(b.v) : b.v) + " / " + b.target}">
+        <i>${b.group === "unit" ? "★" : b.group === "streak" ? "🔥" : b.group === "daily" ? "✓" : "♪"}</i>${esc(tx(b.name))}${b.got && !seen.has(b.id) ? ` <em>${L("yeni", "new")}</em>` : ""}</span>`).join("")}</div>
+      <small class="muted">${L("Ünite rozetleri Dersler'deki ünite sınavlarıyla kazanılır; seri ve süre rozetleri günlük çalışmayla.", "Unit badges come from the unit tests in Lessons; streak and time badges from daily practice.")}</small></details>`;
+    store.set("badges.seen", got.map(b => b.id));
+    return html;
+  }
   function render(){
     store.set("days", days);
     const style = store.get("goal.style", "both");
@@ -158,6 +227,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
           <p class="rmest">${cur ? (pace.basis === "plan" ? L("Haftada 5 gün, günde " + st.goalMin + " dk çalışırsan şu anki aşama ", "Practising 5 days a week, " + st.goalMin + " min a day, the current stage takes ") : L("Bu hızla şu anki aşama ", "At this pace the current stage takes ")) + `<b>${wks(pace.weeks[status.indexOf(cur)])}</b>` + L(", hepsi ", ", everything ") + `<b>${months(pace.total)}</b>` + L(" sürer.", ".") : L("Bütün aşamalar tamam.", "All stages complete.")}
           <small class="muted">${L("Son 4 hafta: günde ort. ", "Last 4 weeks: avg ") + num(pace.minPerDay, 0) + L(" dk, ", " min a day, ") + pace.activeDays + L(" gün çalıştın.", " days practised.")}</small></p></div>
       </div>
+      ${weekHtml()}
+      ${badgesHtml(st)}
       <ol class="rmstages">${status.map((s, i) => `
         <li class="rmstage${s.done ? " done" : ""}${s.current ? " cur" : ""}">
           <div class="rmhead"><span class="rmnum">${s.done ? "✓" : i + 1}</span><div><b>${esc(tx(s.stage.title))}</b><small>${esc(tx(s.stage.goal))}</small></div><em>%${s.pct}</em></div>

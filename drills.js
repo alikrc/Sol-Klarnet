@@ -807,7 +807,7 @@ TRAINERS.progress = function(ctx){
     });
     $("rsall").addEventListener("click", () => {
       if(!confirm(_t("Seri, ders, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır."))) return;
-      ["lesson.prog","lesson.daily","lesson.dailyDone","lesson.cur","quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","makam.done","mimic.best","piece.done","days","int.stats"]
+      ["lesson.prog","lesson.daily","lesson.dailyDone","lesson.cur","lesson.srs","badges.seen","quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","makam.done","mimic.best","piece.done","days","int.stats"]
         .forEach(k => { try{ localStorage.removeItem("sk." + k); }catch(e){} });
       markResetting();
       location.reload();

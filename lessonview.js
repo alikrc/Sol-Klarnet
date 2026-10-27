@@ -23,7 +23,8 @@ TRAINERS.lessons = function(ctx){
     const day = dayKey(new Date());
     // Gün içinde hiçbir adıma başlanmadıysa plan yeniden kurulur (o arada bitirilen dersler de girsin)
     if(!daily || daily.day !== day || !Object.keys(daily.p.s).length){
-      const plan = dailyPlan({ prog, intStats, quizStats: store.get("quiz.stats", {}), day, techBest: techBestMap(store), goalMin: store.get("goal.min", 15) });
+      const srs = srsSync(store.get("lesson.srs", {}), prog, day); store.set("lesson.srs", srs);
+      const plan = dailyPlan({ prog, intStats, quizStats: store.get("quiz.stats", {}), day, srs, techBest: techBestMap(store), goalMin: store.get("goal.min", 15) });
       daily = { day, plan: plan.steps, p:{ s:{} } };
       store.set("lesson.daily", daily);
     }
@@ -45,6 +46,12 @@ TRAINERS.lessons = function(ctx){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
         html += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : " disabled"}>
           <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
+      }
+      const ex = examFor(u.id);
+      if(ex){
+        const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
+        html += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : " disabled"}>
+          <span>${L("Ünite sınavı", "Unit test")}${done ? " · " + esc(tx(u.badge)) : ""}</span><small>${!open ? L("dersler bitince", "after the lessons") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
     }
     $("lslist").innerHTML = html;
@@ -123,6 +130,11 @@ TRAINERS.lessons = function(ctx){
     const el = $("lsnext"); if(!el || !cur) return;
     if(!lessonDone(cur, progFor(cur))){ el.innerHTML = ""; return; }
     if(cur.daily){ el.innerHTML = `<div class="lsdone"><strong>Bugünün çalışması tamam.</strong> Seri: ${streak(days)} gün.</div>`; return; }
+    if(cur.exam){
+      const u = UNITS.find(x => x.id === cur.unit);
+      el.innerHTML = `<div class="lsdone"><strong>${L("Sınavı geçtin!", "Test passed!")}</strong> ${L("Rozet", "Badge")}: ★ ${esc(tx(u.badge))} <button class="stopbtn small" type="button" data-act="tab" data-tab="roadmap">${L("Rozetlerim", "My badges")}</button></div>`;
+      return;
+    }
     const nx = nextLesson(prog, allOpen);
     el.innerHTML = `<div class="lsdone"><strong>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>`;
   }
@@ -130,6 +142,7 @@ TRAINERS.lessons = function(ctx){
     const b = e.target.closest("[data-act]"); if(!b) return;
     const act = b.dataset.act, i = +b.dataset.i;
     if(act === "goto") return open(lessonById(b.dataset.id));
+    if(act === "tab") return ctx.selectTab(b.dataset.tab);
     if(act === "drone"){ droneOn(makamById(cur.makam).durak); return; }
     if(act === "hear") return hear(cur.steps[i]);
     if(act === "start"){ if(run && run.i === i) stopRun(); else startStep(i); }
@@ -215,6 +228,10 @@ TRAINERS.lessons = function(ctx){
     if(h && h.stop) h.stop();
     const p = progFor(lesson), wasDone = lessonDone(lesson, p);
     const r = recordStep(p, lesson, i, res, dayKey(new Date()));
+    // Tekrar adımı: günün ilk denemesi aralığı uzatır ya da kısaltır
+    if(lesson.daily && lesson.steps[i].rev){
+      const srs = store.get("lesson.srs", {}); srsUpdate(srs, lesson.steps[i].rev, r.ok, dayKey(new Date())); store.set("lesson.srs", srs);
+    }
     if(lesson.daily && !wasDone && r.done){
       const dd = store.get("lesson.dailyDone", []);
       if(!dd.includes(daily.day)){ dd.push(daily.day); store.set("lesson.dailyDone", dd.slice(-400)); }

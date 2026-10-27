@@ -416,6 +416,8 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 .lsitem:disabled{color:var(--muted);opacity:.6;cursor:default}
 .lsitem.daily{font-weight:600;background:color-mix(in srgb,var(--teal) 14%,transparent)}
 .lsitem.daily.cur{background:var(--surface)}
+.lsitem.exam{font-style:italic;border-top:1px dashed var(--line)}
+.lsitem.exam.done small{color:var(--accent)}
 .lstitle{font-family:var(--display);font-size:24px;font-weight:600;margin:4px 0 8px}
 .lsbody > p{max-width:70ch}
 .lstips{margin:0 0 12px;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.55}
@@ -854,4 +856,14 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .rmdet > span{color:var(--muted);margin-right:4px}
 .rmmile{border:1px solid var(--line);background:var(--sunk);color:var(--ink);font:500 12px/1.3 var(--ui);padding:6px 9px;border-radius:999px;cursor:pointer;text-align:left}
 .rmmile.ok{border-color:var(--ok);color:var(--ok)}
+.rmsum,.rmbadges{margin:12px 0;background:var(--sunk);border-radius:12px;padding:10px 12px}
+.rmsum summary,.rmbadges summary{font-weight:600;cursor:pointer}
+.rmsum .kv{margin-top:8px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.badge{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:500 12px/1.3 var(--ui);color:var(--muted);opacity:.65}
+.badge i{font-style:normal;filter:grayscale(1)}
+.badge.got{opacity:1;color:var(--ink);border-color:var(--teal);background:var(--surface)}
+.badge.got i{filter:none}
+.badge.unit.got{border-color:var(--accent)}
+.badge em{font:600 10px var(--ui);color:var(--accent);font-style:normal;text-transform:uppercase}
 @media (hover:hover){.rmmile:hover{border-color:var(--teal)}}
