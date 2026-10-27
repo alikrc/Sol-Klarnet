@@ -27,15 +27,15 @@ const LLEARN = typeof module !== "undefined" ? require("./learn.js")
   : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS };
 
 const UNITS = [
-  { id:"baslangic", name:{ tr:"Başlarken", en:"Getting started" } },
-  { id:"temel",  name:{ tr:"Temeller", en:"Basics" } },
-  { id:"klarino", name:{ tr:"Register ve klarino", en:"Register and clarion" } },
-  { id:"teknik", name:{ tr:"Teknik ve üslup", en:"Technique and style" } },
-  { id:"hiz", name:{ tr:"Hız ve teknik", en:"Speed and technique" } },
-  { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" } },
-  { id:"makam",  name:{ tr:"Makamlar", en:"Makams" } },
-  { id:"trakya", name:{ tr:"Trakya ve Roman", en:"Thracian and Roman" } },
-  { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" } }
+  { id:"baslangic", name:{ tr:"Başlarken", en:"Getting started" }, badge:{ tr:"Yola çıktın", en:"On the road" } },
+  { id:"temel",  name:{ tr:"Temeller", en:"Basics" }, badge:{ tr:"Temel çalgıcı", en:"Core player" } },
+  { id:"klarino", name:{ tr:"Register ve klarino", en:"Register and clarion" }, badge:{ tr:"Klarino bölgesi", en:"Clarion climber" } },
+  { id:"teknik", name:{ tr:"Teknik ve üslup", en:"Technique and style" }, badge:{ tr:"Teknik ve üslup", en:"Technique and style" } },
+  { id:"hiz", name:{ tr:"Hız ve teknik", en:"Speed and technique" }, badge:{ tr:"Hızlı parmaklar", en:"Fast fingers" } },
+  { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" }, badge:{ tr:"Süsleme ustası", en:"Ornament master" } },
+  { id:"makam",  name:{ tr:"Makamlar", en:"Makams" }, badge:{ tr:"Makam yolcusu", en:"Makam traveller" } },
+  { id:"trakya", name:{ tr:"Trakya ve Roman", en:"Thracian and Roman" }, badge:{ tr:"Trakya ve Roman ustası", en:"Thracian and Roman master" } },
+  { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" }, badge:{ tr:"Taksimci", en:"Taksim player" } }
 ];
 
 const LESSONS = [
@@ -1204,8 +1204,71 @@ LESSONS.splice(LESSONS.findIndex(l => l.id === "kulak-1") + 1, 0, ...OKUMA1);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "taksim-giris"), 0, ...TRAKYA);
 LESSONS.push(...OKUMA2);
 
-const lessonById = id => LESSONS.find(l => l.id === id) || null;
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
+
+// ---- Ünite sınavları ----
+// Her ünitenin sonunda karışık bir sınav: ünitenin derslerinden eşit aralıkla seçilen en çok altı dersin son (en zor)
+// adımı, ünite kimliğinden türeyen sırayla karışık. Sınav ders zincirine girmez (sonraki dersleri kilitlemez);
+// ünitenin bütün dersleri bitince açılır, geçilince ünitenin rozeti kazanılır (roadmap.js badgeList).
+const EXAM_STEPS = 6;
+const gatedStep = st => st.type !== "listen" && st.type !== "read" && !(st.type === "piece" && st.mode === "ladder");
+// Adımı dersinden kopyalar: makam dersinin adımı makamını yanında taşır (günlük planda ve sınavda ders bağlamı yok)
+const stepFrom = (l, st) => ({ ...st, ...(l.makam && !st.makam ? { makam: l.makam } : {}) });
+function makeExam(u){
+  const ls = LESSONS.filter(l => l.unit === u.id && l.steps.some(gatedStep));
+  const n = Math.min(EXAM_STEPS, ls.length), idx = [...new Set(Array.from({ length:n }, (_, k) => n < 2 ? 0 : Math.round(k*(ls.length - 1)/(n - 1))))];
+  const rng = seeded("sinav-" + u.id);
+  const steps = idx.map(i => { const l = ls[i], g = l.steps.filter(gatedStep); return stepFrom(l, g[g.length - 1]); })
+    .map(st => ({ st, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.st);
+  return { id:"sinav-" + u.id, unit:u.id, exam:true, notes:[],
+    title:{ tr:"Ünite sınavı: " + u.name.tr, en:"Unit test: " + u.name.en },
+    text:[{ tr:"Ünitenin derslerinden karışık adımlar. Hepsini geçersen “" + u.badge.tr + "” rozetini kazanırsın. Sınav sonraki dersleri kilitlemez; istediğin zaman dön.",
+            en:"Mixed steps from the unit's lessons. Pass them all to earn the “" + u.badge.en + "” badge. The test doesn't lock later lessons; come back whenever you like." }],
+    tips:[{ tr:"Takıldığın adımın dersine dönüp orayı tekrar çalış.", en:"If a step stops you, go back to its lesson and practise it there." }],
+    steps };
+}
+const EXAMS = UNITS.map(makeExam).filter(e => e.steps.length);
+const examFor = unitId => EXAMS.find(e => e.unit === unitId) || null;
+const lessonById = id => LESSONS.find(l => l.id === id) || EXAMS.find(l => l.id === id) || null;
+
+// ---- Aralıklı tekrar ----
+// Bitirilen dersin bir adımı artan aralıklarla (1, 3, 7, 21, 60 gün) günlük plana geri gelir. Başarılı tekrar aralığı
+// bir basamak uzatır, başarısız tekrar bir basamak kısaltır; günün ilk denemesi sayılır.
+// srs: { [lessonId]: { lv (SRS_DAYS sırası), due: "YYYY-MM-DD", last?: gün, n?: tekrar sayısı } }
+const SRS_DAYS = [1, 3, 7, 21, 60], SRS_PER_DAY = 2;
+const p2 = n => String(n).padStart(2, "0");
+function shiftDay(day, n){
+  const [y, m, d] = day.split("-").map(Number), t = new Date(y, m - 1, d + n);
+  return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate());
+}
+// Kaydı olmayan bitmiş dersleri sıraya ekler. Bu özellikten önce bitmiş çok ders varsa hepsi aynı gün gelmesin:
+// k. ders en erken bugün + k/SRS_PER_DAY günde.
+function srsSync(srs, prog, day){
+  let k = 0;
+  for(const l of LESSONS){
+    if(srs[l.id] || !lessonDone(l, prog) || !l.steps.some(gatedStep)) continue;
+    const a = shiftDay(prog[l.id].d || day, SRS_DAYS[0]), b = shiftDay(day, Math.floor(k++/SRS_PER_DAY));
+    srs[l.id] = { lv:0, due: a > b ? a : b };
+  }
+  return srs;
+}
+// Bugün tekrarı gelen dersler: en eski vadeli önce, en çok max tane
+function srsDue(srs, day, max = SRS_PER_DAY){
+  return Object.entries(srs).filter(([id, e]) => e.due <= day && lessonById(id) && !lessonById(id).exam)
+    .sort((a, b) => a[1].due < b[1].due ? -1 : a[1].due > b[1].due ? 1 : a[1].lv - b[1].lv).slice(0, max).map(([id]) => id);
+}
+// Tekrar adımı: dersin geçme koşullu adımlarından biri (gün ve dersten türeyen seçim), rev alanında dersin kimliği
+function reviewStep(lesson, day){
+  const g = lesson.steps.filter(gatedStep);
+  return { ...stepFrom(lesson, g[Math.floor(seeded(day + lesson.id)()*g.length)]), rev: lesson.id };
+}
+function srsUpdate(srs, id, ok, day){
+  const e = srs[id] || (srs[id] = { lv:0, due:day });
+  if(e.last === day) return e;
+  e.lv = ok ? Math.min(SRS_DAYS.length - 1, e.lv + 1) : Math.max(0, e.lv - 1);
+  e.due = shiftDay(day, SRS_DAYS[e.lv]); e.last = day; e.n = (e.n || 0) + 1;
+  return e;
+}
 
 // Adımın yazılı notaları (çalma ya da dinleme için)
 function stepNotes(step){
@@ -1234,6 +1297,7 @@ const ornName = o => { const n = ORN_NAMES[o.kind]; return n.up ? n[o.dir === "d
 // Adım başlığı: "Uzun ton: Sol4 · 8 sn · en az 55 puan"
 function stepTitle(step, lang = "tr"){
   const en = lang === "en";
+  if(step.rev){ const l = lessonById(step.rev); return (en ? "Review" : "Tekrar") + (l ? " (" + pick(l.title, lang) + ")" : "") + " · " + stepTitle({ ...step, rev: undefined }, lang); }
   const nn = w => LCORE.noteName(w)[en ? "en" : "tr"];
   // Uzun dizilerin başı yazılır; adım başlayınca bütün notalar çipler hâlinde görünür
   const seq = () => {
@@ -1342,6 +1406,7 @@ function lessonProgress(lesson, prog){
 function unlocked(lesson, prog, all = false){
   if(all) return true;
   if(lessonDone(lesson, prog)) return true;          // bitmiş ders hep açık (yeni dersler araya eklense de)
+  if(lesson.exam) return LESSONS.filter(l => l.unit === lesson.unit).every(l => lessonDone(l, prog));
   const i = LESSONS.indexOf(lesson);
   if(i <= 0) return true;
   const base = () => LESSONS.filter(l => l.unit === "temel" || l.unit === "klarino").every(l => lessonDone(l, prog));
@@ -1425,7 +1490,7 @@ function seeded(str){
 // Günlük plandaki adımların yaklaşık süresi (dakika)
 const DAILY_MIN = { hold:1, quiz:2, scale:2, mimic:2, notes:1, rhythm:2, piece:3, ear:2, seyir:2, ornament:2, tech:3, sight:3, dictation:3 };
 // Günlük çalışma: ısınma uzun tonu (en çok sapan nota), zorlanılan notalardan test, bir makam dizisi ve taklit.
-// ctx: { prog, intStats: {[w]: {n,sum}}, quizStats: {[w]: {n,wrong,ms}}, day: "YYYY-MM-DD" }
+// ctx: { prog, intStats: {[w]: {n,sum}}, quizStats: {[w]: {n,wrong,ms}}, day: "YYYY-MM-DD", srs?, techBest?, goalMin? }
 function dailyPlan(ctx){
   const rng = seeded(ctx.day);
   const known = knownNotes(ctx.prog);
@@ -1440,6 +1505,10 @@ function dailyPlan(ctx){
     const hard = [...known].sort((a,b) => LLEARN.quizWeight(ctx.quizStats[b]) - LLEARN.quizWeight(ctx.quizStats[a]) || a - b).slice(0, 6);
     steps.push({ type:"quiz", notes: hard.sort((a,b) => a-b), mode: rng() < 0.5 ? "play" : "find", n:8, min:6 });
   }
+  // Tekrar: vadesi gelen bitmiş derslerden birer adım (ctx.srs); ısınma ve testle birlikte süre sınırında hep kalır
+  const reviews = ctx.srs ? srsDue(ctx.srs, ctx.day).map(id => reviewStep(lessonById(id), ctx.day)) : [];
+  steps.push(...reviews);
+  const nFix = steps.length;
   // 3–4. Makam: bitirilen makam derslerinden biri; hiç yoksa bilinen notalarla çıkış-iniş ve taklit
   const mks = LESSONS.filter(l => l.makam && l.id !== "rast-giris" && lessonDone(l, ctx.prog)).map(l => l.makam);
   const done = id => { const l = lessonById(id); return !!l && lessonDone(l, ctx.prog); };
@@ -1475,15 +1544,15 @@ function dailyPlan(ctx){
   // 12. Deşifre ve dikte: ilgili ders bittiyse kısa birer tur (ileri basamak bittiyse onun seviyesinde)
   if(done("desifre-1")) steps.push({ type:"sight", level: done("desifre-2") ? 3 + Math.floor(rng()*2) : 1 + Math.floor(rng()*2), min:70 });
   if(done("dikte-1")) steps.push({ type:"dictation", mode: rng() < 0.5 ? "melody" : "rhythm", level: done("dikte-2") ? 3 : 2, n:5, min:4 });
-  // Süre sınırı (ctx.goalMin, dk): ısınma ve parmak testi hep kalır; diğerlerinden günün sırasıyla sığanlar seçilir,
+  // Süre sınırı (ctx.goalMin, dk): ısınma, parmak testi ve tekrarlar hep kalır; diğerlerinden günün sırasıyla sığanlar seçilir,
   // seçilenler plandaki yerlerinde kalır. Kalanlar başka günlerde gelir.
   const budget = ctx.goalMin || 0;
-  if(budget && steps.length > 2){
+  if(budget && steps.length > nFix){
     const cost = st => DAILY_MIN[st.type] || 2;
-    let total = steps.slice(0, 2).reduce((a, st) => a + cost(st), 0);
-    const rest = steps.slice(2).map((st, i) => ({ st, i, r: rng() })).sort((a, b) => a.r - b.r), keep = [];
+    let total = steps.slice(0, nFix).reduce((a, st) => a + cost(st), 0);
+    const rest = steps.slice(nFix).map((st, i) => ({ st, i, r: rng() })).sort((a, b) => a.r - b.r), keep = [];
     for(const x of rest) if(total + cost(x.st) <= budget || !keep.length){ keep.push(x); total += cost(x.st); }
-    steps.splice(2, steps.length, ...keep.sort((a, b) => a.i - b.i).map(x => x.st));
+    steps.splice(nFix, steps.length, ...keep.sort((a, b) => a.i - b.i).map(x => x.st));
   }
   return { id:"daily", unit:null, notes:[], daily:true,
            title:{ tr:"Bugünün çalışması", en:"Today's practice" },
@@ -1493,6 +1562,6 @@ function dailyPlan(ctx){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  UNITS, LESSONS, lessonById, pick, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
+  UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
   unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan
 };
