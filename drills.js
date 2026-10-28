@@ -1004,3 +1004,184 @@ TRAINERS.staffmap = function(ctx){
     leave(){ mark(null, "live"); }
   };
 };
+
+// ======== Gör ve bas: dizekteki notadan doğrudan parmağa ========
+// Notanın adını düşünmeden parmağı kurmayı alıştırır. Az notayla başlar; ipucu (ad, parmak, gecikmeli parmak) hızlandıkça
+// söner, açık notaların hepsi hızlı ve doğruysa yeni nota eklenir (learn.js gbRecord). Klarnetle çalarak ya da
+// klarnetsiz, ekrandaki şemada parmağı kurarak cevaplanır.
+TRAINERS.gorbas = function(ctx){
+  const { SK, $, store, nn, num, needMic, holder, staffSvg, miniChart } = ctx;
+  const ROUND = 15;
+  const P = $("pp-gorbas");
+  P.innerHTML = `
+    <p class="pdesc">${L("Dizekteki notayı gör, adını düşünmeden parmağını bas. Üç notayla başlar. Her nota önce adıyla ve parmağıyla gelir; doğru ve hızlı buldukça önce adı, sonra parmağı gizlenir. Açık notaların hepsini hızlı bulunca yeni bir nota eklenir. Klarnetle çalarak ya da klarnetsiz, ekrandaki şemada deliklere basarak cevaplayabilirsin.",
+      "See the note on the staff and press its fingering without thinking of its name. It starts with three notes. Each note first comes with its name and fingering; as you get it right and fast, first the name, then the fingering is hidden. When you find all open notes quickly, a new note is added. Answer by playing the clarinet or, without it, by pressing the holes on the chart.")}</p>
+    <div class="pbar">
+      <div class="seg" role="radiogroup" aria-label="${L("Cevap yolu", "Answer by")}" id="gbin">
+        <button type="button" role="radio" data-m="play">${L("Klarnetle çal", "Play clarinet")}</button>
+        <button type="button" role="radio" data-m="tap">${L("Ekranda bas", "Tap on screen")}</button>
+      </div>
+      <button class="primary small" id="gbstart" type="button">${L(ROUND + " notalık tur başlat", "Start a " + ROUND + "-note round")}</button>
+    </div>
+    <div class="gbset" id="gbset"></div>
+    <div class="stage" id="gbstage"><div class="muted">${L("Cevap yolunu seç, sonra turu başlat.", "Choose how to answer, then start the round.")}</div></div>`;
+  const stage = $("gbstage");
+  const st = gbState(store.get("gb.state", null));
+  let input = store.get("gb.input", "tap");
+  let round = null, q = null, hintTimer = null, nextTimer = null;
+  const hold = holder();
+  const save = () => store.set("gb.state", st);
+  const secs = ms => num(ms/1000) + L(" sn", " s");
+  const targets = w => fingeringsFor(w).map(f => fingeringIds(f.code).join(" "));
+
+  function setInput(m){
+    input = m; store.set("gb.input", m);
+    $("gbin").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.m === m ? "true" : "false"));
+  }
+  $("gbin").addEventListener("click", e => { const b = e.target.closest("button"); if(b && !round) setInput(b.dataset.m); });
+  setInput(input);
+
+  // Açık notalar: her biri ipucu seviyesine göre dolan dört nokta; oturanlar işaretli
+  function drawSet(){
+    $("gbset").innerHTML = `<span class="label">${L("Açık notalar", "Open notes")} ${st.n}/${GB_ORDER.length}</span>` +
+      gbActive(st).map(w => {
+        const s = st.notes[w], lv = s ? s.lv : 0, ok = gbMastered(s);
+        return `<span class="gbchip${ok ? " ok" : ""}" title="${ok ? L("oturdu", "settled") : L("ipucu seviyesi ", "hint level ") + lv}">${nn(w)}<i>${"●".repeat(lv) + "○".repeat(GB_LEVELS - lv)}</i></span>`;
+      }).join("");
+  }
+  drawSet();
+
+  $("gbstart").addEventListener("click", async () => {
+    if(input === "play" && !(await needMic())) return;
+    round = { i:0, fast:0, slow:0, wrong:0, ms:[], added:[], last:null };
+    $("gbstart").disabled = true;
+    ask();
+  });
+
+  function clearTimers(){ clearTimeout(hintTimer); clearTimeout(nextTimer); hintTimer = nextTimer = null; }
+  // Şemada ipucu (soluk) ve basılı (dolu) delikler
+  function paintChart(ch, ids, cls){
+    const on = new Set(ids.map(i => "q-" + i));
+    ch.querySelectorAll(".hole, .key").forEach(n => n.classList.toggle(cls, on.has(n.id)));
+  }
+  const pressed = ch => [...ch.querySelectorAll(".hole.on, .key.on")].map(n => n.id.slice(2)).sort().join(" ");
+
+  function ask(){
+    clearTimers();
+    if(round.i >= ROUND) return finish();
+    const w = gbPick(st, Math.random, round.last), s = gbNote(st, w);
+    q = { w, lv:s.lv, t0:performance.now(), done:false, fix:false, ignore: round.last };
+    round.last = w; hold.reset();
+    const box = document.createElement("div"); box.className = "gbcard";
+    const staff = staffSvg(); SK.drawStaffInto(staff, w);
+    const side = document.createElement("div"); side.className = "gbside";
+    side.innerHTML = `<div class="qname" id="gbname">${q.lv === 0 ? nn(w) : "?"}</div>
+      <div class="label" id="gbask">${input === "tap" ? L("Parmağını şemada kur", "Build the fingering on the chart") : L("Notayı çal", "Play the note")}</div>
+      ${input === "tap" ? `<div class="muted">${L("Hiçbir delik kapanmıyorsa Tamam'a bas.", "If no hole is closed, tap Done.")}</div>` : ""}`;
+    const ch = miniChart(); ch.classList.add("gbchart");
+    q.chart = ch;
+    if(input === "tap"){
+      ch.classList.add("tap");
+      ch.setAttribute("aria-label", L("Parmak şeması: deliklere ve mandallara dokun", "Fingering chart: tap holes and keys"));
+      ch.querySelectorAll(".hole, .key").forEach(n => {
+        n.setAttribute("role", "button"); n.setAttribute("tabindex", "0");
+        const tog = () => { if(q && (!q.done || q.fix)){ n.classList.toggle("on"); checkTap(); } };
+        n.addEventListener("click", tog);
+        n.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); tog(); } });
+      });
+    }
+    box.append(staff, ch, side);
+    stage.innerHTML = `<div class="qcount">${L("Nota", "Note")} ${round.i+1}/${ROUND} · ${round.fast} ${L("hızlı", "fast")} · ${round.slow} ${L("yavaş", "slow")} · ${round.wrong} ${L("yanlış", "wrong")}</div>`;
+    stage.appendChild(box);
+    const tools = document.createElement("div"); tools.className = "gbtools";
+    if(input === "tap") tools.innerHTML = `<button type="button" class="stopbtn" id="gbclear">${L("Temizle", "Clear")}</button>
+      <button type="button" class="stopbtn" id="gbdone">${L("Tamam", "Done")}</button>`;
+    tools.insertAdjacentHTML("beforeend", `<button type="button" class="stopbtn" id="gbskip">${L("Bilmiyorum", "I don't know")}</button>`);
+    stage.appendChild(tools);
+    stage.insertAdjacentHTML("beforeend", `<div class="fb" id="gbfb" aria-live="polite"></div>`);
+    if(input === "tap"){
+      $("gbclear").addEventListener("click", () => { ch.querySelectorAll(".on").forEach(n => n.classList.remove("on")); });
+      // Boş parmakta (Sol4) basılacak delik yok; Tamam basılanı denetler
+      $("gbdone").addEventListener("click", () => { if(q.done) return; if(targets(q.w).includes(pressed(ch))) right(performance.now() - q.t0); else wrong(null); });
+    }
+    $("gbskip").addEventListener("click", () => { if(!q.done) wrong(null); else if(q.fix) next(); });
+    // İpucu: 0–1. seviyede parmak hemen, 2. seviyede hızlı cevap süresi dolunca, 3. seviyede yok
+    const hint = () => { if(q && !q.done) paintChart(ch, fingeringIds(FINGERINGS[w]), "ghost"); };
+    if(q.lv <= 1) hint();
+    else if(q.lv === 2) hintTimer = setTimeout(hint, GB_FAST[input]);
+  }
+
+  function checkTap(){
+    const ids = pressed(q.chart);
+    if(!targets(q.w).includes(ids)) return;
+    if(q.fix) return next();
+    right(performance.now() - q.t0);
+  }
+  function reveal(){
+    $("gbname").textContent = nn(q.w);
+    paintChart(q.chart, [], "ghost");
+    paintChart(q.chart, fingeringIds(FINGERINGS[q.w]), "on");
+  }
+  function right(ms){
+    q.done = true; clearTimers();
+    const r = gbRecord(st, q.w, true, ms, input); save();
+    round.ms.push(ms); if(r.fast) round.fast++; else round.slow++;
+    if(r.added) round.added.push(r.added);
+    reveal();
+    if(input === "tap"){ SK.play(q.w); setTimeout(() => { if(SK.playing() === q.w) SK.stopSound(); }, 700); }
+    const fb = $("gbfb"); fb.className = "fb good";
+    fb.textContent = (r.fast ? L("Doğru · ", "Right · ") + secs(ms)
+        : L("Doğru ama yavaş: ", "Right but slow: ") + secs(ms) + L(" (hedef ", " (target ") + secs(GB_FAST[input]) + ")") +
+      (r.lv > q.lv ? L(" · ipucu azaldı", " · less help next time") : "") +
+      (r.added ? L(" · yeni nota açıldı: ", " · new note: ") + nn(r.added) : "");
+    drawSet();
+    nextTimer = setTimeout(next, r.added ? 2200 : r.fast ? 800 : 1400);
+  }
+  // Yanlışta doğru parmak gösterilir ve bir kez doğru kurulur ya da çalınır (puanlanmaz)
+  function wrong(played){
+    q.done = true; q.fix = true; clearTimers();
+    gbRecord(st, q.w, false, performance.now() - q.t0, input); save();
+    round.wrong++;
+    $("gbname").textContent = nn(q.w);
+    const fb = $("gbfb"); fb.className = "fb bad";
+    if(input === "tap"){
+      q.chart.querySelectorAll(".on").forEach(n => n.classList.remove("on"));
+      paintChart(q.chart, fingeringIds(FINGERINGS[q.w]), "ghost");
+      fb.textContent = L("Bu ", "This is ") + nn(q.w) + L(". Soluk deliklere basarak parmağı bir kez kur.", ". Press the faded holes to build the fingering once.");
+    }else{
+      paintChart(q.chart, fingeringIds(FINGERINGS[q.w]), "on");
+      fb.textContent = (played != null ? nn(played) + L(" çaldın. ", " played. ") : "") +
+        L("Bu ", "This is ") + nn(q.w) + L(". Şemadaki parmakla bir kez çal.", ". Play it once with the fingering shown.");
+    }
+    $("gbskip").textContent = L("Geç", "Skip");
+    drawSet();
+  }
+  function next(){
+    if(!round) return;
+    round.i++; ask();
+  }
+  function finish(){
+    clearTimers();
+    const avg = round.ms.length ? round.ms.reduce((a,b) => a+b, 0) / round.ms.length : 0;
+    stage.innerHTML = `<div class="result"><div class="big">${round.fast}/${ROUND}</div>
+      <div>${L("hızlı ve doğru", "fast and right")} · ${round.slow} ${L("yavaş", "slow")} · ${round.wrong} ${L("yanlış", "wrong")}${avg ? L(" · ortalama ", " · average ") + secs(avg) : ""}</div>
+      ${round.added.length ? `<div>${L("Yeni notalar: ", "New notes: ")}<strong>${round.added.map(nn).join(", ")}</strong></div>` : ""}</div>`;
+    round = null; q = null; $("gbstart").disabled = false; drawSet();
+  }
+  return {
+    note(r, t){
+      if(!round || !q || input !== "play" || !r.inRange) return;
+      if(q.ignore != null){ if(r.written === q.ignore) return; q.ignore = null; }
+      const h = hold.push(r.written, t);
+      if(h.fired || h.ms < 300) return;
+      if(q.fix){ if(r.written === q.w){ hold.fire(); next(); } return; }
+      if(q.done) return;
+      if(r.written === q.w){ hold.fire(); right(Math.max(0, t - h.ms - q.t0)); }
+      else if(h.ms >= 500){ hold.fire(); wrong(r.written); }
+    },
+    silence(){ hold.reset(); if(q) q.ignore = null; },
+    leave(){ clearTimers(); round = null; q = null; $("gbstart").disabled = false;
+      stage.innerHTML = `<div class="muted">${L("Cevap yolunu seç, sonra turu başlat.", "Choose how to answer, then start the round.")}</div>`; },
+    enter(){ drawSet(); }
+  };
+};

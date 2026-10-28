@@ -219,6 +219,19 @@
       : MANUAL_HINT;
   }
 
+  // Eserde bir önceki notadan değişen delik ve mandallar: kapanacaklar "press", kalkacaklar "lift".
+  // Yan yana iki notada çoğu zaman bir iki parmak değişir; okurken bütün parmağı değil farkı görmek yeter.
+  function markChange(from, to){
+    ALL.forEach(n => n.classList.remove("press", "lift"));
+    if(from == null || from === to || !FINGERINGS[from] || !FINGERINGS[to]) return;
+    const a = new Set(fingeringIds(FINGERINGS[from])), b = new Set(fingeringIds(FINGERINGS[to]));
+    const up = [...a].filter(i => !b.has(i)), down = [...b].filter(i => !a.has(i));
+    ALL.forEach(n => { n.classList.toggle("press", down.includes(n.id)); n.classList.toggle("lift", up.includes(n.id)); });
+    const names = ids => ids.map(i => HOLE_NAME[i] || i).join(", ");
+    manualMsg.textContent = noteName(from).tr + " → " + noteName(to).tr + ": " +
+      [up.length ? names(up) + L(" kalkar", " lifts") : "", down.length ? names(down) + L(" kapanır", " closes") : ""].filter(Boolean).join("; ") + ".";
+  }
+
   // Notanın parmakları arasında seçim: Temel / Alt. 1 / Alt. 2 …
   const altsEl = $("alts"), altNoteEl = $("altnote");
   let fingerList = [], fingerIdx = 0, fingerWritten = null;
@@ -291,6 +304,7 @@
 
   function drawFingering(code, written){
     paint([]);
+    ALL.forEach(n => n.classList.remove("press", "lift"));
     drawStaff(written);
     stepsEl.innerHTML = "";
     fcode.textContent = code || "—";
@@ -910,7 +924,8 @@
     getStream: () => stream,
     play, stopSound, playGlide,
     playing: () => current,
-    showNote: w => show(analyze(perdeFreq(w, T), T)),
+    // prev verilirse önceki notadan değişen parmaklar şemada işaretlenir
+    showNote: (w, prev) => { show(analyze(perdeFreq(w, T), T)); markChange(prev, w); },
     drawStaffInto,
     markGlide: t => traceMarks.push({ t }),
     windowSec: () => analyser && ctx ? winLen / ctx.sampleRate : 0,

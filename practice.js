@@ -22,11 +22,11 @@
   // Alıştırmalar beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
   // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
-  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["staffmap",L("Dizek haritası", "Staff map")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
+  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","roadmap","videos"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","staffmap","desifre","long","rhythm","hiz","susleme"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","desifre","long","rhythm","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
@@ -41,6 +41,7 @@
     band: L("Darbuka, bas ve udla birlikte çal", "Play with darbuka, bass and oud"),
     kulaktan: L("Usta kaydını yavaşlat, döngüye al, çıkar", "Slow down, loop and learn a master's recording"),
     quiz: L("Notaları ve parmakları ezberle: çal, bul, oku", "Memorise notes and fingerings: play, find, read"),
+    gorbas: L("Notayı gör, parmağı bas: adını düşünmeden", "See the note, press the fingering: no naming"),
     staffmap: L("Hangi nota dizekte nerede: Si4 mü, Si5 mi?", "Where each note sits: B4 or B5?"),
     long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
     rhythm: L("Metronomla zamanında çal", "Play in time with the metronome"),
@@ -154,6 +155,16 @@
         <b>Read</b> (play the note on the staff without seeing its name).</li>
         <li>Choose a region (low notes first) and tap “Start a 20-question round”.</li>
         <li>Notes you struggle with come up more often. 80% correct in the last 20 answers unlocks the next region.</li></ol>`),
+    gorbas: L(`<p><b>Ne işe yarar:</b> Dizekteki notayı görünce parmakların kendiliğinden gitsin diye. Nota adını aklından geçirmeden yerinden parmağa gitmeyi alıştırır.</p>
+      <ol><li>Cevap yolunu seç: <b>Klarnetle çal</b> (mikrofon açılır) ya da klarnet elinde değilse <b>Ekranda bas</b> (şemadaki deliklere dokun).</li>
+        <li>Üç notayla başlar. Yeni nota önce adıyla ve soluk parmağıyla gelir; doğru buldukça önce ad, sonra parmak gizlenir, en sonda parmak ancak birkaç saniye bekleyince çıkar.</li>
+        <li>Hız da sayılır: çalarak 1,5 sn, ekranda 3 sn içinde bulmak “hızlı”dır. Açık notaların hepsini art arda hızlı bulunca yeni bir nota eklenir.</li>
+        <li>Yanlışta doğru parmak gösterilir; bir kez doğru kurup geçersin. Günde 5 dakika yeter.</li></ol>`,
+      `<p><b>What it's for:</b> making your fingers move by themselves when you see a note. It trains going from staff position to fingering without naming the note.</p>
+      <ol><li>Choose how to answer: <b>Play clarinet</b> (turns on the microphone) or, without your clarinet, <b>Tap on screen</b> (tap the holes on the chart).</li>
+        <li>It starts with three notes. A new note first comes with its name and a faded fingering; as you get it right, first the name, then the fingering is hidden, and at the end the fingering only shows after a few seconds.</li>
+        <li>Speed counts too: within 1.5 s playing or 3 s on screen is “fast”. When you find every open note fast several times in a row, a new note is added.</li>
+        <li>After a mistake the right fingering is shown; build it once and move on. Five minutes a day is enough.</li></ol>`),
     staffmap: L(`<p><b>Ne işe yarar:</b> Hangi notanın porte üzerinde nerede durduğunu öğrenmek.</p>
       <ol><li>Bir notaya dokun: sesini duyarsın, parmağını görürsün.</li>
         <li>Mikrofon açıkken çal: çaldığın nota haritada yanar.</li>

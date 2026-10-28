@@ -336,6 +336,27 @@ svg.smap{height:auto;display:block;background:var(--surface)}
 .stage svg.staff{background:var(--surface);border-radius:8px}
 .qfind{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start}
 svg.minichart{width:150px;height:auto;pointer-events:none}
+/* Gör ve bas */
+.gbset{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.gbset .label{margin-right:4px}
+.gbchip{display:inline-flex;flex-direction:column;align-items:center;gap:1px;border:1px solid var(--line);background:var(--surface);
+  border-radius:8px;padding:4px 8px;font:600 12.5px/1.1 var(--ui)}
+.gbchip i{font:400 8px/1 var(--mono);font-style:normal;color:var(--muted);letter-spacing:1px}
+.gbchip.ok{border-color:var(--ok)} .gbchip.ok i{color:var(--ok)}
+.gbcard{display:grid;grid-template-columns:150px 150px 1fr;gap:16px;align-items:center}
+.gbside .qname{font-size:30px}
+svg.minichart.tap{pointer-events:auto}
+svg.minichart.tap .hole,svg.minichart.tap .key{cursor:pointer;outline:none}
+svg.minichart.tap .hole:focus-visible circle,svg.minichart.tap .key:focus-visible rect{stroke:var(--ink);stroke-width:3}
+.hole.ghost:not(.on) circle{fill:var(--accent);fill-opacity:.45;stroke:var(--accent);stroke-dasharray:4 3}
+.key.ghost:not(.on) rect{fill:var(--accent);fill-opacity:.45;stroke:var(--accent);stroke-dasharray:3 2}
+.gbtools{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+@media(max-width:520px){.gbcard{grid-template-columns:1fr 1fr;gap:10px}.gbside{grid-column:1/-1;order:-1}.gbside .qname{font-size:24px;margin:0}.gbcard svg.minichart{width:100%;max-width:170px;justify-self:center}}
+/* Ana şemada önceki notadan değişen parmaklar: kapanan halkalı, kalkan kesik çizgili */
+.hole.press circle{stroke:var(--ok);stroke-width:4.5}
+.key.press rect{stroke:var(--ok);stroke-width:3}
+.hole.lift circle{stroke:var(--accent);stroke-width:3.5;stroke-dasharray:4 3}
+.key.lift rect{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:3 2}
 .qopts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;max-width:280px}
 .opt{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 16px/1 var(--display);
   padding:12px 8px;border-radius:10px}

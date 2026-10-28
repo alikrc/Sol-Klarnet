@@ -219,6 +219,45 @@ function quizChoices(written, lv, rng = Math.random){
   return pick.sort((a,b) => a-b);
 }
 
+// ---- Gör ve bas: dizekteki notadan doğrudan parmağa ----
+// Az notayla başlar; her nota ipucuyla öğretilir, ipucu hızlandıkça söner. Hepsi hızlı ve doğruysa yeni nota eklenir.
+// Sıra: önce sol elin tek tek kapattığı pes doğal notalar, sonra sağ el, arızalılar, klarino, altissimo.
+const GB_ORDER = [67,64,62,60,65,69,59,57,55,53,52, 66,63,61,68,58,56,54,70,
+  72,74,76,77,79,81,83,84,71, 73,75,78,80,82, 86,88,89,91,93,95,96,98, 85,87,90,92,94,97,99];
+// İpucu seviyeleri: 0 ad ve parmak, 1 yalnız parmak, 2 parmak gecikmeli, 3 ipucu yok
+const GB_START = 3, GB_LEVELS = 3;
+// Hızlı sayılan cevap süresi (ms); 2. seviyede ipucu bu süre dolunca çıkar. Ekranda parmak kurmak çalmaktan uzun sürer.
+const GB_FAST = { play:1500, tap:3000 };
+// st: { n: açık nota sayısı, notes: { [written]: { lv, h } } }; h son 4 cevap: 2 hızlı doğru, 1 yavaş doğru, 0 yanlış
+function gbState(st){ return { n: st && st.n || GB_START, notes: st && st.notes || {} }; }
+function gbNote(st, w){ return st.notes[w] || (st.notes[w] = { lv:0, h:[] }); }
+const gbActive = st => GB_ORDER.slice(0, st.n);
+function gbMastered(s){ return !!s && s.lv >= GB_LEVELS && s.h.length >= 3 && s.h.slice(-3).every(x => x === 2); }
+function gbWeight(s){
+  if(!s || s.h.length < 2) return 4;                // yeni nota sık gelir
+  if(gbMastered(s)) return 0.6;
+  return [3.5, 3, 2.5, 1.5][s.lv];
+}
+function gbPick(st, rng = Math.random, last = null){
+  const pool = gbActive(st).filter(w => w !== last);
+  const weights = pool.map(w => gbWeight(st.notes[w]));
+  let r = rng() * weights.reduce((a,b) => a+b, 0);
+  for(let i=0;i<pool.length;i++){ r -= weights[i]; if(r <= 0) return pool[i]; }
+  return pool[pool.length-1];
+}
+// Cevabı kaydeder. Doğru cevap ipucunu bir kademe azaltır (2. seviyede yalnız ipucu çıkmadan, hızlı cevap);
+// yanlış cevap parmağı yeniden hemen gösterir. Açık notaların hepsi oturduysa sıradaki nota eklenir.
+// Dönüş: { fast, lv, added: eklenen nota ya da null }
+function gbRecord(st, w, ok, ms, input){
+  const s = gbNote(st, w), fast = ok && ms <= GB_FAST[input];
+  s.h.push(ok ? (fast ? 2 : 1) : 0); if(s.h.length > 4) s.h.shift();
+  if(!ok) s.lv = Math.max(0, Math.min(s.lv, 2) - 1);
+  else if(s.lv < 2 || (s.lv === 2 && fast)) s.lv++;
+  let added = null;
+  if(st.n < GB_ORDER.length && gbActive(st).every(x => gbMastered(st.notes[x]))){ added = GB_ORDER[st.n]; st.n++; }
+  return { fast, lv: s.lv, added };
+}
+
 // ---- Uzun ton ----
 // devs: hedef perdeden koma sapmaları; durMs tutulan süre; targetMs hedef süre.
 function mean(a){ return a.length ? a.reduce((x,y) => x+y, 0) / a.length : 0; }
@@ -375,6 +414,7 @@ function streak(days, today = new Date()){
 if(typeof module !== "undefined") module.exports = {
   MAKAMS, makamById, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, perdeName, commaToWritten, commaToMidi, judgePerde,
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
+  GB_ORDER, GB_START, GB_LEVELS, GB_FAST, gbState, gbNote, gbActive, gbMastered, gbPick, gbRecord,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,
   makeMotif, parseMelody, makamExercises, dayKey, streak
 };

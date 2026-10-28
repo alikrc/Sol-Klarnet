@@ -223,7 +223,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
         mode = null; if(onDone) onDone({ v: miss, mode:"free" }); return;
       }
       view.cur(playable[k]); say("", "");
-      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(notes[playable[k]].w);
+      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(notes[playable[k]].w, notes[playable[k-1]].w);
     }else if(r.written !== want && ms >= 400){
       hold.fired = true; miss++;
       say("bad", ctx.nn(r.written) + L(" çaldın; sıradaki ", " played; next is ") + ctx.nn(want) + ".");
@@ -317,7 +317,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     const advance = () => {
       if(fol.done) return;
       view.cur(list[fol.k].i);
-      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(list[fol.k].w);
+      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(list[fol.k].w, fol.k > 0 ? list[fol.k-1].w : null);
     };
     const dog = setInterval(() => {
       if(st.paused || fol.done) return;
