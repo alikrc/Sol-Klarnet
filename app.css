@@ -1,25 +1,29 @@
 :root{
-  --paper:#ECEFEE; --surface:#FFFFFF; --sunk:#E3E8E6;
-  --ink:#131A19; --muted:#5B6A67; --line:#D2DAD8;
-  --accent:#A8502A; --accent-ink:#8C3F1E; --teal:#1C5B59; --ok:#2E7D5B;
-  --wood:#3A302B; --wood-edge:#221B18; --metal:#D9DEE0; --metal-edge:#8E9A9C; --key-ink:#2A3335;
+  /* Gün doğumu paleti: sıcak krem zemin, mercan ana renk, mor ikinci renk (adı eskiden kalma --teal), canlı yeşil */
+  --paper:#FFF6EA; --surface:#FFFFFF; --sunk:#FFEFD9;
+  --ink:#1E1B3A; --muted:#6A6385; --line:#F1DEC6;
+  --accent:#D63A18; --accent-ink:#B32E12; --accent-2:#C2185B; --teal:#5B2FD1; --ok:#0E8553;
+  --wood:#3A302B; --wood-edge:#221B18; --metal:#E2DFEA; --metal-edge:#948DAE; --key-ink:#2A2645;
+  --g-lessons:#FF5A36; --g-tech:#6D3BE0; --g-makam:#F2A100; --g-pieces:#E0307A; --g-progress:#12A866;
   --display:"Fraunces",Georgia,"Times New Roman",serif;
   --ui:"Commissioner",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#0E1413; --surface:#171F1E; --sunk:#111817;
-    --ink:#E7EDEB; --muted:#94A3A0; --line:#27312F;
-    --accent:#E08A5C; --accent-ink:#F0A97F; --teal:#5FB3AE; --ok:#4FB98A;
-    --wood:#2B2420; --wood-edge:#4A3F39; --metal:#56625F; --metal-edge:#8A9896; --key-ink:#EEF3F1;
+    --paper:#141127; --surface:#1F1B3D; --sunk:#181431;
+    --ink:#F6F2FF; --muted:#A9A3C7; --line:#322C5A;
+    --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#B49BFF; --ok:#3DDC97;
+    --wood:#2B2420; --wood-edge:#4A3F39; --metal:#5A5480; --metal-edge:#9690BC; --key-ink:#F6F2FF;
+    --g-lessons:#FF7A50; --g-tech:#B49BFF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#0E1413; --surface:#171F1E; --sunk:#111817;
-  --ink:#E7EDEB; --muted:#94A3A0; --line:#27312F;
-  --accent:#E08A5C; --accent-ink:#F0A97F; --teal:#5FB3AE; --ok:#4FB98A;
-  --wood:#2B2420; --wood-edge:#4A3F39; --metal:#56625F; --metal-edge:#8A9896; --key-ink:#EEF3F1;
+  --paper:#141127; --surface:#1F1B3D; --sunk:#181431;
+  --ink:#F6F2FF; --muted:#A9A3C7; --line:#322C5A;
+  --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#B49BFF; --ok:#3DDC97;
+  --wood:#2B2420; --wood-edge:#4A3F39; --metal:#5A5480; --metal-edge:#9690BC; --key-ink:#F6F2FF;
+  --g-lessons:#FF7A50; --g-tech:#B49BFF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}   /* display:flex verilen öğeler de gizlenebilsin */
@@ -32,11 +36,11 @@ html{overscroll-behavior-y:none;scroll-padding-top:calc(var(--bar-h) + var(--sat
 .lede{color:var(--muted);font-size:14px;line-height:1.6;max-width:62ch;margin:0}
 
 button{font-family:var(--ui);cursor:pointer}
-.primary{font:600 15px/1 var(--ui);background:var(--accent);color:var(--surface);
+.primary{font:600 15px/1 var(--ui);background:var(--accent);background-image:linear-gradient(120deg,var(--accent),var(--accent-2));color:var(--surface);
   border:0;border-radius:999px;padding:12px 22px}
-@media (hover:hover){.primary:hover{background:var(--accent-ink)}}
+@media (hover:hover){.primary:hover{background:var(--accent-ink);background-image:none}}
 .primary:disabled{opacity:.6;cursor:progress}
-.primary.listening{background:var(--sunk);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.primary.listening{background:var(--sunk);background-image:none;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 summary:focus-visible,a:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .chip{font:500 11px/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;
@@ -289,9 +293,16 @@ svg.smap{height:auto;display:block;background:var(--surface)}
 .hcard b,.hresume b{font:600 14.5px/1.2 var(--ui)}
 .hcard small,.hresume small{font:500 12px/1.3 var(--ui);color:var(--muted)}
 .hgo{flex:0 0 auto;width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* Her grubun kendi rengi: kartın sol şeridi, ok ve grup başlığı */
+.hgroup{--gc:var(--accent)}
+.hgroup[data-g="lessons"]{--gc:var(--g-lessons)} .hgroup[data-g="tech"]{--gc:var(--g-tech)} .hgroup[data-g="makam"]{--gc:var(--g-makam)}
+.hgroup[data-g="pieces"]{--gc:var(--g-pieces)} .hgroup[data-g="progress"]{--gc:var(--g-progress)}
+.hgroup .hcard{border-left:4px solid var(--gc);background:color-mix(in srgb,var(--gc) 7%,var(--surface))}
+.hgroup .hgo{stroke:var(--gc)}
+.hgroup h3::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gc);margin-right:8px;vertical-align:middle}
 .hresume{background:color-mix(in srgb,var(--accent) 14%,var(--surface));border-color:color-mix(in srgb,var(--accent) 45%,transparent);min-height:64px}
 .hresume small{color:var(--accent-ink)} .hresume b{font-size:16px} .hresume .hgo{stroke:var(--accent-ink)}
-@media (hover:hover){.hcard:hover,.hresume:hover{border-color:var(--accent)}}
+@media (hover:hover){.hcard:hover,.hresume:hover{border-color:var(--accent)}.hgroup .hcard:hover{border-color:var(--gc)}}
 .hcard:focus-visible,.hresume:focus-visible,.pback:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 /* Alıştırma ekranı: geri + başlık, altında grubun diğer alıştırmaları; kaydırınca üst çubuğun altında kalır */
 .pnav{position:sticky;top:calc(var(--bar-h) + var(--sat));z-index:6;background:var(--surface);

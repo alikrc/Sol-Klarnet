@@ -335,7 +335,7 @@
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
       <button type="button" class="hfeat" data-open="band"><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
         <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
-      ${GROUPS.map(([g, name, members]) => `<section class="hgroup" aria-label="${name}">
+      ${GROUPS.map(([g, name, members]) => `<section class="hgroup" data-g="${g}" aria-label="${name}">
         ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
         <div class="hcards">${members.map(card).join("")}</div></section>`).join("")}
     </div>
