@@ -483,12 +483,51 @@
   }
   stopBtn.addEventListener("click", stopSound);
 
+  // ---- Her yerde çalanı durdur: mikrofonun yanındaki düğme (ve Esc) ----
+  // Şeritteki nota, metronom, dron ve açık alıştırmanın sesi (practice.js "stopall"), kayıt ve video oynatıcıları.
+  // Düğme yalnızca bir şey çalarken görünür: ana çıkıştaki ses düzeyine, metronoma/drona ve oynatıcılara bakılır.
+  const stopAllBtn = $("stopall");
+  stopAllBtn.setAttribute("aria-label", L("Bütün sesleri durdur", "Stop all sound")); stopAllBtn.title = L("Bütün sesleri durdur (Esc)", "Stop all sound (Esc)");
+  let lastSound = -1e9, quietUntil = 0;     // durdurunca sönen kuyruk ses sayılmaz
+  const mediaPlaying = () => [...document.querySelectorAll("audio, video")].some(m => !m.paused && !m.ended);
+  function stopAll(){
+    stopSound();
+    emit("stopall");
+    document.querySelectorAll("audio, video").forEach(m => { if(!m.paused) m.pause(); });
+    if(master){
+      const t = actx.currentTime, g = master.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 0.03);
+      g.setValueAtTime(0, t + 0.3); g.linearRampToValueAtTime(1, t + 0.35);
+    }
+    lastSound = -1e9; quietUntil = performance.now() + 400; updateStopAll();
+  }
+  function updateStopAll(){
+    if(meter && actx.state === "running" && performance.now() > quietUntil){
+      meter.getFloatTimeDomainData(meterBuf);
+      let peak = 0; for(let i = 0; i < meterBuf.length; i++) peak = Math.max(peak, Math.abs(meterBuf[i]));
+      if(peak > 0.003) lastSound = performance.now();
+    }
+    const on = current !== null || !!glideOsc || !!(window.SK && (SK.metActive || SK.droneActive)) || mediaPlaying() || performance.now() - lastSound < 2500;
+    if(stopAllBtn.hidden === on) stopAllBtn.hidden = !on;
+  }
+  stopAllBtn.addEventListener("click", stopAll);
+  setInterval(updateStopAll, 200);
+
   let actx = null, wave = null, synthUntil = 0;
   const voices = new Map();
 
+  // Bütün çalgı sesleri tek bir ana düğümden çıkar: üst çubuktaki durdur düğmesi ses olup olmadığını buradan
+  // dinler ve durdururken kuyrukta kalan sesleri de keser. Modüller a.destination'a bağlanır; bağlantı buraya yönlenir.
+  let master = null, meter = null, meterBuf = null;
   function audioCtx(){
     if(!actx){
       actx = new (window.AudioContext || window.webkitAudioContext)();
+      master = actx.createGain(); meter = actx.createAnalyser(); meter.fftSize = 512; meterBuf = new Float32Array(meter.fftSize);
+      master.connect(actx.destination); master.connect(meter);
+      const connect = AudioNode.prototype.connect;
+      AudioNode.prototype.connect = function(dest, ...rest){
+        return connect.call(this, dest === actx.destination && this !== master ? master : dest, ...rest);
+      };
       // klarnet tınısı: tek sayılı harmonikler
       wave = actx.createPeriodicWave(new Float32Array([0,0,0,0,0,0,0,0]),
                                      new Float32Array([0,1,0,.42,0,.20,0,.10]));
@@ -554,7 +593,7 @@
     if(e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     const tag = (e.target.tagName || "").toLowerCase();
     if(tag === "select" || tag === "input" || tag === "textarea") return;
-    if(e.key === "Escape"){ stopSound(); return; }
+    if(e.key === "Escape"){ stopAll(); return; }
     const i = KEYCODES.indexOf(e.code);
     if(i < 0) return;
     e.preventDefault();
@@ -908,7 +947,7 @@
     startMic: start,
     isListening: () => running,
     getStream: () => stream,
-    play, stopSound, playGlide,
+    play, stopSound, playGlide, stopAll,
     playing: () => current,
     showNote: w => show(analyze(perdeFreq(w, T), T)),
     drawStaffInto,

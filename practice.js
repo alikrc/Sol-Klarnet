@@ -552,6 +552,7 @@
   function startMet(){
     const a = SK.audioCtx(), u = USULS.find(x => x.id === $("usul").value), slots = usulSlots(u);
     let i = 0, next = a.currentTime + 0.1;
+    SK.metActive = true;
     met = { timer: setInterval(() => {
       const per = 60 / tempo();
       while(next < a.currentTime + 0.12){
@@ -565,6 +566,7 @@
   }
   function stopMet(){
     if(met){ clearInterval(met.timer); met = null; }
+    SK.metActive = false;
     setPlay($("metbtn"), false);
     drawSlots(USULS.find(x => x.id === $("usul").value));
     metSum();
@@ -766,6 +768,17 @@
       b.textContent = open ? L("kısalt", "less") : L("devamı", "more");
     });
     p.after(b); descs.push([p, b]);
+  });
+
+  // Durdur düğmesi (app.js stopAll): metronom, dron ve açık alıştırmanın sesi. Alıştırma stop() verirse o,
+  // vermezse leave() + enter() ile baştan kurulur; sessiz alıştırmalar boş stop() ile yerinde kalır.
+  SK.on("stopall", () => {
+    if(met) stopMet();
+    if(drone) stopDrone();
+    const m = active && modules[active];
+    if(!m) return;
+    if(m.stop) m.stop();
+    else if(m.leave){ m.leave(); if(m.enter) m.enter(); }
   });
 
   // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma
