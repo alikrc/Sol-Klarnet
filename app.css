@@ -1,29 +1,29 @@
 :root{
-  /* Gün doğumu paleti: sıcak krem zemin, mercan ana renk, mor ikinci renk (adı eskiden kalma --teal), canlı yeşil */
+  /* Gün doğumu paleti: sıcak krem zemin, mercan ana renk, mavi ikinci renk (adı eskiden kalma --teal), canlı yeşil */
   --paper:#FFF6EA; --surface:#FFFFFF; --sunk:#FFEFD9;
-  --ink:#1E1B3A; --muted:#6A6385; --line:#F1DEC6;
-  --accent:#D63A18; --accent-ink:#B32E12; --accent-2:#C2185B; --teal:#5B2FD1; --ok:#0E8553;
-  --wood:#3A302B; --wood-edge:#221B18; --metal:#E2DFEA; --metal-edge:#948DAE; --key-ink:#2A2645;
-  --g-lessons:#FF5A36; --g-tech:#6D3BE0; --g-makam:#F2A100; --g-pieces:#E0307A; --g-progress:#12A866;
+  --ink:#1B2440; --muted:#5F6B85; --line:#F1DEC6;
+  --accent:#D63A18; --accent-ink:#B32E12; --accent-2:#C2185B; --teal:#2B6CC4; --ok:#0E8553;
+  --wood:#3A302B; --wood-edge:#221B18; --metal:#DEE3EC; --metal-edge:#8D99B0; --key-ink:#26304A;
+  --g-lessons:#FF5A36; --g-tech:#3A8DEB; --g-makam:#F2A100; --g-pieces:#E0307A; --g-progress:#12A866;
   --display:"Fraunces",Georgia,"Times New Roman",serif;
   --ui:"Commissioner",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#141127; --surface:#1F1B3D; --sunk:#181431;
-    --ink:#F6F2FF; --muted:#A9A3C7; --line:#322C5A;
-    --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#B49BFF; --ok:#3DDC97;
-    --wood:#2B2420; --wood-edge:#4A3F39; --metal:#5A5480; --metal-edge:#9690BC; --key-ink:#F6F2FF;
-    --g-lessons:#FF7A50; --g-tech:#B49BFF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
+    --paper:#0F1830; --surface:#18233F; --sunk:#131C35;
+    --ink:#F2F6FF; --muted:#A3B0CC; --line:#2A3A60;
+    --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#8EC5FF; --ok:#3DDC97;
+    --wood:#2B2420; --wood-edge:#4A3F39; --metal:#4E5D80; --metal-edge:#8E9CBC; --key-ink:#F2F6FF;
+    --g-lessons:#FF7A50; --g-tech:#8EC5FF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#141127; --surface:#1F1B3D; --sunk:#181431;
-  --ink:#F6F2FF; --muted:#A9A3C7; --line:#322C5A;
-  --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#B49BFF; --ok:#3DDC97;
-  --wood:#2B2420; --wood-edge:#4A3F39; --metal:#5A5480; --metal-edge:#9690BC; --key-ink:#F6F2FF;
-  --g-lessons:#FF7A50; --g-tech:#B49BFF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
+  --paper:#0F1830; --surface:#18233F; --sunk:#131C35;
+  --ink:#F2F6FF; --muted:#A3B0CC; --line:#2A3A60;
+  --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#8EC5FF; --ok:#3DDC97;
+  --wood:#2B2420; --wood-edge:#4A3F39; --metal:#4E5D80; --metal-edge:#8E9CBC; --key-ink:#F2F6FF;
+  --g-lessons:#FF7A50; --g-tech:#8EC5FF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}   /* display:flex verilen öğeler de gizlenebilsin */

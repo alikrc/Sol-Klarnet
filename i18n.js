@@ -20,7 +20,7 @@ function applyTheme(th){
   else document.documentElement.removeAttribute("data-theme");
   const dark = th === "dark" || (th !== "light" && DARK_MQ.matches);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute("content", dark ? "#141127" : "#FFF6EA");
+  if(meta) meta.setAttribute("content", dark ? "#0F1830" : "#FFF6EA");
 }
 DARK_MQ.addEventListener("change", () => applyTheme(themeNow));
 const THEME = (() => { try{ const v = JSON.parse(localStorage.getItem("sk.theme")); return v === "light" || v === "dark" ? v : "auto"; }catch(e){ return "auto"; } })();
