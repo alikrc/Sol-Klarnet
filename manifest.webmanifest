@@ -7,8 +7,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#CFDDFF",
-  "theme_color": "#CFDDFF",
+  "background_color": "#EEEFF0",
+  "theme_color": "#EEEFF0",
   "categories": [
     "music",
     "education"
