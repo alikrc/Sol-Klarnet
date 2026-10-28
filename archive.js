@@ -641,6 +641,16 @@ TRAINERS.archive = function(ctx){
 
   // Alt menüdeki Notalar düğmesi ve dışarıdan açma: SK.openArchive(id?)
   SK.openArchive = id => { ctx.selectTab("archive"); if(id) loadIndex().then(() => openPiece(id)); };
+  // Uygulama geneli arama: dizin (search.js) ve sonuçları arşiv listesinde gösterme (süzgeçler temizlenir)
+  SK.archiveIndex = () => loadIndex().then(ix => ix.list);
+  SK.searchArchive = q => {
+    SK.go("practice"); ctx.selectTab("archive");
+    loadIndex().then(() => {
+      ["arfmk","arff","arfu","arfb","arflv"].forEach(id => { $(id).value = ""; });
+      $("arflyr").checked = $("arffav").checked = false; $("arq").value = q; quick = "all"; shown = 40;
+      showList();
+    });
+  };
   return {
     enter(){
       loadIndex().then(() => { if(!cur) renderList(); }).catch(() => { $("arcount").textContent = L("Arşiv açılamadı.", "Couldn't open the archive."); });

@@ -768,6 +768,10 @@
     p.after(b); descs.push([p, b]);
   });
 
+  // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma
+  SK.practiceTabs = () => TABS.map(([id, name]) => ({ id, name, blurb: BLURB[id] || "", group: groupOf(id)[1] }));
+  SK.openTab = id => { SK.go("practice"); selectTab(id, true); };
+
   // Ana ekran kısayolu (?tab=rhythm) alıştırmayı doğrudan açar; yoksa ana sayfa
   const qtab = new URLSearchParams(location.search).get("tab");
   if(TABS.some(([t]) => t === qtab)){

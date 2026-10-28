@@ -255,6 +255,12 @@ TRAINERS.makam = function(ctx){
     ms.cur = makamById(b.dataset.id); store.set("makam", ms.cur.id);
     ex = null; stage.innerHTML = ""; SK.setTempContext(ms.cur.id); render();
   });
+  // Arama ve dışarıdan açma: SK.openMakam(id) makamı seçip Dizi'yi açar
+  SK.openMakam = id => {
+    const mk = makamById(id); if(!mk) return;
+    ms.cur = mk; store.set("makam", mk.id); ex = null; stage.innerHTML = "";
+    SK.go("practice"); ctx.selectTab("makam");
+  };
   $("mklisten").addEventListener("click", async () => {
     const mk = ms.cur, token = {}; listenToken = token;
     for(const c of seq(mk)){

@@ -61,6 +61,12 @@ TRAINERS.lessons = function(ctx){
     open(b.dataset.id === "daily" ? dailyLesson() : lessonById(b.dataset.id));
     if(window.matchMedia("(max-width:700px)").matches) $("lsbody").scrollIntoView({ block:"start" });
   });
+  // Arama: SK.lessonOpen(id) ders açık mı; SK.openLesson(id) Dersler'i açar, ders açıksa dersi gösterir
+  SK.lessonOpen = id => { const l = lessonById(id); return !!l && unlocked(l, prog, allOpen); };
+  SK.openLesson = id => {
+    SK.go("practice"); ctx.selectTab("lessons");
+    if(SK.lessonOpen(id)) open(lessonById(id));
+  };
   $("lsall").checked = allOpen;
   $("lsall").addEventListener("change", () => { allOpen = $("lsall").checked; store.set("lesson.all", allOpen); renderList(); renderNext(); });
 
