@@ -422,13 +422,14 @@
 
   // Etkin modül kararlı nota/sessizlik olaylarını alır
   const modules = {};
-  let active = null;
+  let active = null, parked = false;    // parked: ekrandan çıkınca alıştırma durduruldu (aşağıda park)
   const pnav = root.querySelector(".pnav");
   const descs = [];   // telefonda iki satıra kısalan açıklamalar
   // Ana sayfadan açılan alıştırma tarayıcı geçmişine eklenir: telefonun geri tuşu ana sayfaya döner
   let pushed = false;
   function selectTab(id, user){
-    if(active && active !== id && modules[active].leave) modules[active].leave();
+    if(active && active !== id && !parked && modules[active].leave) modules[active].leave();
+    parked = false;
     const fromHub = active === null;
     active = id; store.set("ptab", id);
     const members = groupOf(id)[2];
@@ -459,7 +460,8 @@
     }
   }
   function showHub(){
-    if(active && modules[active].leave) modules[active].leave();
+    if(active && !parked && modules[active].leave) modules[active].leave();
+    parked = false;
     active = null; pushed = false;
     markNotes();
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
@@ -653,7 +655,22 @@
     if(fs.length && !bandFreqs.length && !drone) droneLv = [];
     bandFreqs = fs.slice();
   }
-  document.addEventListener("visibilitychange", () => { if(document.hidden){ stopMet(); stopDrone(); } });
+  // Çalışma ekranından çıkınca ya da uygulama arka plana geçince açık alıştırmanın çaları da durur
+  // (nota arşivi, eser orkestrası, eşlik, kulaktan çıkar…); yoksa durdurma düğmesi görünmezken çalmaya devam eder.
+  function park(){
+    stopMet(); stopDrone(); SK.stopSound();
+    if(active && !parked && modules[active].leave){ parked = true; modules[active].leave(); }
+  }
+  function unpark(){
+    if(!parked) return;
+    parked = false;
+    if(active && modules[active].enter) modules[active].enter();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if(document.hidden) park();
+    else if(document.body.dataset.view === "practice") unpark();
+  });
+  SK.on("view", d => { if(d.v === "practice") unpark(); else park(); });
 
   // Günlük hedef: bugünkü sesli çalma süresi / hedef (dakika)
   function goalText(){
