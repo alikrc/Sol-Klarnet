@@ -111,11 +111,15 @@
     band: L(`<p><b>Ne işe yarar:</b> Darbuka, bas ve udla birlikte çalmak: oyun havasını usule oturtmanın en hızlı yolu.</p>
       <ol><li>Usulü (Roman havası, karşılama, çiftetelli, kasap, Rumeli ya da klasik usuller) ve makamı seç; tempo usulün birimidir (9/8'de sekizlik).</li>
         <li>Başlat'a bas; grup döngüde çalar. Üstüne etüdü, bildiğin bir havayı ya da doğaçlamanı çal. “Akor değişsin” bası ve udu durak ile güçlü arasında gezdirir.</li>
+        <li><b>Grup beni izlesin</b> açıkken grup senin temponu izler (yavaş yavaş hızlanır ya da yavaşlar), sen susunca bekler ve yeniden çaldığın ilk notayla girer.</li>
+        <li><b>Taksimle başla:</b> grup yalnızca dem tutar. Taksimini durakta uzun bir notayla bitir, nefes al ve oyun havasına gir: grup ilk notanla birlikte girer. Hemen girmesi için <b>Gir</b>'e bas.</li>
         <li>Mikrofon açıksa ve “değerlendir” seçiliyse durdurunca usule oturma yüzden ve seyir puanı görünür.</li>
         <li>Kulaklık kullan ya da Ayarlar'da Hoparlör modunu aç: mikrofon grubu değil seni duysun. Etüt ve eserlerde ve nota arşivinde de “orkestra” eşliği var.</li></ol>`,
       `<p><b>What it's for:</b> playing with darbuka, bass and oud: the fastest way to get a dance tune into the groove.</p>
       <ol><li>Pick the usul (Roman havası, karşılama, çiftetelli, kasap, Rumeli or a classical usul) and the makam; the tempo counts the usul's unit (eighths in 9/8).</li>
         <li>Press Start; the band loops. Play an étude, a tune you know or improvise on top. “Chord changes” moves bass and oud between the tonic and the dominant.</li>
+        <li>With <b>Band follows me</b> on, the band tracks your tempo (gradually speeding up or slowing down), waits when you go quiet and comes back in with your next note.</li>
+        <li><b>Start with a taksim:</b> the band only holds a drone. End your taksim with a long note on the tonic, take a breath and start the dance tune: the band comes in with your first note. Press <b>Enter</b> to bring it in at once.</li>
         <li>With the mic on and “assess” ticked, stopping shows how well you sat in the groove and a seyir score.</li>
         <li>Use headphones or Speaker mode in Settings so the mic hears you, not the band. Études & pieces and the score archive also have a “band” accompaniment.</li></ol>`),
     kulaktan: L(`<p><b>Ne işe yarar:</b> Usta kayıtlarından kulakla öğrenmek (Trakya ve Roman geleneğinde asıl öğrenme yolu).</p>
@@ -234,7 +238,7 @@
         <li>Esere dokun. <b>Çal</b> ile dinle, tempoyu düşür. Notaya dokununca çalma oradan başlar.</li>
         <li>Zor bir yer için <b>A–B</b>'ye bas, ilk ve son ölçüye dokun: o kısım tekrar tekrar çalar. Bölüm düğmeleri (Aranağme, Hane, Teslim…) de aynı işi yapar.</li>
         <li><b>Dem</b> karar perdesinde dron açar; <b>Eşlik</b> metronom ya da usulün düm-tek vuruşlarını ekler. <b>Melodiyi kapat</b> ile yalnız eşlik kalır, sen çalarsın.</li>
-        <li>Mikrofonla: <b>Beni takip et</b> doğru notayı çaldıkça ilerler; <b>Tempolu çal</b> perde ve zamanlamanı ölçer; <b>Merdiven</b> tempoyu adım adım artırır.</li>
+        <li>Mikrofonla: <b>Beni takip et</b> doğru notayı çaldıkça ilerler; <b>Benimle çal</b>da orkestra seni izler (ilk notanla girer, hızlanırsan hızlanır, durursan bekler); <b>Tempolu çal</b> perde ve zamanlamanı ölçer; <b>Merdiven</b> tempoyu adım adım artırır.</li>
         <li>"Görünüm ve transpoze": perde perde transpoze, oktav, nota boyutu, sözler, perde adları, notayı izle, tam ekran, yazdır.</li>
         <li>"Eseri öğren" yedi adımda dinlemeden kendin çalmaya götürür. "Eserlerime ekle" eseri Etüt ve eserler listene koyar.</li></ol>`,
       `<p><b>What it's for:</b> finding any of the 2200 pieces in the SymbTr collection and practising from the score.</p>
@@ -242,18 +246,18 @@
         <li>Tap a piece. <b>Play</b> to listen, lower the tempo. Tapping a note starts playback there.</li>
         <li>For a hard passage press <b>A–B</b> and tap the first and last bar: it loops. Section buttons do the same.</li>
         <li><b>Drone</b> plays the tonic; <b>Accomp.</b> adds a metronome or the usul's düm-tek. <b>Mute melody</b> leaves only the accompaniment for you to play along.</li>
-        <li>With the mic: <b>Follow me</b> advances as you play the right notes; <b>Play in tempo</b> scores pitch and timing; <b>Ladder</b> raises the tempo step by step.</li>
+        <li>With the mic: <b>Follow me</b> advances as you play the right notes; in <b>Play with me</b> the band follows you (comes in with your first note, speeds up with you, waits when you stop); <b>Play in tempo</b> scores pitch and timing; <b>Ladder</b> raises the tempo step by step.</li>
         <li>"View and transpose": transpose by perde, octave, score size, lyrics, perde names, follow the score, full screen, print.</li>
         <li>"Learn the piece" takes you from listening to playing in seven steps. "Add to my pieces" puts it in Études & pieces.</li></ol>`),
     piece: L(`<p><b>Ne işe yarar:</b> Etütleri ve eserleri notadan çalmak.</p>
       <ol><li>Listeden bir etüt seç; notası dizekte görünür. Dinle ile önce duy.</li>
         <li><b>Serbest takip:</b> kendi hızında çal, doğru notada bir sonrakine geçer. <b>Tempolu çal:</b> metronomla çal, doğru nota ve zamanlama ölçülür.
-          <b>Merdiven:</b> tempo temiz çaldıkça artar.</li>
+          <b>Merdiven:</b> tempo temiz çaldıkça artar. <b>Benimle çal:</b> orkestra seni izler; ilk notanla girer, temponu izler, durursan bekler.</li>
         <li>Kendi ezgini nota yazıp Kaydet ile ekleyebilir ya da “MusicXML içe aktar” ile nota dosyası yükleyebilirsin.</li></ol>`,
       `<p><b>What it's for:</b> playing études and pieces from the score.</p>
       <ol><li>Pick an étude; its score appears on the staff. Tap Listen to hear it first.</li>
         <li><b>Follow mode:</b> play at your own pace; it moves on when you hit the right note. <b>Play in tempo:</b> play with the metronome; notes and timing are measured.
-          <b>Ladder:</b> the tempo rises as you play cleanly.</li>
+          <b>Ladder:</b> the tempo rises as you play cleanly. <b>Play with me:</b> the band follows you; it comes in with your first note, tracks your tempo and waits when you stop.</li>
         <li>You can add your own tune by typing the notes and tapping Save, or load a score with “Import MusicXML”.</li></ol>`),
     convert: L(`<p><b>Ne işe yarar:</b> Bir notayı ya da kaydı esere çevirmek: okunan notaları düzeltip “Kendi eserlerim”e eklersin.</p>
       <ol><li><b>PDF</b> en iyi sonucu verir. Resim çekiyorsan sayfayı düz ve tam çek, kenarları kırp.</li>
@@ -616,15 +620,16 @@
   stopDrone();
 
   // Kayıt dinletilirken ya da dron çalarken mikrofon o sesi nota saymasın.
-  // Dronun hoparlörden mikrofona sızan seviyesi son 10 saniyenin alt %10'luk dilimiyle (nefes aralarından) izlenir; bunun iki katından
+  // Dronun hoparlörden mikrofona sızan seviyesi son 15 saniyenin alt %5'lik dilimiyle (nefes aralarından) izlenir; bunun iki katından
   // güçlü ses öğrencinin sesidir (durağı dronla birlikte çalmak da ölçülür). Sızıntı düzeyindeki her ölçüm yok sayılır.
   // Eşlik grubu (band.js) çalarken ud ve basın perdeleri de aynı yolla ayıklanır (bandFreqs, duyulan Hz)
   let playbackMute = false, droneLv = [], bandFreqs = [];
   SK.on("level", d => {
     if(!drone && !bandFreqs.length) return;
-    droneLv.push(d.rms); if(droneLv.length > 220) droneLv.shift();
+    droneLv.push(d.rms); if(droneLv.length > 375) droneLv.shift();
   });
-  const droneFloor = () => droneLv.length < 10 ? Infinity : [...droneLv].sort((a,b) => a-b)[Math.floor(droneLv.length*0.1)];
+  // (alt %10 kullanılınca nefes almadan 9 sn çalan öğrencinin kendi sesi "sızıntı" sayılıyor, durakta çaldığı notalar atılıyordu)
+  const droneFloor = () => droneLv.length < 10 ? Infinity : [...droneLv].sort((a,b) => a-b)[Math.floor(droneLv.length*0.05)];
   SK.ignore = (f, rms) => {
     if(playbackMute) return true;
     if(!drone && !bandFreqs.length) return false;

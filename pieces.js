@@ -144,18 +144,28 @@ function curScore(svg, i, holder){
 }
 
 // ---- Orkestra eşliği (band.js) ----
-// Eserin bütün ölçüleri için darbuka, bas ve ud olaylarını start (ses saati, sn) anından kurar. Usul eserin ölçüsüne
-// uyuyorsa onun kalıbı, yoksa ölçünün vuruş grupları. Kök eserin son notası (karar). micSafe: bas perde bulucunun altında.
-function pieceBand(ctx, piece, a, start, beatMs, micSafe){
-  const [num, den] = piece.meter || [4, 4], u = piece.usul ? USULS.find(x => x.id === piece.usul && x.meter === num + "/" + den) : null;
-  const strokes = u ? u.strokes : meterStrokes(num, den), barQ = num*4/den;
-  const beats = piece.notes.reduce((x, n) => x + n.d, 0), bars = [];
-  for(let i = 0; i*barQ < beats - 1e-6; i++) bars.push({ startMs: i*barQ*beatMs, unitMs: 4/den*beatMs, usul: u ? u.id : null, strokes });
+// Eserin bütün ölçüleri için darbuka, bas ve ud olayları, vuruş (dörtlük) cinsinden. Usul eserin ölçüsüne uyuyorsa onun kalıbı,
+// yoksa ölçünün vuruş grupları; nota arşivi kendi ölçülerini piece.bandBars ile verir. Kök eserin son notası (karar).
+// micSafe: bas perde bulucunun altında. Dönen: { evs (t ve dur vuruş), o (bandPlay ayarları), karar, mk }
+function pieceBandPlan(ctx, piece, micSafe){
+  let bars = piece.bandBars;
+  if(!bars){
+    const [num, den] = piece.meter || [4, 4], u = piece.usul ? USULS.find(x => x.id === piece.usul && x.meter === num + "/" + den) : null;
+    const strokes = u ? u.strokes : meterStrokes(num, den), barQ = num*4/den;
+    const beats = piece.notes.reduce((x, n) => x + n.d, 0);
+    bars = [];
+    for(let i = 0; i*barQ < beats - 1e-6; i++) bars.push({ startMs: i*barQ, unitMs: 4/den, usul: u ? u.id : null, strokes });
+  }
   const mk = piece.makam ? makamById(piece.makam) : null, last = [...piece.notes].reverse().find(n => !n.rest && n.c !== null);
   const karar = last ? last.c : mk ? mk.durak : 0;
   const o = { freq: c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c), micSafe, minHz: ctx.SK.pitchRange().min, vol:{ drum:0.9, bass:0.8, chord:0.55 } };
+  return { evs: bandEventsFor(bars, mk, karar, {}), o, karar, mk };
+}
+// Grubu start (ses saati, sn) anından sabit tempoda kurar
+function pieceBand(ctx, piece, a, start, beatMs, micSafe){
+  const { evs, o, karar, mk } = pieceBandPlan(ctx, piece, micSafe);
   const out = a.createGain(); out.gain.value = 0.8; out.connect(a.destination);
-  for(const ev of bandEventsFor(bars, mk, karar, {})) bandPlay(a, out, ev, start + ev.t/1000, o);
+  for(const ev of evs) bandPlay(a, out, { ...ev, dur: ev.dur*beatMs }, start + ev.t*beatMs/1000, o);
   ctx.setBandFreqs(bandChordFreqs(o, karar, fifthOf(mk, karar)));
   let done = false;
   return { stop(){ if(done) return; done = true; out.gain.setTargetAtTime(0, a.currentTime, 0.02); setTimeout(() => out.disconnect(), 300); ctx.setBandFreqs([]); } };
@@ -284,6 +294,75 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
       else if(onDone) onDone({ v: pct2, mode:"tempo" });
     }, Math.max(0, endAt - performance.now())));
   }
+  // Benimle çal: grup seni izler (follow.js). İlk notanı çalınca girer, temponu izler, durursan bekler, sıradaki
+  // notalardan birini çalınca oradan devam eder. Bitince doğru nota oranı, grubun kaç kez beklediği ve tempo aralığı görünür.
+  async function startFollow(pct = 1){
+    stop();
+    if(!(await ctx.needMic())) return;
+    mode = "follow"; redraw();
+    const a = SK.audioCtx(), beatMs = 60000/(piece.tempo*pct), lat = ctx.store.get("rhythm.lat", 0);
+    const list = []; let b = 0;
+    notes.forEach((n, i) => { if(!n.rest && n.w >= LOW_NOTE && n.w <= HIGH_NOTE) list.push({ i, beat:b, w:n.w }); b += n.d; });
+    if(!list.length){ mode = null; return; }
+    const plan = pieceBandPlan(ctx, piece, true), map = new TempoMap(beatMs), fol = new ScoreFollower(list);
+    const starts = new NoteStarts(), det = new OnsetDetector();
+    const st = { paused:true, waits:0, ok:0, bad:0, miss:0, tempos:[] };
+    const band = FollowBand(a, plan.evs, map, { ...plan.o, onEnd: () => finish() });
+    ctx.setBandFreqs(bandChordFreqs(plan.o, plan.karar, fifthOf(plan.mk, plan.karar)));
+    const offL = SK.level(f => {
+      if(f.on && f.freq > 0) starts.raw(f.t, (freqToMidi(f.freq) + SK.T - 67)*53/12);
+      const x = det.push(f); if(x !== null) starts.onset(x);
+    });
+    let snd = null;     // şu an çalan perde { w, t }
+    const advance = () => {
+      if(fol.done) return;
+      view.cur(list[fol.k].i);
+      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(list[fol.k].w);
+    };
+    const dog = setInterval(() => {
+      if(st.paused || fol.done) return;
+      const now = performance.now() - lat;
+      if(fol.repeatDue(now, map, snd && performance.now() - snd.t < 200 ? snd.w : null)){
+        const m = fol.assume(); view.mark(m.i, "ok"); st.ok++; advance(); return;
+      }
+      if(fol.late(now, map) > followWait(map.beatMs)){
+        st.paused = true; st.waits++; band.hold(true);
+        say("", L("Grup seni bekliyor: kaldığın yerden ya da biraz ileriden çal.", "The band is waiting: play on from where you stopped or a little further."));
+      }
+    }, 50);
+    view.cur(list[0].i);
+    say("", L("İlk notayı çal; grup seninle girer ve senin temponu izler.", "Play the first note; the band comes in with you and follows your tempo."));
+    if(ctx.store.get("piece.fing", true)) SK.showNote(list[0].w);
+    function onNote(r, t){
+      snd = { w: r.written, t };
+      const s0 = starts.note(t, r.written);
+      if(!s0) return;
+      const s1 = { t: s0.t - lat, w: s0.w }, wasPaused = st.paused, k0 = fol.k;
+      const m = fol.push(s1, map, st.paused);
+      if(!m) return;
+      for(let j = k0; j < m.j; j++){ view.mark(list[j].i, "miss"); st.miss++; }
+      view.mark(m.i, m.ok ? "ok" : "bad"); m.ok ? st.ok++ : st.bad++;
+      if(wasPaused){
+        map.anchor(m.t, m.beat); map.clearHist(); band.seek(m.beat); band.hold(false); st.paused = false;
+        say("", "");
+      }else{ map.observe(m.t, m.beat); st.tempos.push(Math.round(piece.tempo*pct*map.pct()/100)); }
+      advance();
+    }
+    function finish(){
+      if(mode !== "follow") return;
+      halt();
+      const n = list.length, pctOk = Math.round(st.ok/n*100), ts = st.tempos.slice(2);
+      const tTxt = ts.length ? L(" · tempo ", " · tempo ") + Math.min(...ts) + "–" + Math.max(...ts) : "";
+      say(pctOk >= 80 ? "good" : "bad", L("Doğru nota %", "Correct notes ") + pctOk + (LANG === "en" ? "%" : "") + " · " + st.bad + L(" yanlış · ", " wrong · ") + st.miss + L(" atlanan", " skipped") + tTxt +
+        (st.waits ? L(" · grup " + st.waits + " kez bekledi", " · the band waited " + st.waits + "×") : L(" · grup hiç beklemedi", " · the band never had to wait")));
+      const hist = ctx.store.get("piece.follow", []);
+      hist.push({ d: dayKey(new Date()), id: piece.id || piece.name, ok: pctOk, waits: st.waits, tmin: ts.length ? Math.min(...ts) : null, tmax: ts.length ? Math.max(...ts) : null });
+      ctx.store.set("piece.follow", hist.slice(-100));
+      if(onDone) onDone({ v: pctOk, mode:"follow" });
+    }
+    run = { follow: { note: onNote, silence: () => { snd = null; starts.silence(); } },
+            stop(){ clearInterval(dog); offL(); band.stop(); ctx.setBandFreqs([]); } };
+  }
   // Dinle: notaları tempoda çalar. Zaman mutlak tutulur (gecikmeler birikmez).
   // o: { from, to (hariç), loop, mute (melodi sesi çıkmaz, imleç ilerler), onStart(t0, beatMs, from) her turun başında
   //      (t0 performance.now() cinsinden), onNote(i), onEnd(), band (baştan çalınıyorsa orkestra eşliği) }
@@ -331,13 +410,14 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   function halt(){ playToken = null; if(run){ run.stop(); run = null; } stopBand(); mode = null; }
   function stop(){ if(ladder){ ladder.stop(); ladder = null; } halt(); }
   return {
-    startFree, startTempo, startLadder, listen, stop, playing: () => !!playToken || !!mode || !!ladder,
+    startFree, startTempo, startLadder, startFollow, listen, stop, playing: () => !!playToken || !!mode || !!ladder,
     toggleNames(){ names = !names; ctx.store.set("piece.names", names); redraw(); },
     note(r, t){
       if(mode === "free") freeNote(r, t);
       else if(mode === "tempo" && run) run.stable.push({ t, w:r.written });
+      else if(mode === "follow" && run) run.follow.note(r, t);
     },
-    silence(){ if(hold){ hold.fired = false; hold.w = null; } release = false; }
+    silence(){ if(hold){ hold.fired = false; hold.w = null; } release = false; if(mode === "follow" && run) run.follow.silence(); }
   };
 }
 
@@ -352,8 +432,8 @@ TRAINERS.piece = function(ctx){
   const { SK, $, store } = ctx;
   const P = $("pp-piece");
   P.innerHTML = `
-    <p class="pdesc">${L("Etütler ve kendi eserlerin. Serbest takipte notalar sırayla gelir, doğru notayı çalınca ilerler. Tempolu çalmada bir ölçü sayımdan sonra metronomla çalarsın; bitince her notanın perdesi ve zamanlaması işaretlenir. Notada koma işaretleri AEU'ya göredir (♭1 koma, ♯4 bakiye, ♯5 küçük mücenneb, ♯8 büyük mücenneb).",
-      "Études and your own pieces. In follow mode the notes come one by one and advance when you play the right one. In tempo mode you play with the metronome after a one-bar count-in; afterwards every note is marked for pitch and timing. Accidentals follow AEU (♭1 koma, ♯4 bakiye, ♯5 küçük mücenneb, ♯8 büyük mücenneb).")}</p>
+    <p class="pdesc">${L("Etütler ve kendi eserlerin. Serbest takipte notalar sırayla gelir, doğru notayı çalınca ilerler. Tempolu çalmada bir ölçü sayımdan sonra metronomla çalarsın; bitince her notanın perdesi ve zamanlaması işaretlenir. “Benimle çal”da orkestra seni izler: ilk notanla girer, hızlanırsan hızlanır, yavaşlarsan yavaşlar, durursan bekler. Notada koma işaretleri AEU'ya göredir (♭1 koma, ♯4 bakiye, ♯5 küçük mücenneb, ♯8 büyük mücenneb).",
+      "Études and your own pieces. In follow mode the notes come one by one and advance when you play the right one. In tempo mode you play with the metronome after a one-bar count-in; afterwards every note is marked for pitch and timing. In “Play with me” the band follows you: it comes in with your first note, speeds up and slows down with you and waits when you stop. Accidentals follow AEU (♭1 koma, ♯4 bakiye, ♯5 küçük mücenneb, ♯8 büyük mücenneb).")}</p>
     <div class="pbar">
       <select id="pcsel" aria-label="${L("Eser", "Piece")}"></select>
       <span class="muted" id="pcmeta"></span>
@@ -364,6 +444,7 @@ TRAINERS.piece = function(ctx){
       <button class="primary small" id="pctempo" type="button">${L("Tempolu çal", "Play in tempo")}</button>
       <button class="stopbtn" id="pcladder" type="button">${L("Merdiven", "Ladder")}</button>
       <button class="stopbtn" id="pcfree" type="button">${L("Serbest takip", "Follow mode")}</button>
+      <button class="stopbtn" id="pcwith" type="button">${L("Benimle çal (grup izler)", "Play with me (band follows)")}</button>
       <button class="stopbtn" id="pclisten" type="button">${L("Dinle", "Listen")}</button>
       <button class="stopbtn" id="pcstop" type="button">${L("Durdur", "Stop")}</button>
       <label class="tnum">${L("Hız", "Speed")} <input id="pcpct" type="range" min="50" max="120" step="5" value="100" aria-label="${L("Hız yüzdesi", "Speed percent")}"> <em id="pcpctv">100%</em></label>
@@ -435,6 +516,7 @@ TRAINERS.piece = function(ctx){
   $("pctempo").addEventListener("click", () => player.startTempo(pct()));
   $("pcladder").addEventListener("click", () => player.startLadder(120, p => { $("pcpct").value = p; $("pcpctv").textContent = p + "%"; }));
   $("pcfree").addEventListener("click", async () => { await ctx.needMic(); player.startFree(); });
+  $("pcwith").addEventListener("click", () => player.startFollow(pct()));
   $("pclisten").addEventListener("click", () => player.listen(pct(), { band: $("pcband").checked }));
   $("pcstop").addEventListener("click", () => { player.stop(); SK.stopSound(); });
   const msg = t => { $("pcmsg").textContent = t; };

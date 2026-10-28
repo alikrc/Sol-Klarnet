@@ -111,10 +111,14 @@ function bandBarEvents(style, unitMs, root, fifth, parts = {}, drum = style.drum
   }
   return out;
 }
+// Eşlik sekmesinde grubun seni izlemesi (follow.js GrooveTracker): tempo ayarlanan tempoya göre en çok %75–130 arasında kalır.
+// Sentetik denemede (nota başı ±15 ms oynarken) %11'lik ani değişim ve kademeli değişimler ±%4 içinde izlendi; %20'yi aşan
+// ani değişim yanlış tempoya (3:2) kilitlenebiliyor, bu yüzden aralık dar tutuldu
+const BAND_FOLLOW = { lo:0.75, hi:1.3 };
 // Tempo önerisi (usul birimi/dk): oyun havalarında yaygın hız, öğrenmek için biraz yavaş
 const BAND_TEMPO = { sirto:104, zeybek:96, kasap:112, ciftetelli:176, karsilama:208, roman:216, rumeli:224, sofyan:96, semai:132, aksak:200, duyek:160, curcuna:200, agiraksak:110 };
 
-if(typeof module !== "undefined") module.exports = { BAND_STYLES, BAND_GROUPS, BAND_TEMPO, meterStrokes, stylesFromStrokes, bandStyle, autoFill, bandDrum, fifthOf, bandRoot, bandBarEvents, bandEventsFor };
+if(typeof module !== "undefined") module.exports = { BAND_STYLES, BAND_GROUPS, BAND_TEMPO, BAND_FOLLOW, meterStrokes, stylesFromStrokes, bandStyle, autoFill, bandDrum, fifthOf, bandRoot, bandBarEvents, bandEventsFor };
 
 // ======== Ses (yalnızca tarayıcı) ========
 // Ses düğümleri: darbuka düm (perde bulucunun alt sınırının altında, nota sanılmaz), tek ve ka (süzülmüş gürültü),
@@ -187,7 +191,7 @@ function bandPlay(a, dest, ev, at, o){
     [f, f2, f*2].forEach((fr, i) => {
       const { buf, rate } = bandPluckBuffer(a, fr), src = a.createBufferSource(), gg = a.createGain();
       src.buffer = buf; src.playbackRate.value = rate;
-      const t = at + i*0.012, dur = Math.max(0.15, ev.dur/1000);
+      const t = at + i*0.012, dur = Math.max(0.15, Math.min(0.7, ev.dur/1000));
       gg.gain.setValueAtTime((i === 2 ? 0.12 : 0.2)*vol, t); gg.gain.setValueAtTime((i === 2 ? 0.12 : 0.2)*vol, t + dur*0.8);
       gg.gain.exponentialRampToValueAtTime(0.001, t + dur);
       src.connect(gg).connect(g); src.start(t); src.stop(t + dur + 0.02);
@@ -210,8 +214,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
   const halk = BLEARN.USULS.filter(u => u.halk), klasik = BLEARN.USULS.filter(u => !u.halk);
   const uopt = u => `<option value="${u.id}">${u.name} ${u.meter}</option>`;
   P.innerHTML = `
-    <p class="pdesc">${L("Darbuka, bas ve udla birlikte çal. Usulü ve makamı seç, Başlat'a bas: grup döngü hâlinde çalar, sen üstüne ezgiyi, etüdü ya da doğaçlamanı çalarsın. Mikrofon açıkken “Değerlendir” seçiliyse bitince perdelerde ne kadar durduğun, seyrin ve usule ne kadar oturduğun gösterilir.",
-      "Play with darbuka, bass and oud. Pick the usul and the makam and press Start: the band loops and you play the tune, an étude or your own improvisation on top. With the mic on and “Assess” ticked you see afterwards where you dwelt, your seyir and how well you sat in the usul.")}</p>
+    <p class="pdesc">${L("Darbuka, bas ve udla birlikte çal. Usulü ve makamı seç, Başlat'a bas: grup döngü hâlinde çalar, sen üstüne ezgiyi, etüdü ya da doğaçlamanı çalarsın. Mikrofon açıkken “Değerlendir” seçiliyse bitince perdelerde ne kadar durduğun, seyrin ve usule ne kadar oturduğun gösterilir. “Grup beni izlesin” açıkken grup senin temponu izler, durursan bekler ve yeniden çaldığın notayla girer. “Taksimle başla”da grup yalnızca dem tutar; taksimi durakta bitirip oyun havasına girdiğinde ilk notanla birlikte girer (ya da Gir'e bas).",
+      "Play with darbuka, bass and oud. Pick the usul and the makam and press Start: the band loops and you play the tune, an étude or your own improvisation on top. With the mic on and “Assess” ticked you see afterwards where you dwelt, your seyir and how well you sat in the usul. With “Band follows me” the band tracks your tempo, waits when you stop and comes back in with your next note. “Start with a taksim” holds only a drone; when you end the taksim on the tonic and start the dance tune, the band comes in with your first note (or press Enter).")}</p>
     <div class="pbar">
       <label class="arsel">Usul <select id="bdusul" aria-label="Usul"><optgroup label="${L("Oyun havaları", "Dance tunes")}">${halk.map(uopt).join("")}</optgroup>
         <optgroup label="${L("Klasik usuller", "Classical usuls")}">${klasik.map(uopt).join("")}</optgroup></select></label>
@@ -224,10 +228,12 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
       <label class="chk"><input type="checkbox" id="bdchord"> ud</label>
       <label class="chk"><input type="checkbox" id="bdprog"> ${L("akor değişsin (durak ↔ güçlü)", "chord changes (tonic ↔ dominant)")}</label>
       <label class="chk"><input type="checkbox" id="bdvary"> ${L("darbuka çeşitlensin (ikinci çalış, dolgu)", "vary the darbuka (second pattern, fills)")}</label>
+      <label class="chk"><input type="checkbox" id="bdfollow"> ${L("grup beni izlesin (temponu izler, durunca bekler)", "band follows me (tracks your tempo, waits when you stop)")}</label>
       <label class="chk"><input type="checkbox" id="bdeval"> ${L("değerlendir (mikrofon)", "assess (mic)")}</label>
       <label class="tnum">${L("Ses", "Volume")} <input id="bdvol" type="range" min="1" max="10" value="7" aria-label="${L("Eşlik ses düzeyi", "Band volume")}"></label>
     </div>
     <div class="pbar"><button class="primary small" id="bdgo" type="button">${L("Başlat", "Start")}</button>
+      <button class="stopbtn" id="bdtaksim" type="button">${L("Taksimle başla", "Start with a taksim")}</button>
       <button class="stopbtn" id="bdpiece" type="button">${L("Bu usulde etüt çal", "Play an étude in this usul")}</button></div>
     <div class="slots bdslots" id="bdslots" aria-hidden="true"></div>
     <div class="muted" id="bdinfo"></div>
@@ -245,6 +251,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
   $("bdvary").checked = store.get("band.vary", true);
   $("bdvary").addEventListener("change", () => store.set("band.vary", $("bdvary").checked));
   $("bdeval").checked = store.get("band.eval", true);
+  $("bdfollow").checked = store.get("band.follow", true);
+  $("bdfollow").addEventListener("change", () => { store.set("band.follow", $("bdfollow").checked); if(run) run.follow = $("bdfollow").checked; });
   $("bdvol").value = store.get("band.vol", 7);
   function info(){
     const m = mk(), u = usul();
@@ -263,7 +271,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
   $("bdtempo").addEventListener("change", () => {
     const v = Math.max(40, Math.min(320, Math.round(+$("bdtempo").value) || 120)); $("bdtempo").value = v;
     const all = store.get("band.tempos", {}); all[usul().id] = v; store.set("band.tempos", all);
-    if(run) run.unitMs = 60000/v;
+    if(run){ const now = performance.now(), mp = run.map; mp.anchor(now, mp.beatAt(now), 60000/v); mp.base = 60000/v; run.base = v; }
   });
   $("bdpiece").addEventListener("click", () => {
     const e = ETUDES.find(x => x.usul === usul().id);
@@ -273,44 +281,142 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
 
   let run = null;
   function opts(){ return { freq: c => ctx.mkFreq(mk(), c), micSafe: false, minHz: SK.pitchRange().min, vol:{ drum:1, bass:1, chord:1 } }; }
-  function start(){
+  // Grubun zamanı usul birimi (vuruş) cinsinden bir tempo haritasıyla (follow.js TempoMap) tutulur; olaylar 150 ms önceden tek tek
+  // kurulur. "Grup beni izlesin" açıkken her nota başı en yakın hücreye eşlenip haritayı (tempo ve evre) sana doğru kaydırır.
+  // kind: "play" (grup hemen başlar) ya da "taksim" (grup dem tutar, oyun havasına girişini bekler).
+  // Durum: play → wait (sen susunca) → play (ilk nota başında); taksim → play (düzenli nota başları ya da Gir)
+  function start(kind = "play"){
     const a = SK.audioCtx(), u = usul(), m = mk(), st = info();
     const out = a.createGain(); out.gain.value = +$("bdvol").value/10; out.connect(a.destination);
     const parts = { drum: $("bddrum").checked, bass: $("bdbass").checked, chord: $("bdchord").checked };
-    const r = { out, res: st.res, bar: 0, next: a.currentTime + 0.15, unitMs: 60000/(+$("bdtempo").value || 120), frames: [], onsets: [], grid: [], t0: performance.now() };
-    const o = opts(), det = new OnsetDetector();
-    r.off = SK.level(f => { const x = det.push(f); if(x !== null) r.onsets.push(x); });
+    const base = +$("bdtempo").value || 120, U = st.cells/st.res, slots = BLEARN.usulSlots(u);
+    const r = { out, st, U, res: st.res, bar: 0, map: new TempoMap(60000/base), unitMs: 60000/base, base, frames: [], onsets: [], starts: [], grid: [],
+                t0: performance.now(), state: kind, follow: $("bdfollow").checked, waits: 0, tempos: [],
+                queue: [], nextBar: 0, sched: -Infinity, ns: new NoteStarts() };
+    r.map.anchor(performance.now() + 150, 0);
+    r.groove = new GrooveTracker(r.map, 1/st.res, BAND_FOLLOW);
+    // İlk ölçü giriş: sessizlik sayılmaz
+    r.lastAct = performance.now() + U*r.map.beatMs;
+    const o = opts(), det = new OnsetDetector(), lat = store.get("rhythm.lat", 0);
+    r.off = SK.level(f => {
+      if(f.on){ r.lastAct = Math.max(r.lastAct, f.t); if(f.freq > 0) r.ns.raw(f.t, (freqToMidi(f.freq) + SK.T - 67)*53/12); }
+      const x = det.push(f); if(x === null) return;
+      r.onsets.push(x); r.ns.onset(x);
+      if(run !== r) return;
+      if(r.state === "wait") resume(r, x - lat);
+      // Taksim durakta bitti, nefes alındı: oyun havasının ilk notasıyla grup girer
+      else if(r.state === "taksim" && r.karar) enterAt(r, x - lat);
+    });
+    if(kind === "taksim") demOn(r);
+    // Bir ölçünün olayları (vuruş cinsinden) kuyruğa: çalgılar, ölçü başı, değerlendirme hücreleri, usul ışıkları
+    function queueBar(){
+      const k = r.nextBar++, b0 = k*U;
+      const root = bandRoot(m, k, U, $("bdprog").checked), fifth = fifthOf(m, root);
+      const vary = $("bdvary").checked, drum = bandDrum(st, k, { vary, fill: vary });
+      const evs = [{ t: b0, part:"bar", k, root, fifth }];
+      for(const ev of bandBarEvents(st, 1, root, fifth, parts, drum)) evs.push({ ...ev, t: b0 + ev.t });
+      for(let i=0;i<st.cells;i++) evs.push({ t: b0 + i/st.res, part:"cell" });
+      slots.forEach((sl, i) => evs.push({ t: b0 + i, part:"slot", i, k }));
+      r.queue.push(...evs.sort((x, y) => x.t - y.t));
+    }
     r.timer = setInterval(() => {
-      while(r.next < a.currentTime + 0.3){
-        const root = bandRoot(m, r.bar, st.cells/st.res, $("bdprog").checked), fifth = fifthOf(m, root);
-        const at = r.next, unitS = r.unitMs/1000;
-        const vary = $("bdvary").checked, drum = bandDrum(st, r.bar, { vary, fill: vary });
-        for(const ev of bandBarEvents(st, r.unitMs, root, fifth, parts, drum)) bandPlay(a, out, ev, at + ev.t/1000, o);
-        // Hücre zamanları (performance.now() çizgisinde) değerlendirme için
-        const p0 = ctxToPerf(a, at);
-        for(let i=0;i<st.cells;i++) r.grid.push(p0 + i*r.unitMs/st.res);
-        const k = r.bar;
-        setTimeout(() => { if(run === r){ ctx.setBandFreqs(parts.chord ? bandChordFreqs(o, root, fifth) : []); paintSlot(-1, k); } }, Math.max(0, (at - a.currentTime)*1000));
-        BLEARN.usulSlots(u).forEach((s, i) => setTimeout(() => { if(run === r) paintSlot(i, k); }, Math.max(0, (at + i*unitS - a.currentTime)*1000)));
-        r.next += st.cells/st.res*unitS; r.bar++;
+      if(r.state !== "play" || run !== r) return;
+      const now = performance.now(), map = r.map;
+      // Sen sustun: bir ölçüden uzun süre ses yoksa grup bekler
+      if(r.follow && now - r.lastAct > Math.max(1500, U*map.beatMs*1.1)){ wait(r); return; }
+      const horizon = map.beatAt(now + 150);
+      while(r.nextBar*U <= horizon) queueBar();
+      while(r.queue.length && r.queue[0].t <= horizon){
+        const ev = r.queue.shift();
+        if(ev.t <= r.sched) continue;
+        const at = map.timeAt(ev.t);
+        if(at < now - 120) continue;
+        const ct = Math.max(a.currentTime, perfToCtx(a, at)), dly = Math.max(0, at - now), tempo = Math.round(60000/map.beatMs);
+        if(ev.part === "cell") r.grid.push(at);
+        else if(ev.part === "bar"){
+          r.bar = ev.k + 1; r.tempos.push(tempo);
+          setTimeout(() => { if(run === r){ ctx.setBandFreqs(parts.chord ? bandChordFreqs(o, ev.root, ev.fifth) : []); paintSlot(-1, ev.k, tempo); } }, dly);
+        }
+        else if(ev.part === "slot") setTimeout(() => { if(run === r && r.state === "play") paintSlot(ev.i, ev.k, tempo); }, dly);
+        else bandPlay(a, out, { ...ev, dur: ev.dur*map.beatMs }, ct, o);
       }
-    }, 40);
+      r.sched = Math.max(r.sched, horizon);
+      r.unitMs = map.beatMs;
+    }, 25);
     run = r;
     $("bdgo").textContent = L("Durdur", "Stop");
-    $("bdstage").innerHTML = `<div class="ltclock" id="bdclock">0 <em>${L("ölçü", "bars")}</em></div><div class="muted">${L("Çal! Durdurunca sonuç görünür.", "Play! The result appears when you stop.")}</div>`;
+    $("bdstage").innerHTML = `<div class="ltclock" id="bdclock">${kind === "taksim" ? L("Taksim", "Taksim") : `0 <em>${L("ölçü", "bars")}</em>`}</div>
+      <div class="muted" id="bdmsg">${kind === "taksim" ? L("Grup dem tutuyor. Taksimini yap ve durakta (" + perdeName(mk().durak) + ") uzun bir notayla bitir; nefes alıp oyun havasına girdiğin ilk notayla grup da girer ve temponu izler. Hemen girmesi için Gir'e bas.", "The band holds a drone. Play your taksim and end it with a long note on the tonic (" + perdeName(mk().durak) + "); take a breath and the band comes in with the first note of the dance tune and follows your tempo. Press Enter to bring it in now.")
+        : r.follow ? L("Çal! Grup temponu izler; durursan bekler. Durdurunca sonuç görünür.", "Play! The band follows your tempo and waits if you stop. The result appears when you stop.") : L("Çal! Durdurunca sonuç görünür.", "Play! The result appears when you stop.")}</div>`;
+    taksimLabel();
   }
-  function paintSlot(i, bar){
+  // Nota başı (perde değişimi ya da dil vuruşu): grup açıksa tempo ve evre izleyicisine gider
+  function onStart(r, t){
+    r.starts.push(t);
+    if(r.state === "play" && r.follow) r.groove.push(t - store.get("rhythm.lat", 0));
+  }
+  function wait(r){
+    r.state = "wait"; r.waits++;
+    paintSlot(-1, r.bar - 1);
+    const el = $("bdmsg"); if(el) el.textContent = L("Grup seni bekliyor; çalmaya başlayınca ilk notanla girer.", "The band is waiting; it comes in with your first note.");
+  }
+  // Beklerken gelen ilk nota başı (t, duyulma anı): grup cümle başından (sekiz ölçünün katı) o notayla girer
+  function resume(r, t){
+    const K = Math.ceil(r.nextBar/8)*8;
+    r.queue = []; r.nextBar = K; r.sched = K*r.U - 1e-6;
+    r.map.anchor(t, K*r.U); r.groove.reset();
+    r.state = "play"; r.lastAct = performance.now();
+    const el = $("bdmsg"); if(el) el.textContent = L("Çal! Grup temponu izler; durursan bekler.", "Play! The band follows your tempo and waits if you stop.");
+  }
+  // Taksimin sonu: durak perdesinde en az 0,8 sn tutulan nota ve ardından sessizlik grubu kurar; sonraki ilk nota başı (t) ölçü başı olur
+  function taksimNote(r, t, comma){
+    if(r.state !== "taksim") return;
+    const d = ((comma - mk().durak) % 53 + 53) % 53, onDurak = d <= 2 || d >= 51;
+    if(!r.hold || r.hold.on !== onDurak || t - r.hold.last > 120) r.hold = { on: onDurak, since: t };
+    r.hold.last = t;
+    r.karar = false;
+  }
+  function taksimSilence(r){
+    if(r.state !== "taksim" || !r.hold) return;
+    if(r.hold.on && r.hold.last - r.hold.since >= 800){
+      r.karar = true;
+      const el = $("bdmsg"); if(el) el.textContent = L("Durakta karar verdin. Oyun havasına gir; grup ilk notanla girer.", "You cadenced on the tonic. Start the dance tune; the band comes in with your first note.");
+    }
+    r.hold = null;
+  }
+  function enterAt(r, t){
+    r.map.anchor(t, 0); r.groove.reset();
+    r.queue = []; r.nextBar = 0; r.sched = -1e-6;
+    enter(r);
+  }
+  function enter(r){
+    r.state = "play"; r.lastAct = performance.now() + 500;
+    demOff(r); taksimLabel();
+    const el = $("bdmsg"); if(el) el.textContent = L("Grup girdi; temponu izliyor. Durdurunca sonuç görünür.", "The band is in and following your tempo. The result appears when you stop.");
+  }
+  function demOn(r){
+    let c = mk().durak; while(c > 62) c -= 53; while(c < -22) c += 53;
+    const p = nearestPerde(c); ctx.droneOn(p ? p.comma : c); r.dem = true;
+  }
+  function demOff(r){ if(r.dem){ ctx.droneOff(); r.dem = false; } }
+  function taksimLabel(){
+    const b = $("bdtaksim");
+    b.textContent = run && run.state === "taksim" ? L("Gir", "Enter") : L("Taksimle başla", "Start with a taksim");
+    b.disabled = !!run && run.state !== "taksim";
+  }
+  function paintSlot(i, bar, tempo){
     const els = $("bdslots").children;
     for(let k=0;k<els.length;k++) els[k].classList.toggle("now", k === i);
-    const c = $("bdclock"); if(c) c.innerHTML = (bar + 1) + ` <em>${L("ölçü", "bars")}</em>`;
+    const c = $("bdclock"); if(c) c.innerHTML = (bar + 1) + ` <em>${L("ölçü", "bars")}</em>` + (tempo && run && run.follow ? ` <em>· ${tempo}</em>` : "");
   }
   function stop(show = true){
     const r = run; if(!r) return;
-    run = null; clearInterval(r.timer); r.off();
+    run = null; clearInterval(r.timer); r.off(); demOff(r);
     const a = SK.audioCtx();
     r.out.gain.setTargetAtTime(0, a.currentTime, 0.03); setTimeout(() => r.out.disconnect(), 400);
     ctx.setBandFreqs([]);
     $("bdgo").textContent = L("Başlat", "Start");
+    taksimLabel();
     paintSlot(-1, r.bar - 1);
     if(show) result(r);
   }
@@ -324,23 +430,41 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
     const devs = r.onsets.map(o => o - lat).map(o => { let bd = Infinity; for(const g of r.grid){ const d = o - g; if(Math.abs(d) < Math.abs(bd)) bd = d; } return bd; }).filter(d => Math.abs(d) <= cellMs/2);
     const onGrid = devs.length ? Math.round(devs.filter(d => Math.abs(d) <= Math.min(60, cellMs*0.3)).length/devs.length*100) : null;
     if(!res && onGrid === null){ stage.innerHTML = `<div class="muted">${L("Yeterince nota duyulmadı; mikrofon açık mı?", "Not enough notes heard; is the mic on?")}</div>`; return; }
-    const hist = store.get("band.hist", []); hist.push({ d: dayKey(new Date()), u: usul().id, mk: m.id, bars: r.bar, seyir: res ? res.score : null, grid: onGrid }); store.set("band.hist", hist.slice(-100));
+    const ts = r.tempos.slice(1), tmin = ts.length ? Math.min(...ts) : null, tmax = ts.length ? Math.max(...ts) : null;
+    const hist = store.get("band.hist", []); hist.push({ d: dayKey(new Date()), u: usul().id, mk: m.id, bars: r.bar, seyir: res ? res.score : null, grid: onGrid,
+      follow: r.follow || undefined, waits: r.follow ? r.waits : undefined, tmin: r.follow ? tmin : undefined, tmax: r.follow ? tmax : undefined }); store.set("band.hist", hist.slice(-100));
+    const folTxt =
+      (r.follow && tmin !== null ? L("Grubun temposu " + tmin + "–" + tmax + " arasında gezindi", "The band's tempo ranged " + tmin + "–" + tmax) +
+        (tmax - tmin > r.base*0.12 ? L(" (tempon epey değişti; metronomla iç tempo çalış)", " (your tempo drifted a lot; practise inner tempo with the metronome)") : "") +
+        (r.waits ? L("; seni " + r.waits + " kez bekledi.", "; it waited for you " + r.waits + "×.") : ".") : "");
     const perdes = res ? Object.entries(res.time).sort((x, y) => +x[0] - +y[0]) : [], max = Math.max(1, ...perdes.map(([, v]) => v));
     stage.innerHTML = `<div class="kv">
         <div><span class="label">${L("Usule oturma", "In the groove")}</span><span class="big2">${onGrid === null ? "—" : "%" + onGrid}</span></div>
         <div><span class="label">Seyir</span><span class="big2">${res ? res.score : "—"}</span></div>
         <div><span class="label">${L("Ölçü", "Bars")}</span><span class="big2">${r.bar}</span></div></div>
+      ${folTxt ? `<p class="muted">${esc(folTxt)}</p>` : ""}
       ${onGrid !== null ? `<p class="muted">${onGrid >= 75 ? L("Nota başların usulün vuruşlarına oturuyor.", "Your note starts sit on the usul's strokes.") : L("Nota başlarının bir kısmı vuruşların arasında kaldı; tempoyu düşürüp darbukanın düm ve teklerine yaslan.", "Some of your note starts fell between the strokes; lower the tempo and lean on the darbuka's düm and tek.")}</p>` : ""}
       ${res ? `<ul class="lstips">${seyirFeedback(res, m, LANG).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
       <div class="bars sybars">${perdes.map(([p, v]) => `<div class="barcol" title="${perdeName(+p)}: ${num(v/1000)} s"><i style="height:${Math.round(v/max*100)}%" class="${(+p - m.durak) % 53 === 0 ? "durak" : (+p - m.guclu) % 53 === 0 ? "guclu" : ""}"></i><small>${perdeName(+p)}</small></div>`).join("")}</div>` : ""}`;
   }
   $("bdgo").addEventListener("click", async () => {
     if(run){ stop(); return; }
-    if($("bdeval").checked) await ctx.needMic();
+    if($("bdeval").checked || $("bdfollow").checked) await ctx.needMic();
     start();
   });
-  SK.on("note", d => { if(run) run.frames.push({ t:d.t, written:d.r.written, comma:d.r.comma }); });
-  SK.on("silence", d => { if(run) run.frames.push({ t:d.t, written:null }); });
+  $("bdtaksim").addEventListener("click", async () => {
+    if(run){ if(run.state === "taksim") enterAt(run, performance.now() + 60); return; }
+    if(!(await ctx.needMic())) return;
+    start("taksim");
+  });
+  SK.on("note", d => {
+    if(!run) return;
+    run.frames.push({ t:d.t, written:d.r.written, comma:d.r.comma });
+    const s = run.ns.note(d.t, d.r.written);
+    if(s) onStart(run, s.t);
+    taksimNote(run, d.t, d.r.comma);
+  });
+  SK.on("silence", d => { if(run){ run.frames.push({ t:d.t, written:null }); run.ns.silence(); taksimSilence(run); } });
   document.addEventListener("visibilitychange", () => { if(document.hidden && run) stop(false); });
   info();
   return { enter(){ SK.setTempContext(mk().id); info(); }, leave(){ if(run) stop(false); SK.setTempContext(null); } };

@@ -237,6 +237,7 @@ TRAINERS.archive = function(ctx){
         </div>
         <div class="pbar">
           <button type="button" class="stopbtn" id="arfollow">${L("🎤 Beni takip et", "🎤 Follow me")}</button>
+          <button type="button" class="stopbtn" id="arwith" title="${L("Orkestra seni izler: ilk notanla girer, temponu izler, durursan bekler", "The band follows you: comes in with your first note, tracks your tempo, waits when you stop")}">${L("🎤 Benimle çal", "🎤 Play with me")}</button>
           <button type="button" class="stopbtn" id="artempo">${L("🎤 Tempolu çal", "🎤 Play in tempo")}</button>
           <button type="button" class="stopbtn" id="arladder">${L("🎤 Merdiven", "🎤 Ladder")}</button>
           <button type="button" class="stopbtn" id="arfull" aria-pressed="false">${L("⛶ Tam ekran", "⛶ Full screen")}</button>
@@ -315,6 +316,7 @@ TRAINERS.archive = function(ctx){
     $("aracc").addEventListener("change", () => { save("acc", $("aracc").value); if(listening) play(); });
     $("armute").addEventListener("click", () => { S.mute = !S.mute; $("armute").setAttribute("aria-pressed", S.mute); if(S.mute && S.acc === "off"){ save("acc", "usul"); $("aracc").value = "usul"; } if(listening) play(); });
     $("arfollow").addEventListener("click", async () => { stopAll(); if(await ctx.needMic()){ cur.player.startFree(); playLabel(true); } });
+    $("arwith").addEventListener("click", async () => { stopAll(); if(await ctx.needMic()){ cur.player.startFollow(pct()); playLabel(true); } });
     $("artempo").addEventListener("click", () => { stopAll(); cur.player.startTempo(pct()); playLabel(true); });
     $("arladder").addEventListener("click", () => { stopAll(); cur.player.startLadder(120, p => { $("arpct").value = p; pctLabel(); }); playLabel(true); });
     $("arfull").addEventListener("click", () => setFull(!document.body.classList.contains("arfullbody")));
@@ -394,6 +396,7 @@ TRAINERS.archive = function(ctx){
     cur.beatAt = []; let b = 0; ns.forEach((n, i) => { cur.beatAt[i] = b; b += n.d; }); cur.beatAt[ns.length] = b;
     const piece = { id: "symbtr:" + cur.e.id, name: cur.e.t, notes: ns, tempo: cur.e.tp, meter: [cur.meters[0][1], cur.meters[0][2]],
                     makam: cur.tr.steps ? null : archMakam(cur.e.mk) };
+    piece.bandBars = archBandBars(0, ns.length, 1);
     SK.setTempContext(piece.makam);
     cur.view = makeView();
     cur.player = piecePlayer(ctx, piece, $("arscore"), $("arfb"), res => { playLabel(false); learnResult(res); }, cur.view);
@@ -532,8 +535,9 @@ TRAINERS.archive = function(ctx){
   }
   // Orkestra: band.js'in darbuka, bas ve ud olayları ölçü ölçü (usul kalıbı ya da ölçünün vuruş grupları), kök karar perdesi
   let accOut = null;
-  function startBand(t0, beatMs, from, to){
-    const a = SK.audioCtx(), b0 = cur.beatAt[from], b1 = cur.beatAt[to], bars = [];
+  // Eşlik ölçüleri: from–to notalarının ölçüleri, from'dan ms (beatMs = 1 ise vuruş) cinsinden
+  function archBandBars(from, to, beatMs){
+    const b0 = cur.beatAt[from], b1 = cur.beatAt[to], bars = [];
     cur.ms.forEach(m => {
       const mb = cur.beatAt[m.from], me = cur.beatAt[m.to];
       if(me <= b0 || mb >= b1) return;
@@ -541,6 +545,10 @@ TRAINERS.archive = function(ctx){
       const known = USULS.some(u => u.id === id && u.meter === num + "/" + den);
       bars.push({ startMs: (mb - b0)*beatMs, unitMs: 4/den*beatMs, usul: known ? id : null, strokes: archUsul(id, num, den) });
     });
+    return bars;
+  }
+  function startBand(t0, beatMs, from, to){
+    const a = SK.audioCtx(), b0 = cur.beatAt[from], b1 = cur.beatAt[to], bars = archBandBars(from, to, beatMs);
     const mkId = cur.tr && cur.tr.steps ? null : archMakam(cur.e.mk), mk = mkId ? makamById(mkId) : null;
     const end = (b1 - b0)*beatMs, evs = bandEventsFor(bars, mk, cur.karar, {}).filter(e => e.t >= -1 && e.t < end - 1);
     const o = { freq: c => mk ? ctx.mkFreq(mk, c) : ctx.commaFreq(c), micSafe: false, vol:{ drum:0.9, bass:0.8, chord:0.6 } };

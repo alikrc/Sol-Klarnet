@@ -1015,7 +1015,9 @@ const TRAKYA = [
         { tr:"Her derste önce usulü metronomla çal (Ritim adımı), sonra etüdü serbest takiple notaları oturt, en son tempolu çal. Takıldığın etüdü Etüt ve eserler'de Merdiven ile hızlandır.",
           en:"In each lesson first play the usul with the metronome (the Rhythm step), then settle the notes in follow mode, and finally play in tempo. Speed up an étude you are stuck on with the Ladder in Études & pieces." },
         { tr:"Günde bir kez Eşlik sekmesini aç: usulü ve makamı seç, darbuka ve bas çalarken serbestçe çal. Orkestrayla çalmak usulü vücuduna oturtur.",
-          en:"Open the Play-along tab once a day: pick the usul and the makam and play freely while the darbuka and bass play. Playing with a band puts the usul into your body." } ] },
+          en:"Open the Play-along tab once a day: pick the usul and the makam and play freely while the darbuka and bass play. Playing with a band puts the usul into your body." },
+        { tr:"Bir etüdü tempolu çalabildiğinde Etüt ve eserler'de “Benimle çal”a bas: orkestra seni izler, sen hızlanınca hızlanır, yavaşlayınca yavaşlar, durursan bekler.",
+          en:"Once you can play an étude in tempo, press “Play with me” in Études & pieces: the band follows you, speeding up and slowing down with you and waiting when you stop." } ] },
       { type:"rhythm", usul:"kasap", tempo:100, bars:4, min:60 },
       { type:"piece", id:"e-kasap", mode:"free", min:6 },
       { type:"piece", id:"e-kasap", mode:"tempo", min:60 }
@@ -1174,8 +1176,8 @@ const TRAKYA = [
     text:[
       { tr:"Trakya ve Roman müziğinde oyun havasından önce kısa, usulsüz bir taksim çalınır: makamı tanıtır ve oyuna hazırlar. Genellikle güçlü civarında başlar, birkaç cümlede durağa iner ve oyun havası hemen başlar.",
         en:"In Thracian and Roman music a short, unmetered taksim comes before the dance tune: it presents the makam and prepares the dance. It usually starts near the dominant, comes down to the final in a few phrases, and the dance starts straight away." },
-      { tr:"Taksimden sonra Eşlik sekmesinde aynı makamda Roman havası ya da karşılama usulünü aç ve doğaçla.",
-        en:"After the taksim, open the Roman havası or karşılama usul in the same makam in the Play-along tab and improvise." }
+      { tr:"Taksimden sonra oyuna geçmeyi Eşlik sekmesinde çalış: aynı makamı ve Roman havası ya da karşılama usulünü seç, “Taksimle başla”ya bas. Grup dem tutar; taksimi durakta uzun bir notayla bitirip nefes alınca oyun havasının ilk notasıyla seninle girer ve temponu izler.",
+        en:"Practise going from the taksim into the dance in the Play-along tab: pick the same makam and the Roman havası or karşılama usul and press “Start with a taksim”. The band holds a drone; end the taksim with a long note on the tonic, take a breath, and it comes in with the first note of the dance tune and follows your tempo." }
     ],
     tips:[
       { tr:"Ustaların taksimlerini Kulaktan çıkar aracında %50 hızda dinle; bir cümleyi döngüye al ve taklit et.", en:"Listen to masters' taksims at 50% speed in the Learn by ear tool; loop one phrase and imitate it." }

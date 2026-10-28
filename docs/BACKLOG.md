@@ -1,5 +1,24 @@
 # Sol Klarnet — Backlog
 
+## Seni izleyen eşlik — tamamlandı (28 Ekim 2026)
+
+- **Benimle çal** (Etüt ve eserler, nota arşivi; `follow.js`, `pieces.js` `startFollow`): çaldığın notalar eserdeki yerine eşlenir
+  (`ScoreFollower`: perde + beklenen zaman, en çok 4 nota atlama, süsleme ve fazla notalar yok sayılır, duyulmayan dille tekrar
+  sayılır); eşleşmelerden tempo ve konum çıkar (`TempoMap`), orkestra bu haritaya göre 150 ms önceden kurulur (`FollowBand`).
+  İlk notanla girer, sıradaki nota `followWait` kadar gecikirse bekler, kaldığın ya da biraz ilerideki notadan devam eder.
+  Sonuçta doğru nota oranı, atlanan, tempo aralığı ve bekleme sayısı
+- **Eşlik sekmesi:** "Grup beni izlesin" (`GrooveTracker`: tempo ardışık nota başlarının aralığından, evre en yakın hücreden;
+  ayarlanan tempoya göre %75–130), susunca bekler ve ilk notanla cümle başından girer. "Taksimle başla": grup dem tutar,
+  taksim durakta en az 0,8 sn'lik notayla bitip sessizlik gelince oyun havasının ilk notasıyla girer; "Gir" ile hemen
+- Sızıntı süzgeci düzeltmesi (`practice.js` `droneFloor`): sızıntı düzeyi son 10 sn'nin alt %10'u yerine son 15 sn'nin alt
+  %5'i; nefes almadan çalınca öğrencinin durak ve güçlü perdeleri grup sızıntısı sanılıp atılıyordu
+- Sınama: Playwright'ta sahte mikrofona sentetik klarnet sesi. Eserde (Kasap havası: %85 hızda başla, 3 sn dur, %112'de devam)
+  doğru nota %100, grup 94'e indi, bir kez bekledi, 124'e çıktı. Eşlik sekmesinde taksim → 100 → 88 → duraklama: grup taksimin
+  ardından ilk notayla girdi, 93–101 ve 86–90 arasında izledi, bekleyip yeniden girdi
+- Sınırlar: notasız izlemede %20'yi aşan ani tempo değişimi yanlış tempoya (3:2) kilitlenebiliyor (bu yüzden aralık dar);
+  düzenli nota başlarından otomatik giriş denendi, sentetik sesteki ±50 ms oynamada hızlı taksim geçişlerini oyun havasından
+  ayıramadığı için (yanlış giriş %50–80) bırakıldı. Gerçek klarnetle ve hoparlör sızıntısıyla denenmedi
+
 ## Tekrar, sınav, rozet, kayıt karşılaştırma, yeni oyun havaları, grupetto, mağaza — tamamlandı (27 Ekim 2026)
 
 - **Aralıklı tekrar** (`lessons.js` `srsSync`, `srsDue`, `srsUpdate`): bitirilen derslerin bir adımı 1, 3, 7, 21, 60 gün
@@ -107,7 +126,8 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 
 ## Sonraki adımlar (öncelik sırasıyla, 27 Ekim 2026)
 
-1. **Gerçek klarnetle deneme (proje sahibi):** Telefonda Eşlik, Kulaktan çıkar, Trakya etütleri, taksimde süsleme tanıma ve kayıt
+1. **Gerçek klarnetle deneme (proje sahibi):** Telefonda Benimle çal (grup seni izliyor mu, gereksiz bekliyor mu), Eşlik'te
+   grup beni izlesin ve Taksimle başla, Kulaktan çıkar, Trakya etütleri, taksimde süsleme tanıma ve kayıt
    karşılaştırması gerçek klarnetle denenmeli. Bakılacaklar: eşlik hoparlörden mikrofona sızıp nota sanılıyor mu (`practice.js`
    `bandFreqs`), usule oturma yüzdesi gerçekçi mi (±60 ms), taksimde süsleme sayısı kulağa uyuyor mu, 2 dakikalık taksimin
    çözümü telefonda ne kadar sürüyor, IndexedDB'de 50 kayıt ne kadar yer tutuyor. Bulgulara göre düzeltilir.
