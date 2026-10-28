@@ -116,7 +116,7 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 3. **Çeyrek ses parmakları:** WFG `ocl_qt_1` sayfasından nim perdeler için parmaklar alınıp AEU komalarıyla eşleştirilmeli
    (erişimi olan bir ortamda).
 4. **Daha sonra:** Kamerayla duruş ve ağız kontrolü; hoca–öğrenci modu (ödev, kayda yorum); cihazlar arası eşitleme.
-   Son ikisi internet ister: önce gizlilik kararı ("uygulama internete bağlanmaz" ilkesi) verilmeli.
+   İnternet kullanmak serbest (28 Ekim 2026, proje sahibi): internetsiz çalışma şartı yok.
 
 
 2 Ekim 2026 · Asıl doküman: [Claude Docs](https://claude.ai/code/artifact/f9c1b6aa-5fdc-475c-914d-1701a7b8a2b9)
