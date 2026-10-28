@@ -1,8 +1,8 @@
 :root{
-  /* Material 3 paleti (Google renk kütüphanesi, SchemeFidelity, tohum #4285F4); gruplar Google'ın dört rengi.
+  /* Material 3 paleti (Google renk kütüphanesi, SchemeFidelity, tohum #4285F4); zemin ana mavinin tonu (açıkta 88, koyuda 20); gruplar Google'ın dört rengi.
      --teal eskiden kalma ad: vurgu yazısı; --bad hata ve yanlış cevap */
-  --paper:#F2F3FD; --surface:#FFFFFF; --sunk:#E7E7F1;
-  --ink:#191B22; --muted:#424753; --line:#C2C6D5;
+  --paper:#CFDDFF; --surface:#EEF2FF; --sunk:#E0E8FF;
+  --ink:#191B22; --muted:#424753; --line:#B8C8EC;
   --accent:#0058BD; --accent-ink:#004494; --accent-2:#0058BD; --teal:#0058BD; --teal-2:#2B74E2; --ok:#006C49; --bad:#BA1A1A;
   --wood:#3A302B; --wood-edge:#221B18; --metal:#E1E2EB; --metal-edge:#727785; --key-ink:#191B22;
   --g-lessons:#4285F4; --g-tech:#EA4335; --g-makam:#FBBC04; --g-pieces:#D31FBD; --g-progress:#34A853;
@@ -12,18 +12,18 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#191B22; --surface:#1D2026; --sunk:#272A31;
-    --ink:#E1E2EB; --muted:#C2C6D5; --line:#424753;
+    --paper:#002E69; --surface:#00397E; --sunk:#003272;
+    --ink:#F0F3FF; --muted:#D0DCF5; --line:#2A5BA3;
     --accent:#ADC6FF; --accent-ink:#D8E2FF; --accent-2:#ADC6FF; --teal:#ADC6FF; --teal-2:#ADC6FF; --ok:#6DDBA7; --bad:#FFB4AB;
-    --wood:#2B2420; --wood-edge:#4A3F39; --metal:#32353C; --metal-edge:#8C909F; --key-ink:#E1E2EB;
+    --wood:#2B2420; --wood-edge:#4A3F39; --metal:#1F4A8C; --metal-edge:#8FA8D6; --key-ink:#F0F3FF;
     --g-lessons:#ADC6FF; --g-tech:#F28B82; --g-makam:#FDD663; --g-pieces:#FFACE8; --g-progress:#81C995;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#191B22; --surface:#1D2026; --sunk:#272A31;
-  --ink:#E1E2EB; --muted:#C2C6D5; --line:#424753;
+  --paper:#002E69; --surface:#00397E; --sunk:#003272;
+  --ink:#F0F3FF; --muted:#D0DCF5; --line:#2A5BA3;
   --accent:#ADC6FF; --accent-ink:#D8E2FF; --accent-2:#ADC6FF; --teal:#ADC6FF; --teal-2:#ADC6FF; --ok:#6DDBA7; --bad:#FFB4AB;
-  --wood:#2B2420; --wood-edge:#4A3F39; --metal:#32353C; --metal-edge:#8C909F; --key-ink:#E1E2EB;
+  --wood:#2B2420; --wood-edge:#4A3F39; --metal:#1F4A8C; --metal-edge:#8FA8D6; --key-ink:#F0F3FF;
   --g-lessons:#ADC6FF; --g-tech:#F28B82; --g-makam:#FDD663; --g-pieces:#FFACE8; --g-progress:#81C995;
 }
 *{box-sizing:border-box}

@@ -30,7 +30,7 @@ const png = (src, size, out) => {
 
 // iOS: köşesiz, saydamsız 1024 px simge (köşeleri sistem yuvarlar); açılış ekranı açık zemin + ortada küçük simge
 const IOS = path.join(ROOT, "ios/App/App/Assets.xcassets");
-const SPLASH = wrap(`<g transform="translate(256 256) scale(0.14) translate(-256 -256)">${fs.readFileSync(path.join(ROOT, "icon.svg"), "utf8").replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "")}</g>`, `<rect width="512" height="512" fill="#F2F3FD"/>`);
+const SPLASH = wrap(`<g transform="translate(256 256) scale(0.14) translate(-256 -256)">${fs.readFileSync(path.join(ROOT, "icon.svg"), "utf8").replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "")}</g>`, `<rect width="512" height="512" fill="#CFDDFF"/>`);
 
 const DENSITIES = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
 
