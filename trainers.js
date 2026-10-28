@@ -354,7 +354,7 @@ const TRAINERS = {
     });
     SK.on("note", d => { if(rec) rec.frames.push({ t:d.t, written:d.r.written, comma:d.r.comma }); });
     SK.on("silence", d => { if(rec) rec.frames.push({ t:d.t, written:null }); });
-    return { enter: info, leave(){ SK.setTempContext(null); if(rec) finish(); } };
+    return { enter: info, stop(){}, leave(){ SK.setTempContext(null); if(rec) finish(); } };
   }
 };
 

@@ -130,6 +130,7 @@ TRAINERS.quiz = function(ctx){
       if(!h.fired && h.ms >= 500){ hold.fire(); answer(r.written); }
     },
     silence(){ hold.reset(); },
+    stop(){},
     leave(){ round = null; stage.innerHTML = `<div class="muted">Mod ve bölge seç, sonra turu başlat.</div>`; },
     enter(){ levels(); }
   };
@@ -210,6 +211,7 @@ TRAINERS.long = function(ctx){
     },
     raw(d){ if(run && run.start) run.tq.push({ rms:d.rms, clarity:d.clarity }); },
     silence(t){ if(run && run.start && t - run.lastOk > 400) end(t); },
+    stop(){},
     leave(){ run = null; }
   };
 };
@@ -255,6 +257,12 @@ TRAINERS.makam = function(ctx){
     ms.cur = makamById(b.dataset.id); store.set("makam", ms.cur.id);
     ex = null; stage.innerHTML = ""; SK.setTempContext(ms.cur.id); render();
   });
+  // Arama ve dışarıdan açma: SK.openMakam(id) makamı seçip Dizi'yi açar
+  SK.openMakam = id => {
+    const mk = makamById(id); if(!mk) return;
+    ms.cur = mk; store.set("makam", mk.id); ex = null; stage.innerHTML = "";
+    SK.go("practice"); ctx.selectTab("makam");
+  };
   $("mklisten").addEventListener("click", async () => {
     const mk = ms.cur, token = {}; listenToken = token;
     for(const c of seq(mk)){
@@ -308,6 +316,7 @@ TRAINERS.makam = function(ctx){
   }
   return {
     enter(){ SK.setTempContext(ms.cur.id); render(); },
+    stop(){ listenToken = null; },
     leave(){ SK.setTempContext(null); },
     note(r, t){
       if(!ex) return;
@@ -818,7 +827,7 @@ TRAINERS.rec = function(ctx){
   });
   SK.on("silence", d => { if(rec){ rec.frames.push({ t:d.t, written:null }); rec.raw.push({ t:d.t, comma:null }); prevW = null; gap = []; } });
   // Başka sekmeye geçilince kayıt arka planda sürmesin; döküm hazır olur
-  return { enter(){ histRender(); }, leave(){ addTok = null; if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
+  return { enter(){ histRender(); }, stop(){ addTok = null; const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); }, leave(){ addTok = null; if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
 };
 
 // ======== İlerleme ========
@@ -1001,6 +1010,7 @@ TRAINERS.staffmap = function(ctx){
   return {
     note(r){ mark(r.inRange ? r.written : null, "live"); },
     silence(){ mark(null, "live"); },
+    stop(){},
     leave(){ mark(null, "live"); }
   };
 };

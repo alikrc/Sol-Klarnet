@@ -641,11 +641,23 @@ TRAINERS.archive = function(ctx){
 
   // Alt menüdeki Notalar düğmesi ve dışarıdan açma: SK.openArchive(id?)
   SK.openArchive = id => { ctx.selectTab("archive"); if(id) loadIndex().then(() => openPiece(id)); };
+  // Uygulama geneli arama: dizin (search.js) ve sonuçları arşiv listesinde gösterme (süzgeçler temizlenir)
+  SK.archiveIndex = () => loadIndex().then(ix => ix.list);
+  SK.searchArchive = q => {
+    SK.go("practice"); ctx.selectTab("archive");
+    loadIndex().then(() => {
+      ["arfmk","arff","arfu","arfb","arflv"].forEach(id => { $(id).value = ""; });
+      $("arflyr").checked = $("arffav").checked = false; $("arq").value = q; quick = "all"; shown = 40;
+      showList();
+    });
+  };
   return {
     enter(){
       loadIndex().then(() => { if(!cur) renderList(); }).catch(() => { $("arcount").textContent = L("Arşiv açılamadı.", "Couldn't open the archive."); });
       if(cur) SK.setTempContext(cur.tr.steps ? null : archMakam(cur.e.mk));
     },
+    nowTitle: () => cur ? cur.e.t : "",
+    stop(){ stopAll(); if(cur && cur.stepToken) cur.stepToken = null; if(S.dem) setDem(false); },
     leave(){ stopAll(); if(cur && cur.stepToken) cur.stepToken = null; if(S.dem) setDem(false); document.body.classList.remove("arfullbody"); SK.setTempContext(null); },
     note(r, t){ if(cur && cur.player) cur.player.note(r, t); },
     silence(t){ if(cur && cur.player) cur.player.silence(t); }

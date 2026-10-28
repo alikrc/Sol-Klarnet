@@ -187,6 +187,7 @@
     }).join("");
   }
   let hearToken = null;
+  SK.on("stopall", () => { hearToken = null; });
   root.addEventListener("click", async e => {
     const oh = e.target.closest("[data-ornhear]");
     if(oh){

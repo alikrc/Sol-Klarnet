@@ -422,7 +422,7 @@
 
   // Etkin modül kararlı nota/sessizlik olaylarını alır
   const modules = {};
-  let active = null, parked = false;    // parked: ekrandan çıkınca alıştırma durduruldu (aşağıda park)
+  let active = null, parked = false;    // parked: uygulama arka plana geçince alıştırma durduruldu (aşağıda park)
   const pnav = root.querySelector(".pnav");
   const descs = [];   // telefonda iki satıra kısalan açıklamalar
   // Ana sayfadan açılan alıştırma tarayıcı geçmişine eklenir: telefonun geri tuşu ana sayfaya döner
@@ -449,7 +449,7 @@
     markNotes();
     if(user){
       const st = history.state || {};
-      if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id }, ""); pushed = true; }
+      if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id, exPush:true }, ""); pushed = true; }
       else if(st.view === "practice") history.replaceState({ ...st, ex:id }, "");
       // Yeni alıştırma baştan görünsün
       if(fromHub) window.scrollTo(0, 0);
@@ -462,6 +462,8 @@
   function showHub(){
     if(active && !parked && modules[active].leave) modules[active].leave();
     parked = false;
+    // Alıştırmadan çıkınca sesi kesilir; çubukta kalmasın. Yine de ses sürerse o alıştırmaya yazılır (prevTab).
+    if(active){ prevTab = active; soundTab = null; SK.resetSound(); }
     active = null; pushed = false;
     markNotes();
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
@@ -565,11 +567,12 @@
   function startMet(){
     const a = SK.audioCtx(), u = USULS.find(x => x.id === $("usul").value), slots = usulSlots(u);
     let i = 0, next = a.currentTime + 0.1;
+    SK.metActive = true;
     met = { timer: setInterval(() => {
       const per = 60 / tempo();
       while(next < a.currentTime + 0.12){
         const k = i % slots.length, at = next;
-        if(slots[k]) hit(a, slots[k], at);
+        if(slots[k]) hit(a, slots[k], at, 1, SK.toolOut());
         setTimeout(() => { if(met) drawSlots(u, k); }, Math.max(0, (at - a.currentTime)*1000));
         next += per; i++;
       }
@@ -578,6 +581,7 @@
   }
   function stopMet(){
     if(met){ clearInterval(met.timer); met = null; }
+    SK.metActive = false;
     setPlay($("metbtn"), false);
     drawSlots(USULS.find(x => x.id === $("usul").value));
     metSum();
@@ -609,7 +613,7 @@
     g.gain.setValueAtTime(0.0001, a.currentTime);
     g.gain.exponentialRampToValueAtTime(0.02 * +$("dronevol").value, a.currentTime + 0.4);
     const oscs = [f, f/2].map(fr => { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr; o.connect(lp); o.start(); return o; });
-    lp.connect(g).connect(a.destination);
+    lp.connect(g).connect(SK.toolOut());
     drone = { g, oscs, f }; droneLv = []; SK.droneActive = true;
     setPlay($("dronebtn"), true);
   }
@@ -655,8 +659,9 @@
     if(fs.length && !bandFreqs.length && !drone) droneLv = [];
     bandFreqs = fs.slice();
   }
-  // Çalışma ekranından çıkınca ya da uygulama arka plana geçince açık alıştırmanın çaları da durur
-  // (nota arşivi, eser orkestrası, eşlik, kulaktan çıkar…); yoksa durdurma düğmesi görünmezken çalmaya devam eder.
+  // Uygulama arka plana geçince (ekran kilidi, başka uygulama) açık alıştırmanın çaları da durur
+  // (nota arşivi, eser orkestrası, eşlik, kulaktan çıkar…); yoksa görünmeyen uygulama çalmaya devam eder.
+  // Uygulamanın içinde başka sayfaya geçince ses sürer: "şu an çalıyor" çubuğundan dönülür ya da durdurulur.
   function park(){
     stopMet(); stopDrone(); SK.stopSound();
     if(active && !parked && modules[active].leave){ parked = true; modules[active].leave(); }
@@ -670,7 +675,6 @@
     if(document.hidden) park();
     else if(document.body.dataset.view === "practice") unpark();
   });
-  SK.on("view", d => { if(d.v === "practice") unpark(); else park(); });
 
   // Günlük hedef: bugünkü sesli çalma süresi / hedef (dakika)
   function goalText(){
@@ -795,6 +799,49 @@
     });
     p.after(b); descs.push([p, b]);
   });
+
+  // Durdur düğmesi (app.js stopAll): metronom, dron ve açık alıştırmanın sesi. Alıştırma stop() verirse o,
+  // vermezse leave() + enter() ile baştan kurulur; sessiz alıştırmalar boş stop() ile yerinde kalır.
+  function stopTab(id){
+    const m = modules[id];
+    if(id === active){
+      if(m.stop) m.stop();
+      else if(m.leave){ m.leave(); if(m.enter) m.enter(); }
+    }
+    const p = $("pp-" + id); if(p) p.querySelectorAll("audio, video").forEach(x => { if(!x.paused) x.pause(); });
+    SK.stopSound(); SK.hush();
+    if(soundTab === id) soundTab = null;
+  }
+  SK.on("stopall", () => {
+    if(met) stopMet();
+    if(drone) stopDrone();
+    if(soundTab && soundTab !== active) stopTab(soundTab);
+    if(active) stopTab(active);
+  });
+
+  // "Şu an çalıyor" çubuğu (nowplaying.js): metronom, dron ve sesi süren alıştırma. Alıştırma sesi, ses
+  // başladığında açık olan sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür.
+  let soundTab = null, prevTab = null;
+  const inPractice = () => document.body.dataset.view === "practice";
+  const openTools = () => { if(!(inPractice() && active)) SK.openTab(active || store.get("ptab", "lessons")); };
+  const mediaIn = id => [...$("pp-" + id).querySelectorAll("audio, video")].some(x => !x.paused && !x.ended);
+  SK.addSource(() => {
+    const out = [], toolsHere = inPractice() && !!active;
+    if(met) out.push({ key:"met", title:L("Metronom", "Metronome"), sub:$("metsum").textContent, here:toolsHere, go:openTools, stop:stopMet });
+    if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here:toolsHere, go:openTools, stop:stopDrone });
+    const age = SK.soundAge();
+    if(age < 300 && (active || prevTab)) soundTab = active || prevTab;
+    if(soundTab && (age < 2500 || mediaIn(soundTab))){
+      const id = soundTab, m = modules[id], sub = m.nowTitle ? m.nowTitle() : "";
+      out.push({ key:"ex", title:tabName(id), sub, here: inPractice() && active === id,
+        go: () => { if(active === id) SK.go("practice"); else SK.openTab(id); }, stop: () => stopTab(id) });
+    }else if(soundTab && !mediaIn(soundTab)) soundTab = null;
+    return out;
+  });
+
+  // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma
+  SK.practiceTabs = () => TABS.map(([id, name]) => ({ id, name, blurb: BLURB[id] || "", group: groupOf(id)[1] }));
+  SK.openTab = id => { SK.go("practice"); selectTab(id, true); };
 
   // Ana ekran kısayolu (?tab=rhythm) alıştırmayı doğrudan açar; yoksa ana sayfa
   const qtab = new URLSearchParams(location.search).get("tab");
