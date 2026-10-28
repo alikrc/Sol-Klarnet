@@ -1,10 +1,10 @@
 :root{
-  /* Gün doğumu paleti: sıcak krem zemin, mercan ana renk, mavi ikinci renk (adı eskiden kalma --teal), canlı yeşil */
+  /* Gün doğumu paleti: sıcak krem zemin, mercan ana renk, turkuaz ikinci renk (adı eskiden kalma --teal; yazıda --teal, zemin ve şeritte parlak --teal-2), canlı yeşil */
   --paper:#FFF6EA; --surface:#FFFFFF; --sunk:#FFEFD9;
   --ink:#1B2440; --muted:#5F6B85; --line:#F1DEC6;
-  --accent:#D63A18; --accent-ink:#B32E12; --accent-2:#C2185B; --teal:#2B6CC4; --ok:#0E8553;
+  --accent:#D63A18; --accent-ink:#B32E12; --accent-2:#C2185B; --teal:#077A80; --teal-2:#1FB5B8; --ok:#0E8553;
   --wood:#3A302B; --wood-edge:#221B18; --metal:#DEE3EC; --metal-edge:#8D99B0; --key-ink:#26304A;
-  --g-lessons:#FF5A36; --g-tech:#3A8DEB; --g-makam:#F2A100; --g-pieces:#E0307A; --g-progress:#12A866;
+  --g-lessons:#FF5A36; --g-tech:#1FB5B8; --g-makam:#F2A100; --g-pieces:#E0307A; --g-progress:#12A866;
   --display:"Fraunces",Georgia,"Times New Roman",serif;
   --ui:"Commissioner",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -13,17 +13,17 @@
   :root:not([data-theme="light"]){
     --paper:#0F1830; --surface:#18233F; --sunk:#131C35;
     --ink:#F2F6FF; --muted:#A3B0CC; --line:#2A3A60;
-    --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#8EC5FF; --ok:#3DDC97;
+    --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#5EE0DA; --teal-2:#5EE0DA; --ok:#3DDC97;
     --wood:#2B2420; --wood-edge:#4A3F39; --metal:#4E5D80; --metal-edge:#8E9CBC; --key-ink:#F2F6FF;
-    --g-lessons:#FF7A50; --g-tech:#8EC5FF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
+    --g-lessons:#FF7A50; --g-tech:#5EE0DA; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
   }
 }
 :root[data-theme="dark"]{
   --paper:#0F1830; --surface:#18233F; --sunk:#131C35;
   --ink:#F2F6FF; --muted:#A3B0CC; --line:#2A3A60;
-  --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#8EC5FF; --ok:#3DDC97;
+  --accent:#FF7A50; --accent-ink:#FF9D7A; --accent-2:#FF5C9A; --teal:#5EE0DA; --teal-2:#5EE0DA; --ok:#3DDC97;
   --wood:#2B2420; --wood-edge:#4A3F39; --metal:#4E5D80; --metal-edge:#8E9CBC; --key-ink:#F2F6FF;
-  --g-lessons:#FF7A50; --g-tech:#8EC5FF; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
+  --g-lessons:#FF7A50; --g-tech:#5EE0DA; --g-makam:#FFC23D; --g-pieces:#FF5C9A; --g-progress:#3DDC97;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}   /* display:flex verilen öğeler de gizlenebilsin */
@@ -446,7 +446,7 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 .lsitem.cur{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent)}
 .lsitem.done small{color:var(--ok)}
 .lsitem:disabled{color:var(--muted);opacity:.6;cursor:default}
-.lsitem.daily{font-weight:600;background:color-mix(in srgb,var(--teal) 14%,transparent)}
+.lsitem.daily{font-weight:600;background:color-mix(in srgb,var(--teal-2) 14%,transparent)}
 .lsitem.daily.cur{background:var(--surface)}
 .lsitem.exam{font-style:italic;border-top:1px dashed var(--line)}
 .lsitem.exam.done small{color:var(--accent)}
@@ -488,7 +488,7 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 
 /* Nota şeridi: makam işaretleri ve entonasyon ısı haritası */
 .note.inscale{border-color:var(--teal);border-width:2px}
-.note.durak{background:color-mix(in srgb,var(--teal) 22%,var(--surface))}
+.note.durak{background:color-mix(in srgb,var(--teal-2) 22%,var(--surface))}
 .note.guclu{border-style:dashed}
 .note.heat-sharp{box-shadow:inset 0 -5px 0 #D2553A}
 .note.heat-flat{box-shadow:inset 0 -5px 0 #3A7BD5}
@@ -828,7 +828,7 @@ body.modal{overflow:hidden}
 
 /* Nota arşivi (archive.js) */
 .hfeat{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;width:100%;margin-top:8px;
-  border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);background:color-mix(in srgb,var(--teal) 12%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--teal-2) 45%,transparent);background:color-mix(in srgb,var(--teal-2) 12%,var(--surface));
   color:var(--ink);border-radius:12px;padding:12px 12px 12px 14px;min-height:64px}
 .hfeat > span{display:flex;flex-direction:column;gap:3px;min-width:0}
 .hfeat small{font:600 12px/1.3 var(--ui);color:var(--teal)} .hfeat b{font:600 16px/1.2 var(--ui)} .hfeat .hgo{stroke:var(--teal)}
@@ -839,7 +839,7 @@ body.modal{overflow:hidden}
 .arquick,.armeta,.arsecs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
 .chipbtn{border:1px solid var(--line);background:var(--sunk);color:var(--ink);font:600 12.5px/1 var(--ui);padding:8px 12px;border-radius:999px;cursor:pointer}
 .chipbtn.small{padding:6px 9px;font-size:12px}
-.chipbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--teal) 18%,var(--surface));border-color:var(--teal);color:var(--ink)}
+.chipbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--teal-2) 18%,var(--surface));border-color:var(--teal);color:var(--ink)}
 .arfilt{margin:4px 0 8px} .arfilt summary{font:600 13px var(--ui);cursor:pointer;padding:6px 0}
 .arfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0}
 .arfgrid label{display:flex;flex-direction:column;gap:4px;font:600 11.5px var(--ui);color:var(--muted)}
@@ -866,7 +866,7 @@ body.arfullbody .arfab{bottom:calc(16px + var(--sab))}
 .arctl .pbar{margin-bottom:8px;gap:6px}
 .artempo input{width:120px} .arsel{font:600 12px var(--ui);display:inline-flex;gap:6px;align-items:center}
 .arsel select{font:500 12.5px var(--ui);padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--sunk);color:var(--ink)}
-.stopbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--teal) 18%,var(--surface));border-color:var(--teal)}
+.stopbtn[aria-pressed="true"]{background:color-mix(in srgb,var(--teal-2) 18%,var(--surface));border-color:var(--teal)}
 .arset{margin:6px 0} .arset summary{font:600 13px var(--ui);cursor:pointer;padding:6px 0}
 .arzoom{display:flex;align-items:center;gap:6px;font:600 11.5px var(--ui);color:var(--muted)} .arzoom em{font-style:normal;color:var(--ink);min-width:40px;text-align:center}
 .arphl{font:600 12px var(--ui);color:var(--muted);margin-left:6px}
@@ -928,7 +928,7 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .rmdays{display:flex;gap:6px}
 .rmday{display:flex;flex-direction:column;align-items:center;gap:3px;font:500 10px var(--mono);color:var(--muted)}
 .rmday i{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--surface)}
-.rmday.some i{background:color-mix(in srgb,var(--teal) 35%,var(--surface));border-color:var(--teal)}
+.rmday.some i{background:color-mix(in srgb,var(--teal-2) 35%,var(--surface));border-color:var(--teal)}
 .rmday.goal i{background:var(--teal);border-color:var(--teal)}
 .rmday.future i{opacity:.45}
 .rmfocus{display:flex;flex-wrap:wrap;gap:6px}
