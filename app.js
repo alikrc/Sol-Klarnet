@@ -466,6 +466,7 @@
   }
   // freq verilirse nota şeridinin akordu yerine o frekans çalar (ör. makam perdesi)
   function play(w, freq){
+    stripNote = true;
     if(current === w && !freq) return;
     if(current !== null) noteOff(current);
     noteOn(w, freq); current = w; markPlaying();
@@ -483,50 +484,53 @@
   }
   stopBtn.addEventListener("click", stopSound);
 
-  // ---- Her yerde çalanı durdur: mikrofonun yanındaki düğme (ve Esc) ----
-  // Şeritteki nota, metronom, dron ve açık alıştırmanın sesi (practice.js "stopall"), kayıt ve video oynatıcıları.
-  // Düğme yalnızca bir şey çalarken görünür: ana çıkıştaki ses düzeyine, metronoma/drona ve oynatıcılara bakılır.
-  const stopAllBtn = $("stopall");
-  stopAllBtn.setAttribute("aria-label", L("Bütün sesleri durdur", "Stop all sound")); stopAllBtn.title = L("Bütün sesleri durdur (Esc)", "Stop all sound (Esc)");
+  // ---- Her yerde çalanı durdur (üst çubuktaki düğme, Esc) ve "şu an çalıyor" çubuğu için ses kaynakları ----
+  // Şeritteki nota burada, metronom, dron ve alıştırma sesi practice.js'te ("stopall" ve SK.addSource);
+  // çubuk ve düğmenin görünmesi nowplaying.js'te. Alıştırma sesi ana düğümdeki ses düzeyinden anlaşılır
+  // (metronom ve dron bu düğümden geçmez, şeritteki nota sayılmaz).
   let lastSound = -1e9, quietUntil = 0;     // durdurunca sönen kuyruk ses sayılmaz
-  const mediaPlaying = () => [...document.querySelectorAll("audio, video")].some(m => !m.paused && !m.ended);
-  function stopAll(){
-    stopSound();
-    emit("stopall");
-    document.querySelectorAll("audio, video").forEach(m => { if(!m.paused) m.pause(); });
+  let stripNote = false;                     // çalan nota şeritten ya da parmak şemasından mı (alıştırmadan değil)
+  const sources = [];
+  function hush(){
     if(master){
       const t = actx.currentTime, g = master.gain;
       g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 0.03);
       g.setValueAtTime(0, t + 0.3); g.linearRampToValueAtTime(1, t + 0.35);
     }
-    lastSound = -1e9; quietUntil = performance.now() + 400; updateStopAll();
+    lastSound = -1e9; quietUntil = performance.now() + 400;
   }
-  function updateStopAll(){
-    if(meter && actx.state === "running" && performance.now() > quietUntil){
-      meter.getFloatTimeDomainData(meterBuf);
-      let peak = 0; for(let i = 0; i < meterBuf.length; i++) peak = Math.max(peak, Math.abs(meterBuf[i]));
-      if(peak > 0.003) lastSound = performance.now();
-    }
-    const on = current !== null || !!glideOsc || !!(window.SK && (SK.metActive || SK.droneActive)) || mediaPlaying() || performance.now() - lastSound < 2500;
-    if(stopAllBtn.hidden === on) stopAllBtn.hidden = !on;
+  function stopAll(){
+    stopSound();
+    emit("stopall");
+    document.querySelectorAll("audio, video").forEach(m => { if(!m.paused) m.pause(); });
+    hush();
   }
-  stopAllBtn.addEventListener("click", stopAll);
-  setInterval(updateStopAll, 200);
+  setInterval(() => {
+    if(!meter || actx.state !== "running" || performance.now() < quietUntil || (current !== null && stripNote)) return;
+    meter.getFloatTimeDomainData(meterBuf);
+    let peak = 0; for(let i = 0; i < meterBuf.length; i++) peak = Math.max(peak, Math.abs(meterBuf[i]));
+    if(peak > 0.003) lastSound = performance.now();
+  }, 100);
+  sources.push(() => current !== null && stripNote ? [{ key:"note", title:L("Nota şeridi", "Note strip"),
+    sub: noteName(current)[LANG === "en" ? "en" : "tr"] + (analyze(perdeFreq(current, T), T).perde ? " · " + analyze(perdeFreq(current, T), T).perde.name : ""),
+    here: view === "tune" || view === "finger", go: () => go("tune"), stop: stopSound }] : []);
 
   let actx = null, wave = null, synthUntil = 0;
   const voices = new Map();
 
   // Bütün çalgı sesleri tek bir ana düğümden çıkar: üst çubuktaki durdur düğmesi ses olup olmadığını buradan
   // dinler ve durdururken kuyrukta kalan sesleri de keser. Modüller a.destination'a bağlanır; bağlantı buraya yönlenir.
-  let master = null, meter = null, meterBuf = null;
+  let master = null, tools = null, out = null, meter = null, meterBuf = null;
   function audioCtx(){
     if(!actx){
       actx = new (window.AudioContext || window.webkitAudioContext)();
-      master = actx.createGain(); meter = actx.createAnalyser(); meter.fftSize = 512; meterBuf = new Float32Array(meter.fftSize);
-      master.connect(actx.destination); master.connect(meter);
+      // out → hoparlör; master (alıştırma sesleri, ölçülür) ve tools (metronom, dron) out'a bağlanır
+      master = actx.createGain(); tools = actx.createGain(); out = actx.createGain();
+      meter = actx.createAnalyser(); meter.fftSize = 512; meterBuf = new Float32Array(meter.fftSize);
+      out.connect(actx.destination); master.connect(out); tools.connect(out); master.connect(meter);
       const connect = AudioNode.prototype.connect;
       AudioNode.prototype.connect = function(dest, ...rest){
-        return connect.call(this, dest === actx.destination && this !== master ? master : dest, ...rest);
+        return connect.call(this, dest === actx.destination && this !== out ? master : dest, ...rest);
       };
       // klarnet tınısı: tek sayılı harmonikler
       wave = actx.createPeriodicWave(new Float32Array([0,0,0,0,0,0,0,0]),
@@ -914,13 +918,15 @@
   }
   function go(v){
     if(v === view || (v === "finger" && wide.matches)) return;
+    // Alıştırma açılırken geçmişe ikinci bir kayıt eklenir (exPush): Akort'a dönerken o da geri alınır
+    const st = history.state || {};
     if(v === "tune"){
-      if(history.state && history.state.view && history.state.view !== "tune") history.back();
+      if(st.view && st.view !== "tune") history.go(st.exPush ? -2 : -1);
       else setView("tune");
       return;
     }
     if(view === "tune") history.pushState({view:v}, "");
-    else history.replaceState({view:v}, "");
+    else history.replaceState(st.exPush ? {view:v, exPush:true} : {view:v}, "");
     setView(v);
   }
   window.addEventListener("popstate", e => setView(e.state && e.state.view || "tune"));
@@ -947,7 +953,14 @@
     startMic: start,
     isListening: () => running,
     getStream: () => stream,
-    play, stopSound, playGlide, stopAll,
+    play: (w, freq) => { play(w, freq); stripNote = false; }, stopSound, playGlide, stopAll,
+    // Şu an çalıyor: kaynak ekleyen modül her yoklamada [{ key, title, sub, here, go(), stop() }] döndürür
+    addSource: fn => sources.push(fn),
+    sources: () => sources.flatMap(fn => { try{ return fn(); }catch(e){ console.error(e); return []; } }),
+    soundAge: () => performance.now() - lastSound,
+    resetSound: () => { lastSound = -1e9; quietUntil = performance.now() + 400; },
+    hush,
+    toolOut: () => { audioCtx(); return tools; },
     playing: () => current,
     showNote: w => show(analyze(perdeFreq(w, T), T)),
     drawStaffInto,

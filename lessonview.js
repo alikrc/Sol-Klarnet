@@ -592,6 +592,7 @@ TRAINERS.lessons = function(ctx){
   open(saved === "daily" ? dailyLesson() : savedL && unlocked(savedL, prog, allOpen) ? savedL : (nextLesson(prog, allOpen) || LESSONS[0]));
   return {
     enter(){ renderList(); if(cur){ SK.setTempContext(cur.makam || null); markScale(cur.makam ? makamById(cur.makam) : null); } },
+    nowTitle: () => cur ? tx(cur.title) : "",
     stop(){ playToken = null; stopRun(); },
     leave(){ stopRun(); SK.setTempContext(null); },
     note(r, t){ if(run && run.h && run.h.note) run.h.note(r, t); },

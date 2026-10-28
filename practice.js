@@ -437,7 +437,7 @@
     markNotes();
     if(user){
       const st = history.state || {};
-      if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id }, ""); pushed = true; }
+      if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id, exPush:true }, ""); pushed = true; }
       else if(st.view === "practice") history.replaceState({ ...st, ex:id }, "");
       // Yeni alıştırma baştan görünsün
       if(fromHub) window.scrollTo(0, 0);
@@ -449,6 +449,8 @@
   }
   function showHub(){
     if(active && modules[active].leave) modules[active].leave();
+    // Alıştırmadan çıkınca sesi kesilir; çubukta kalmasın. Yine de ses sürerse o alıştırmaya yazılır (prevTab).
+    if(active){ prevTab = active; soundTab = null; SK.resetSound(); }
     active = null; pushed = false;
     markNotes();
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
@@ -557,7 +559,7 @@
       const per = 60 / tempo();
       while(next < a.currentTime + 0.12){
         const k = i % slots.length, at = next;
-        if(slots[k]) hit(a, slots[k], at);
+        if(slots[k]) hit(a, slots[k], at, 1, SK.toolOut());
         setTimeout(() => { if(met) drawSlots(u, k); }, Math.max(0, (at - a.currentTime)*1000));
         next += per; i++;
       }
@@ -598,7 +600,7 @@
     g.gain.setValueAtTime(0.0001, a.currentTime);
     g.gain.exponentialRampToValueAtTime(0.02 * +$("dronevol").value, a.currentTime + 0.4);
     const oscs = [f, f/2].map(fr => { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr; o.connect(lp); o.start(); return o; });
-    lp.connect(g).connect(a.destination);
+    lp.connect(g).connect(SK.toolOut());
     drone = { g, oscs, f }; droneLv = []; SK.droneActive = true;
     setPlay($("dronebtn"), true);
   }
@@ -772,13 +774,41 @@
 
   // Durdur düğmesi (app.js stopAll): metronom, dron ve açık alıştırmanın sesi. Alıştırma stop() verirse o,
   // vermezse leave() + enter() ile baştan kurulur; sessiz alıştırmalar boş stop() ile yerinde kalır.
+  function stopTab(id){
+    const m = modules[id];
+    if(id === active){
+      if(m.stop) m.stop();
+      else if(m.leave){ m.leave(); if(m.enter) m.enter(); }
+    }
+    const p = $("pp-" + id); if(p) p.querySelectorAll("audio, video").forEach(x => { if(!x.paused) x.pause(); });
+    SK.stopSound(); SK.hush();
+    if(soundTab === id) soundTab = null;
+  }
   SK.on("stopall", () => {
     if(met) stopMet();
     if(drone) stopDrone();
-    const m = active && modules[active];
-    if(!m) return;
-    if(m.stop) m.stop();
-    else if(m.leave){ m.leave(); if(m.enter) m.enter(); }
+    if(soundTab && soundTab !== active) stopTab(soundTab);
+    if(active) stopTab(active);
+  });
+
+  // "Şu an çalıyor" çubuğu (nowplaying.js): metronom, dron ve sesi süren alıştırma. Alıştırma sesi, ses
+  // başladığında açık olan sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür.
+  let soundTab = null, prevTab = null;
+  const inPractice = () => document.body.dataset.view === "practice";
+  const openTools = () => { if(!(inPractice() && active)) SK.openTab(active || store.get("ptab", "lessons")); };
+  const mediaIn = id => [...$("pp-" + id).querySelectorAll("audio, video")].some(x => !x.paused && !x.ended);
+  SK.addSource(() => {
+    const out = [], toolsHere = inPractice() && !!active;
+    if(met) out.push({ key:"met", title:L("Metronom", "Metronome"), sub:$("metsum").textContent, here:toolsHere, go:openTools, stop:stopMet });
+    if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here:toolsHere, go:openTools, stop:stopDrone });
+    const age = SK.soundAge();
+    if(age < 300 && (active || prevTab)) soundTab = active || prevTab;
+    if(soundTab && (age < 2500 || mediaIn(soundTab))){
+      const id = soundTab, m = modules[id], sub = m.nowTitle ? m.nowTitle() : "";
+      out.push({ key:"ex", title:tabName(id), sub, here: inPractice() && active === id,
+        go: () => { if(active === id) SK.go("practice"); else SK.openTab(id); }, stop: () => stopTab(id) });
+    }else if(soundTab && !mediaIn(soundTab)) soundTab = null;
+    return out;
   });
 
   // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma

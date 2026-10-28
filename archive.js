@@ -656,6 +656,7 @@ TRAINERS.archive = function(ctx){
       loadIndex().then(() => { if(!cur) renderList(); }).catch(() => { $("arcount").textContent = L("Arşiv açılamadı.", "Couldn't open the archive."); });
       if(cur) SK.setTempContext(cur.tr.steps ? null : archMakam(cur.e.mk));
     },
+    nowTitle: () => cur ? cur.e.t : "",
     stop(){ stopAll(); if(cur && cur.stepToken) cur.stepToken = null; if(S.dem) setDem(false); },
     leave(){ stopAll(); if(cur && cur.stepToken) cur.stepToken = null; if(S.dem) setDem(false); document.body.classList.remove("arfullbody"); SK.setTempContext(null); },
     note(r, t){ if(cur && cur.player) cur.player.note(r, t); },
