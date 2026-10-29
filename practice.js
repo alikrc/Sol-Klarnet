@@ -22,11 +22,11 @@
   // Alıştırmalar beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
   // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
   // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
-  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
+  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","roadmap","videos"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","desifre","long","rhythm","hiz","susleme"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
@@ -43,6 +43,7 @@
     quiz: L("Notaları ve parmakları ezberle: çal, bul, oku", "Memorise notes and fingerings: play, find, read"),
     gorbas: L("Notayı gör, parmağı bas: adını düşünmeden", "See the note, press the fingering: no naming"),
     staffmap: L("Hangi nota dizekte nerede: Si4 mü, Si5 mi?", "Where each note sits: B4 or B5?"),
+    tablo: L("Bütün parmaklar tek bakışta; tek sayfa PDF indir", "Every fingering at a glance; download a one-page PDF"),
     long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
     rhythm: L("Metronomla zamanında çal", "Play in time with the metronome"),
     hiz: L("Gam, arpej, dizi: tempo merdiveniyle hızlan", "Scales, arpeggios: speed up with the tempo ladder"),
@@ -173,6 +174,14 @@
       <ol><li>Tap a note: you hear it and see its fingering.</li>
         <li>With the microphone on, play: the note you play lights up on the map.</li>
         <li>The number is the octave; it goes up at every C: after B4 comes C5.</li></ol>`),
+    tablo: L(`<p><b>Ne işe yarar:</b> Bütün notaların parmağını bir arada görüp ezberlemek.</p>
+      <ol><li>Notalar register'a göre üç bölümde: Chalumeau (pes), Klarino (register basılı), Altissimo (tiz). Her notada temel parmak çizili; “+2 alt” o notanın alternatif parmak sayısıdır (Parmak ekranında).</li>
+        <li>Bir notaya dokun: sesini duyarsın. Mikrofon açıkken çaldığın nota tabloda yanar.</li>
+        <li><b>Tek sayfa indir</b> bütün tabloyu A4 bir PDF yapar; yazdırıp çalgının yanına koy, bakarak çal, sonra bakmadan dene. PNG telefonda resim olarak saklamak içindir.</li></ol>`,
+      `<p><b>What it's for:</b> seeing every note's fingering together and memorising them.</p>
+      <ol><li>Notes are in three sections by register: Chalumeau (low), Clarion (register key pressed), Altissimo (high). Each note shows its basic fingering; “+2 alt” is how many alternative fingerings it has (on the Fingering screen).</li>
+        <li>Tap a note to hear it. With the microphone on, the note you play lights up.</li>
+        <li><b>Download one page</b> makes the whole chart an A4 PDF; print it, keep it by your instrument, play while looking, then try without. The PNG is for keeping it as a picture on your phone.</li></ol>`),
     long: L(`<p><b>Ne işe yarar:</b> Sesi oturtmak. Bir notayı düz ve sabit tutmayı çalışırsın; temiz ses ve doğru perde buradan gelir.</p>
       <ol><li>Notayı ve hedef süreyi seç; istersen Dinle ile notayı duy. Mikrofonu aç.</li>
         <li>Başlat'a bas ve notayı süre boyunca aynı güçte, titretmeden tut.</li>
@@ -842,6 +851,7 @@
   // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma
   SK.practiceTabs = () => TABS.map(([id, name]) => ({ id, name, blurb: BLURB[id] || "", group: groupOf(id)[1] }));
   SK.openTab = id => { SK.go("practice"); selectTab(id, true); };
+  $("tbopen").addEventListener("click", () => SK.openTab("tablo"));
 
   // Ana ekran kısayolu (?tab=rhythm) alıştırmayı doğrudan açar; yoksa ana sayfa
   const qtab = new URLSearchParams(location.search).get("tab");
