@@ -192,6 +192,12 @@ TRAINERS.tablo = function(ctx){
       <button class="stopbtn" id="tbpng" type="button">${L("Resim olarak indir (PNG)", "Download as image (PNG)")}</button>
       <span class="reg" id="tbmsg" aria-live="polite">${L("A4, yazdırmaya hazır", "A4, ready to print")}</span>
     </div>
+    <div class="tbsize"><span class="reg">${L("Şema boyutu", "Chart size")}</span>
+      <div class="seg" role="radiogroup" aria-label="${L("Şema boyutu", "Chart size")}" id="tbsize">
+        <button type="button" role="radio" data-size="s">${L("Küçük", "Small")}</button>
+        <button type="button" role="radio" data-size="m">${L("Orta", "Medium")}</button>
+        <button type="button" role="radio" data-size="l">${L("Büyük", "Large")}</button>
+      </div></div>
     ${ROWS.map(([reg, sub, ws], i) => `<div class="label tbreg">${reg} <em>${sub}</em></div><div class="tbgrid" id="tbrow${i}"></div>`).join("")}`;
   const cells = new Map();
   ROWS.forEach(([, , ws], ri) => {
@@ -212,6 +218,13 @@ TRAINERS.tablo = function(ctx){
       cells.set(w, b); row.appendChild(b);
     }
   });
+  // Ekrandaki şema boyutu (telefonda 3 / 2 / 1 sütun); indirilen sayfayı etkilemez
+  const setSize = z => {
+    P.dataset.tbsize = z; SK.store.set("tablo.size", z);
+    $("tbsize").querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-checked", b.dataset.size === z));
+  };
+  setSize(["s", "m", "l"].includes(SK.store.get("tablo.size", "m")) ? SK.store.get("tablo.size", "m") : "m");
+  $("tbsize").addEventListener("click", e => { const b = e.target.closest("[data-size]"); if(b) setSize(b.dataset.size); });
   const live = w => cells.forEach((b, k) => b.classList.toggle("live", k === w));
 
   const msg = $("tbmsg"), btns = [$("tbpdf"), $("tbpng")];
