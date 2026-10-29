@@ -914,6 +914,22 @@
   const wide = window.matchMedia("(min-width:1100px)");   // geniş ekranda parmak şeması akortla yan yana
   const scrollPos = {};
   let view = "tune";
+  // Adres: her sayfanın kendi bağlantısı olur (paylaşılabilir, yeniden yüklenince aynı sayfa açılır).
+  // ?view=finger|practice|settings|review; Çalışma'da ?tab=quiz, derste ?tab=lessons&ders=<id>, eserde ?tab=archive&eser=<id>.
+  // Modüller ayrıntıyı SK.setRoute ile bildirir; adres geçmişe kayıt eklemeden güncellenir.
+  // Açılışta modüller bağlantıyı okuyana kadar (practice.js sonunda SK.routeReady) adrese dokunulmaz
+  const route = { tab:null, ders:null, eser:null };
+  let routeOn = false;
+  function syncUrl(){
+    if(!routeOn) return;
+    const q = new URLSearchParams();
+    if(view === "practice"){
+      if(route.tab){ q.set("tab", route.tab); if(route.tab === "lessons" && route.ders) q.set("ders", route.ders); if(route.tab === "archive" && route.eser) q.set("eser", route.eser); }
+      else q.set("view", "practice");
+    }else if(view !== "tune") q.set("view", view);
+    const url = location.pathname + (q.toString() ? "?" + q : "") + (view === "tune" ? location.hash : "");
+    if(url !== location.pathname + location.search + location.hash) history.replaceState(history.state, "", url);
+  }
   function setView(v){
     if(!VIEWS.includes(v)) v = "tune";
     if(v === "finger" && wide.matches) v = "tune";
@@ -931,6 +947,7 @@
     window.scrollTo(0, scrollPos[v] || 0);
     drawTrace();                                         // gizliyken boyutu 0'dı
     if(v === "finger" || v === "tune") centerInRail(railActive, false);
+    syncUrl();
   }
   function go(v){
     if(v === view || (v === "finger" && wide.matches)) return;
@@ -956,7 +973,8 @@
   history.replaceState({view:"tune"}, "");
   // Ana ekran kısayolları ?view=practice&tab=rhythm gibi açar (manifest shortcuts)
   const qs = new URLSearchParams(location.search);
-  const startView = /nota=/.test(location.hash) ? "tune" : VIEWS.includes(qs.get("view")) ? qs.get("view") : store.get("view", "tune");
+  const startView = /nota=/.test(location.hash) ? "tune" : ["tab", "ders", "eser"].some(k => qs.has(k)) ? "practice"
+    : VIEWS.includes(qs.get("view")) ? qs.get("view") : store.get("view", "tune");
   if(startView !== "tune") go(startView);
 
   // ---- Çalışma modülleri (practice.js) için arayüz ----
@@ -986,6 +1004,8 @@
     audioCtx,
     T, inst,
     go,
+    setRoute(r){ Object.assign(route, r); syncUrl(); },
+    routeReady(){ routeOn = true; syncUrl(); },
     // Çalışma bölümü makam dersi/alıştırması sürerken akort bağlamını geçici olarak o makama kurar
     setTempContext(mkId){ tempCtx = mkId ? { mk: mkId } : null; applyCtx(); },
     tuningMode: () => ctxNow().mode,

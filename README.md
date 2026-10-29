@@ -72,7 +72,9 @@ npm start
 
 Sonra http://localhost:8080 adresini aç. Uygulama bir kez açıldıktan sonra çevrimdışı da çalışır ve telefonda
 “Ana ekrana ekle” ile kurulabilir. Bağlantılar: `index.html#nota=52` (yazılı MIDI, 52 = Mi3 … 99 = Mi♭7),
-`?view=practice&tab=rhythm` (doğrudan bir sekme).
+`?tab=rhythm` (doğrudan bir sekme). Her sayfanın kendi adresi vardır ve adres çubuğu açık sayfayı gösterir:
+`?view=finger`, `?view=practice` (Çalışma ana sayfası), `?view=settings`, `?tab=lessons&ders=makam-bulma` (bir ders),
+`?tab=archive&eser=<id>` (nota arşivinde bir eser).
 
 ## Android ve iOS
 

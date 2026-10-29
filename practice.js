@@ -458,6 +458,7 @@
     closeTools();
     $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
     if(modules[id].enter) modules[id].enter();
+    SK.setRoute({ tab:id });
     fitDescs();
     markNotes();
     if(user){
@@ -483,6 +484,7 @@
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
     $("pex").hidden = true; $("phub").hidden = false;
     root.classList.remove("lessonsmode"); $("plabel").textContent = L("Çalışma", "Practice");
+    SK.setRoute({ tab:null });
     const last = store.get("ptab.prac", ""), r = $("hresume");
     r.hidden = !TABS.some(([t]) => t === last) || isLesson(last);
     if(r.hidden) return window.scrollTo(0, 0);
@@ -871,10 +873,16 @@
   $("tbopen").addEventListener("click", () => SK.openTab("tablo"));
 
   // Ana ekran kısayolu (?tab=rhythm) alıştırmayı doğrudan açar; yoksa ana sayfa
-  const qtab = new URLSearchParams(location.search).get("tab");
-  if(TABS.some(([t]) => t === qtab)){
+  // ?ders=<id> Dersler'i (lessonview.js dersi açar), ?eser=<id> nota arşivinde eseri açar
+  const qs = new URLSearchParams(location.search);
+  const qtab = qs.get("eser") ? "archive" : qs.get("ders") ? "lessons" : qs.get("tab");
+  if(qtab === "archive" && qs.get("eser")){
+    SK.openArchive(qs.get("eser"));
+    if(history.state && history.state.view === "practice") history.replaceState({ ...history.state, ex:qtab }, "");
+  }else if(TABS.some(([t]) => t === qtab)){
     selectTab(qtab);
     if(history.state && history.state.view === "practice") history.replaceState({ ...history.state, ex:qtab }, "");
   }else if(isLesson(store.get("ptab", ""))) selectTab(store.get("ptab"));   // en son Dersler açıktıysa oraya dön
   else showHub();
+  SK.routeReady();
 })();

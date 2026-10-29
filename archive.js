@@ -184,7 +184,7 @@ TRAINERS.archive = function(ctx){
     try{ raw = await fetch("notalar/" + encodeURIComponent(id) + ".json").then(r => r.json()); }
     catch(err){ box.innerHTML = `<p class="fb bad">${L("Nota açılamadı.", "Couldn't open the score.")}</p>`; return; }
     store.set("arch.recent", [id, ...store.get("arch.recent", []).filter(x => x !== id)].slice(0, 30));
-    store.set("arch.last", id);
+    store.set("arch.last", id); SK.setRoute({ eser: id });
     const meters = raw.meters.length ? raw.meters : [[0, 4, 4, ""]];
     cur = { e, raw, meters, base: raw.notes.map(archNote), startAt: 0, loop: null, pick: null, learnStep: null };
     const tr = store.get("arch.tr", {})[id] || { steps:0, oct:0 };
@@ -198,7 +198,7 @@ TRAINERS.archive = function(ctx){
     stopAll();
     if(cur.io) cur.io.disconnect();
     document.body.classList.remove("arfullbody");
-    cur = null;
+    cur = null; SK.setRoute({ eser: null });
   }
 
   function buildPiece(){

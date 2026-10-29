@@ -111,7 +111,7 @@ TRAINERS.lessons = function(ctx){
   }
   function open(l){
     stopRun();
-    cur = l; store.set("lesson.cur", l.id);
+    cur = l; store.set("lesson.cur", l.id); SK.setRoute({ ders: l.id });
     const p = progFor(l), u = UNITS.find(x => x.id === l.unit), vids = l.daily ? [] : videosForLesson(l.id);
     $("lsbody").innerHTML = `
       <div class="eyebrow">${u ? esc(tx(u.name)) : esc(dayKey(new Date()))}</div>
@@ -588,7 +588,8 @@ TRAINERS.lessons = function(ctx){
     }
   };
 
-  const saved = store.get("lesson.cur", ""), savedL = lessonById(saved);
+  // Bağlantıdaki ders (?ders=<id>) kayıtlı dersten önce gelir; kilitliyse sıradaki ders açılır
+  const saved = new URLSearchParams(location.search).get("ders") || store.get("lesson.cur", ""), savedL = lessonById(saved);
   open(saved === "daily" ? dailyLesson() : savedL && unlocked(savedL, prog, allOpen) ? savedL : (nextLesson(prog, allOpen) || LESSONS[0]));
   return {
     enter(){ renderList(); if(cur){ SK.setTempContext(cur.makam || null); markScale(cur.makam ? makamById(cur.makam) : null); } },
