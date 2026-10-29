@@ -111,7 +111,7 @@ async function main(){
     p{font:500 26px/1.35 Commissioner,sans-serif;margin:0;color:#D9E6E3;max-width:600px}
     .st{position:absolute;right:-40px;bottom:36px;width:560px;opacity:.13}
   </style></head><body><div class="ic">${icon}</div><div><h1>Sol Klarnet</h1>
-    <p>Akort, parmak, makam ve oyun havaları: sıfırdan taksime 76 ders</p></div>
+    <p>Akort, parmak, makam ve oyun havaları: sıfırdan taksime 77 ders</p></div>
     <svg class="st" viewBox="0 0 560 80"><g stroke="#fff" stroke-width="2">${[0,1,2,3,4].map(i => `<line x1="0" x2="560" y1="${10+i*15}" y2="${10+i*15}"/>`).join("")}</g>
     <g fill="#fff">${[40,110,180,250,320,390,460,530].map((x, i) => `<ellipse cx="${x}" cy="${70 - [0,2,4,5,7,5,4,2][i]*7.5}" rx="9" ry="7"/>`).join("")}</g></svg></body></html>`);
   await fg.waitForTimeout(600);

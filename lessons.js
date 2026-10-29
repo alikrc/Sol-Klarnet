@@ -664,7 +664,62 @@ const MAKAM2 = [
     { tr:"Acemaşîran inici bir makamdır ve Acem Aşîran perdesinde (yazılı Fa4) karar verir: Acem Aşîran'da Çargâh beşlisi ile Çargâh'ta Çargâh dörtlüsü.",
       en:"Acemaşîran is a descending makam that resolves on the Acem Aşîran perde (written F4): a Çargâh pentachord on Acem Aşîran plus a Çargâh tetrachord on Çargâh." }],
     [],
-    [44, 40, 31, 22, 13, 22, 13, 9, 0, -9])
+    [44, 40, 31, 22, 13, 22, 13, 9, 0, -9]),
+  // Makam ünitesinin kapanışı: duyulan ya da okunan bir eserin makamını bulma yöntemi
+  { id:"makam-bulma", unit:"makam", notes:[],
+    title:{ tr:"Bir eserin makamı nasıl anlaşılır?", en:"How do you tell a piece's makam?" },
+    text:[
+      { tr:"Makamı bulmak bir dedektiflik işidir: tek bir ipucu yetmez, ipuçlarını sırayla toplarsın. Bu derste dört soruyla çalışacaksın: Ezgi nerede bitiyor (durak)? Durağın hemen üstündeki perdeler nasıl (çeşni)? Ezgi en çok nerede dinleniyor (güçlü)? Nereden başlıyor, nasıl geziniyor (seyir)?",
+        en:"Finding the makam is detective work: one clue is not enough, you gather them in order. In this lesson you work with four questions: Where does the melody end (the final)? What are the perdes just above the final like (the çeşni)? Where does the melody rest most (the dominant)? Where does it start and how does it move (the seyir)?" },
+      { tr:"Önce okuma adımlarını oku, sonra dinleme adımlarında aynı ipuçlarını kulağınla karşılaştır; en sonda kısa ezgilerin makamını kendin bul.",
+        en:"Read the reading steps first, then compare the same clues by ear in the listening steps; at the end, name the makam of short phrases yourself." }
+    ],
+    tips:[
+      { tr:"Duyduğun ezginin son notasını klarnetle bul: o perde büyük olasılıkla durağıdır.", en:"Find the last note of the tune on your clarinet: that perde is most likely its final." },
+      { tr:"Nota arşivinde makamı yazılı bir eser aç, makama bakmadan önce son notasına ve arızalarına bakıp tahmin et; sonra karşılaştır.",
+        en:"Open a piece in the score archive and guess its makam from the last note and the accidentals before looking at the label; then compare." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"1. Durak: ezgi nerede bitiyor?", en:"1. The final: where does the melody end?" }, body:[
+        { tr:"Eserin son notası neredeyse her zaman makamın durağıdır. Notada son ölçüye, kulakla en sondaki uzun ve “eve dönmüş” gibi duyulan sese bak. Cümle sonları da çoğunlukla durakta ya da güçlüde biter.",
+          en:"The last note of a piece is almost always the makam's final. In the score look at the last bar; by ear, listen for the long closing note that sounds like “home”. Phrase endings usually land on the final or the dominant too." },
+        { tr:"Sol klarnette yazılı Sol4 Rast, La4 Dügâh, Si4 Segâh perdesidir. Rast'ta bitiyorsa Rast, Nihâvend, Mâhur, Sûzinak, Nikriz gibi Rast ailesi; Dügâh'ta bitiyorsa Uşşak, Hüseynî, Hicaz, Kürdî, Saba, Bayâtî, Karcığar gibi Dügâh ailesi; Segâh'ta bitiyorsa Segâh ya da Hüzzam adaydır.",
+          en:"On the G clarinet, written G4 is Rast, A4 is Dügâh and B4 is Segâh. Ending on Rast points to the Rast family (Rast, Nihâvend, Mâhur, Sûzinak, Nikriz); ending on Dügâh to the Dügâh family (Uşşak, Hüseynî, Hicaz, Kürdî, Saba, Bayâtî, Karcığar); ending on Segâh to Segâh or Hüzzam." },
+        { tr:"Dikkat: eserin ortasında başka makama geçilebilir (geçki). Karar için ortadaki duraklara değil, sona bak.",
+          en:"Careful: a piece may move to another makam in the middle (modulation). For the final, look at the end, not the stops along the way." }
+      ] },
+      { type:"read", title:{ tr:"2. Çeşni: durağın üstündeki perdeler", en:"2. The çeşni: the perdes above the final" }, body:[
+        { tr:"Aynı durakta biten makamları durağın üstündeki ilk dört-beş perde ayırır. Dügâh'ta biten bir ezgide ikinci perdeye (yazılı Si) ve dördüncüye (Re civarı) bak:",
+          en:"Makams that end on the same final are told apart by the first four or five perdes above it. In a tune ending on Dügâh, check the second perde (written B) and the fourth (around D):" },
+        { tr:"Si koma bemollü (Segâh), Do ve Re doğal → Uşşak dörtlüsü: Uşşak, Bayâtî, Hüseynî. Si bemol (Kürdî), Do doğal → Kürdî. Si bemol (Dik Kürdî) ve Do diyez (Nim Hicaz): aradaki geniş aralık → Hicaz ailesi (Hicaz, Hümâyun, Uzzâl). Segâh, Çargâh ve hemen ardından Re♭ (Hicaz perdesi) → Saba; Saba'nın dördüncü perdesi Nevâ'ya ulaşmaz.",
+          en:"B with a comma flat (Segâh), C and D natural → Uşşak tetrachord: Uşşak, Bayâtî, Hüseynî. B flat (Kürdî) with C natural → Kürdî. B flat (Dik Kürdî) and C sharp (Nim Hicaz) with the wide step between them → the Hicaz family (Hicaz, Hümâyun, Uzzâl). Segâh, Çargâh and right after D♭ (the Hicaz perde) → Saba; Saba's fourth degree never reaches Nevâ." },
+        { tr:"Notada bu bilgi donanımda ve eserin içindeki arızalarda görünür; ama donanım tek başına yetmez: Uşşak ile Bayâtî'nin donanımı aynıdır.",
+          en:"In a score this shows in the key signature and the accidentals in the piece; but the key signature alone is not enough: Uşşak and Bayâtî share the same one." }
+      ] },
+      { type:"listen", commas:[9, 17, 22, 31, 22, 17, 9] },
+      { type:"listen", commas:[9, 13, 22, 31, 22, 13, 9] },
+      { type:"listen", commas:[9, 14, 26, 31, 26, 14, 9] },
+      { type:"listen", commas:[9, 17, 22, 27, 22, 17, 9] },
+      { type:"read", title:{ tr:"3. Güçlü ve 4. seyir: dizi aynıysa", en:"3. The dominant and 4. the seyir: when the scale is the same" }, body:[
+        { tr:"Az önce dinlediğin dört dörtlü aynı durakta başlayıp bitti; farkı yalnızca orta perdeler yaptı: Uşşak, Kürdî, Hicaz, Saba.",
+          en:"The four tetrachords you just heard started and ended on the same final; only the middle perdes differed: Uşşak, Kürdî, Hicaz, Saba." },
+        { tr:"Dizisi aynı olan makamları güçlü ve seyir ayırır. Güçlü, ezginin yarım karar verip dinlendiği perdedir: Uşşak'ta Nevâ (Re5), Hüseynî'de Hüseynî (Mi5), Saba'da Çargâh (Do5).",
+          en:"Makams with the same scale are told apart by the dominant and the seyir. The dominant is the perde where the melody makes half cadences and rests: Nevâ (D5) in Uşşak, Hüseynî (E5) in Hüseynî, Çargâh (C5) in Saba." },
+        { tr:"Seyir ezginin başladığı yer ve gidişidir. Çıkıcı makamlar (Rast, Uşşak, Hicaz) durak civarından başlayıp yükselir; inici-çıkıcılar (Hüseynî, Bayâtî, Karcığar) güçlü civarından başlar; inici makamlar (Mâhur, Acemaşîran, Kürdîli Hicazkâr) tizden başlayıp adım adım iner. Sıradaki üç ezginin durağı ve dizisi aynı: Uşşak durakta gezinir, Bayâtî Nevâ'dan başlar, Hüseynî Hüseynî perdesinde dinlenir.",
+          en:"The seyir is where the melody starts and how it travels. Ascending makams (Rast, Uşşak, Hicaz) start near the final and rise; descending-ascending ones (Hüseynî, Bayâtî, Karcığar) start around the dominant; descending makams (Mâhur, Acemaşîran, Kürdîli Hicazkâr) start high and step down. The next three phrases share the final and the scale: Uşşak lingers near the final, Bayâtî opens on Nevâ, Hüseynî rests on the Hüseynî perde." }
+      ] },
+      { type:"listen", commas:[9, 17, 22, 17, 9, 17, 22, 31, 22, 17, 9] },
+      { type:"listen", commas:[31, 40, 31, 22, 17, 22, 31, 22, 17, 9] },
+      { type:"listen", commas:[40, 44, 40, 31, 40, 31, 22, 17, 22, 17, 9] },
+      { type:"read", title:{ tr:"Özet: dört soru", en:"Summary: four questions" }, body:[
+        { tr:"1) Son nota hangi perde? → makam ailesi. 2) Durağın üstündeki perdeler (özellikle ikinci ve dördüncü) nasıl? → çeşni. 3) Ezgi en çok nerede dinleniyor? → güçlü. 4) Nereden başlıyor, çıkıyor mu iniyor mu? → seyir.",
+          en:"1) Which perde is the last note? → the makam family. 2) What are the perdes above the final like (especially the second and fourth)? → the çeşni. 3) Where does the melody rest most? → the dominant. 4) Where does it start; does it rise or fall? → the seyir." },
+        { tr:"Bu dört cevap çoğu eserde makamı tek bir adaya indirir. Kalan adımlarda kısa ezgileri dinleyip makamını seçeceksin; Makam > Kulak > Makam tanı sekmesinde istediğin kadar tekrar edebilirsin.",
+          en:"In most pieces these four answers narrow the makam down to a single candidate. In the remaining steps you listen to short phrases and pick the makam; you can keep practising in Makam > Ear > Makam ID." }
+      ] },
+      { type:"ear", mode:"makam", pool:["rast","ussak","hicaz","kurdi","saba"], n:8, min:5 },
+      { type:"ear", mode:"makam", pool:["rast","nihavend","ussak","huseyni","hicaz","kurdi","saba","segah","huzzam"], n:10, min:6 }
+    ] }
 ];
 
 // ---- İleri seviye: taksim (seyir), ileri kulak ve ritim ----

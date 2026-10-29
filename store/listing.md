@@ -9,7 +9,7 @@ Görseller: `store/play-icon-512.png` (simge), `store/feature-graphic.png` (1024
 **Uygulama adı:** Sol Klarnet — Akort, Parmak, Makam
 
 **Kısa açıklama (≤ 80):**
-Sol klarnet: koma akordu, parmak şeması, makam, oyun havaları ve 76 ders
+Sol klarnet: koma akordu, parmak şeması, makam, oyun havaları ve 77 ders
 
 **Uzun açıklama:**
 
@@ -22,7 +22,7 @@ AKORT VE PARMAK
 • Sol, Si♭, La, Do ve Mi♭ klarnet
 
 DERSLER VE YOL HARİTASI
-• Dokuz ünitede 76 ders: ilk sesten taksime, Trakya ve Roman havalarına
+• Dokuz ünitede 77 ders: ilk sesten taksime, Trakya ve Roman havalarına
 • Bugünün çalışması: zorlandığın notalar ve aralıklı tekrar (1, 3, 7, 21 gün) her gün yeniden kurulur
 • Ünite sınavları ve rozetler, seri ve haftalık özet
 • Altı aşamalı yol haritası, ölçülen kilometre taşları ve kalan süre tahmini
@@ -53,7 +53,7 @@ Gizlilik: ses ve ilerleme yalnızca cihazında kalır, hiçbir yere gönderilmez
 **App name:** Sol Klarnet — Tuner, Fingerings, Makam
 
 **Short description (≤ 80):**
-Turkish G clarinet: comma tuner, fingerings, makams, dance tunes and 76 lessons
+Turkish G clarinet: comma tuner, fingerings, makams, dance tunes and 77 lessons
 
 **Full description:**
 
@@ -66,7 +66,7 @@ TUNER AND FINGERINGS
 • G, B♭, A, C and E♭ clarinets
 
 LESSONS AND ROADMAP
-• 76 lessons in nine units: from the first sound to taksim and Thracian and Roman dance tunes
+• 77 lessons in nine units: from the first sound to taksim and Thracian and Roman dance tunes
 • Today's practice: your weak notes plus spaced review (1, 3, 7, 21 days), rebuilt every day
 • Unit tests and badges, streaks and a weekly summary
 • A six-stage roadmap with measured milestones and a time estimate

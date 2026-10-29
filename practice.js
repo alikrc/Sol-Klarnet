@@ -134,13 +134,13 @@
         <li>Tap the waveform to play from there. Drag to select a passage; it loops. The A and B buttons select from the playing position too.</li>
         <li>Lower the speed (50% is a good start): the pitch stays the same. If the recording is in another key, match your clarinet with “Pitch” and “Fine”.</li>
         <li>The strip below shows the perde being played. Add markers to split phrases; “Turn the selection into notes” opens the notes in Convert.</li></ol>`),
-    lessons: L(`<p><b>Ne işe yarar:</b> Sıfırdan ileri seviyeye adım adım 76 ders. Her ders birkaç adımdır: oku, dinle, çal.</p>
+    lessons: L(`<p><b>Ne işe yarar:</b> Sıfırdan ileri seviyeye adım adım 77 ders. Her ders birkaç adımdır: oku, dinle, çal.</p>
       <ol><li>Üstteki “Bugünün çalışması” o gün ne çalışacağını söyler; oradan başla.</li>
         <li>Bir derse dokun, adımları sırayla geç. Dinleme adımında önce örneği dinle.</li>
         <li>Çalma adımında mikrofonu aç ve çal; uygulama seni dinler, geçince sonraki adım açılır.</li>
         <li>Bir ders bitince sonraki ders açılır. Takılırsan dersi tekrar et.</li>
         <li>Bitirdiğin derslerin adımları “Tekrar” olarak birkaç gün sonra günlük plana geri gelir. Ünitenin bütün dersleri bitince sonundaki ünite sınavı açılır; geçince rozet kazanırsın.</li></ol>`,
-      `<p><b>What it's for:</b> 76 step-by-step lessons from zero to advanced. Each lesson has a few steps: read, listen, play.</p>
+      `<p><b>What it's for:</b> 77 step-by-step lessons from zero to advanced. Each lesson has a few steps: read, listen, play.</p>
       <ol><li>“Today's practice” at the top tells you what to work on today; start there.</li>
         <li>Tap a lesson and go through its steps. On listening steps, listen to the example first.</li>
         <li>On playing steps, turn on the microphone and play; the app listens and opens the next step when you pass.</li>
