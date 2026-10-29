@@ -21,7 +21,8 @@
   // ---- İskelet ----
   // Alıştırmalar beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
   // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
-  // Dersler ilk sekmedir; mantığı ve verisi lessons.js'te
+  // Dersler grubu (Dersler, Yol haritası, Videolar) alt menüdeki Dersler düğmesiyle açılan ayrı bir sayfadır: ana sayfada
+  // kart olarak görünmez, geri düğmesi yoktur. Mantığı ve verisi lessons.js'te
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
@@ -31,6 +32,7 @@
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
+  const isLesson = id => GROUPS[0][2].includes(id);
   const tabName = id => TABS.find(t => t[0] === id)[1];
   // Ana sayfa kartlarındaki kısa açıklamalar
   const BLURB = {
@@ -61,8 +63,8 @@
   };
   // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Alıştırma açılınca başlığın altında
   // katlanmış durur. Metronom ve dron notları kendi ayar kutularında.
-  const HUB_HELP = L(`<p><b>Hepsini bilmen gerekmiyor.</b> Her gün <b>Dersler</b>'i sırayla takip et; dersler gereken alıştırmayı
-      zamanı gelince kendisi açar. Diğer kartlar bir konuyu ayrıca çalışmak içindir.</p>
+  const HUB_HELP = L(`<p><b>Hepsini bilmen gerekmiyor.</b> Her gün alt menüdeki <b>Dersler</b>'i sırayla takip et; dersler gereken alıştırmayı
+      zamanı gelince kendisi açar. Buradaki kartlar bir konuyu ayrıca çalışmak içindir.</p>
     <p>Bir karta dokun, alıştırma açılır. Üstteki sekmeler aynı gruptaki diğer alıştırmalardır; “‹ Çalışma” ana sayfaya döner.
       Çoğu alıştırma mikrofon ister: sağ üstteki <b>Mikrofon</b>'a bas. Her alıştırmanın başında kendi “Nasıl kullanılır?” notu var.</p>
     <p><b>Kısa yol haritası:</b></p>
@@ -71,8 +73,8 @@
       <li>Parmaklar yavaşsa Hız.</li>
       <li>Makamı oturtmak için Dizi → Taklit → Seyir.</li>
       <li>Oyun havası için Eşlik'te darbukayla çal; ustaları Kulaktan çıkar ile yavaşlatıp dinle.</li></ol>`,
-    `<p><b>You don't need all of them.</b> Follow <b>Lessons</b> in order every day; lessons open the exercise you need when it's time.
-      The other cards are for working on one topic on its own.</p>
+    `<p><b>You don't need all of them.</b> Follow <b>Lessons</b> in the bottom menu in order every day; lessons open the exercise you need when it's time.
+      The cards here are for working on one topic on its own.</p>
     <p>Tap a card to open the exercise. The tabs at the top are the other exercises in the same group; “‹ Practice” goes back.
       Most exercises need the microphone: tap <b>Microphone</b> at the top right. Each exercise has its own “How to use” note.</p>
     <p><b>A simple route:</b></p>
@@ -330,7 +332,7 @@
   const root = $("practice");
   root.innerHTML = `
     <div class="phead">
-      <div class="label">Çalışma</div>
+      <div class="label" id="plabel">Çalışma</div>
       <div class="pstat">
         <span class="pmic" id="pmic"></span>
         <button class="pgoal" id="pgoal" type="button">
@@ -344,7 +346,7 @@
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
       <button type="button" class="hfeat" data-open="band"><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
         <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
-      ${GROUPS.map(([g, name, members]) => `<section class="hgroup" data-g="${g}" aria-label="${name}">
+      ${GROUPS.slice(1).map(([g, name, members]) => `<section class="hgroup" data-g="${g}" aria-label="${name}">
         ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
         <div class="hcards">${members.map(card).join("")}</div></section>`).join("")}
     </div>
@@ -440,7 +442,9 @@
     if(active && active !== id && !parked && modules[active].leave) modules[active].leave();
     parked = false;
     const fromHub = active === null;
-    active = id; store.set("ptab", id);
+    active = id; store.set("ptab", id); store.set(isLesson(id) ? "ptab.lesson" : "ptab.prac", id);
+    root.classList.toggle("lessonsmode", isLesson(id));
+    $("plabel").textContent = isLesson(id) ? tabName("lessons") : L("Çalışma", "Practice");
     const members = groupOf(id)[2];
     $("phub").hidden = true; $("pex").hidden = false;
     $("ptitle").textContent = tabName(id);
@@ -458,7 +462,8 @@
     markNotes();
     if(user){
       const st = history.state || {};
-      if(fromHub && st.view === "practice" && !st.ex){ history.pushState({ view:"practice", ex:id, exPush:true }, ""); pushed = true; }
+      // Dersler ayrı sayfadır; ana sayfaya geri dönülecek bir geçmiş kaydı eklenmez
+      if(fromHub && st.view === "practice" && !st.ex && !isLesson(id)){ history.pushState({ view:"practice", ex:id, exPush:true }, ""); pushed = true; }
       else if(st.view === "practice") history.replaceState({ ...st, ex:id }, "");
       // Yeni alıştırma baştan görünsün
       if(fromHub) window.scrollTo(0, 0);
@@ -477,8 +482,11 @@
     markNotes();
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
     $("pex").hidden = true; $("phub").hidden = false;
-    const last = store.get("ptab", "lessons"), r = $("hresume");
-    r.dataset.open = TABS.some(([t]) => t === last) ? last : "lessons";
+    root.classList.remove("lessonsmode"); $("plabel").textContent = L("Çalışma", "Practice");
+    const last = store.get("ptab.prac", ""), r = $("hresume");
+    r.hidden = !TABS.some(([t]) => t === last) || isLesson(last);
+    if(r.hidden) return window.scrollTo(0, 0);
+    r.dataset.open = last;
     r.innerHTML = `<span><small>${L("Kaldığın yerden devam et", "Pick up where you left off")}</small><b>${tabName(r.dataset.open)}</b></span>${ICON.go}`;
     window.scrollTo(0, 0);
   }
@@ -494,19 +502,28 @@
     if(st.ex && TABS.some(([t]) => t === st.ex)){ if(active !== st.ex) selectTab(st.ex); }
     else if(active) showHub();
   });
-  // Alt menüde açıkken Çalışma'ya yeniden dokunmak ana sayfaya döndürür
+  // Alt menüde açıkken Çalışma'ya yeniden dokunmak ana sayfaya döndürür; Dersler'den Çalışma'ya geçmek de ana sayfayı açar
   const navBtn = document.querySelector('.nav [data-view="practice"]');
-  if(navBtn) navBtn.addEventListener("click", () => { if(document.body.dataset.view === "practice" && active) back(); }, true);
+  if(navBtn) navBtn.addEventListener("click", () => {
+    if(active && isLesson(active)) setTimeout(() => { back(); markNotes(); });
+    else if(document.body.dataset.view === "practice" && active) back();
+  }, true);
   pnav.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) selectTab(b.dataset.tab, true); });
-  // Alt menüdeki Notalar: Çalışma'yı nota arşiviyle açar; arşivdeyken Çalışma değil Notalar seçili görünür
-  const notesBtn = $("navnotes");
+  // Alt menüdeki Notalar ve Dersler: Çalışma'yı nota arşiviyle / dersle açar; o sırada Çalışma değil onlar seçili görünür
+  const notesBtn = $("navnotes"), lessonsBtn = $("navlessons");
   function markNotes(){
-    const nb = document.getElementById("navnotes"), pb = document.querySelector('.nav [data-view="practice"]');
-    if(!nb) return;
-    const inP = document.body.dataset.view === "practice", on = inP && active === "archive";
-    if(on) nb.setAttribute("aria-current", "page"); else nb.removeAttribute("aria-current");
-    if(pb && inP){ if(on) pb.removeAttribute("aria-current"); else pb.setAttribute("aria-current", "page"); }
+    const nb = notesBtn, lb = lessonsBtn, pb = document.querySelector('.nav [data-view="practice"]');
+    if(!nb || !lb) return;
+    const inP = document.body.dataset.view === "practice", on = inP && active === "archive", les = inP && !!active && isLesson(active);
+    const cur = (b, v) => v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current");
+    cur(nb, on); cur(lb, les);
+    if(pb && inP) cur(pb, !on && !les);
   }
+  if(lessonsBtn) lessonsBtn.addEventListener("click", () => setTimeout(() => {
+    if(active && isLesson(active) && document.body.dataset.view === "practice") window.scrollTo({ top:0, behavior:"smooth" });
+    else{ const t = store.get("ptab.lesson", "lessons"); selectTab(isLesson(t) ? t : "lessons", true); }
+    markNotes();
+  }));
   if(notesBtn) notesBtn.addEventListener("click", () => setTimeout(() => {
     if(active === "archive" && document.body.dataset.view === "practice") window.scrollTo({ top:0, behavior:"smooth" });
     else selectTab("archive", true);
@@ -858,5 +875,6 @@
   if(TABS.some(([t]) => t === qtab)){
     selectTab(qtab);
     if(history.state && history.state.view === "practice") history.replaceState({ ...history.state, ex:qtab }, "");
-  }else showHub();
+  }else if(isLesson(store.get("ptab", ""))) selectTab(store.get("ptab"));   // en son Dersler açıktıysa oraya dön
+  else showHub();
 })();

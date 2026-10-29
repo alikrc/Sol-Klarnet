@@ -905,7 +905,7 @@
   }
   btn.addEventListener("click", () => running ? stop() : start());
 
-  // ---- Görünümler: Akort / Parmak / Çalışma / Ayarlar ----
+  // ---- Görünümler: Akort (ve Parmak) / Çalışma (ve Dersler, Notalar) / Ayarlar ----
   // Ana görünüm Akort'tur. Başka görünüme geçiş geçmişe bir kayıt ekler; böylece Android geri tuşu
   // (ve tarayıcı geri tuşu) önce Akort'a döner, sonra uygulamadan çıkar. Görünümler arası geçişte
   // her görünümün kaydırma konumu korunur.
@@ -921,8 +921,10 @@
     scrollPos[view] = window.scrollY;
     view = v;
     document.body.dataset.view = v;
-    const navV = v === "review" ? "settings" : v;      // uzman kontrolü Ayarlar'ın alt sayfası
+    // Uzman kontrolü Ayarlar'ın, parmak şeması Akort'un alt sayfası (üstteki Akort / Parmak geçişiyle açılır)
+    const navV = v === "review" ? "settings" : v === "finger" ? "tune" : v;
     navBtns.forEach(b => b.dataset.view === navV ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    $("tftune").setAttribute("aria-selected", v !== "finger"); $("tffinger").setAttribute("aria-selected", v === "finger");
     if(v !== "settings" && v !== "review") store.set("view", v);
     applyCtx();
     emit("view", { v });

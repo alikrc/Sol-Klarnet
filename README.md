@@ -22,9 +22,10 @@ Mikrofondan çalınan sesi dinler; ses yalnızca cihazda işlenir, uygulama inte
 
 ## Çalışma bölümü
 
-Sekmeler beş gruptadır: **Dersler** (Dersler, Yol haritası, Videolar), **Teknik** (Parmak testi, Gör ve bas, Dizek haritası, Deşifre, Uzun ton, Ritim,
-Hız, Süsleme), **Makam** (Dizi, Taklit, Seyir, Kulak, Dikte), **Eserler** (Nota arşivi, Etüt ve eserler, Eşlik, Kulaktan çıkar, Çevir, Kayıt)
-ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
+Alt menü: **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler**, **Çalışma**, **Notalar**, **Ayarlar**.
+**Dersler** ayrı bir sayfadır: Dersler, Yol haritası ve Videolar. **Çalışma** serbest alıştırmaların ana sayfasıdır; sekmeler dört gruptadır:
+**Teknik** (Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Hız, Süsleme), **Makam** (Dizi, Taklit, Seyir, Kulak, Dikte),
+**Eserler** (Nota arşivi, Etüt ve eserler, Eşlik, Kulaktan çıkar, Çevir, Kayıt) ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
 alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma açılır.
 
 | Sekme | İçerik |
