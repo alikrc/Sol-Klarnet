@@ -273,15 +273,11 @@ textarea{width:100%;font-family:var(--mono);margin:6px 0}
 .tbcell:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .tbopen{display:block;margin:10px auto 0}
 .tbsize{display:flex;align-items:center;gap:10px;margin:0 0 14px}
-/* Bilgisayar ve tablette sabit sütun: küçük 6, orta 4, büyük 3; şema hücreyi doldurur */
-[data-tbsize="s"] .tbgrid{grid-template-columns:repeat(6,minmax(0,1fr))}
-[data-tbsize="m"] .tbgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-[data-tbsize="l"] .tbgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-[data-tbsize="m"] .tbcell svg.minichart,[data-tbsize="l"] .tbcell svg.minichart{max-width:none}
-[data-tbsize="m"] .tbname b,[data-tbsize="l"] .tbname b{font-size:18px}
-@media(max-width:520px){[data-tbsize="s"] .tbgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  [data-tbsize="m"] .tbgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  [data-tbsize="l"] .tbgrid{grid-template-columns:minmax(0,1fr)}}
+.tbsize .seg button{min-width:34px}
+/* Sütun sayısı kullanıcı seçimi (--tbcols, chartsheet.js); şema hücreyi doldurur */
+#pp-tablo .tbgrid{grid-template-columns:repeat(var(--tbcols,4),minmax(0,1fr));gap:12px}
+#pp-tablo .tbcell svg.minichart{max-width:none}
+#pp-tablo .tbname b{font-size:18px}
 .smhint{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin:0 0 14px}
 .smhint b{color:var(--ink);margin-right:4px}
 .smrow{margin:4px 0 14px}

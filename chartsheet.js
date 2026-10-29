@@ -192,11 +192,9 @@ TRAINERS.tablo = function(ctx){
       <button class="stopbtn" id="tbpng" type="button">${L("Resim olarak indir (PNG)", "Download as image (PNG)")}</button>
       <span class="reg" id="tbmsg" aria-live="polite">${L("A4, yazdırmaya hazır", "A4, ready to print")}</span>
     </div>
-    <div class="tbsize"><span class="reg">${L("Şema boyutu", "Chart size")}</span>
-      <div class="seg" role="radiogroup" aria-label="${L("Şema boyutu", "Chart size")}" id="tbsize">
-        <button type="button" role="radio" data-size="s">${L("Küçük", "Small")}</button>
-        <button type="button" role="radio" data-size="m">${L("Orta", "Medium")}</button>
-        <button type="button" role="radio" data-size="l">${L("Büyük", "Large")}</button>
+    <div class="tbsize"><span class="reg">${L("Sütun", "Columns")}</span>
+      <div class="seg" role="radiogroup" aria-label="${L("Sütun sayısı", "Number of columns")}" id="tbsize">
+        ${[1, 2, 3, 4, 5, 6].map(n => `<button type="button" role="radio" data-cols="${n}">${n}</button>`).join("")}
       </div></div>
     ${ROWS.map(([reg, sub, ws], i) => `<div class="label tbreg">${reg} <em>${sub}</em></div><div class="tbgrid" id="tbrow${i}"></div>`).join("")}`;
   const cells = new Map();
@@ -218,13 +216,20 @@ TRAINERS.tablo = function(ctx){
       cells.set(w, b); row.appendChild(b);
     }
   });
-  // Ekrandaki şema boyutu (telefonda 3 / 2 / 1 sütun); indirilen sayfayı etkilemez
-  const setSize = z => {
-    P.dataset.tbsize = z; SK.store.set("tablo.size", z);
-    $("tbsize").querySelectorAll("[data-size]").forEach(b => b.setAttribute("aria-checked", b.dataset.size === z));
+  // Ekrandaki sütun sayısı: telefonda 1–3 (varsayılan 2), daha geniş ekranda 2–6 (varsayılan 4); ikisi ayrı hatırlanır.
+  // İndirilen sayfayı etkilemez.
+  const narrow = window.matchMedia("(max-width:520px)");
+  const range = () => narrow.matches ? { key:"tablo.cols.tel", lo:1, hi:3, def:2 } : { key:"tablo.cols", lo:2, hi:6, def:4 };
+  const setCols = (n, save) => {
+    const r = range(); n = Math.min(r.hi, Math.max(r.lo, +n || r.def));
+    P.style.setProperty("--tbcols", n); if(save) SK.store.set(r.key, n);
+    $("tbsize").querySelectorAll("[data-cols]").forEach(b => {
+      const c = +b.dataset.cols; b.hidden = c < r.lo || c > r.hi; b.setAttribute("aria-checked", c === n);
+    });
   };
-  setSize(["s", "m", "l"].includes(SK.store.get("tablo.size", "m")) ? SK.store.get("tablo.size", "m") : "m");
-  $("tbsize").addEventListener("click", e => { const b = e.target.closest("[data-size]"); if(b) setSize(b.dataset.size); });
+  const loadCols = () => setCols(SK.store.get(range().key, range().def));
+  loadCols(); narrow.addEventListener("change", loadCols);
+  $("tbsize").addEventListener("click", e => { const b = e.target.closest("[data-cols]"); if(b) setCols(b.dataset.cols, true); });
   const live = w => cells.forEach((b, k) => b.classList.toggle("live", k === w));
 
   const msg = $("tbmsg"), btns = [$("tbpdf"), $("tbpng")];
