@@ -663,6 +663,7 @@ TRAINERS.convert = function(ctx){
   const FLAG_MSG = {
     nostaff: () => L("Dizek bulunamadı.", "No staves were found."),
     lowres: () => L("Resim küçük, okuma zayıf olabilir.", "The picture is small; the reading may be poor."),
+    sparse: () => L("Sayfada çok az nota okundu; el yazısı ya da silik olabilir.", "Very few notes were read on this page; it may be handwritten or faint."),
     pianoLowerSkipped: () => L("Piyano notası: yalnızca üst dizek okundu.", "Piano score: only the upper staff was read."),
     repeat: () => L("Tekrarlar bulundu, 'Tekrarları aç' açık.", "Repeats were found; 'Expand repeats' is on.")
   };

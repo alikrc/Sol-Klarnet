@@ -918,8 +918,8 @@ const OMR = (() => {
       if(Math.abs(mid(staves[bi]) - y) <= 9*sp) bucket[bi].push(s);
     }
     for(const i of read) readStaff(staves[i], bucket[i], clean, sp, st);
-    // Dizek sayısına göre çok seyrek okuma (el yazısı, okunamayan basım): notalara güvenilmez
-    if(read.length >= 2 && st.notes.length < 2*read.length) for(const n of st.notes) n.conf *= 0.5;
+    // Okunan dizekten az perdeli nota (el yazısı, silik basım): notalara güvenilmez, "sparse" bayrağı
+    if(read.length >= 2 && st.notes.filter(n => !n.rest).length < read.length){ st.flags.push("sparse"); for(const n of st.notes) n.conf *= 0.5; }
     for(const n of st.notes) n.box = { page, ...toOrig(P, n.box) };
     return st;
   }
