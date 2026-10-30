@@ -5,7 +5,7 @@ internetsiz de açılır ve alan adı ya da `assetlinks.json` gerekmez (TWA yakl
 
 - Paket adı: `com.alikrc.solklarnet` (Play'e ilk yüklemeden sonra değiştirilemez)
 - `minSdk 24` (Android 7), `targetSdk 36`
-- İzinler: `RECORD_AUDIO` (akort), `POST_NOTIFICATIONS` ve `RECEIVE_BOOT_COMPLETED` (günlük hatırlatma); internet izni yok
+- İzinler: `RECORD_AUDIO` (akort), `POST_NOTIFICATIONS` ve `RECEIVE_BOOT_COMPLETED` (günlük hatırlatma), `INTERNET` (yalnızca Nota bul: neyzen.com ve projetsm.com; cleartext yalnızca projetsm.com, `res/xml/network_security_config.xml`)
 - Eklentiler: `@capacitor/filesystem` ve `@capacitor/share` (yedek, kayıt ve rapor paylaşımı), `@capacitor/local-notifications` (hatırlatma; tam zamanlı alarm izni bilerek çıkarıldı)
 - Uygulamada service worker kullanılmaz; arka plana geçince mikrofon kapanır
 
@@ -42,6 +42,6 @@ Web kodunda her değişiklikten sonra `npm run android:sync` çalıştırılmal�
 - **Uygulama simgesi:** `store/play-icon-512.png`
 - **Tanıtım görseli** `store/feature-graphic.png` (1024×500) ve telefon ekran görüntüleri `store/screens/` (`npm run store-shots` yeniden üretir)
 - **Kısa ve uzun açıklama** (Türkçe, İngilizce): [store/listing.md](../store/listing.md)
-- **Veri güvenliği formu:** veri toplanmıyor ve paylaşılmıyor; mikrofon sesi yalnızca cihazda işleniyor; internet izni yok
+- **Veri güvenliği formu:** veri toplanmıyor ve paylaşılmıyor; mikrofon sesi yalnızca cihazda işleniyor; internet yalnızca Nota bul için: giden yalnızca arama sözcüğü ve indirilen notanın adresi (neyzen.com, projetsm.com), kullanıcı verisi gönderilmiyor
 - **İçerik derecelendirmesi:** herkes; kategori: Müzik ve Ses ya da Eğitim
 - Yeni kişisel geliştirici hesaplarında üretime geçmeden önce kapalı test şartı var (Play Console'da güncelini kontrol et)

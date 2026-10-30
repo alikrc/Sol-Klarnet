@@ -777,6 +777,22 @@ svg.score{display:block}
 .cvzoom{position:absolute;top:6px;right:6px;display:flex;gap:4px}
 .cvzoom .stopbtn{min-width:36px;font-size:16px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .cvadd .stopbtn{min-width:40px}
+/* Çevir: Nota bul. Arama kutusu, sonuç listesi ve önizleme */
+.cvfind{margin:0 0 14px;padding:10px 12px 2px;border:1px solid var(--line);border-radius:12px;background:var(--sunk)}
+.cvfind .pbar{margin-bottom:8px}
+#cvq{flex:1 1 200px;min-width:0}
+.cvfind select{max-width:min(100%,240px)}
+.cvres{display:flex;flex-direction:column;gap:4px;max-height:45vh;overflow:auto;margin:0 0 8px}
+.cvres:empty{display:none}
+.cvhit{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;
+  font:600 13px/1.35 var(--ui);cursor:pointer}
+.cvhit small{display:block;font-weight:500;font-size:12px;color:var(--muted);margin-top:2px}
+.cvhit.sel{outline:2.5px solid var(--teal);outline-offset:1px}
+.cvtag{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:999px;border:1px solid var(--line);font-size:11px}
+.cvprev{margin:0 0 8px}
+.cvprevpages{max-height:60vh;overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff;margin:6px 0}
+.cvprevpages:empty{display:none}
+.cvprevpages img{display:block;width:100%}
 /* Uygulama geneli arama */
 .barbtns{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .gsbtn{width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);

@@ -6,6 +6,7 @@
 // flags?, source?, raw?, offset?, manual? } (raw/offset: ses işinde tempo değişince yeniden ızgaraya oturtmak için;
 // pages: [{ url, width, height }] kaynak görünümü; manual: okunamadı, resme bakarak yaz). imagesToPages / pdfToPages / filesToPages: dosya → okuyucu sayfaları.
 // Resim okuma omrworker.js'te (omr.js), Worker yalnızca resim seçilince açılır.
+// Nota bul (en üstte): neyzen.com dizini ve projetsm.com araması (sources.js); ağa yalnızca httpGet çıkar.
 
 // Kaydedilmemiş iş oturum boyunca burada durur: sekmeye dönünce yerinde
 let cvState = null, cvJobSeq = 0;
@@ -96,6 +97,47 @@ async function filesToPages(files, opts = {}){
   }catch(e){ out.forEach(p => URL.revokeObjectURL(p.url)); throw e; }
   return out;
 }
+// ---- Ağ: dışarıya giden bütün http(s) istekleri buradan çıkar (yalnızca Nota bul; arama sözcüğü ve dosya adresi gider) ----
+// Yerelde CapacitorHttp (tarayıcının CORS sınırına takılmaz); web sürümünde yok (e.web). 2xx dışı yanıt hata fırlatır
+// (e.status), bağlantı kurulamazsa e.net. Tarayıcı panelinde denemek için ?debug ile SKDEBUG.httpGet sahteyle değiştirilir.
+const httpNative = () => { const C = window.Capacitor; return (C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.CapacitorHttp) || null; };
+const httpReady = () => !!((window.SKDEBUG && window.SKDEBUG.httpGet) || httpNative());
+async function httpGet(url, opts = {}){
+  const fake = window.SKDEBUG && window.SKDEBUG.httpGet;
+  if(fake) return fake(url, opts);
+  const H = httpNative();
+  if(!H){ const e = new Error("web"); e.web = true; throw e; }
+  let r;
+  try{ r = await H.get({ url, headers: opts.headers || {}, responseType: opts.binary ? "blob" : "text", connectTimeout: 15000, readTimeout: 30000 }); }
+  catch(e){ const x = new Error((e && e.message) || "ağ"); x.net = true; throw x; }
+  if(!(r.status >= 200 && r.status < 300)){ const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+  if(!opts.binary) return typeof r.data === "string" ? r.data : JSON.stringify(r.data);
+  if(r.data instanceof Blob) return r.data;
+  // Yerel katman ikili yanıtı base64 metin olarak verir
+  const h = r.headers || {}, ck = Object.keys(h).find(k => k.toLowerCase() === "content-type");
+  const bin = atob(String(r.data || "")), u8 = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+  return new Blob([u8], { type: ck ? String(h[ck]).split(";")[0].trim() : "" });
+}
+// Blob → telefona kaydet / paylaş (drills.js kayıt paylaşımıyla aynı yol); birden çok dosya tek paylaşımda
+async function cvSaveBlobs(items, title){
+  const P = window.Capacitor && window.Capacitor.Plugins;
+  if(P && P.Filesystem && P.Share){
+    const uris = [];
+    for(const { blob, name } of items){
+      const b64 = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+      uris.push((await P.Filesystem.writeFile({ path:name, data:b64, directory:"CACHE" })).uri);
+    }
+    await P.Share.share(uris.length === 1 ? { title, url:uris[0], dialogTitle:title } : { title, files:uris, dialogTitle:title });
+    return;
+  }
+  for(const { blob, name } of items){
+    const u = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 10000);
+  }
+}
+
 // Dosya adından eser adı önerisi: uzantı ve "_" atılır, ilk iki sözcük büyük harfle ("hicaz_longa_aydin…" → "Hicaz Longa")
 const cvNameOf = file => file.replace(/\.[^.]+$/, "").replace(/[_\-.]+/g, " ").trim().split(/\s+/).slice(0, 2)
   .map(w => w.charAt(0).toLocaleUpperCase("tr") + w.slice(1)).join(" ");
@@ -106,7 +148,29 @@ TRAINERS.convert = function(ctx){
   P.innerHTML = `
     <p class="pdesc">${L("Bir notayı ya da kaydı esere çevir. Okunan notalar aşağıda çip olarak görünür; dokunup düzelt, Dinle ile kontrol et ve kaydet. Okuma telefonda yapılır, dosyalar ve ses cihazdan çıkmaz.",
       "Turn a score or a recording into a piece. The notes read appear below as chips; tap to correct them, check with Listen and save. Reading happens on the phone; files and audio never leave the device.")}</p>
-    <div id="cvfind" hidden></div>
+    <div class="cvfind" id="cvfind">
+      <div class="pbar">
+        <input id="cvq" type="search" placeholder="${L("Nota bul: eser, besteci, makam…", "Find a score: piece, composer, makam…")}" aria-label="${L("Nota bul", "Find a score")}" autocomplete="off" enterkeyhint="search">
+        <button class="primary small" id="cvqgo" type="button">${L("Ara", "Search")}</button>
+      </div>
+      <div class="pbar">
+        <select id="cvqsrc" aria-label="${L("Kaynak", "Source")}"><option value="">${L("Bütün kaynaklar", "All sources")}</option>${Object.keys(SOURCES).filter(k => SOURCES[k].enabled).map(k => `<option value="${k}">${k}.com</option>`).join("")}</select>
+        <select id="cvqmk" aria-label="Makam"><option value="">${L("Bütün makamlar", "All makams")}</option>${MAKAMS.map(m => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
+        ${SOURCES.neyzen.enabled ? `<button class="stopbtn" id="cvqidx" type="button">${L("Dizini yenile", "Refresh the index")}</button>` : ""}
+      </div>
+      <div class="fb" id="cvqmsg" aria-live="polite"></div>
+      <div class="cvres" id="cvres"></div>
+      <div class="cvprev" id="cvprev" hidden>
+        <div class="cvprevhead" id="cvprevhead"></div>
+        <div class="fb" id="cvprevmsg" aria-live="polite"></div>
+        <div class="cvprevpages" id="cvprevpages"></div>
+        <div class="pbar">
+          <button class="primary small" id="cvpconv" type="button" disabled>${L("Çevir", "Convert")}</button>
+          <button class="stopbtn" id="cvpsave" type="button" disabled>${L("Dosyayı kaydet", "Save the file")}</button>
+          <button class="stopbtn" id="cvpclose" type="button">${L("Kapat", "Close")}</button>
+        </div>
+      </div>
+    </div>
     <div class="pbar">
       <button class="stopbtn" id="cvimg" type="button">${L("PDF ya da resim seç", "Choose a PDF or picture")}</button>
       <button class="stopbtn" id="cvaud" type="button">${L("Ses dosyası seç", "Choose an audio file")}</button>
@@ -298,7 +362,8 @@ TRAINERS.convert = function(ctx){
       $("cvrno").addEventListener("click", () => { prog(""); done(null); });
     });
   }
-  async function readImages(files){
+  // meta: Nota bul'dan gelince { name, makam, source } düzeltme ekranına dolu gelir
+  async function readImages(files, meta = {}){
     const id = newJob();
     prog(L("Dosya açılıyor…", "Opening the file…"));
     let pages;
@@ -327,13 +392,187 @@ TRAINERS.convert = function(ctx){
     if(!manual && r.nostaffPages.length && pages.length > 1) flags.push({ tr: "Dizek bulunamayan sayfa atlandı: " + r.nostaffPages.map(p => p + 1).join(", ") + ".",
       en: "Skipped page(s) without staves: " + r.nostaffPages.map(p => p + 1).join(", ") + "." });
     open({ kind:"image", pages: pages.map(({ url, width, height }) => ({ url, width, height })), notes: manual ? [] : r.notes, marks: manual ? [] : r.marks,
-      meter: r.meter, turkish: manual ? undefined : r.turkish, flags, manual, name: cvNameOf(files[0].name) }, id);
+      meter: r.meter, turkish: manual ? undefined : r.turkish, flags, manual, name: meta.name || cvNameOf(files[0].name), makam: meta.makam, source: meta.source }, id);
   }
   $("cvimg").addEventListener("click", () => $("cvpic").click());
   $("cvpic").addEventListener("change", () => {
     const fs = [...$("cvpic").files]; $("cvpic").value = "";
     if(fs.length) readImages(fs);
   });
+
+  // ---- Nota bul: neyzen.com dizini (cihazda, 30 günde bir yenilenir) ve projetsm.com araması (canlı) ----
+  // Arama ve önizleme kendi belirteciyle (findSeq) eskir: yeni arama, yeni önizleme ya da sekmeden çıkış eskiyi atar.
+  // "Çevir" okumayı newJob ile başlatır, yani dosya seçimi ve sekmeden çıkış onu da iptal eder.
+  let findSeq = 0, hits = [], psLast = null, pv = null;   // psLast: { q, rows } son projetsm araması; pv: açık önizleme
+  const NZ_DAYS = 30, NZ_B = SOURCES.neyzen.base, SHOW_MAX = 100;
+  const SITE = { neyzen: "neyzen.com", projetsm: "projetsm.com" };
+  const PS_HTML = { headers: { Accept: "text/html" } };   // projetsm başlıksız istekte HTML yerine JSON/JS döndürüyor
+  const qmsg = (t, cls = "") => { $("cvqmsg").className = "fb " + cls; $("cvqmsg").textContent = t; };
+  const WEB_ONLY = () => L("Nota bul yalnızca telefon uygulamasında çalışır.", "Find a score only works in the phone app.");
+  // Hata → ileti: internet yok, site yanıt vermiyor, ayrıştırıcı boş döndü ("parse")
+  const netErr = (site, e) => site + ": " + (e === "parse" ? L("bu kaynak şu an okunamıyor.", "this source can't be read right now.")
+    : e && e.web ? WEB_ONLY()
+    : !(e && e.status) && navigator.onLine === false ? L("internet bağlantısı yok.", "no internet connection.")
+    : L("site yanıt vermiyor.", "the site isn't responding."));
+
+  // Dizin cihazda sıkıştırılmış saklanır (adresin ortak başı ve kaynak adı atılır): ~8 700 eser ≈ 1,6 milyon karakter
+  let nzMem, nzBusy = null, nzStop = false;
+  const nzPack = r => ({ v:1, date: r.date, complete: r.complete, pagesDone: r.pagesDone.map(u => u.replace(NZ_B, "")),
+    rows: r.entries.map(e => [e.title, e.form, e.composer, e.makam, e.makamId, e.url.replace(NZ_B, "")]) });
+  const nzFull = u => /^https?:/i.test(u) ? u : NZ_B + u;
+  const nzUnpack = s => s && s.v === 1 && Array.isArray(s.rows) ? { date: s.date, complete: !!s.complete, pagesDone: (s.pagesDone || []).map(nzFull),
+    entries: s.rows.map(([title, form, composer, makam, makamId, u]) => ({ title, form, composer, makam, makamId, url: nzFull(u), source:"neyzen" })) } : null;
+  const nzLoad = () => { if(nzMem === undefined) nzMem = nzUnpack(store.get("convert.neyzen", null)); return nzMem; };
+  const nzFresh = x => x && x.complete && Date.now() - Date.parse(x.date) < NZ_DAYS*864e5;
+  // Dizin gerekiyorsa çıkarılır (yoksa, yarımsa ya da eskiyse; force: Dizini yenile). Yarım dizin saklanır, sonraki aramada
+  // eksik sayfalar tamamlanır. Tam dizin yenilenirken yarıda kalırsa eskisi kalır. → { idx, err } (err: hata ya da "parse")
+  function nzEnsure(force){
+    if(nzBusy) return nzBusy;
+    const old = nzLoad();
+    if(!force && nzFresh(old)) return Promise.resolve({ idx: old, err: null });
+    nzStop = false;
+    let lastErr = null;
+    // buildNeyzenIndex sözleşmesi: 2xx dışı yanıtta hata fırlatmalı (httpGet fırlatır); sekmeden çıkınca kalan istekler kesilir
+    const fetchText = async u => {
+      if(nzStop){ lastErr = new Error("iptal"); throw lastErr; }
+      try{ return await httpGet(u); }
+      catch(e){ lastErr = e; throw e; }
+    };
+    const prev = !force && old && !old.complete ? old : null;
+    nzBusy = (async () => {
+      try{
+        const r = await buildNeyzenIndex(fetchText, prev, (k, n) => { if(!nzStop) qmsg(L("Dizin hazırlanıyor ", "Preparing the index ") + k + "/" + n); });
+        let idx = r;
+        if(!r.complete && old && old.complete) idx = old;
+        else if(r.entries.length || r.pagesDone.length){ store.set("convert.neyzen", nzPack(r)); nzMem = r; }
+        const err = r.complete ? (r.entries.length ? null : "parse") : lastErr || "parse";   // hatasız yarım: liste boş çıktı
+        return { idx: idx && idx.entries.length ? idx : null, err };
+      } finally { nzBusy = null; }
+    })();
+    return nzBusy;
+  }
+  // projetsm: sunucuda arama. Hiç satır çıkmadı ve "bulunamadı" da yazmıyorsa sayfa yapısı değişmiş sayılır
+  async function psSearch(q){
+    if(psLast && psLast.q === q) return { rows: psLast.rows, err: null };
+    try{
+      const html = await httpGet(SOURCES.projetsm.base + "search?search=" + encodeURIComponent(q), PS_HTML);
+      const rows = parseProjetsmSearch(html);
+      if(!rows.length && !/bulunamad/i.test(html)) return { rows, err: "parse" };
+      psLast = { q, rows };
+      return { rows, err: null };
+    }catch(e){ return { rows: [], err: e }; }
+  }
+  // force: Dizini yenile (sözcük olmadan da çalışır)
+  async function doSearch(force){
+    const q = $("cvq").value.trim(), id = ++findSeq;
+    closePreview();
+    if(!httpReady()){ hits = []; renderHits(); qmsg(WEB_ONLY(), "bad"); return; }
+    if(!q && !force){ qmsg(L("Aranacak bir sözcük yaz.", "Type a word to search for."), "bad"); return; }
+    const src = $("cvqsrc").value, makamId = $("cvqmk").value || null;
+    const useNz = SOURCES.neyzen.enabled && src !== "projetsm", usePs = SOURCES.projetsm.enabled && src !== "neyzen" && !!q;
+    qmsg(L("Aranıyor…", "Searching…"));
+    const [nz, ps] = await Promise.all([useNz || force ? nzEnsure(force) : null, usePs ? psSearch(q) : null]);
+    if(id !== findSeq) return;
+    const errs = [];
+    let out = [];
+    if(nz){
+      if(nz.idx && useNz && q) out = searchIndex(nz.idx.entries, q, { makamId });
+      // Dizin varsa (yarım ya da eski de olsa) arama yine yapılır; hata ayrıca söylenir
+      if(nz.err && nz.err.message !== "iptal") errs.push(netErr(SITE.neyzen, nz.err) + (nz.idx ? " " + L("Eldeki dizinde arandı.", "Searched the index on hand.") : ""));
+    }
+    if(ps){
+      out = out.concat(ps.rows.filter(r => !makamId || r.makamId === makamId));
+      if(ps.err) errs.push(netErr(SITE.projetsm, ps.err));
+    }
+    hits = out; renderHits();
+    const n = out.length;
+    const head = !q ? L("Dizin hazır.", "The index is ready.") : n ? (n + L(" sonuç", n === 1 ? " result" : " results") + (n > SHOW_MAX ? L(" (ilk " + SHOW_MAX + " gösteriliyor)", " (showing the first " + SHOW_MAX + ")") : "") + ".")
+      : L("Sonuç yok.", "No results.");
+    qmsg([head, ...errs].join(" "), errs.length && !n ? "bad" : "");
+  }
+  function renderHits(){
+    $("cvres").innerHTML = hits.slice(0, SHOW_MAX).map((h, i) => `<button type="button" class="cvhit" data-h="${i}">${esc(h.title)}
+      <small>${[h.form, h.composer, h.makam].filter(Boolean).map(esc).join(" · ")} <span class="cvtag">${SITE[h.source]}</span></small></button>`).join("");
+  }
+  $("cvqgo").addEventListener("click", () => doSearch(false));
+  $("cvq").addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); doSearch(false); } });
+  // Süzgeç değişince arama yinelenir (projetsm yanıtı ve neyzen dizini bellekte, yeniden istenmez)
+  $("cvqsrc").addEventListener("change", () => { if($("cvq").value.trim() && httpReady()) doSearch(false); });
+  $("cvqmk").addEventListener("change", () => { if($("cvq").value.trim() && httpReady()) doSearch(false); });
+  if($("cvqidx")) $("cvqidx").addEventListener("click", () => doSearch(true));
+
+  // Önizleme: neyzen PDF'inin ilk sayfası, projetsm GIF'leri. İndirilen dosyalar Çevir ve Dosyayı kaydet için tutulur.
+  function closePreview(){
+    if(pv) pv.urls.forEach(u => URL.revokeObjectURL(u));
+    pv = null;
+    $("cvprev").hidden = true; $("cvprevpages").replaceChildren();
+    $("cvres").querySelectorAll(".cvhit.sel").forEach(b => b.classList.remove("sel"));
+  }
+  const pvMsg = (t, cls = "") => { $("cvprevmsg").className = "fb " + cls; $("cvprevmsg").textContent = t; };
+  const fileName = u => { const f = String(u).split(/[?#]/)[0].split("/").pop() || "nota"; try{ return decodeURIComponent(f); }catch(e){ return f; } };
+  async function preview(h, btn){
+    closePreview();
+    const id = ++findSeq, isStale = () => id !== findSeq;
+    btn.classList.add("sel");
+    const my = pv = { h, files: [], urls: [] };
+    $("cvprev").hidden = false;
+    $("cvprevhead").innerHTML = `<b>${esc(h.title)}</b> <span class="muted small">${[h.form, h.composer, h.makam].filter(Boolean).map(esc).join(" · ")} · ${SITE[h.source]}</span>`;
+    $("cvpconv").disabled = $("cvpsave").disabled = true;
+    pvMsg(L("Nota indiriliyor…", "Downloading the score…"));
+    try{
+      if(h.source === "neyzen"){
+        const blob = await httpGet(h.url, { binary: true });
+        if(isStale()) return;
+        my.files = [new File([blob], fileName(h.url), { type: "application/pdf" })];
+        pvMsg(L("İlk sayfa açılıyor…", "Opening the first page…"));
+        const pages = await pdfToPages(my.files[0], [1, 1], { isStale });
+        if(isStale()){ pages.forEach(p => URL.revokeObjectURL(p.url)); return; }
+        pages.forEach(p => my.urls.push(p.url));
+      }else{
+        const r = parseProjetsmPiece(await httpGet(h.url, PS_HTML));
+        if(isStale()) return;
+        if(!r.hasScore){ pvMsg(L("Bu eserin notası yok.", "This piece has no score."), "bad"); return; }
+        for(let k=0;k<r.pages.length;k++){
+          pvMsg(L("Nota indiriliyor… ", "Downloading the score… ") + (k + 1) + "/" + r.pages.length);
+          const blob = await httpGet(r.pages[k], { binary: true });
+          if(isStale()) return;
+          my.files.push(new File([blob], fileName(r.pages[k]), { type: blob.type || "image/gif" }));
+          my.urls.push(URL.createObjectURL(blob));
+        }
+      }
+    }catch(e){
+      if(isStale() || (e && e.message === "iptal")) return;
+      pvMsg(e && e.password ? L("Bu PDF parolalı.", "This PDF is password-protected.")
+        : e && (e.web || e.net || e.status) ? netErr(SITE[h.source], e) : L("Nota açılamadı: ", "Couldn't open the score: ") + ((e && e.message) || e), "bad");
+      // İndirilen dosya açılamasa da kaydedilebilir
+      $("cvpsave").disabled = !my.files.length;
+      return;
+    }
+    $("cvprevpages").innerHTML = my.urls.map((u, k) => `<img src="${u}" alt="${L("Sayfa ", "Page ")}${k + 1}">`).join("");
+    pvMsg(h.source === "neyzen" ? L("İlk sayfa. Çevir bütün sayfaları okur.", "First page. Convert reads every page.") : "");
+    $("cvpconv").disabled = $("cvpsave").disabled = false;
+  }
+  $("cvres").addEventListener("click", e => {
+    const b = e.target.closest("[data-h]"); if(!b) return;
+    const h = hits[+b.dataset.h]; if(h) preview(h, b);
+  });
+  $("cvpclose").addEventListener("click", () => { findSeq++; closePreview(); });
+  // Çevir: indirilen dosya okuyucuya; düzeltme ekranı ad, makam ve kaynakla dolu açılır
+  $("cvpconv").addEventListener("click", () => {
+    if(!pv || !pv.files.length) return;
+    const { h, files } = pv;
+    findSeq++; closePreview();
+    readImages(files, { name: h.title, makam: h.makamId || null, source: { site: SITE[h.source], url: h.url } });
+  });
+  $("cvpsave").addEventListener("click", async () => {
+    if(!pv || !pv.files.length) return;
+    const my = pv;
+    try{
+      await cvSaveBlobs(my.files.map(f => ({ blob: f, name: f.name })), my.h.title);
+      if(pv === my) pvMsg(my.files.map(f => f.name).join(", "));
+    }catch(e){ if(pv === my && (!e || e.name !== "AbortError")) pvMsg(L("Kaydedilemedi: ", "Couldn't save: ") + ((e && e.message) || e), "bad"); }
+  });
+  if(!httpReady()) qmsg(WEB_ONLY());
 
   // Dinleyerek yaz: mikrofondan en çok 3 dakika; durdurunca dosyayla aynı yol
   const clockName = () => L("Dinlenen ezgi ", "Melody by ear ") + new Date().toLocaleTimeString(LANG === "en" ? "en" : "tr", { hour:"2-digit", minute:"2-digit" });
@@ -718,6 +957,7 @@ TRAINERS.convert = function(ctx){
     // Sekmeden çıkınca süren okuma ve dinleme iptal edilir; düzeltme ekranı yerinde kalır
     leave(){
       newJob();
+      findSeq++; nzStop = true; closePreview();
       if(listening) endListen();
       playStop();
       if(!/bad/.test($("cvprog").className)) prog("");
