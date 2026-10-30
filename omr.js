@@ -155,12 +155,13 @@ const OMR = (() => {
     if(!line) return { sp:0, line:0, staves:[] };
     let gap = 0; for(let i = Math.max(2, line); i <= H; i++) if(wh[i] > (wh[gap] || 0)) gap = i;
     const sp0 = line + gap;
-    // Satırın en uzun siyah koşusu (≤ 2 piksellik boşluklar kapatılır)
+    // Satırın en uzun siyah koşusu (≤ 2 piksellik boşluklar kapatılır). Satır kendisiyle altındaki satırın birleşimidir:
+    // döndürülüp düzeltilmiş ince çizgi iki satıra bölünebilir.
     const run = new Float64Array(H); let maxRun = 0;
     for(let y = 0; y < H; y++){
       let best = 0, cur = 0, holes = 0;
       for(let x = 0; x < W; x++){
-        if(bits[y*W + x]){ cur += 1 + holes; holes = 0; if(cur > best) best = cur; }
+        if(bits[y*W + x] || (y + 1 < H && bits[(y + 1)*W + x])){ cur += 1 + holes; holes = 0; if(cur > best) best = cur; }
         else if(cur && holes < 2) holes++; else { cur = 0; holes = 0; }
       }
       run[y] = best; if(best > maxRun) maxRun = best;
@@ -169,7 +170,7 @@ const OMR = (() => {
     for(let y = 0; y < H; y++){
       if(run[y] < thr) continue;
       let e = y, s = 0, sy = 0; while(e < H && run[e] >= thr){ s += run[e]; sy += run[e]*e; e++; }
-      if(e - y <= Math.max(2*line + 2, 0.5*sp0)) bands.push(sy/s);
+      if(e - y <= Math.max(2*line + 3, 0.5*sp0)) bands.push(sy/s + 0.5);
       y = e;
     }
     // 5'li gruplar
@@ -334,12 +335,12 @@ const OMR = (() => {
     if(best.head_black && holeOf(comp, bin, mask) >= 0.04) best.head_black *= 0.5;
     let cls = "other", conf = 0, second = 0;
     for(const c in best){ if(best[c] > conf){ second = conf; conf = best[c]; cls = c; } else if(best[c] > second) second = best[c]; }
-    if(conf < 0.35) return { cls:"other", conf, best:cls };
+    if(conf < 0.35) return { cls:"other", conf, best:cls, scores:best };
     if((cls === "rest_1" || cls === "rest_2") && staff){
       const near = y => Math.min(...staff.y.map(l => Math.abs(l - y)));
       cls = near(comp.y) < near(comp.y + comp.h - 1) ? "rest_1" : "rest_2";
     }
-    return { cls, conf, margin:conf - second };
+    return { cls, conf, margin:conf - second, scores:best };
   }
 
   // ---- Sap ayırma: ≥ 2,5 sp dikey koşuların sap kalınlığındaki ince kısmı silinir, kalan lekeler döner ----
@@ -364,13 +365,17 @@ const OMR = (() => {
           ws.sort((a, b) => a - b);
           const lim = Math.min(maxW, ws[ws.length >> 1] + 1);
           // yalnızca ≥ 0,6 sp süren ince kısımlar kesilir: boş başın sapa bitişik kısa yan duvarı kalır
-          // satırda yakında (1,2 sp) başka parça varsa (boş başın öbür duvarı) orası baştır, kesilmez
+          // satırda yakında (1 sp) başka parça varsa (boş başın öbür duvarı) orası baştır, kesilmez
           const alone = (cx, q) => { let a = cx, b = cx; while(a > 0 && m[q*w + a - 1]) a--; while(b < w - 1 && m[q*w + b + 1]) b++;
-            const r = Math.round(1.2*sp);
+            const r = Math.round(1.0*sp);
             for(let k = Math.max(0, a - r); k < a - 1; k++) if(m[q*w + k]) return false;
             for(let k = b + 2; k <= Math.min(w - 1, b + r); k++) if(m[q*w + k]) return false;
             return true; };
-          const narrow = q => [x, x + 1].every(cx => cx >= w || !m[q*w + cx] || (hrun(cx, q) <= lim && alone(cx, q)));
+          // 1,3 sp'den uzun ince kısım baş duvarı olamaz: yanında başka parça (bayrak) olsa da sap sayılır
+          const thin = q => [x, x + 1].every(cx => cx >= w || !m[q*w + cx] || hrun(cx, q) <= lim), long = new Uint8Array(e - y);
+          for(let q = y; q < e; ){ if(!thin(q)){ q++; continue; } let qe = q; while(qe < e && thin(qe)) qe++;
+            if(qe - q >= 1.3*sp) long.fill(1, q - y, qe - y); q = qe; }
+          const narrow = q => [x, x + 1].every(cx => cx >= w || !m[q*w + cx] || (hrun(cx, q) <= lim && (long[q - y] || alone(cx, q))));
           let y0 = -1, y1 = -1;
           for(let q = y; q < e; ){
             if(!narrow(q)){ q++; continue; }
@@ -382,7 +387,7 @@ const OMR = (() => {
             }
             q = qe;
           }
-          if(y0 >= 0 && y1 - y0 >= 0.5*minLen) stems.push({ x:comp.x + x, y0:comp.y + y0, y1:comp.y + y1 });
+          if(y0 >= 0 && y1 - y0 >= 0.3*minLen) stems.push({ x:comp.x + x, y0:comp.y + y0, y1:comp.y + y1 });
         }
         y = e;
       }
@@ -412,7 +417,27 @@ const OMR = (() => {
     hits.sort((a, b) => b.f - a.f);
     const out = [];
     for(const t of hits) if(out.every(o => Math.abs(o.x - t.x) >= 0.8*sp || Math.abs(o.y - t.y) >= 0.8*sp)) out.push(t);
-    return out.map(t => ({ x:comp.x + t.x - Math.round(0.15*sp), y:comp.y + t.y, w:Math.round(s*1.3), h:s, area:Math.round(t.f*s*s), cls:"head_black", conf:0.6 }));
+    return out.map(t => ({ x:comp.x + t.x - Math.round(0.15*sp), y:comp.y + t.y, w:Math.round(s*1.3), h:s, area:Math.round(t.f*s*s), cls:"head_black", conf:0.6, win:true }));
+  }
+
+  // Kiriş: en az 2 sp geniş, sütunlarının çoğunda 0,3–1,9 sp kalın, üst ya da alt kenarı doğruya yakın (eğik şerit;
+  // ikinci kiriş kısa olabilir, asıl kiriş dışta kalır). Yan yana iki nota başında sütun kalınlığı kenarlara doğru
+  // incelir, kenarlar kavislidir.
+  function beamLike(b, bin, sp){
+    if(b.w < 2*sp) return false;
+    const W = bin.width, top = new Float64Array(b.w).fill(-1), bot = new Float64Array(b.w);
+    for(const p of b.pixels){ const x = p % W - b.x, y = (p - p % W)/W; if(top[x] < 0 || y < top[x]) top[x] = y; if(y > bot[x]) bot[x] = y; }
+    const xs = [];
+    for(let x = 0; x < b.w; x++){ if(top[x] < 0) continue; const t = bot[x] - top[x] + 1; if(t >= 0.3*sp && t <= 1.9*sp) xs.push(x); }
+    if(xs.length < 0.85*b.w) return false;
+    const fit = e => {
+      let sx = 0, sy = 0, sxx = 0, sxy = 0; const n = xs.length;
+      for(const x of xs){ sx += x; sy += e[x]; sxx += x*x; sxy += x*e[x]; }
+      const k = (n*sxy - sx*sy)/(n*sxx - sx*sx || 1), c0 = (sy - k*sx)/n;
+      let q = 0; for(const x of xs) q += (e[x] - c0 - k*x)**2;
+      return Math.abs(k) < 0.6 && Math.sqrt(q/n) < 0.15*sp;
+    };
+    return fit(top) || fit(bot);
   }
 
   // ---- Simgeler: bileşenler sınıflanır; sapı olan nota (≥ 2,5 sp yüksek, kalıba uymayan) sapından ayrılır ----
@@ -431,8 +456,10 @@ const OMR = (() => {
           const parts = [];
           for(const b of sp_.blobs){
             const rb = classify(b, bin, sp, near(b));
+            // kiriş: kayan pencere kirişin kalın yerlerini baş sanmasın
+            if(rb.cls === "other" && beamLike(b, bin, sp)){ parts.push({ ...b, cls:"beam", conf:rb.conf }); continue; }
             if(rb.cls === "other" && (b.h > 1.3*sp || b.w > 1.8*sp)){ const hs = blackHeads(b, bin, sp); if(hs.length){ parts.push(...hs); continue; } }
-            parts.push({ ...b, cls:rb.cls, conf:rb.conf });
+            parts.push({ ...b, cls:rb.cls, conf:rb.conf, scores:rb.scores });
           }
           // nota başı sapın bir ucundadır; uçta olmayan baş benzeri leke (ör. bitişik ölçü rakamları) başka şeydir
           const atEnd = p => sp_.stems.some(s => s.x >= p.x - 0.5*sp && s.x <= p.x + p.w + 0.5*sp &&
@@ -445,18 +472,22 @@ const OMR = (() => {
           }
         }
       }
-      return { parts:[{ ...c, cls:r.cls, conf:r.conf }], conf:rc };
+      return { parts:[{ ...c, cls:r.cls, conf:r.conf, scores:r.scores }], conf:rc };
     };
     const res = comps.map(solve);
     if(bin.removed){
       const lab = new Int32Array(W*H).fill(-1); comps.forEach((c, i) => { for(const p of c.pixels) lab[p] = i; });
-      const br = new Uint8Array(bin.bits), maxGap = Math.max(2, 0.9*sp);
+      const br = new Uint8Array(bin.bits), maxGap = Math.max(2, 0.9*sp), pairs = new Set();
       for(let y = 0; y < H; y++){
         let x = 0;
         while(x < W){
           if(!bin.removed[y*W + x]){ x++; continue; }
           let e = x; while(e < W && bin.removed[y*W + e]) e++;
-          if(e - x <= maxGap && x > 0 && e < W && bin.bits[y*W + x - 1] && bin.bits[y*W + e]) for(let q = x; q < e; q++) br[y*W + q] = 1;
+          if(e - x <= maxGap && x > 0 && e < W && bin.bits[y*W + x - 1] && bin.bits[y*W + e]){
+            for(let q = x; q < e; q++) br[y*W + q] = 1;
+            const a = lab[y*W + x - 1], b = lab[y*W + e];
+            if(a >= 0 && b >= 0 && a !== b) pairs.add(Math.min(a, b) + ":" + Math.max(a, b));
+          }
           x = e;
         }
       }
@@ -465,15 +496,467 @@ const OMR = (() => {
         if(ids.size < 2 || ids.size > 4 || g.h > 8*sp || g.w > 4*sp || [...ids].some(i => !res[i])) continue;
         const r = classify(g, bin, sp, near(g));
         if(r.cls !== "other" && r.conf > Math.max(...[...ids].map(i => res[i].conf))){
-          ids.forEach(i => res[i] = null); res.push({ parts:[{ ...g, cls:r.cls, conf:r.conf }], conf:r.conf });
+          ids.forEach(i => res[i] = null); res.push({ parts:[{ ...g, cls:r.cls, conf:r.conf, scores:r.scores }], conf:r.conf });
+        }
+      }
+      // köprüyle bağlı ikililer de ayrıca denenir (öbek komşu başa ya da ölçü çizgisine de köprülenmiş olabilir)
+      for(const pr of pairs){
+        const [a, b] = pr.split(":").map(Number);
+        if(!res[a] || !res[b] || res[a].parts.length > 1 || res[b].parts.length > 1) continue;
+        const A = comps[a], B = comps[b], x = Math.min(A.x, B.x), y = Math.min(A.y, B.y);
+        const g = { x, y, w:Math.max(A.x + A.w, B.x + B.w) - x, h:Math.max(A.y + A.h, B.y + B.h) - y, area:A.area + B.area, pixels:[...A.pixels, ...B.pixels] };
+        if(g.h > 8*sp || g.w > 4*sp) continue;
+        const r = classify(g, bin, sp, near(g));
+        if(r.cls !== "other" && !/^head_/.test(r.cls) && r.conf > Math.max(res[a].conf, res[b].conf)){
+          res[a] = res[b] = null; res.push({ parts:[{ ...g, cls:r.cls, conf:r.conf, scores:r.scores }], conf:r.conf });
         }
       }
     }
     return res.filter(Boolean).flatMap(r => r.parts);
   }
 
+  // ======== İkinci yarı: simgelerden notaya ========
+  // Dizekler → sistemler (yalnızca en üst dizek) → her dizekte soldan sağa: anahtar, donanım, ölçü sayısı, ölçü
+  // çizgileri ve tekrar işaretleri, nota başı + sap + kiriş/bayrak + nokta + değiştirici, sus, bağ, %, segno.
+  // repertoire.js (naturalOf, withAccidental, meterFromBars, barCheck) ilk kullanımda bulunur: Worker'da core.js ve
+  // repertoire.js omr.js'ten önce importScripts ile yüklenir.
+  let REP = null;
+  const rep = () => REP || (REP = typeof module !== "undefined" ? require("./repertoire.js") :
+    { naturalOf, withAccidental, meterFromBars, barCheck });
+  const TARGET_SP = 14;                                 // ağır işler bu dizek aralığında yapılır
+  const ACC_CLS = Object.keys(ACC_K);
+  const WEST_K = { sharp:1, flat:-1, natural:0 };       // Batı notası: yarım ses
+  const FLAT_LIKE = new Set(["flat", "aeu_koma_flat", "aeu_bakiye_flat", "aeu_buyuk_flat"]);
+  const REST_D = { rest_1:4, rest_2:2, rest_4:1, rest_8:0.5, rest_16:0.25 };
+  const MARK_ORDER = { repEnd:0, sectionEnd:1, toSegno:2, segno:3, repStart:4 };
+  const NAT_PC7 = [0, 2, 4, 5, 7, 9, 11], LETTER_TR = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+
+  // Gri resmi f oranında küçültür (alan ortalaması)
+  function downscale(img, f){
+    const W = img.width, H = img.height, g = greyOf(img), w = Math.max(1, Math.round(W*f)), h = Math.max(1, Math.round(H*f));
+    const out = new Uint8Array(w*h), acc = new Float64Array(w), cnt = new Float64Array(w), tx = new Int32Array(W);
+    for(let x = 0; x < W; x++) tx[x] = Math.min(w - 1, Math.floor(x*w/W));
+    let ty = -1;
+    for(let y = 0; y <= H; y++){
+      const t = y < H ? Math.min(h - 1, Math.floor(y*h/H)) : -2;
+      if(t !== ty){
+        if(ty >= 0) for(let x = 0; x < w; x++) out[ty*w + x] = cnt[x] ? Math.round(acc[x]/cnt[x]) : 255;
+        acc.fill(0); cnt.fill(0); ty = t;
+      }
+      if(y === H) break;
+      for(let x = 0; x < W; x++){ acc[tx[x]] += g[y*W + x]; cnt[tx[x]]++; }
+    }
+    return { data:out, width:w, height:h, channels:1 };
+  }
+  // İkilileştirme, ölçek (sp ≈ 14'e küçültme), eğiklik, dizekler
+  function prepare(img){
+    let scale = 1;
+    const sp0 = findStaves(binarize(img, "otsu")).sp;
+    if(sp0 > 1.3*TARGET_SP){ scale = TARGET_SP/sp0; img = downscale(img, scale); }
+    const d = deskew(binarize(img));
+    return { scale, angle:d.angle, bin:d.bin, st:findStaves(d.bin) };
+  }
+  // Düzeltilmiş (döndürülmüş, küçültülmüş) resimdeki kutu → özgün resim pikseli
+  function toOrig(P, b){
+    const cx = P.bin.width/2, cy = P.bin.height/2, a = P.angle*Math.PI/180, c = Math.cos(a), s = Math.sin(a), xs = [], ys = [];
+    for(const [x, y] of [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]]){
+      const dx = x - cx, dy = y - cy; xs.push((cx + dx*c - dy*s)/P.scale); ys.push((cy + dx*s + dy*c)/P.scale);
+    }
+    const x0 = Math.min(...xs), y0 = Math.min(...ys);
+    return { x:Math.round(x0), y:Math.round(y0), w:Math.round(Math.max(...xs) - x0), h:Math.round(Math.max(...ys) - y0) };
+  }
+  const union = (a, b) => { if(!a) return { ...b }; if(!b) return { ...a };
+    const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y); return { x, y, w:Math.max(a.x + a.w, b.x + b.w) - x, h:Math.max(a.y + a.h, b.y + b.h) - y }; };
+  const cxOf = s => s.x + s.w/2, cyOf = s => s.y + s.h/2;
+  // Dizek basamağı (alt çizgi Mi4 = 0) → doğal yazılı nota (MIDI)
+  function natOfStep(step){
+    const idx = 30 + step, l = ((idx % 7) + 7) % 7, o = Math.floor(idx/7);
+    return { w:(o + 1)*12 + NAT_PC7[l], letter:l };
+  }
+
+  // İki dizek ortak dikey çizgiyle (ölçü çizgisi, akolat) bağlı mı: aynı sistem
+  function linked(bin, a, b, sp){
+    const W = bin.width, ya = Math.round(a.y[4]), yb = Math.round(b.y[0]);
+    if(yb - ya > 16*sp) return false;
+    for(let x = Math.max(a.x0, b.x0) - Math.round(sp); x <= Math.min(a.x1, b.x1); x++){
+      if(x < 0 || x + 1 >= W) continue;
+      let miss = 0, y = ya;
+      for(; y <= yb; y++){ if(bin.bits[y*W + x] || bin.bits[y*W + x + 1]) miss = 0; else if(++miss > 2) break; }
+      if(y > yb) return true;
+    }
+    return false;
+  }
+
+  // Bir dizeği okur; olaylar st (sayfa durumu) içine eklenir. Notalar ham: { natW, letter, acc, d, rest, conf, box }
+  function readStaff(S, sy, clean, sp, st){
+    const W = clean.width, H = clean.height, bits = clean.bits;
+    const d8 = (S.y[4] - S.y[0])/8, stepOf = y => (S.y[4] - y)/d8, yOf = s => S.y[4] - s*d8;
+    // dizeğin yatay sınırları dışındaki simgeler (sayfa kenarındaki imza, tarih) okunmaz; son ölçü çizgisinin üstündeki
+    // segno biraz taşabilir
+    sy = sy.filter(s => cxOf(s) >= S.x0 - sp && cxOf(s) <= S.x1 + (s.cls === "segno" ? 2*sp : 0.5*sp));
+    const used = new Set();
+    const small = s => s.w >= 0.15*sp && s.h >= 0.15*sp && s.w <= 0.75*sp && s.h <= 0.75*sp && s.cls !== "stem";
+    // aynı sütunda üst üste ya da arka arkaya gelen sap parçaları (bulanık bayrak sapı böler) tek saptır
+    const stems = [];
+    for(const s of sy.filter(s => s.cls === "stem").sort((a, b) => a.y - b.y)){
+      const t = stems.find(t => Math.abs(t.x - (s.x + s.w/2)) <= 0.4*sp && s.y <= t.y1 + 0.5*sp && s.y + s.h - 1 >= t.y0 - 0.5*sp);
+      if(t){ t.y0 = Math.min(t.y0, s.y); t.y1 = Math.max(t.y1, s.y + s.h - 1); t.parts.push(s); continue; }
+      stems.push({ x:s.x + s.w/2, y0:s.y, y1:s.y + s.h - 1, s, parts:[s] });
+    }
+    // Anahtar
+    const clef = sy.filter(s => s.cls === "clef_g" && s.x < S.x0 + 6*sp).sort((a, b) => a.x - b.x)[0];
+    let hdr = clef ? clef.x + clef.w : S.x0 + 0.5*sp;
+    if(clef) used.add(clef);
+    // Saplı nota başları: sapın bir ucunda (sap yukarıysa başın sağında, baş altta; aşağıysa solunda, baş üstte)
+    const heads = [], headCand = sy.filter(s => /^head_/.test(s.cls) && cxOf(s) > hdr && Math.abs(stepOf(cyOf(s)) - 4) <= 14);
+    for(const t of stems){
+      let best = null;
+      for(const h of headCand){
+        if(used.has(h)) continue;
+        const up = Math.abs(t.x - (h.x + h.w)) <= 0.5*sp && Math.abs(cyOf(h) - t.y1) <= 0.8*sp,
+              dn = Math.abs(t.x - h.x) <= 0.5*sp && Math.abs(cyOf(h) - t.y0) <= 0.8*sp;
+        if(!up && !dn) continue;
+        const sc = h.conf - (h.win ? 0.3 : 0) - (h.cls === "head_whole" ? 0.3 : 0);
+        if(!best || sc > best.sc) best = { h, sc, up };
+      }
+      if(!best) continue;
+      used.add(best.h); t.parts.forEach(p => used.add(p));
+      heads.push({ s:best.h, stem:t, up:best.up, cls:best.h.cls === "head_whole" ? "head_half" : best.h.cls, conf:best.h.win ? 0.5 : best.h.conf });
+    }
+    // başka bir sapın uzak ucundaki "baş" (bulanık bayrağın kalın yeri, kendi sap parçasıyla) baş değildir
+    for(let i = heads.length - 1; i >= 0; i--){ const B = heads[i];
+      const val = h => h.stem.y1 - h.stem.y0 - (h.s.win ? sp : 0);       // uzun sap, kalıba uyan baş önce gelir
+      if(heads.some(A => A !== B && val(A) > val(B) && Math.abs(cxOf(B.s) - A.stem.x) <= sp && Math.abs(cyOf(B.s) - (A.up ? A.stem.y0 : A.stem.y1)) <= 1.3*sp &&
+        Math.abs(cyOf(A.s) - (A.up ? A.stem.y1 : A.stem.y0)) <= 0.8*sp)){ used.delete(B.s); B.stem.parts.forEach(p => used.delete(p)); heads.splice(i, 1); } }
+    // kıvrık uçlu kalın ölçü çizgisinin (‖: ve :‖) kanadı baş değildir: sapı dizeği baştan başa geçen ve 1 sp
+    // yakınında sap olmayan kalın (≥ 2 sütun) tam boy çizgi bulunan baş atılır
+    {
+      const ya = Math.round(S.y[0]), yb = Math.round(S.y[4]), stemCol = new Set();
+      for(const t of stems) for(let x = t.s.x; x < t.s.x + t.s.w; x++) stemCol.add(x);
+      const full = x => { if(x < 0 || x >= W || stemCol.has(x)) return false; let c = 0; for(let y = ya; y <= yb; y++) c += bits[y*W + x]; return c >= 0.92*(yb - ya + 1); };
+      const thickNear = t => { let run = 0; for(let x = Math.round(t.x - sp); x <= Math.round(t.x + sp); x++){ run = full(x) ? run + 1 : 0; if(run >= 2) return true; } return false; };
+      for(let i = heads.length - 1; i >= 0; i--){ const h = heads[i], t = h.stem;
+        if(t.y0 <= S.y[0] + 0.3*sp && t.y1 >= S.y[4] - 0.3*sp && thickNear(t)){ used.delete(h.s); t.parts.forEach(p => used.delete(p)); heads.splice(i, 1); } }
+    }
+    const stemEnds = stems.flatMap(t => [[t.x, t.y0], [t.x, t.y1]]);
+    // Ölçü çizgileri: dizek boyunca (≥ %92) siyah sütunlar (çizgiler silinmiş resimde; saplar ve anahtar hariç)
+    const groups = [];
+    {
+      const ya = Math.round(S.y[0]), yb = Math.round(S.y[4]), n = yb - ya + 1;
+      const xa = Math.max(0, Math.round(S.x0 - sp)), xb = Math.min(W - 2, Math.round(S.x1 + sp)), skip = new Uint8Array(W);
+      for(const t of stems) for(let x = t.s.x - 1; x <= t.s.x + t.s.w; x++) if(x >= 0 && x < W) skip[x] = 1;
+      if(clef) for(let x = clef.x; x < clef.x + clef.w && x < W; x++) skip[x] = 1;
+      const segs = []; let cur = null;
+      for(let x = xa; x <= xb; x++){
+        let c = 0; for(let y = ya; y <= yb; y++) c += bits[y*W + x] | bits[y*W + x + 1];
+        if(c >= 0.92*n && !skip[x]){ if(cur && x === cur.x1 + 1) cur.x1 = x; else segs.push(cur = { x0:x, x1:x }); }
+      }
+      for(const s of segs){
+        if(s.x1 < S.x0 + 0.6*sp) continue;               // sistemin baş çizgisi
+        const g = groups[groups.length - 1];
+        if(g && s.x0 - g.x1 <= 1.2*sp){ g.x1 = s.x1; g.lines.push(s); } else groups.push({ x0:s.x0, x1:s.x1, lines:[s] });
+      }
+      for(const g of groups){
+        // çizgilere değen simgeler (kanatlı kalın çizgi) kullanılmış sayılır
+        sy.forEach(s => { if(!used.has(s) && s.cls !== "stem" && s.cls !== "segno" && s.x <= g.x1 + 1 && s.x + s.w >= g.x0 - 1 && (s.h >= 3*sp || (s.x >= g.x0 - 2 && s.x + s.w <= g.x1 + 3))) used.add(s); });
+        const side = (lo, hi) => {
+          const ds = sy.filter(s => !used.has(s) && small(s) && cxOf(s) >= lo && cxOf(s) <= hi && [3, 5].some(t => Math.abs(stepOf(cyOf(s)) - t) <= 0.8));
+          const ok = ds.some(s => stepOf(cyOf(s)) < 4) && ds.some(s => stepOf(cyOf(s)) > 4);
+          if(ok) ds.forEach(s => used.add(s));
+          return ok;
+        };
+        g.repEnd = side(g.x0 - 1.4*sp, g.x0); g.repStart = side(g.x1 + 1, g.x1 + 1.4*sp);
+        g.double = g.lines.length >= 2;
+      }
+    }
+    // Değiştirici sınıfı: kalıptan ya da bağlamdan (değiştirici boyunda, değiştirici puanı ≥ 0,2)
+    const accAs = s => {
+      if(ACC_K[s.cls] !== undefined) return { cls:s.cls, sure:true };
+      if(s.cls !== "other" || !s.scores || s.h < 1.6*sp || s.h > 3.8*sp || s.w < 0.4*sp || s.w > 1.6*sp) return null;
+      let best = null, b = 0.2; for(const c of ACC_CLS) if((s.scores[c] || 0) > b){ b = s.scores[c]; best = c; }
+      return best ? { cls:best, sure:false } : null;
+    };
+    const accY = (s, cls) => FLAT_LIKE.has(cls) ? s.y + s.h - 0.7*sp : s.y + s.h/2;
+    // Donanım: anahtardan sonra arka arkaya değiştiriciler (hemen sağında aynı yükseklikte baş varsa notanındır)
+    const items = sy.filter(s => !used.has(s) && s.cls !== "stem" && s.cls !== "beam" && cxOf(s) > hdr - 0.2*sp &&
+      s.y + s.h > yOf(14) && s.y < yOf(-6)).sort((a, b) => a.x - b.x);
+    const key = [];
+    let kx = hdr;
+    for(const s of items){
+      if(s.x > kx + 1.5*sp) break;
+      if(small(s) || s.w*s.h < 0.15*sp*sp) continue;
+      const a = accAs(s); if(!a) break;
+      const y = accY(s, a.cls);
+      if(heads.some(h => h.s.x > s.x + s.w - 0.2*sp && h.s.x < s.x + s.w + 1.6*sp && Math.abs(cyOf(h.s) - y) < 0.5*d8)) break;
+      key.push({ cls:a.cls, step:Math.round(stepOf(y)), sure:a.sure }); used.add(s); kx = s.x + s.w;
+    }
+    hdr = Math.max(hdr, kx);
+    // Ölçü sayısı: donanımdan sonra sapsız, dar, orta çizginin iki yanına uzanan küme (ya da rakam)
+    {
+      const bx = groups.length ? groups[0].x0 : Infinity;
+      const rest = items.filter(s => !used.has(s) && !small(s) && s.x >= hdr - 0.2*sp && s.x < Math.min(hdr + 2.5*sp, bx - 0.2*sp));
+      if(rest.length){
+        const cl = [rest[0]]; let x1 = rest[0].x + rest[0].w;
+        for(const s of rest.slice(1)) if(s.x <= x1 + 0.3*sp){ cl.push(s); x1 = Math.max(x1, s.x + s.w); }
+        const y0 = Math.min(...cl.map(s => s.y)), y1 = Math.max(...cl.map(s => s.y + s.h)), x0 = Math.min(...cl.map(s => s.x));
+        // ilk notanın değiştiricisi ölçü sayısı sanılmasın
+        const isHead = cl.some(s => heads.some(h => h.s === s) || ACC_K[s.cls] !== undefined);
+        if(!isHead && (cl.some(s => /^digit_/.test(s.cls)) || (x1 - x0 <= 2.8*sp && y0 <= yOf(5.5) && y1 >= yOf(2.5)))){
+          cl.forEach(s => used.add(s));
+          // aynı sütundaki küçük parçalar da (rakamların kopan uçları)
+          items.forEach(s => { if(s.x >= x0 - 0.2*sp && s.x + s.w <= x1 + 0.2*sp) used.add(s); });
+          hdr = x1;
+        }
+      }
+    }
+    // Sapsız başlar: birlik (deliği olan), uçta sap yoksa
+    for(const h of headCand){
+      if(used.has(h) || h.win || cxOf(h) <= hdr) continue;
+      if(stemEnds.some(([x, y]) => Math.abs(x - cxOf(h)) < h.w/2 + 0.6*sp && Math.abs(y - cyOf(h)) < 0.9*sp)) continue;
+      const st_ = stepOf(cyOf(h));
+      if(st_ < -8 || st_ > 18) continue;
+      if(h.cls === "head_whole" && h.w <= 2.2*sp && h.h >= 0.7*sp && holeOf(h, clean) >= 0.03){
+        used.add(h); heads.push({ s:h, stem:null, cls:"head_whole", conf:h.conf });
+      }
+    }
+    // Ölçü tekrarı (%) ve segno: içlerindeki noktalar artık nokta değildir
+    const inside = (s, b, m) => cxOf(s) >= b.x - m && cxOf(s) <= b.x + b.w + m && cyOf(s) >= b.y - m && cyOf(s) <= b.y + b.h + m;
+    const mreps = sy.filter(s => s.cls === "measure_repeat" && !used.has(s) && Math.abs(stepOf(cyOf(s)) - 4) <= 3 && cxOf(s) > hdr);
+    const segnos = sy.filter(s => s.cls === "segno" && !used.has(s) && stepOf(cyOf(s)) >= 8);
+    for(const b of [...mreps, ...segnos]){ used.add(b); sy.forEach(s => { if(!used.has(s) && small(s) && inside(s, b, 0.4*sp)) used.add(s); }); }
+    // Sapı bulunan başlara: süre, nokta, değiştirici
+    // Kiriş ve bayrak sayısı: sapın uzak ucunda (baştan öteki uç), sapın iki yanındaki sütunlarda uçtan başa doğru
+    // art arda gelen siyah koşular. Kirişler 0,5 sp kalın, 0,75 sp aralıklı; bulanıkta bitişen kirişler koşu boyundan
+    // sayılır. Uçtan uzak (aradaki boşluk > 0,6 sp) koşular (komşu nota başı) sayılmaz.
+    const beamsAt = h => {
+      const t = h.stem, dir = h.up ? 1 : -1, hw = t.s.w/2, sx = Math.round(t.x);
+      // sap ayırma kirişin içinde durur: gerçek uç, sap sütunu siyah kaldıkça ilerlenerek bulunur
+      let tip = h.up ? t.y0 : t.y1;
+      const blk = y => y >= 0 && y < H && (bits[y*W + sx] || (sx > 0 && bits[y*W + sx - 1]) || (sx + 1 < W && bits[y*W + sx + 1]));
+      for(let k = 0; k < 4*sp && blk(tip - dir); k++) tip -= dir;
+      const len = Math.min(3.2*sp, Math.abs(tip - (h.up ? t.y1 : t.y0)) - 0.8*sp);
+      const probe = x => {
+        if(x < 0 || x >= W) return 0;
+        const runs = []; let run = 0, gap = 0, started = false;
+        for(let k = Math.round(-0.3*sp); k <= len; k++){
+          const y = Math.round(tip + dir*k), b = y >= 0 && y < H && bits[y*W + x];
+          if(b){ if(!started && k > 1.8*sp) break; started = true; run++; gap = 0; }
+          else { if(run){ runs.push(run); run = 0; } if(started && ++gap > 0.6*sp) break; }
+        }
+        if(run) runs.push(run);
+        let n = 0; for(const r of runs) if(r >= 0.2*sp) n += Math.max(1, Math.round((r + 0.25*sp)/(0.75*sp)));
+        return n;
+      };
+      let best = 0;
+      for(const off of [-1, 1]){
+        const a = probe(Math.round(t.x + off*(hw + 0.35*sp))), b = probe(Math.round(t.x + off*(hw + 0.65*sp)));
+        // uzak sütun boşsa (düşük çözünürlükte bayrağın ince kuyruğu) yakın sütunun tek koşusu bayraktır
+        best = Math.max(best, b ? Math.min(a, b) : Math.min(a, 1));
+      }
+      return Math.min(best, 4);
+    };
+    const notes = [];
+    for(const h of heads){
+      const s = h.s, cx = cxOf(s), cy = cyOf(s), step = Math.round(stepOf(cy));
+      let base = h.cls === "head_whole" ? 4 : h.cls === "head_half" ? 2 : 1, conf = Math.min(1, h.conf/0.7);
+      if(base === 1){ const nb = beamsAt(h); base = 1/Math.pow(2, nb); }
+      let box = { x:s.x, y:s.y, w:s.w, h:s.h };
+      // nokta: başın sağında, başın ya da üstündeki aralığın hizasında
+      const dot = sy.filter(q => !used.has(q) && small(q) && q.x >= s.x + s.w - 0.2*sp && q.x <= s.x + s.w + 1.6*sp &&
+        cyOf(q) >= cy - 1.0*sp && cyOf(q) <= cy + 0.4*sp && !stems.some(t => t.x > s.x + s.w && t.x < q.x - 1))
+        .sort((a, b) => a.x - b.x)[0];
+      if(dot){ used.add(dot); base *= 1.5; box = union(box, dot); }
+      // değiştirici: başın solunda, 1,8 sp içinde, aynı yükseklikte
+      let acc = null;
+      const accs = sy.filter(q => !used.has(q) && q.x + q.w <= s.x + 0.3*sp && q.x + q.w >= s.x - 1.8*sp)
+        .map(q => ({ q, a:accAs(q) })).filter(o => o.a && Math.abs(accY(o.q, o.a.cls) - cy) <= 0.45*sp)
+        .sort((a, b) => b.q.x - a.q.x);
+      if(accs.length){ acc = accs[0].a; used.add(accs[0].q); box = union(box, accs[0].q); if(!acc.sure) conf *= 0.8; }
+      notes.push({ x:cx, cy, step, d:base, acc:acc && acc.cls, conf, box, s });
+    }
+    // Suslar
+    // birlik/ikilik sus dolu dikdörtgendir (bulanık bağ yayının kalın ortası değil)
+    const solid = s => s.cls !== "rest_1" && s.cls !== "rest_2" || !s.pixels || s.pixels.length >= 0.75*s.w*s.h;
+    const rests = sy.filter(s => REST_D[s.cls] && !used.has(s) && cxOf(s) > hdr && Math.abs(stepOf(cyOf(s)) - 4) <= 5 && solid(s)).map(s => {
+      used.add(s); let d = REST_D[s.cls], box = { x:s.x, y:s.y, w:s.w, h:s.h };
+      const dot = sy.find(q => !used.has(q) && small(q) && q.x >= s.x + s.w - 0.1*sp && q.x <= s.x + s.w + 1.2*sp && Math.abs(cyOf(q) - cyOf(s)) <= 1.2*sp);
+      if(dot){ used.add(dot); d *= 1.5; box = union(box, dot); }
+      return { x:cxOf(s), rest:true, d, conf:Math.min(1, s.conf/0.7), box };
+    });
+    // Bağ yayı: xa–xb sütunlarında, başın 1,8 sp yakınında ince (≤ 0,7 sp) koşulardan sütundan sütuna kopmadan süren,
+    // aralığın ortasından geçen ve en az %40'ını kaplayan şerit (uçları dizek çizgisiyle birlikte silinmiş olabilir).
+    // Düz ve çizgi kalınlığındaki şerit (silinmemiş çizgi kalıntısı) sayılmaz. Simgeye bakılmaz: yay başlara değip
+    // onlarla tek bileşen olsa da bulunur.
+    const arcAt = (xa, xb, cy) => {
+      xa = Math.max(0, Math.round(xa)); xb = Math.min(W - 1, Math.round(xb));
+      const n = xb - xa + 1; if(n < 0.6*sp) return false;
+      const ya = Math.max(0, Math.round(cy - 1.8*sp)), yb = Math.min(H - 1, Math.round(cy + 1.8*sp)), cols = [];
+      for(let x = xa; x <= xb; x++){
+        const rs = []; let r0 = -1;
+        for(let y = ya; y <= yb + 1; y++){ const b = y <= yb && bits[y*W + x];
+          if(b && r0 < 0) r0 = y; else if(!b && r0 >= 0){ if(y - r0 <= 0.7*sp) rs.push([(r0 + y - 1)/2, y - r0]); r0 = -1; } }
+        cols.push(rs);
+      }
+      const tol = Math.max(1.5, 0.2*sp), mid = n >> 1, tried = new Set();
+      for(let c0 = 0; c0 <= mid; c0++) for(const [y0, l0] of cols[c0]){
+        if(tried.has(c0 + ":" + y0)) continue;
+        let last = y0, gap = 0, thick = l0; const path = [[c0, y0]];
+        for(let c = c0 + 1; c < n; c++){
+          let best = null; for(const r of cols[c]) if(Math.abs(r[0] - last) <= tol && (!best || Math.abs(r[0] - last) < Math.abs(best[0] - last))) best = r;
+          if(!best){ if(++gap > Math.max(3, 0.3*sp)) break; continue; }
+          gap = 0; last = best[0]; thick = Math.max(thick, best[1]); path.push([c, best[0]]); tried.add(c + ":" + best[0]);
+        }
+        const [ca, ya_] = path[0], [cb, yb_] = path[path.length - 1];
+        if(cb < mid || cb - ca + 1 < Math.max(0.4*n, 0.6*sp)) continue;
+        let dev = 0; for(const [c, y] of path) dev = Math.max(dev, Math.abs(y - (ya_ + (yb_ - ya_)*(c - ca)/((cb - ca) || 1))));
+        if(dev >= Math.max(1, 0.08*sp) || Math.abs(yb_ - ya_) >= 0.2*sp || thick >= (st.line || 2) + 2) return true;
+      }
+      return false;
+    };
+    const tieBetween = (a, b) => arcAt(a.s.x + a.s.w + 0.1*sp, b.s.x - 0.1*sp, (a.cy + b.cy)/2);
+    // Olaylar soldan sağa
+    const ev = [...notes.map(n => ({ x:n.x, n })), ...rests.map(n => ({ x:n.x, n })), ...groups.map(g => ({ x:(g.x0 + g.x1)/2, g })),
+      ...mreps.map(m => ({ x:cxOf(m), m })), ...segnos.map(s => ({ x:s.x, seg:s }))].sort((a, b) => a.x - b.x);
+    const lastNoteX = Math.max(-1, ...notes.map(n => n.x), ...rests.map(n => n.x));
+    const keyMap = new Map(); key.forEach(k => keyMap.set(natOfStep(k.step).letter, k.cls));
+    if(!key.length && st.prevKey) st.prevKey.forEach((v, k) => keyMap.set(k, v));
+    st.prevKey = keyMap;
+    if(!st.keySig) st.keySig = key;
+    const mark = (kind, i) => st.marks.push({ i, kind });
+    let mem = new Map(), prevStaffNote = null;
+    const closeBar = () => {
+      if(st.cur.from === st.notes.length && !st.cur.sum) return;
+      st.bars.push({ from:st.cur.from, to:st.notes.length, sum:st.cur.sum });
+      st.lastBar = st.notes.slice(st.cur.from);
+      st.cur = { from:st.notes.length, sum:0 }; mem = new Map();
+    };
+    const pitchKey = n => n.natW + ":" + (n.acc && n.acc !== "natural" ? n.acc : "");
+    let firstOnStaff = true;
+    for(const e of ev){
+      if(e.g){
+        const g = e.g;
+        if(g.repEnd || g.repStart || g.double || st.notes.length > st.cur.from || st.cur.sum) closeBar();
+        if(g.repEnd) mark("repEnd", st.notes.length);
+        if(g.repStart) mark("repStart", st.notes.length);
+        if(g.double && !g.repEnd && !g.repStart) mark("sectionEnd", st.notes.length);
+        continue;
+      }
+      if(e.seg){
+        // son notadan sonra ya da dizeğin son ölçü çizgisinin üstünde: "segno'ya git" (Türk notası yazımı)
+        const lastG = groups[groups.length - 1], atEnd = lastG && lastG.x1 >= S.x1 - sp && cxOf(e.seg) >= lastG.x0 - 1.5*sp;
+        if(e.x > lastNoteX || atEnd){ st.endSegno = true; } else mark("segno", st.notes.length);
+        continue;
+      }
+      if(e.m){
+        const box = { x:e.m.x, y:e.m.y, w:e.m.w, h:e.m.h };
+        for(const n of st.lastBar || []){ st.notes.push({ ...n, box, conf:Math.min(n.conf, Math.min(1, e.m.conf/0.7)), copy:true }); st.cur.sum += n.d; }
+        st.repeatSeen = true; prevStaffNote = null;
+        continue;
+      }
+      const n = e.n;
+      if(n.rest){ st.notes.push({ rest:true, d:n.d, conf:n.conf, box:n.box }); st.cur.sum += n.d; prevStaffNote = null; firstOnStaff = false; continue; }
+      const { w:natW, letter } = natOfStep(n.step), lo = natW;
+      if(n.acc) mem.set(lo, n.acc);
+      const acc = n.acc || (mem.has(lo) ? mem.get(lo) : keyMap.get(letter) || null);
+      const raw = { natW, acc, d:n.d, conf:n.conf, box:n.box, explicitAcc:n.acc || null };
+      st.cur.sum += n.d;
+      // uzatma bağı: aynı harfteki önceki notaya yay varsa tek nota olur (ölçü çizgisini geçen bağlı nota
+      // değiştiricisini yeniden yazmasa da önceki notanınkini taşır); dizek sonundan gelen bağ yeni dizeğin ilk notasına
+      const prev = st.notes[st.notes.length - 1], same = prev && !prev.rest && prev.natW === natW;
+      const inStaff = same && prevStaffNote && tieBetween(prevStaffNote, n),
+            fromPrev = same && !inStaff && firstOnStaff && st.tieOut && arcAt(Math.max(hdr + 0.1*sp, n.s.x - 3*sp), n.s.x - 0.1*sp, n.cy);
+      if((inStaff || fromPrev) && !n.acc) raw.acc = prev.acc;
+      if((inStaff || fromPrev) && pitchKey(prev) === pitchKey(raw)){
+        prev.d += n.d; prev.conf = Math.min(prev.conf, n.conf); if(inStaff) prev.box = union(prev.box, n.box);
+      } else st.notes.push(raw);
+      prevStaffNote = n; firstOnStaff = false;
+    }
+    // dizek sonu: ölçü kapanır; son notadan dizek sonuna uzanan yay sonraki dizeğe bağdır
+    closeBar();
+    const ln = notes.length ? notes.reduce((a, b) => b.x > a.x ? b : a) : null;
+    st.tieOut = !!(ln && ln.s.x + ln.s.w + 8*sp >= S.x1 && arcAt(ln.s.x + ln.s.w + 0.1*sp, S.x1 - 0.3*sp, ln.cy));
+    if(st.endSegno){ mark("toSegno", st.notes.length); st.endSegno = false; }
+  }
+
+  // Sayfayı ham notalara okur (perde henüz değiştirici sınıfıyla; Türk/Batı yorumu readPages'te)
+  function readRaw(img, page){
+    const P = prepare(img), { bin, st:S0 } = P, sp = S0.sp;
+    const st = { notes:[], marks:[], bars:[], cur:{ from:0, sum:0 }, flags:[], keySig:null, sp:sp/P.scale, page, line:S0.line };
+    if(!S0.staves.length || !(sp > 0)){ st.flags.push("nostaff"); return st; }
+    if(sp/P.scale < 8) st.flags.push("lowres");
+    const clean = removeStaffLines(bin, S0.staves, S0), syms = symbols(clean, sp, S0.staves);
+    // Sistemler: bağlı dizeklerden yalnızca en üstteki okunur
+    const staves = S0.staves, read = [];
+    for(let i = 0; i < staves.length; i++){
+      if(i > 0 && linked(bin, staves[i - 1], staves[i], sp)){ if(!st.flags.includes("pianoLowerSkipped")) st.flags.push("pianoLowerSkipped"); continue; }
+      read.push(i);
+    }
+    // Her simge en yakın dizeğe (ortasına göre) düşer
+    const mid = s => (s.y[0] + s.y[4])/2, bucket = staves.map(() => []);
+    for(const s of syms){
+      const y = cyOf(s); let bi = 0;
+      for(let i = 1; i < staves.length; i++) if(Math.abs(mid(staves[i]) - y) < Math.abs(mid(staves[bi]) - y)) bi = i;
+      if(Math.abs(mid(staves[bi]) - y) <= 9*sp) bucket[bi].push(s);
+    }
+    for(const i of read) readStaff(staves[i], bucket[i], clean, sp, st);
+    for(const n of st.notes) n.box = { page, ...toOrig(P, n.box) };
+    return st;
+  }
+
+  // Ham notalar → uygulama notaları. Türk notasında ♯/♭ ve AEU işaretleri koma (c = doğal + k), Batı notasında
+  // ♯/♭ yarım ses (c en yakın perde ya da null).
+  function finish(n, turkish){
+    if(n.rest) return { w:null, c:null, d:n.d, rest:true, conf:+n.conf.toFixed(2), box:n.box };
+    const R = rep(), nat = { w:n.natW, c:R.naturalOf({ w:n.natW }).c, d:n.d, rest:false };
+    const k = n.acc ? (turkish ? ACC_K[n.acc] : (WEST_K[n.acc] !== undefined ? WEST_K[n.acc] : Math.sign(ACC_K[n.acc]))) : 0;
+    const p = R.withAccidental(nat, { k, unit:turkish ? "koma" : "semitone" });
+    return { w:p.w, c:p.c, d:n.d, rest:false, conf:+n.conf.toFixed(2), box:n.box };
+  }
+
+  // Sayfalar (gri/RGB/RGBA resimler) → { notes, marks, bars, meter, flags, sp, turkish, keySig }. Worker'da çalışır;
+  // onProgress(bitenSayfa, toplam) her sayfadan sonra çağrılır.
+  function readPages(imgs, opts, onProgress){
+    opts = opts || {};
+    const raws = [];
+    imgs.forEach((img, i) => { raws.push(readRaw(img, (opts.page || 0) + i)); if(onProgress) onProgress(i + 1, imgs.length); });
+    const isAeu = c => /^aeu_/.test(c || "");
+    const turkish = opts.turkish !== undefined ? !!opts.turkish :
+      raws.some(r => (r.keySig || []).some(k => isAeu(k.cls)) || r.notes.some(n => isAeu(n.explicitAcc)));
+    const notes = [], marks = [], bars = [], flags = [];
+    let sp = 0;
+    for(const r of raws){
+      const off = notes.length;
+      r.notes.forEach(n => notes.push(finish(n, turkish)));
+      r.marks.forEach(m => marks.push({ i:m.i + off, kind:m.kind }));
+      r.bars.forEach(b => bars.push({ from:b.from + off, to:b.to + off, sum:b.sum }));
+      r.flags.forEach(f => { if(!flags.includes(f)) flags.push(f); });
+      if(!sp && r.sp && !r.flags.includes("nostaff")) sp = r.sp;
+    }
+    // eserin sonundaki çift çizgi bölüm sonu değildir
+    for(let i = marks.length - 1; i >= 0; i--) if(marks[i].kind === "sectionEnd" && marks[i].i >= notes.length) marks.splice(i, 1);
+    marks.sort((a, b) => a.i - b.i || MARK_ORDER[a.kind] - MARK_ORDER[b.kind]);
+    if((marks.length || raws.some(r => r.repeatSeen)) && !flags.includes("repeat")) flags.push("repeat");
+    const R = rep();
+    let meter, outBars;
+    if(bars.length >= 2){
+      meter = R.meterFromBars(bars.map(b => b.sum));
+      const L = meter[0]*4/meter[1];
+      outBars = bars.map((b, i) => ({ from:b.from, to:b.to, sum:b.sum, ok:Math.abs(b.sum - L) < 1e-6 || (i === 0 && b.sum < L) }));
+    } else {
+      meter = [4, 4];
+      outBars = notes.length ? R.barCheck(notes, meter) : [];
+    }
+    const first = raws.find(r => r.keySig && r.keySig.length);
+    const keySig = first ? first.keySig.map(k => {
+      const nt = natOfStep(k.step), p = finish({ natW:nt.w, acc:k.cls, d:1, conf:1 }, turkish);
+      return { letter:LETTER_TR[nt.letter], step:k.step, cls:k.cls, k:turkish ? ACC_K[k.cls] : WEST_K[k.cls], w:p.w, c:p.c };
+    }) : [];
+    return { notes, marks, bars:outBars, meter, flags, sp:+sp.toFixed(2), turkish, keySig };
+  }
+  const readPage = (img, opts) => readPages([img], opts);
+
   return { CLASSES, ACC_K, GRID:G, binarize, deskew, rotate, findStaves, removeStaffLines, components, gridOf, classify, splitStems, blackHeads,
-    symbols, templates, fromB64, toB64, otsu, holeOf };
+    symbols, templates, fromB64, toB64, otsu, holeOf, beamLike, downscale, readPage, readPages };
 })();
 
 if(typeof module !== "undefined") module.exports = OMR;

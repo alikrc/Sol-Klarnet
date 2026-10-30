@@ -2,7 +2,8 @@
 // 1) Serbest lisanslı SMuFL yazı tiplerinden (Bravura, Leland; testdata/fonts, OFL) her sınıfın glifi sp = 14'te
 //    çizilir, en büyük bağlı bileşeni G×G ızgaraya normalleştirilir (doluluk 0..255) ve boyu sp cinsinden saklanır.
 //    Leland'da AEU koma işaretlerinin bir kısmı (U+E443, U+E444) yok; bu sınıflar için yalnızca Bravura kalıbı vardır
-//    (sentetik sayfalar da onları Bravura'dan çizer).
+//    (sentetik sayfalar da onları Bravura'dan çizer). Değiştiricilerin ayrıca bozuk kalıbı da çıkar (bulanık, 0,6
+//    oranında küçültülmüş glif): düşük çözünürlükte ♯ ile büyük mücenneb diyez gibi yakın çizimler karışmasın.
 // 2) Gerçek örnekler: testdata/omr/ içinde PNG/JPG varsa omr.js ile okunur, bulunan simgeler sınıflarına göre
 //    PNG olarak dökülür (varsayılan: işletim sisteminin geçici klasöründe omr-ornekler/, ya da --out <klasör>) ve
 //    liste.txt yazılır. Kurucu yanlış satırları siler ya da sınıfını düzeltir, sonra
@@ -28,6 +29,9 @@ const CLASS_GLYPHS = {
 };
 for(let d = 0; d <= 9; d++) CLASS_GLYPHS["digit_" + d] = 0xE080 + d;
 const FONTS = { bravura:"Bravura.otf", leland:"Leland.otf" };
+// Bozuk kalıbı da üretilen sınıflar: değiştiriciler (küçük çizim farkları bulanıkta karışır)
+const DEGRADED_CLS = new Set(["sharp", "flat", "natural", "aeu_koma_sharp", "aeu_kucuk_sharp", "aeu_buyuk_sharp", "aeu_koma_flat",
+  "aeu_bakiye_flat", "aeu_buyuk_flat"]);
 
 const fontCache = {};
 const font = n => fontCache[n] || (fontCache[n] = opentype.loadSync(path.join(ROOT, "testdata", "fonts", FONTS[n])));
@@ -52,6 +56,15 @@ function templateOf(img, sp){
   return { g:OMR.toB64(u), dim:[+(c.w/sp).toFixed(3), +(c.h/sp).toFixed(3)] };
 }
 
+// Bozuk örnek: bulanıklaştırılıp küçültülmüş glif (düşük çözünürlüklü tarama, fotoğraf); kalın çizgiler birbirine
+// yaklaşır, değiştiricilerin ince farkları silikleşir
+const DEGRADED = { blur:1, scale:0.6 };
+async function degraded(img){
+  const w = Math.round(img.width*DEGRADED.scale), h = Math.round(img.height*DEGRADED.scale);
+  const { data, info } = await sharp(Buffer.from(img.data), { raw:{ width:img.width, height:img.height, channels:1 } })
+    .blur(DEGRADED.blur).resize(w, h).greyscale().raw().toBuffer({ resolveWithObject:true });
+  return { data:new Uint8Array(data), width:info.width, height:info.height };
+}
 async function fontTemplates(){
   const out = {};
   for(const cls of Object.keys(CLASS_GLYPHS)){
@@ -60,6 +73,7 @@ async function fontTemplates(){
       const img = await renderGlyph(fn, CLASS_GLYPHS[cls], SP);
       if(!img) continue;                             // Leland'da olmayan AEU işaretleri
       out[cls].push(templateOf(img, SP));
+      if(DEGRADED_CLS.has(cls)){ const t = templateOf(await degraded(img), SP*DEGRADED.scale); if(t) out[cls].push(t); }
     }
   }
   return out;
