@@ -23,11 +23,13 @@ Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işl
 
 ## Çalışma bölümü
 
-Alt menü: **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler**, **Çalışma**, **Notalar**, **Ayarlar**.
-**Dersler** ayrı bir sayfadır: Dersler, Yol haritası ve Videolar. **Çalışma** serbest alıştırmaların ana sayfasıdır; sekmeler dört gruptadır:
-**Teknik** (Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Hız, Süsleme), **Makam** (Dizi, Taklit, Seyir, Kulak, Dikte),
-**Eserler** (Nota arşivi, Etüt ve eserler, Eşlik, Kulaktan çıkar, Çevir, Kayıt) ve **İlerleme**. Menü kaydırınca üstte kalır; her grup son açılan
-alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma açılır.
+Alt menüde beş bölüm (`nav.js`): **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler** (Dersler, Yol haritası,
+Videolar), **Çalış** (**Teknik**: Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Hız, Süsleme; **Makam**: Dizi,
+Taklit, Seyir, Kulak, Dikte; **İlerleme**), **Eserler** (Nota arşivi, Eşlik, Etüt ve eserler, Kulaktan çıkar, Çevir, Kayıt) ve **Ayarlar**.
+Her bölüm kendi sayfa yığınını tutar: başka bölüme geçip dönünce kaldığın sayfa açılır, seçili bölüme yeniden dokununca bölümün başına dönülür.
+İç sayfalarda üstte tek satır vardır: ← ve sayfanın adı; yanında "Nasıl kullanılır?" ve metronom/dron alttan açılan panelde. Ekrandaki ← ile
+telefonun geri tuşu hep aynı şeyi yapar: bir sayfa geri; bölümün başında Akort'a, Akort'ta uygulamadan çıkış.
+`?tab=seyir` gibi bir adresle doğrudan bir alıştırma açılır (`&ders=`, `&eser=` ile ders ve eser).
 
 | Sekme | İçerik |
 |---|---|
@@ -48,7 +50,7 @@ alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma 
 | Ritim | Kalıplar ve usuller (Sofyan, Semâî, Düyek, Aksak, Ağır Aksak, Curcuna; oyun havaları: Kasap 2/4, Çiftetelli 8/8, Karşılama ve Roman havası 9/8, Rumeli 7/8); erken/geç ve tutarlılık; metronomsuz iç tempo; hoparlörle ya da çalarak gecikme ayarı |
 | Kulak | Tiz mi pes mi (uyarlanır merdivenle koma eşiği), perde ayırt (ABX, 1 komaya kadar), makam tanı, aralık (Batı aralıkları; bakiye, mücenneb, tanini, artık ikili) |
 | Seyir | Serbest çalma / taksim: perdelerde süre, dizi dışı, güçlü vurgusu, açılış, karar; çalınan **süslemeler** (çarpma, çarpmalı tekrar, mordan, grupetto, tril, kayış, düşüş) ham sesten sayılır |
-| Nota arşivi | Alt menüdeki **Notalar** düğmesiyle açılır. SymbTr'den 2200 eser (155 makam, 88 usul, 56 form), uygulamanın içinde. “Oyun havaları” hızlı süzgeci (karşılama, köçekçe, Rumeli türküsü, sirto, longa, zeybek…). Ad, bestekâr, makam ve usule göre arama; makam, form, usul, bestekâr, seviye, sözlü ve favori süzgeçleri; sıralama. Eser ekranında satırlara bölünmüş ya da tek şerit nota, AEU koma işaretleri, perde adları ve güfte heceleri; çal, notaya dokununca oradan çal, tempo %25–150, A–B ölçü döngüsü, bölüm ve cümle döngüsü, dem (karar perdesi), metronom, usul (düm-tek) ya da orkestra (darbuka, bas, ud) eşliği, melodiyi kapat; mikrofonla takip, **Benimle çal** (orkestra seni izler), tempolu çalma ve merdiven; perde perde transpoze ve oktav, nota boyutu, notayı izle, tam ekran, yazdır; yedi adımlık "Eseri öğren", benzer eserler, son açılanlar ve favoriler; "Eserlerime ekle" |
+| Nota arşivi | **Eserler** bölümünün başında. SymbTr'den 2200 eser (155 makam, 88 usul, 56 form), uygulamanın içinde. “Oyun havaları” hızlı süzgeci (karşılama, köçekçe, Rumeli türküsü, sirto, longa, zeybek…). Ad, bestekâr, makam ve usule göre arama; makam, form, usul, bestekâr, seviye, sözlü ve favori süzgeçleri; sıralama. Eser ekranında satırlara bölünmüş ya da tek şerit nota, AEU koma işaretleri, perde adları ve güfte heceleri; çal, notaya dokununca oradan çal, tempo %25–150, A–B ölçü döngüsü, bölüm ve cümle döngüsü, dem (karar perdesi), metronom, usul (düm-tek) ya da orkestra (darbuka, bas, ud) eşliği, melodiyi kapat; mikrofonla takip, **Benimle çal** (orkestra seni izler), tempolu çalma ve merdiven; perde perde transpoze ve oktav, nota boyutu, notayı izle, tam ekran, yazdır; yedi adımlık "Eseri öğren", benzer eserler, son açılanlar ve favoriler; "Eserlerime ekle" |
 | Etüt ve eserler | Koma işaretli dizek (AEU: koma, bakiye, küçük/büyük mücenneb); 28 özgün etüt (on biri Trakya ve Roman üslubunda: kasap, karşılama, Roman havası, çiftetelli, Rumeli 7/8, Nikriz, süslemeli Ağır Roman, sirto, köçekçe, zeybek, çarpmalı tekrarlı Ağır Roman; biri hızlı, ikisi süslemeli: tril, çarpma, mordan, kayış işaretleri dizekte); kendi eserini yazma; **MusicXML / .mxl içe aktarma** (SymbTr dahil, komalar `<alter>`'den); serbest takip, metronomla tempolu çalma (perde + zamanlama), takipte sıradaki notanın parmağı ve **önceki notadan değişen parmaklar** (kapanan halkalı, kalkan kesik çizgili), %60'tan başlayan tempo merdiveni ve **Benimle çal**: orkestra çaldığın notaları eserdeki yerine eşler; ilk notanla girer, hızlanırsan hızlanır, yavaşlarsan yavaşlar, durursan bekler ve kaldığın ya da biraz ilerideki notadan devam eder |
 | Kayıt | Kayıt, nota dökümü, zaman–koma grafiği (perde eğrisi), pes/tiz/kayma/titreklik işaretleri ve en çok kaçan perdeler, kaydı dosya olarak paylaşma. Kayıtlar cihazda tarihle saklanır (son 50, ★ ile saklananlar silinmez); son kaydı bir ay önceki ya da seçilen bir kayıtla **karşılaştırma**: yan yana dinleme, üst üste perde eğrileri, yerinde nota, ortalama sapma ve ses temizliği farkı |
 | İlerleme | Seri, günlük hedef, son 14 gün, test, uzun ton, entonasyon, ritim, kulak eşiği, seyir, eserler |
@@ -101,7 +103,8 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `skills.js` | Nota başı bulma, ritim, ses kalitesi, dinamik, seyir analizi, kulak eğitimi, süsleme ölçümü, teknik kalıpları, hızlı çalış ölçümü ve tempo merdiveni (tarayıcı + Node) |
 | `pcmring.js` | Mikrofonun son 8 saniyelik ham sesi (AudioWorklet); süsleme denemeleri bundan çözülür |
 | `repertoire.js` | Süreli nota biçimi, AEU koma işaretleri, MusicXML, tempolu çalma değerlendirmesi, etütler (tarayıcı + Node) |
-| `practice.js` | Çalışma bölümünün kabuğu: sekme menüsü, metronom ve dron, sürekli ölçümler, sekmelere verilen ortak yardımcılar |
+| `nav.js` | Gezinme: alt menüdeki beş bölüm, bölüm başına sayfa yığını, tarayıcı geçmişi ve geri tuşu, adres, üst çubuk, alttan açılan panel |
+| `practice.js` | Dersler, Çalış ve Eserler'in ortak kabuğu: bölüm ana sayfaları, metronom ve dron, sürekli ölçümler, sekmelere verilen ortak yardımcılar |
 | `drills.js` | Parmak testi, Uzun ton, Dizi (makam), Taklit, Kayıt ve İlerleme sekmeleri |
 | `lessonview.js` | Dersler sekmesi: ders listesi, ders sayfası ve adım çalıştırıcıları |
 | `trainers.js`, `pieces.js` | Ritim, Kulak, Seyir ve Eserler sekmeleri, yeni ders adımları |

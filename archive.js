@@ -642,7 +642,7 @@ TRAINERS.archive = function(ctx){
     if(cur && cur.learnStep === 6 && res.mode === "tempo"){ cur.learnStep = null; if(res.v >= 60) markStep(6); }
   }
 
-  // Alt menüdeki Notalar düğmesi ve dışarıdan açma: SK.openArchive(id?)
+  // Eserler ana sayfası ve dışarıdan açma: SK.openArchive(id?)
   SK.openArchive = id => { ctx.selectTab("archive"); if(id) loadIndex().then(() => openPiece(id)); };
   // Uygulama geneli arama: dizin (search.js) ve sonuçları arşiv listesinde gösterme (süzgeçler temizlenir)
   SK.archiveIndex = () => loadIndex().then(ix => ix.list);

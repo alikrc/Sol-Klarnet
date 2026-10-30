@@ -1,4 +1,4 @@
-// Çalışma bölümünün kabuğu: sekme menüsü, usullü metronom ve durak sesi (dron), her zaman çalışan ölçümler
+// Dersler, Çalış ve Eserler bölümlerinin ortak kabuğu: bölüm ana sayfaları, usullü metronom ve durak sesi (dron), her zaman çalışan ölçümler
 // (entonasyon, pratik süresi, vibrato, glissando) ve sekmelere verilen ortak yardımcılar (ctx).
 // Sekmeler drills.js, trainers.js, pieces.js ve lessonview.js'te; mikrofon ve ses index.html'deki window.SK üzerinden.
 (function(){
@@ -19,10 +19,9 @@
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // ---- İskelet ----
-  // Alıştırmalar beş gruba ayrılır. Çalışma bir ana sayfayla açılır: bütün alıştırmalar gruplu kartlar halinde,
-  // tek dokunuşla açılır. Alıştırma ekranında üstte geri düğmesi ve grubun diğer alıştırmaları (alt sekmeler) durur.
-  // Dersler grubu (Dersler, Yol haritası, Videolar) alt menüdeki Dersler düğmesiyle açılan ayrı bir sayfadır: ana sayfada
-  // kart olarak görünmez, geri düğmesi yoktur. Mantığı ve verisi lessons.js'te
+  // Alıştırmalar beş gruba ayrılır ve üç bölümde görünür (nav.js): Dersler grubu Dersler bölümünün kökü (segmentle seçilir;
+  // mantığı ve verisi lessons.js'te), Teknik, Makam ve İlerleme Çalış'ın, Eserler grubu Eserler'in ana sayfasında kart olarak.
+  // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
@@ -61,12 +60,12 @@
     videos: L("Hocalardan makam, teknik ve süsleme videoları", "Makam, technique and ornament videos by masters"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
   };
-  // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Alıştırma açılınca başlığın altında
-  // katlanmış durur. Metronom ve dron notları kendi ayar kutularında.
+  // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Üst çubuktaki ? ile alttan açılan panelde
+  // gösterilir. Metronom ve dron notları kendi ayar kutularında.
   const HUB_HELP = L(`<p><b>Hepsini bilmen gerekmiyor.</b> Her gün alt menüdeki <b>Dersler</b>'i sırayla takip et; dersler gereken alıştırmayı
       zamanı gelince kendisi açar. Buradaki kartlar bir konuyu ayrıca çalışmak içindir.</p>
-    <p>Bir karta dokun, alıştırma açılır. Üstteki sekmeler aynı gruptaki diğer alıştırmalardır; “‹ Çalışma” ana sayfaya döner.
-      Çoğu alıştırma mikrofon ister: sağ üstteki <b>Mikrofon</b>'a bas. Her alıştırmanın başında kendi “Nasıl kullanılır?” notu var.</p>
+    <p>Bir karta dokun, alıştırma açılır; sol üstteki ← (ya da telefonun geri tuşu) buraya döner.
+      Çoğu alıştırma mikrofon ister: sağ üstteki <b>Mikrofon</b>'a bas. Her alıştırmanın kendi “Nasıl kullanılır?” notu üstteki <b>?</b> düğmesinde.</p>
     <p><b>Kısa yol haritası:</b></p>
     <ol><li>Her gün Dersler → Bugünün çalışması. Nerede olduğunu Yol haritası gösterir.</li>
       <li>Bir nota hep pes ya da tiz çıkıyorsa Uzun ton, sonra Kayıt ile kendini dinle.</li>
@@ -75,8 +74,8 @@
       <li>Oyun havası için Eşlik'te darbukayla çal; ustaları Kulaktan çıkar ile yavaşlatıp dinle.</li></ol>`,
     `<p><b>You don't need all of them.</b> Follow <b>Lessons</b> in the bottom menu in order every day; lessons open the exercise you need when it's time.
       The cards here are for working on one topic on its own.</p>
-    <p>Tap a card to open the exercise. The tabs at the top are the other exercises in the same group; “‹ Practice” goes back.
-      Most exercises need the microphone: tap <b>Microphone</b> at the top right. Each exercise has its own “How to use” note.</p>
+    <p>Tap a card to open the exercise; ← at the top left (or your phone's back button) comes back here.
+      Most exercises need the microphone: tap <b>Microphone</b> at the top right. Each exercise has its own “How to use” note behind the <b>?</b> button.</p>
     <p><b>A simple route:</b></p>
     <ol><li>Every day: Lessons → Today's practice. The Roadmap shows where you are.</li>
       <li>If a note keeps coming out flat or sharp: Long tone, then listen to yourself with Recording.</li>
