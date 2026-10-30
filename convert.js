@@ -846,13 +846,13 @@ TRAINERS.convert = function(ctx){
     const st = S();
     st.notes = notes.map((n, i) => touched && touched.includes(i) && n.conf != null ? { ...n, conf:1 } : n);
     st.sel = sel === null || !st.notes.length ? null : Math.max(0, Math.min(sel, st.notes.length - 1));
-    st.dirty = true;
+    st.dirty = true; st.textMemo = null;              // metin hali belleği eskidi (işaretler başka yoldan değişti)
     msg(""); render();
   }
   // Tekrar işaretleri ve ölçü başları ("bar") nota eklenip silinince kayar. carryAt: i'de başlayan ölçüye bağla taşan
   // süre; araya nota girince ya da taşan nota silinince sıfırlanır (null), birleştirmede eklenir
-  const shiftMarks = (from, delta) => { S().marks.forEach(m => { if(m.i > from) m.i = Math.max(from, m.i + delta); }); };
-  const carryAt = (i, add) => { S().marks.forEach(m => { if(m.kind === "bar" && m.i === i) m.carry = add === null ? 0 : (m.carry || 0) + add; }); };
+  const shiftMarks = (from, delta) => { S().textMemo = null; S().marks.forEach(m => { if(m.i > from) m.i = Math.max(from, m.i + delta); }); };
+  const carryAt = (i, add) => { S().textMemo = null; S().marks.forEach(m => { if(m.kind === "bar" && m.i === i) m.carry = add === null ? 0 : (m.carry || 0) + add; }); };
   $("cvchips").addEventListener("click", e => {
     const b = e.target.closest("[data-i]"); if(!b) return;
     S().sel = +b.dataset.i; render(); scrollToBox(S().sel);
@@ -923,7 +923,7 @@ TRAINERS.convert = function(ctx){
     const st = S();
     if(st.dirty && !confirm(L("Elle yaptığın düzeltmeler silinecek. Devam edilsin mi?", "Your manual corrections will be lost. Continue?"))) return false;
     const q = quantizeRun(st.raw, { tempo, makam, mode: SK.tuningMode(), offset: st.offset });
-    Object.assign(st, { notes: q.notes, tempo: Math.round(tempo), makam, sel: null, dirty: false });
+    Object.assign(st, { notes: q.notes, tempo: Math.round(tempo), makam, sel: null, dirty: false, textMemo: null });
     return true;
   }
   $("cvtempo").addEventListener("change", () => {
@@ -971,6 +971,8 @@ TRAINERS.convert = function(ctx){
   $("cvsave").addEventListener("click", () => {
     const st = S(); if(!st) return;
     playStop();
+    // metinde okunamayan parça varken notalarda yer tutucu var: kayıt yok
+    if($("cvterr").textContent){ msg(L("Metinde okunamayan nota var (kırmızı ileti). Önce düzelt.", "The text has notes that can't be read (red message). Fix them first."), "bad"); return; }
     let notes = written();
     const bad = rangeIssues(notes);
     if(bad.length){
