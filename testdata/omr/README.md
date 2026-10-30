@@ -6,9 +6,13 @@ Nota okuyucunun (`omr.js`) gerçek notalarla denendiği örnekler. Örnekler tel
 Her örneğin yanında aynı adla bir `.txt` dosyası beklenen notaları uygulamanın nota metniyle, tekrarlar açılmadan,
 yazıldığı gibi tutar. Bu dosya yoksa test yalnızca okunanı yazdırır.
 
-| Dosya | Kaynak | Not |
-|---|---|---|
-| `hicaz_longa_aydin_oran_kemani_nafiz.pdf` | https://www.neyzen.com/nota_arsivi/02_klasik_eserler/034_hicaz/hicaz_longa_aydin_oran_kemani_nafiz.pdf | Tek sayfa, 300 dpi JPEG, şifreli (boş parola). AEU koma bemolü, hâne–teslim, segno, % |
+Yerelde bulunan örnekler (son ölçüm: okunan notaların beklenen `.txt` ile eşleşme oranı):
+
+| Dosya | Eser | Sayfa | Nota | Son ölçüm | Kaynak ve not |
+|---|---|---|---|---|---|
+| `hicaz_longa_aydin_oran_kemani_nafiz.pdf` + `.txt` | Hicâz Longa, Aydın Oran / Kemani Nafiz | 1 | 228 | 1.000 | https://www.neyzen.com/nota_arsivi/02_klasik_eserler/034_hicaz/hicaz_longa_aydin_oran_kemani_nafiz.pdf — 300 dpi JPEG, şifreli (boş parola). AEU koma bemolü, hâne–teslim, segno, % |
+
+Yeni örnek eklerken tabloya satır ekle. Beklenen `.txt` elle ve bağımsız denetlenmedi sayılır.
 
 ## Simge kalıpları
 

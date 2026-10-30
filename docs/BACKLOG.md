@@ -1,5 +1,26 @@
 # Sol Klarnet — Backlog
 
+## Nota çevirici — tamamlandı (30 Ekim 2026)
+
+Tasarım: [2026-10-24-nota-cevirici-design.md](superpowers/specs/2026-10-24-nota-cevirici-design.md) ·
+plan: [2026-10-24-nota-cevirici.md](superpowers/plans/2026-10-24-nota-cevirici.md)
+
+- **Çevir sekmesi** (Eserler; `convert.js`): PDF ya da resimden (`omr.js`, simge kalıpları `omrtemplates.js`; PDF sayfaları
+  pdf.js ile resme çevrilir, yalnızca PDF seçilince yüklenir), ses dosyasından ve "Dinleyerek yaz" ile mikrofondan (en çok
+  3 dakika, 22 050 Hz tek kanal) nota çıkarılır. Her sonuç kaydedilmeden önce düzeltme ekranından geçer: emin olunmayan
+  notalar sarı, süresi tutmayan ölçüler turuncu, yazılı aralık (Mi3–Mi♭7) dışı kırmızı ve kaydı engeller. Okuma ve çözümleme
+  arayüzü dondurmaz, ilerleme gösterilir, sekmeden çıkınca iptal edilir
+- **Nota bul:** neyzen.com ve projetsm.com uygulamanın içinden aranır, nota indirilip doğrudan okunur (`sources.js`; neyzen
+  kaynağı `SOURCES.neyzen.enabled` ile kapatılır). neyzen arama dizini cihazda IndexedDB'de tutulur. Uygulamada internete
+  yalnızca burası çıkar ve yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir
+- Okuyucu sentetik sayfalarda (temiz ve bozulmuş), fotoğraf benzeri sayfalarda ve bir gerçek sayfada (Hicâz Longa, 228 nota)
+  ölçüldü; gerçek sayfada son ölçüm 1.000. Örnekler: [testdata/omr/README.md](../testdata/omr/README.md)
+- **Denenmedi:** gerçek mikrofonla Dinleyerek yaz (tarayıcı panelinde mikrofon kapalı); gerçek dokunmatik cihazda iki
+  parmakla yakınlaştırma; parolalı PDF; gerçek Android/iOS'ta Nota bul (İnsan gerektiren işler, 7); okuyucu eşikleri yalnızca
+  sentetik sayfalar ve tek gerçek sayfayla ayarlandı (9); gerçek klarnet kayıtlarında ses çözümü. Bilinen küçük eksikler:
+  Leland'daki eğik çizgili bemol küçük boyutta düz bemol (−5, olması gereken −4) okunabiliyor; "D.S." yazısı okunmuyor;
+  uzun PDF'lerde sayfa ya da bellek sınırı yok
+
 ## Seni izleyen eşlik — tamamlandı (28 Ekim 2026)
 
 - **Benimle çal** (Etüt ve eserler, nota arşivi; `follow.js`, `pieces.js` `startFollow`): çaldığın notalar eserdeki yerine eşlenir
@@ -126,7 +147,14 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 7. **Nota bul gerçek cihazda denenmedi (30 Ekim 2026):** Arayüz tarayıcı panelinde sahte ağla (curl'den alınmış sayfalar)
    denendi; `CapacitorHttp` ile gerçek arama, neyzen dizininin çıkarılması (89 makam sayfası, ~1,6 milyon karakter;
    IndexedDB'de, yedeğe girmez), projetsm.com'a cleartext istek (Android `network_security_config`, iOS ATS istisnası),
-   GIF/PDF indirme ve "Dosyayı kaydet" paylaşımı `npm run android:apk` ile telefonda denenmeli.
+   GIF/PDF indirme ve "Dosyayı kaydet" paylaşımı `npm run android:apk` ile telefonda denenmeli. Aynı turda gerçek mikrofonla
+   Dinleyerek yaz, dokunmatik ekranda yakınlaştırma ve parolalı bir PDF de denenmeli.
+8. **neyzen.com izni:** Nota bul neyzen.com'dan arar ve nota indirir. Siteyi yapan Mehmet Yücel'den yazılı izin alınmalı,
+   mağazaya çıkmadan önce; izin yoksa `sources.js`'te `SOURCES.neyzen.enabled = false` yapılır (projetsm.com kalır).
+9. **Nota okuyucu eşikleri:** `omr.js` eşikleri sentetik sayfalar, fotoğraf benzeri bozulmuş sayfalar ve tek gerçek sayfayla
+   ayarlandı. Farklı yayınlardan (tarama, ekran görüntüsü, fotoğraf) daha çok gerçek örnek `testdata/omr/` altına konup
+   okuma doğruluğu ölçülmeli, eşikler gerekirse gözden geçirilmeli. Ses çözümü eşikleri de gerçek klarnet kayıtlarıyla
+   denenmeli.
 
 ## Sonraki adımlar (öncelik sırasıyla, 27 Ekim 2026)
 

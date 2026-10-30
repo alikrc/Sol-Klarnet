@@ -3,7 +3,8 @@
 Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için akort, parmak pozisyonu, makam, ritim ve kulak eğitimi
 uygulaması. Klarneti ilk kez eline alan birini taksim yapabilecek, Trakya ve Roman oyun havalarını eşlikle çalabilecek
 seviyeye kadar götüren 77 derslik bir müfredatı, ünite sınavları ve rozetler, aralıklı tekrar ve altı aşamalı bir yol haritası var.
-Mikrofondan çalınan sesi dinler; ses yalnızca cihazda işlenir, uygulama internete bağlanmaz.
+Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işlenir. İnternete yalnızca **Nota bul** çıkar
+(yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir); başka hiçbir özellik internet istemez.
 
 ## Akort ve parmak
 
@@ -36,6 +37,7 @@ alt sekmeyi hatırlar. `?tab=seyir` gibi bir adresle doğrudan bir alıştırma 
 | Dikte | Ritim diktesi (dört notadan duyduğunu seç) ve ezgi diktesi (ilk nota verilir, kalanı perde düğmeleriyle ya da klarnetle çalarak yaz); 3 seviye |
 | Eşlik | Darbuka, bas ve ud (sentez) ile döngüde çal: Roman havası, karşılama, çiftetelli, kasap, Rumeli, sirto, zeybek ve klasik usuller; makam, tempo, durak ↔ güçlü akor değişimi; darbuka tek ölçülerde ikinci çalışa geçer, cümle sonunda dolgu çalar. Mikrofonla usule oturma ve seyir değerlendirmesi. **Grup seni izler:** temponu izler (ara nota başlarının aralığından), susunca bekler, ilk notanla yeniden girer. **Taksimle başla:** grup dem tutar; taksim durakta uzun bir notayla bitip nefes alınınca oyun havasının ilk notasıyla girer (ya da Gir). Etüt ve eserlerde ve nota arşivinde **orkestra** eşliği |
 | Kulaktan çıkar | Ses ya da video dosyasını aç; perdesini bozmadan %25–125 hız (WSOLA), yarım ses ve koma kaydırma, sürükleyerek A–B döngü, işaretler, perde izi ve çalan perdenin adı; seçili bölgeyi Çevir'de notaya dök |
+| Çevir | Notayı eserin kendisine dönüştürür; yapay zekâ ve sunucu yok, okuma telefonda yapılır. **PDF ya da resim seç:** PDF, ekran görüntüsü, tarama ya da fotoğraf (birden çok resim tek esere eklenir; çok sayfalı PDF'te sayfa aralığı sorulur); dizek, nota, süre, ölçü, donanım, tekrar ve AEU koma işaretleri okunur. **Ses dosyası seç** ve **Dinleyerek yaz** (en çok 3 dakika): ezgi notalara bölünür, tempo tahmin edilir, süreler ölçüye oturtulur. Her sonuç kaydedilmeden önce düzeltme ekranından geçer: emin olunmayan notalar sarı, süresi tutmayan ölçüler turuncu, yazılı aralık dışı kırmızı. **Nota bul:** neyzen.com ve projetsm.com'da arar, indirip doğrudan okur (neyzen arama dizini cihazda saklanır). Kaydedilen eser Etüt ve eserler'e girer |
 | Parmak testi | Çal, Bul ve Oku (dizekten okuyup çal) modları; zorlanılan notalar daha sık sorulur |
 | Gör ve bas | Dizekteki notadan adını düşünmeden parmağa: üç notayla başlar; her nota önce adıyla ve soluk parmağıyla gelir, doğru ve hızlı buldukça önce ad, sonra parmak gizlenir, en sonda parmak ancak beklenince çıkar. Hız da ölçülür (çalarak 1,5 sn, ekranda 3 sn); açık notaların hepsi oturunca yeni nota eklenir. Klarnetle çalarak ya da klarnetsiz, ekrandaki şemada deliklere basarak cevaplanır |
 | Uzun ton | Sapma, yayılım, **ses temizliği** ve **ses gücü dengesi**; nota başına rekor |
@@ -105,6 +107,9 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `trainers.js`, `pieces.js` | Ritim, Kulak, Seyir ve Eserler sekmeleri, yeni ders adımları |
 | `band.js` | Eşlik grubu: usul başına darbuka, bas ve ud kalıpları, sentez, Eşlik sekmesi; eser çalarlar için ölçü olayları |
 | `follow.js` | Seni izleyen eşlik: nota başları (`NoteStarts`), tempo haritası (`TempoMap`), eser takipçisi (`ScoreFollower`), notasız tempo izleme (`GrooveTracker`), haritaya göre çalan grup (`FollowBand`) |
+| `convert.js` | Çevir sekmesi: PDF/resim/ses seçimi, düzeltme ekranı, Nota bul arayüzü |
+| `omr.js`, `omrtemplates.js` | Nota okuyucu (dizek, simge kalıpları, perde ve süre) ve Bravura/Leland'dan üretilen kalıplar |
+| `sources.js` | Nota bul: neyzen.com ve projetsm.com ayrıştırıcıları, neyzen dizini (IndexedDB); `SOURCES.neyzen.enabled` ile kapatılır |
 | `transcribe.js` | Kulaktan çıkar: WSOLA zaman uzatma, perde kaydırma, perde izi, sekme |
 | `reading.js` | Deşifre ezgisi, ritim ve ezgi diktesi, aralık soruları; Deşifre ve Dikte sekmeleri, ders adımları |
 | `roadmap.js` | Yol haritası: aşamalar, kilometre taşları, hız tahmini, haftalık görünüm; sekme |
@@ -120,8 +125,14 @@ Parmak verisi ve mandal adları: [Woodwind Fingering Guide — Oehler/Albert](ht
 [mandal açıklaması](https://www.wfg.woodwind.org/clarinet/cl_fing.html). Temel parmaklar `ocl_bas_1–3`, alternatifler
 `ocl_alt_1–4` sayfalarından; Albert sistemde olmayan mandalları kullanan Oehler parmakları alınmadı.
 Fontlar Google Fonts'tan (SIL Open Font License).
+Nota okuyucunun simge kalıpları ve örnek sayfaları: [Bravura](https://github.com/steinbergmedia/bravura) ve
+[Leland](https://github.com/MuseScoreFonts/Leland) yazı tipleri (SIL Open Font License), `testdata/` altında.
 PDF okuma: [pdf.js](https://github.com/mozilla/pdf.js) (pdfjs-dist 4.10.38, Apache 2.0), `vendor/pdfjs/` altında; `npm run vendor`
 ile `node_modules`tan kopyalanır, uygulama yalnızca PDF seçilince yükler.
+
+Nota bul: [neyzen.com](https://www.neyzen.com/) ve [projetsm.com](http://projetsm.com/) nota arşivleri aranır, seçilen dosya
+indirilip cihazda okunur; dosyalar uygulamaya kopyalanmaz. neyzen arama dizini IndexedDB'de saklanır. neyzen.com'dan
+yayın öncesi yazılı izin alınmalıdır (bkz. BACKLOG).
 
 Nota arşivi: [SymbTr](https://github.com/MTG/SymbTr) (M. K. Karaosmanoğlu, "A Turkish makam music symbolic database for
 music information retrieval: SymbTr", ISMIR 2012; Music Technology Group, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.
