@@ -436,13 +436,17 @@
   let active = null, parked = false;    // parked: uygulama arka plana geçince alıştırma durduruldu (aşağıda park)
   const pnav = root.querySelector(".pnav");
   const descs = [];   // telefonda iki satıra kısalan açıklamalar
-  // Ana sayfadan açılan alıştırma tarayıcı geçmişine eklenir: telefonun geri tuşu ana sayfaya döner
-  let pushed = false;
-  function selectTab(id, user){
+  // Gezinme nav.js'te: Nav.register ile hangi sayfanın görüneceği bildirilir. active: sesi ve olayları alan modül;
+  // shown: ekranda görünen sekme (ana sayfadayken null). Alt menüyle başka bölüme geçmek modülü kapatmaz
+  // (ses sürer); başka bir modül açılınca ya da geri tuşuyla sayfadan çıkılınca modülün leave()'i çağrılır.
+  let shown = null;
+  function selectTab(id){
+    // Aynı modüle dönülüyorsa (başka bölümden ya da alt menüden) baştan kurulmaz
+    const keep = active === id && !parked;
     if(active && active !== id && !parked && modules[active].leave) modules[active].leave();
     parked = false;
-    const fromHub = active === null;
-    active = id; store.set("ptab", id); store.set(isLesson(id) ? "ptab.lesson" : "ptab.prac", id);
+    active = id; shown = id;
+    if(SK.nav.secOf(id) === "practice") store.set("ptab.prac", id);
     root.classList.toggle("lessonsmode", isLesson(id));
     $("plabel").textContent = isLesson(id) ? tabName("lessons") : L("Çalışma", "Practice");
     const members = groupOf(id)[2];
@@ -455,91 +459,42 @@
       $("pp-"+t).hidden = t!==id;
     });
     pnav.classList.toggle("single", members.length < 2);
-    closeTools();
-    $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
-    if(modules[id].enter) modules[id].enter();
-    SK.setRoute({ tab:id });
-    fitDescs();
-    markNotes();
-    if(user){
-      const st = history.state || {};
-      // Dersler ayrı sayfadır; ana sayfaya geri dönülecek bir geçmiş kaydı eklenmez
-      if(fromHub && st.view === "practice" && !st.ex && !isLesson(id)){ history.pushState({ view:"practice", ex:id, exPush:true }, ""); pushed = true; }
-      else if(st.view === "practice") history.replaceState({ ...st, ex:id }, "");
-      // Yeni alıştırma baştan görünsün
-      if(fromHub) window.scrollTo(0, 0);
-      else{
-        const top = pnav.getBoundingClientRect().bottom, p = $("pp-"+id).getBoundingClientRect().top;
-        if(p < top) window.scrollBy(0, p - top - 8);
-      }
+    if(!keep){
+      closeTools();
+      $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
+      if(modules[id].enter) modules[id].enter();
     }
+    fitDescs();
   }
-  function showHub(){
-    if(active && !parked && modules[active].leave) modules[active].leave();
-    parked = false;
-    // Alıştırmadan çıkınca sesi kesilir; çubukta kalmasın. Yine de ses sürerse o alıştırmaya yazılır (prevTab).
-    if(active){ prevTab = active; soundTab = null; SK.resetSound(); }
-    active = null; pushed = false;
-    markNotes();
+  // Bölüm ana sayfası. Geri tuşuyla gelindiyse açık modül kapanır; alt menüyle gelindiyse sesi sürer.
+  function showHub(sec, why){
+    if(why === "pop" && active){
+      if(!parked && modules[active].leave) modules[active].leave();
+      // Alıştırmadan çıkınca sesi kesilir; çubukta kalmasın. Yine de ses sürerse o alıştırmaya yazılır (prevTab).
+      prevTab = active; soundTab = null; SK.resetSound();
+      active = null; parked = false;
+    }
+    shown = null;
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
     $("pex").hidden = true; $("phub").hidden = false;
     root.classList.remove("lessonsmode"); $("plabel").textContent = L("Çalışma", "Practice");
-    SK.setRoute({ tab:null });
     const last = store.get("ptab.prac", ""), r = $("hresume");
     r.hidden = !TABS.some(([t]) => t === last) || isLesson(last);
-    if(r.hidden) return window.scrollTo(0, 0);
+    if(r.hidden) return;
     r.dataset.open = last;
     r.innerHTML = `<span><small>${L("Kaldığın yerden devam et", "Pick up where you left off")}</small><b>${tabName(r.dataset.open)}</b></span>${ICON.go}`;
-    window.scrollTo(0, 0);
   }
-  function back(){
-    if(pushed && history.state && history.state.ex) history.back();
-    else{ if(history.state && history.state.ex){ const { ex, ...st } = history.state; history.replaceState(st, ""); } showHub(); }
-  }
-  $("pback").addEventListener("click", back);
-  $("phub").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if(c) selectTab(c.dataset.open, true); });
-  window.addEventListener("popstate", e => {
-    const st = e.state || {};
-    if(st.view !== "practice") return;
-    if(st.ex && TABS.some(([t]) => t === st.ex)){ if(active !== st.ex) selectTab(st.ex); }
-    else if(active) showHub();
-  });
-  // Alt menüde açıkken Çalışma'ya yeniden dokunmak ana sayfaya döndürür; Dersler'den Çalışma'ya geçmek de ana sayfayı açar
-  const navBtn = document.querySelector('.nav [data-view="practice"]');
-  if(navBtn) navBtn.addEventListener("click", () => {
-    if(active && isLesson(active)) setTimeout(() => { back(); markNotes(); });
-    else if(document.body.dataset.view === "practice" && active) back();
-  }, true);
-  pnav.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) selectTab(b.dataset.tab, true); });
-  // Alt menüdeki Notalar ve Dersler: Çalışma'yı nota arşiviyle / dersle açar; o sırada Çalışma değil onlar seçili görünür
-  const notesBtn = $("navnotes"), lessonsBtn = $("navlessons");
-  function markNotes(){
-    const nb = notesBtn, lb = lessonsBtn, pb = document.querySelector('.nav [data-view="practice"]');
-    if(!nb || !lb) return;
-    const inP = document.body.dataset.view === "practice", on = inP && active === "archive", les = inP && !!active && isLesson(active);
-    const cur = (b, v) => v ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current");
-    cur(nb, on); cur(lb, les);
-    if(pb && inP) cur(pb, !on && !les);
-  }
-  if(lessonsBtn) lessonsBtn.addEventListener("click", () => setTimeout(() => {
-    if(active && isLesson(active) && document.body.dataset.view === "practice") window.scrollTo({ top:0, behavior:"smooth" });
-    else{ const t = store.get("ptab.lesson", "lessons"); selectTab(isLesson(t) ? t : "lessons", true); }
-    markNotes();
-  }));
-  if(notesBtn) notesBtn.addEventListener("click", () => setTimeout(() => {
-    if(active === "archive" && document.body.dataset.view === "practice") window.scrollTo({ top:0, behavior:"smooth" });
-    else selectTab("archive", true);
-    markNotes();
-  }));
-  SK.on("view", markNotes);
+  $("pback").addEventListener("click", () => SK.nav.back());
+  $("phub").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if(c) SK.nav.open(c.dataset.open); });
+  pnav.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) SK.nav.open(b.dataset.tab); });
   pnav.addEventListener("keydown", e => {
     const step = {ArrowRight:1, ArrowLeft:-1}[e.key];
     if(!step || !e.target.closest(".psubs")) return;
     e.preventDefault();
     const m = groupOf(active)[2], i = (m.indexOf(active) + step + m.length) % m.length;
-    selectTab(m[i], true); $("tab-"+m[i]).focus();
+    SK.nav.open(m[i]); $("tab-"+m[i]).focus();
   });
-  $("pgoal").addEventListener("click", () => selectTab("progress", true));
+  $("pgoal").addEventListener("click", () => SK.nav.open("progress"));
 
   // Uzun açıklamalar telefonda iki satır; taşıyorsa "devamı" düğmesi
   function fitDescs(){
@@ -810,7 +765,7 @@
     miniChart, paintMini, staffSvg, toneKv, toneTips, markScale, days, intStats, paintHeat, goalText, makamState,
     droneOn: c => { setDrone(c); if(!drone) startDrone(); },
     droneOff: () => { if(drone) stopDrone(); },
-    selectTab: id => selectTab(id, true),
+    selectTab: id => SK.nav.open(id),
     setPlaybackMute: v => { playbackMute = v; },
     setBandFreqs,
     markResetting: () => { resetting = true; } };
@@ -851,38 +806,34 @@
   // başladığında açık olan sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür.
   let soundTab = null, prevTab = null;
   const inPractice = () => document.body.dataset.view === "practice";
-  const openTools = () => { if(!(inPractice() && active)) SK.openTab(active || store.get("ptab", "lessons")); };
+  const openTools = () => { if(!(inPractice() && shown)) SK.openTab(active || store.get("ptab.prac", "quiz")); };
   const mediaIn = id => [...$("pp-" + id).querySelectorAll("audio, video")].some(x => !x.paused && !x.ended);
   SK.addSource(() => {
-    const out = [], toolsHere = inPractice() && !!active;
+    const out = [], toolsHere = inPractice() && !!shown;
     if(met) out.push({ key:"met", title:L("Metronom", "Metronome"), sub:$("metsum").textContent, here:toolsHere, go:openTools, stop:stopMet });
     if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here:toolsHere, go:openTools, stop:stopDrone });
     const age = SK.soundAge();
     if(age < 300 && (active || prevTab)) soundTab = active || prevTab;
     if(soundTab && (age < 2500 || mediaIn(soundTab))){
       const id = soundTab, m = modules[id], sub = m.nowTitle ? m.nowTitle() : "";
-      out.push({ key:"ex", title:tabName(id), sub, here: inPractice() && active === id,
-        go: () => { if(active === id) SK.go("practice"); else SK.openTab(id); }, stop: () => stopTab(id) });
+      out.push({ key:"ex", title:tabName(id), sub, here: inPractice() && shown === id,
+        go: () => SK.openTab(id), stop: () => stopTab(id) });
     }else if(soundTab && !mediaIn(soundTab)) soundTab = null;
     return out;
   });
 
   // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma
   SK.practiceTabs = () => TABS.map(([id, name]) => ({ id, name, blurb: BLURB[id] || "", group: groupOf(id)[1] }));
-  SK.openTab = id => { SK.go("practice"); selectTab(id, true); };
+  SK.openTab = id => SK.nav.open(id);
   $("tbopen").addEventListener("click", () => SK.openTab("tablo"));
 
-  // Ana ekran kısayolu (?tab=rhythm) alıştırmayı doğrudan açar; yoksa ana sayfa
-  // ?ders=<id> Dersler'i (lessonview.js dersi açar), ?eser=<id> nota arşivinde eseri açar
-  const qs = new URLSearchParams(location.search);
-  const qtab = qs.get("eser") ? "archive" : qs.get("ders") ? "lessons" : qs.get("tab");
-  if(qtab === "archive" && qs.get("eser")){
-    SK.openArchive(qs.get("eser"));
-    if(history.state && history.state.view === "practice") history.replaceState({ ...history.state, ex:qtab }, "");
-  }else if(TABS.some(([t]) => t === qtab)){
-    selectTab(qtab);
-    if(history.state && history.state.view === "practice") history.replaceState({ ...history.state, ex:qtab }, "");
-  }else if(isLesson(store.get("ptab", ""))) selectTab(store.get("ptab"));   // en son Dersler açıktıysa oraya dön
-  else showHub();
-  SK.routeReady();
+  // Gezinme (nav.js): hangi sayfanın görüneceğini Nav bildirir; açılışta bağlantıyı ya da son sayfayı Nav açar
+  SK.nav.register({
+    show(sec, e, why){
+      const id = e ? e.page : sec === "lessons" ? SK.nav.lroot() : null;
+      if(id) selectTab(id); else showHub(sec, why);
+    },
+    title: id => { const t = TABS.find(x => x[0] === id); return t && t[1]; }
+  });
+  SK.nav.start();
 })();

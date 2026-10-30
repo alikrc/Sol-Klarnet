@@ -158,7 +158,7 @@
     if(!root.hidden) return;
     items = buildIndex();
     root.hidden = false; document.body.classList.add("modal");
-    history.pushState({ ...(history.state || {}), gs:1 }, ""); pushed = true;
+    history.pushState({ ...(history.state || {}), gs:1, i:((history.state && history.state.i) || 0) + 1 }, ""); pushed = true;
     input.value = ""; render(); input.focus();
     loadPieces();
   }

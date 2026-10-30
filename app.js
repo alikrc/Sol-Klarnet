@@ -527,7 +527,7 @@
   }, 100);
   sources.push(() => current !== null && stripNote ? [{ key:"note", title:L("Nota şeridi", "Note strip"),
     sub: noteName(current)[LANG === "en" ? "en" : "tr"] + (analyze(perdeFreq(current, T), T).perde ? " · " + analyze(perdeFreq(current, T), T).perde.name : ""),
-    here: view === "tune" || view === "finger", go: () => go("tune"), stop: stopSound }] : []);
+    here: view === "tune" || view === "finger", go: () => SK.go("tune"), stop: stopSound }] : []);
 
   let actx = null, wave = null, synthUntil = 0;
   const voices = new Map();
@@ -905,31 +905,13 @@
   }
   btn.addEventListener("click", () => running ? stop() : start());
 
-  // ---- Görünümler: Akort (ve Parmak) / Çalışma (ve Dersler, Notalar) / Ayarlar ----
-  // Ana görünüm Akort'tur. Başka görünüme geçiş geçmişe bir kayıt ekler; böylece Android geri tuşu
-  // (ve tarayıcı geri tuşu) önce Akort'a döner, sonra uygulamadan çıkar. Görünümler arası geçişte
-  // her görünümün kaydırma konumu korunur.
+  // ---- Görünümler: tune, finger, practice, settings, review ----
+  // Hangi görünümün açılacağına, geçmişe ve adrese nav.js karar verir; burada yalnızca görünüm çizilir.
+  // Görünümler arası geçişte her görünümün kaydırma konumu korunur (nav.js sayfa konumunu sonra ayrıca kurar).
   const VIEWS = ["tune", "finger", "practice", "settings", "review"];
-  const navBtns = document.querySelectorAll(".nav [data-view]");
   const wide = window.matchMedia("(min-width:1100px)");   // geniş ekranda parmak şeması akortla yan yana
   const scrollPos = {};
   let view = "tune";
-  // Adres: her sayfanın kendi bağlantısı olur (paylaşılabilir, yeniden yüklenince aynı sayfa açılır).
-  // ?view=finger|practice|settings|review; Çalışma'da ?tab=quiz, derste ?tab=lessons&ders=<id>, eserde ?tab=archive&eser=<id>.
-  // Modüller ayrıntıyı SK.setRoute ile bildirir; adres geçmişe kayıt eklemeden güncellenir.
-  // Açılışta modüller bağlantıyı okuyana kadar (practice.js sonunda SK.routeReady) adrese dokunulmaz
-  const route = { tab:null, ders:null, eser:null };
-  let routeOn = false;
-  function syncUrl(){
-    if(!routeOn) return;
-    const q = new URLSearchParams();
-    if(view === "practice"){
-      if(route.tab){ q.set("tab", route.tab); if(route.tab === "lessons" && route.ders) q.set("ders", route.ders); if(route.tab === "archive" && route.eser) q.set("eser", route.eser); }
-      else q.set("view", "practice");
-    }else if(view !== "tune") q.set("view", view);
-    const url = location.pathname + (q.toString() ? "?" + q : "") + (view === "tune" ? location.hash : "");
-    if(url !== location.pathname + location.search + location.hash) history.replaceState(history.state, "", url);
-  }
   function setView(v){
     if(!VIEWS.includes(v)) v = "tune";
     if(v === "finger" && wide.matches) v = "tune";
@@ -937,45 +919,14 @@
     scrollPos[view] = window.scrollY;
     view = v;
     document.body.dataset.view = v;
-    // Uzman kontrolü Ayarlar'ın, parmak şeması Akort'un alt sayfası (üstteki Akort / Parmak geçişiyle açılır)
-    const navV = v === "review" ? "settings" : v === "finger" ? "tune" : v;
-    navBtns.forEach(b => b.dataset.view === navV ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     $("tftune").setAttribute("aria-selected", v !== "finger"); $("tffinger").setAttribute("aria-selected", v === "finger");
-    if(v !== "settings" && v !== "review") store.set("view", v);
     applyCtx();
     emit("view", { v });
     window.scrollTo(0, scrollPos[v] || 0);
     drawTrace();                                         // gizliyken boyutu 0'dı
     if(v === "finger" || v === "tune") centerInRail(railActive, false);
-    syncUrl();
   }
-  function go(v){
-    if(v === view || (v === "finger" && wide.matches)) return;
-    // Alıştırma açılırken geçmişe ikinci bir kayıt eklenir (exPush): Akort'a dönerken o da geri alınır
-    const st = history.state || {};
-    if(v === "tune"){
-      if(st.view && st.view !== "tune") history.go(st.exPush ? -2 : -1);
-      else setView("tune");
-      return;
-    }
-    if(view === "tune") history.pushState({view:v}, "");
-    else history.replaceState(st.exPush ? {view:v, exPush:true} : {view:v}, "");
-    setView(v);
-  }
-  window.addEventListener("popstate", e => setView(e.state && e.state.view || "tune"));
-  navBtns.forEach(b => b.addEventListener("click", () => {
-    if(b.dataset.view === view) window.scrollTo({top:0, behavior:"smooth"});   // aynı sekmeye dokununca başa dön
-    else go(b.dataset.view);
-  }));
-  document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g) go(g.dataset.goto); });
-  wide.addEventListener("change", () => { if(wide.matches && view === "finger") go("tune"); else drawTrace(); });
-  // Açılışta son kullanılan görünüme dön (#nota= bağlantısı akortu açar)
-  history.replaceState({view:"tune"}, "");
-  // Ana ekran kısayolları ?view=practice&tab=rhythm gibi açar (manifest shortcuts)
-  const qs = new URLSearchParams(location.search);
-  const startView = /nota=/.test(location.hash) ? "tune" : ["tab", "ders", "eser"].some(k => qs.has(k)) ? "practice"
-    : VIEWS.includes(qs.get("view")) ? qs.get("view") : store.get("view", "tune");
-  if(startView !== "tune") go(startView);
+  wide.addEventListener("change", () => { if(wide.matches && view === "finger") SK.go("tune"); else drawTrace(); });
 
   // ---- Çalışma modülleri (practice.js) için arayüz ----
   // Olaylar: "raw" her ölçüm {t, freq, comma}; "note" kararlı nota {t, r}; "silence" {t};
@@ -1003,9 +954,7 @@
     windowSec: () => analyser && ctx ? winLen / ctx.sampleRate : 0,
     audioCtx,
     T, inst,
-    go,
-    setRoute(r){ Object.assign(route, r); syncUrl(); },
-    routeReady(){ routeOn = true; syncUrl(); },
+    showView: setView,                                   // nav.js çağırır; SK.go ve SK.setRoute nav.js'te
     // Çalışma bölümü makam dersi/alıştırması sürerken akort bağlamını geçici olarak o makama kurar
     setTempContext(mkId){ tempCtx = mkId ? { mk: mkId } : null; applyCtx(); },
     tuningMode: () => ctxNow().mode,
