@@ -411,6 +411,7 @@
   }
   // Metronom ve dron üst çubuktaki ikondan alttan açılan panelde (nav.js openSheet) durur
   const toolsEl = root.querySelector(".tools");
+  document.getElementById("sheetbody").appendChild(toolsEl); toolsEl.hidden = true;
   const closeTools = () => toolsEl.querySelectorAll(".tool").forEach(tool => setToolOpen(tool, false));
   toolsEl.querySelectorAll(".tool").forEach(tool => {
     setToolOpen(tool, false);
@@ -435,7 +436,8 @@
   const helpFor = () => shown ? HELP[shown] : SK.nav.sec() === "practice" ? HUB_HELP : "";
   function paintIcons(){
     $("navhelp").hidden = !helpFor();
-    $("navtools").hidden = !(shown && TOOLS_ON.includes(shown));
+    // Dersler'in kökünde (liste) değil, açık derste
+    $("navtools").hidden = !(shown && TOOLS_ON.includes(shown) && !(shown === "lessons" && !SK.nav.top()));
   }
   $("navhelp").addEventListener("click", () => { helpEl.innerHTML = helpFor(); SK.nav.openSheet(L("Nasıl kullanılır?", "How to use"), helpEl); });
   $("navtools").addEventListener("click", () => SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl));
@@ -810,7 +812,7 @@
   // başladığında açık olan sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür.
   let soundTab = null, prevTab = null;
   const inPractice = () => document.body.dataset.view === "practice";
-  const toolsHere = () => inPractice() && TOOLS_ON.includes(shown);
+  const toolsHere = () => inPractice() && !$("navtools").hidden;
   const openTools = () => {
     if(!toolsHere()) SK.openTab(TOOLS_ON.includes(active) ? active : store.get("ptab.prac", "quiz"));
     SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl);

@@ -158,8 +158,11 @@ TRAINERS.archive = function(ctx){
     ["arfmk","arff","arfu","arfb","arflv"].forEach(id => { $(id).value = ""; });
     $({ mk:"arfmk", f:"arff", u:"arfu", b:"arfb" }[key]).value = value;
     $("arq").value = ""; $("arffav").checked = false; quick = "all"; shown = 40;
-    showList(); $("arfilt").open = true;
+    $("arfilt").open = true;
+    // Eser alt sayfa olarak açık: geri adımı listeyi gösterir (süzgeçler kurulu)
+    if(onPieceSub()) SK.nav.back(); else showList();
   }
+  const onPieceSub = () => { const t = SK.nav.top(); return !!(t && t.sub && t.sub.startsWith("eser:")); };
   function showList(){
     closePiece();
     $("arlist").hidden = false; $("arpiece").hidden = true;
@@ -176,6 +179,8 @@ TRAINERS.archive = function(ctx){
   async function openPiece(id){
     const e = byId(id);
     if(!e) return;
+    // Eser, arşivin alt sayfasıdır: üst çubukta adı ve ←; geri tuşu listeye döner. Eserden esere geçiş geri adımı eklemez
+    (onPieceSub() ? SK.nav.replaceSub : SK.nav.pushSub)("eser:" + id, e.t, showList);
     closePiece();
     $("arlist").hidden = true;
     const box = $("arpiece"); box.hidden = false;
@@ -207,7 +212,6 @@ TRAINERS.archive = function(ctx){
     const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent([e.t, e.b].filter(Boolean).join(" "));
     $("arpiece").innerHTML = `
       <div class="pbar arhead">
-        <button type="button" class="pback" id="arback">${L("‹ Arşiv", "‹ Archive")}</button>
         <button type="button" class="stopbtn" id="arfav" aria-pressed="${fv.has(e.id)}">${fv.has(e.id) ? "★ " + L("Favoride", "Favourite") : "☆ " + L("Favorilere ekle", "Add to favourites")}</button>
         <button type="button" class="stopbtn" id="aradd">${L("Eserlerime ekle", "Add to my pieces")}</button>
       </div>
@@ -276,7 +280,6 @@ TRAINERS.archive = function(ctx){
         ${e.mb ? ` · <a href="https://musicbrainz.org/work/${esc(e.mb)}" target="_blank" rel="noopener">MusicBrainz</a>` : ""}
         · <a href="${yt}" target="_blank" rel="noopener">${L("YouTube'da dinle", "Listen on YouTube")}</a></p>`;
 
-    $("arback").addEventListener("click", showList);
     $("arfav").addEventListener("click", () => {
       const f = favs(); f.has(e.id) ? f.delete(e.id) : f.add(e.id); store.set("arch.fav", [...f]);
       const on = f.has(e.id);
@@ -644,7 +647,7 @@ TRAINERS.archive = function(ctx){
   // Uygulama geneli arama: dizin (search.js) ve sonuçları arşiv listesinde gösterme (süzgeçler temizlenir)
   SK.archiveIndex = () => loadIndex().then(ix => ix.list);
   SK.searchArchive = q => {
-    SK.go("practice"); ctx.selectTab("archive");
+    ctx.selectTab("archive");
     loadIndex().then(() => {
       ["arfmk","arff","arfu","arfb","arflv"].forEach(id => { $(id).value = ""; });
       $("arflyr").checked = $("arffav").checked = false; $("arq").value = q; quick = "all"; shown = 40;

@@ -442,7 +442,8 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 @media(max-width:700px){.lsgrid{grid-template-columns:1fr}}
 .lsside{display:flex;flex-direction:column;gap:8px}
 .lslist{display:flex;flex-direction:column;gap:2px;background:var(--sunk);border-radius:10px;padding:6px}
-@media(max-width:700px){.lslist{max-height:260px;overflow-y:auto}}
+/* Telefonda liste ve ders ayrı sayfa (ders alt sayfa olarak açılır) */
+@media(max-width:700px){.lsgrid:not(.open) .lsbody{display:none}.lsgrid.open .lsside,#pp-lessons.lsopen > .pdesc,#pp-lessons.lsopen > .pmore{display:none}}
 .lsunit{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600;padding:10px 8px 4px}
 .lsitem{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:0;background:transparent;
   color:var(--ink);font:500 13px/1.3 var(--ui);padding:7px 8px;border-radius:7px}

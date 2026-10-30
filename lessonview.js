@@ -58,14 +58,23 @@ TRAINERS.lessons = function(ctx){
   }
   $("lslist").addEventListener("click", e => {
     const b = e.target.closest("[data-id]"); if(!b || b.disabled) return;
-    open(b.dataset.id === "daily" ? dailyLesson() : lessonById(b.dataset.id));
-    if(window.matchMedia("(max-width:700px)").matches) $("lsbody").scrollIntoView({ block:"start" });
+    openSub(b.dataset.id === "daily" ? dailyLesson() : lessonById(b.dataset.id));
   });
+  // Ders, Dersler'in alt sayfasıdır: üst çubukta adı ve ←. Telefonda ders açıkken liste gizlenir; geniş ekranda yan yana kalır.
+  // Geri tuşu dersi bırakır (adım durur), son açılan ders geniş ekranda gösterilmeye devam eder.
+  const grid = P.querySelector(".lsgrid");
+  function openSub(l){
+    const t = SK.nav.top(), sub = "ders:" + l.id;
+    open(l);
+    (t && t.sub ? SK.nav.replaceSub : SK.nav.pushSub)(sub, tx(l.title), closeSub);
+    grid.classList.add("open"); P.classList.add("lsopen");
+  }
+  function closeSub(){ stopRun(); grid.classList.remove("open"); P.classList.remove("lsopen"); SK.setRoute({ ders:null }); }
   // Arama: SK.lessonOpen(id) ders açık mı; SK.openLesson(id) Dersler'i açar, ders açıksa dersi gösterir
   SK.lessonOpen = id => { const l = lessonById(id); return !!l && unlocked(l, prog, allOpen); };
   SK.openLesson = id => {
-    SK.go("practice"); ctx.selectTab("lessons");
-    if(SK.lessonOpen(id)) open(lessonById(id));
+    ctx.selectTab("lessons");
+    if(SK.lessonOpen(id)) openSub(lessonById(id));
   };
   $("lsall").checked = allOpen;
   $("lsall").addEventListener("change", () => { allOpen = $("lsall").checked; store.set("lesson.all", allOpen); renderList(); renderNext(); });
@@ -147,7 +156,7 @@ TRAINERS.lessons = function(ctx){
   $("lsbody").addEventListener("click", e => {
     const b = e.target.closest("[data-act]"); if(!b) return;
     const act = b.dataset.act, i = +b.dataset.i;
-    if(act === "goto") return open(lessonById(b.dataset.id));
+    if(act === "goto") return openSub(lessonById(b.dataset.id));
     if(act === "tab") return ctx.selectTab(b.dataset.tab);
     if(act === "drone"){ droneOn(makamById(cur.makam).durak); return; }
     if(act === "hear") return hear(cur.steps[i]);

@@ -157,6 +157,13 @@
     if(t && t.sub === sub) return;
     push({ page: t ? t.page : (sec === "lessons" ? lroot : null), sub, title, onPop });
   }
+  // Açık alt sayfanın yerine başkası (sonraki ders, başka eser): geri adımı eklenmez
+  function replaceSub(sub, title, onPop){
+    const t = top();
+    if(!t || !t.sub) return pushSub(sub, title, onPop);
+    Object.assign(t, { sub, title, onPop });
+    paintBar(); syncUrl();
+  }
   function setRoot(tab){
     if(!LROOTS.includes(tab)) return;
     lroot = tab; store.set("nav.lroot", tab);
@@ -183,9 +190,9 @@
     const q = new URLSearchParams(), t = top();
     if(sec === "tune"){ if(akort === "finger") q.set("view", "finger"); }
     else if(sec === "settings") q.set("view", viewFor(sec));
-    else if(sec === "lessons"){ q.set("tab", lroot); if(lroot === "lessons" && route.ders) q.set("ders", route.ders); }
+    else if(sec === "lessons"){ q.set("tab", lroot); if(t && t.sub && route.ders) q.set("ders", route.ders); }
     else if(!t) q.set("view", sec);
-    else{ q.set("tab", t.page); if(t.page === "archive" && route.eser) q.set("eser", route.eser); }
+    else{ q.set("tab", t.page); if(t.page === "archive" && t.sub && route.eser) q.set("eser", route.eser); }
     const url = location.pathname + (q.toString() ? "?" + q : "") + (sec === "tune" ? location.hash : "");
     if(url !== location.pathname + location.search + location.hash) history.replaceState(history.state, "", url);
   }
@@ -227,7 +234,7 @@
   document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g) SK.go(g.dataset.goto); });
 
   const Nav = window.Nav = SK.nav = {
-    SECS, secOf, start, switchTo, open, pushSub, setRoot, setAkort, openSheet, closeSheet,
+    SECS, secOf, start, switchTo, open, pushSub, replaceSub, setRoot, setAkort, openSheet, closeSheet,
     sheetOpen: () => !sheet.hidden,
     sec: () => sec, top, lroot: () => lroot,
     back: () => history.back(),
