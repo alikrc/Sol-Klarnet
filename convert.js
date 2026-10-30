@@ -85,14 +85,15 @@ async function pdfToPages(file, range, opts = {}){
   return out;
 }
 // Karışık seçim (PDF + resim): seçilen sırayla tek sayfa listesine; bitişik resimler birlikte açılır
+const isPdfFile = f => f.type === "application/pdf" || /\.pdf$/i.test(f.name);
 async function filesToPages(files, opts = {}){
   const out = [];
   try{
     for(let i=0; i<files.length;){
       if(opts.isStale && opts.isStale()) throw new Error("iptal");
       const f = files[i];
-      if(f.type === "application/pdf" || /.pdf$/i.test(f.name)){ await pdfToPages(f, null, Object.assign({}, opts, { out })); i++; }
-      else { let j = i; while(j < files.length && !(files[j].type === "application/pdf" || /.pdf$/i.test(files[j].name))) j++; await imagesToPages(files.slice(i, j), out); i = j; }
+      if(isPdfFile(f)){ await pdfToPages(f, null, Object.assign({}, opts, { out })); i++; }
+      else { let j = i; while(j < files.length && !isPdfFile(files[j])) j++; await imagesToPages(files.slice(i, j), out); i = j; }
     }
   }catch(e){ out.forEach(p => URL.revokeObjectURL(p.url)); throw e; }
   return out;
@@ -361,15 +362,18 @@ TRAINERS.convert = function(ctx){
         opts: { fallbackTurkish: store.get("convert.turkish", true) } }, pages.map(p => p.data.buffer));
     });
   }
-  // PDF çok sayfalıysa sayfa aralığı sorusu: iki sayı alanı, varsayılan hepsi. Yeni iş gelirse (newJob → rangeAbort) null döner
+  // PDF çok sayfalıysa sayfa aralığı sorusu: iki sayı alanı, varsayılan ilk 10 sayfa (her sayfa birkaç MB; öğrenci
+  // genişletebilir). Yeni iş gelirse (newJob → rangeAbort) null döner
+  const CV_RANGE_MAX = 10;
   function askRange(n){
     return new Promise(res => {
       const box = $("cvrange");
       const done = v => { box.hidden = true; box.innerHTML = ""; rangeAbort = null; res(v); };
       rangeAbort = () => done(null);
-      prog(L("Bu PDF " + n + " sayfa. Hangi sayfaları okuyayım?", "This PDF has " + n + " pages. Which pages should I read?"));
+      prog(L("Bu PDF " + n + " sayfa. Hangi sayfaları okuyayım?", "This PDF has " + n + " pages. Which pages should I read?") +
+        (n > CV_RANGE_MAX ? L(" Çok sayfa uzun sürer ve bellek ister.", " Many pages take long and need memory.") : ""));
       box.innerHTML = `<label class="tnum">${L("İlk sayfa", "From")} <input id="cvrfrom" type="number" min="1" max="${n}" value="1" aria-label="${L("İlk sayfa", "First page")}"></label>
-        <label class="tnum">${L("Son sayfa", "To")} <input id="cvrto" type="number" min="1" max="${n}" value="${n}" aria-label="${L("Son sayfa", "Last page")}"></label>
+        <label class="tnum">${L("Son sayfa", "To")} <input id="cvrto" type="number" min="1" max="${n}" value="${Math.min(n, CV_RANGE_MAX)}" aria-label="${L("Son sayfa", "Last page")}"></label>
         <button class="primary small" id="cvrok" type="button">${L("Oku", "Read")}</button>
         <button class="stopbtn" id="cvrno" type="button">${L("Vazgeç", "Cancel")}</button>`;
       box.hidden = false;
@@ -440,8 +444,10 @@ TRAINERS.convert = function(ctx){
   try{ localStorage.removeItem("sk.convert.neyzen"); }catch(e){}
   const nzPack = r => ({ v:1, date: r.date, complete: r.complete, pagesDone: r.pagesDone.map(u => u.replace(NZ_B, "")),
     rows: r.entries.map(e => [e.title, e.form, e.composer, e.makam, e.makamId, e.url.replace(NZ_B, "")]) });
-  // neyzen adresleri hep https (Android'de cleartext yalnızca projetsm.com'a açık)
-  const nzFull = u => /^https?:/i.test(u) ? u.replace(/^http:\/\/(www\.)?neyzen\.com\//i, NZ_B) : NZ_B + u;
+  // neyzen adresleri hep https (Android'de cleartext yalnızca projetsm.com'a açık). Eski sürümün dizininde iki kez
+  // kodlanmış adresler (%2520) düzeltilir
+  const nzFull = u => { u = String(u).replace(/%25([0-9A-Fa-f]{2})/g, "%$1");
+    return /^https?:/i.test(u) ? u.replace(/^http:\/\/(www\.)?neyzen\.com\//i, NZ_B) : NZ_B + u; };
   const nzUnpack = s => s && s.v === 1 && Array.isArray(s.rows) ? { date: s.date, complete: !!s.complete, pagesDone: (s.pagesDone || []).map(nzFull),
     entries: s.rows.map(([title, form, composer, makam, makamId, u]) => ({ title, form, composer, makam, makamId, url: nzFull(u), source:"neyzen" })) } : null;
   const nzLoad = async () => { if(nzMem === undefined){ try{ nzMem = nzUnpack(await NZDB.get("neyzen")); }catch(e){ nzMem = null; } } return nzMem; };
@@ -497,8 +503,10 @@ TRAINERS.convert = function(ctx){
     const src = $("cvqsrc").value, makamId = $("cvqmk").value || null;
     const useNz = SOURCES.neyzen.enabled && src !== "projetsm", usePs = SOURCES.projetsm.enabled && src !== "neyzen" && !!q;
     qmsg(L("Aranıyor…", "Searching…"));
-    const [nz, ps] = await Promise.all([useNz || force ? nzEnsure(force) : null, usePs ? psSearch(q) : null]);
+    let [nz, ps] = await Promise.all([useNz || force ? nzEnsure(force) : null, usePs ? psSearch(q) : null]);
     if(id !== findSeq) return;
+    // sekmeden çıkınca iptal edilmiş eski dizin işine denk gelindi: bir kez daha istenir
+    if(nz && nz.err && nz.err.message === "iptal"){ nz = await nzEnsure(force); if(id !== findSeq) return; }
     const errs = [];
     let out = [];
     if(nz){
@@ -536,7 +544,9 @@ TRAINERS.convert = function(ctx){
     $("cvres").querySelectorAll(".cvhit.sel").forEach(b => b.classList.remove("sel"));
   }
   const pvMsg = (t, cls = "") => { $("cvprevmsg").className = "fb " + cls; $("cvprevmsg").textContent = t; };
-  const fileName = u => { const f = String(u).split(/[?#]/)[0].split("/").pop() || "nota"; try{ return decodeURIComponent(f); }catch(e){ return f; } };
+  // Adresin son parçası, çözülmüş; çözünce çıkan / \ ve dosya adına yaramayan işaretler "_" olur (Filesystem yolu kaçmasın)
+  const fileName = u => { let f = String(u).split(/[?#]/)[0].split("/").pop() || "nota"; try{ f = decodeURIComponent(f); }catch(e){}
+    f = f.replace(/[\/\\:*?"<>|\x00-\x1f]/g, "_").replace(/^\.+/, "_"); return f || "nota"; };
   async function preview(h, btn){
     closePreview();
     const id = ++findSeq, isStale = () => id !== findSeq;
@@ -1005,6 +1015,7 @@ TRAINERS.convert = function(ctx){
     leave(){
       newJob();
       findSeq++; nzStop = true; closePreview();
+      if(nzBusy) qmsg("");                   // yarıda kalan "Dizin hazırlanıyor k/n" donmuş kalmasın
       if(listening) endListen();
       playStop();
       if(!/bad/.test($("cvprog").className)) prog("");

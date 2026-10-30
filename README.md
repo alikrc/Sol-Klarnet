@@ -117,7 +117,7 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |
 | `i18n.js` | Tema ve dil; yeni metinler `L("Türkçe", "English")` ile, eskiler sözlükte |
 | `fonts/` | Uygulamanın içindeki fontlar (`npm run fonts`) |
-| `testdata/` | Gerçek klarnet kayıtları (`npm run audio-check`), nota okuyucunun yazı tipleri ve örnekleri |
+| `testdata/` | Gerçek klarnet kayıtları (`npm run audio-check`), nota okuyucunun yazı tipleri ve örnek listesi (örneklerin kendisi depoya girmez) |
 
 ## Kaynaklar
 
@@ -125,8 +125,9 @@ Parmak verisi ve mandal adları: [Woodwind Fingering Guide — Oehler/Albert](ht
 [mandal açıklaması](https://www.wfg.woodwind.org/clarinet/cl_fing.html). Temel parmaklar `ocl_bas_1–3`, alternatifler
 `ocl_alt_1–4` sayfalarından; Albert sistemde olmayan mandalları kullanan Oehler parmakları alınmadı.
 Fontlar Google Fonts'tan (SIL Open Font License).
-Nota okuyucunun simge kalıpları ve örnek sayfaları: [Bravura](https://github.com/steinbergmedia/bravura) ve
-[Leland](https://github.com/MuseScoreFonts/Leland) yazı tipleri (SIL Open Font License), `testdata/` altında.
+Nota okuyucunun simge kalıpları [Bravura](https://github.com/steinbergmedia/bravura) ve
+[Leland](https://github.com/MuseScoreFonts/Leland) yazı tiplerinden (SIL Open Font License) üretilir; yazı tipleri
+`testdata/fonts/` altında. Gerçek nota örnekleri telifli olabildiği için depoya girmez (`testdata/omr/README.md`).
 PDF okuma: [pdf.js](https://github.com/mozilla/pdf.js) (pdfjs-dist 4.10.38, Apache 2.0), `vendor/pdfjs/` altında; `npm run vendor`
 ile `node_modules`tan kopyalanır, uygulama yalnızca PDF seçilince yükler.
 

@@ -17,8 +17,8 @@ const normTr = s => String(s == null ? "" : s)
   .replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ö/g, "o").replace(/ü/g, "u")
   .replace(/[^a-z0-9]+/g, " ").trim();
 
-// Sitelerde yazım ayrı olabilir (Beyâtî, Acem Aşîrân); boşluksuz karşılaştırılır
-const MAKAM_ALIAS = { beyati: "bayati" };
+// Sitelerde yazım ayrı olabilir (Beyâtî, Acem Aşîrân, Sûznâk); boşluksuz karşılaştırılır
+const MAKAM_ALIAS = { beyati: "bayati", suznak: "suzinak" };
 const compactTr = s => normTr(s).replace(/ /g, "");
 const makamIdOf = name => {
   const k = compactTr(name);
@@ -34,6 +34,9 @@ const decodeEnt = s => String(s)
 const textOf = h => decodeEnt(String(h).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
 // Bir satırın (<tr>) hücre metinleri
 const cellsOf = row => row.split(/<td[^>]*>/i).slice(1).map(textOf);
+
+// Bağlantıdaki adres: bir kısmı zaten %XX kodlu gelir; önce çözülüp yeniden kodlanır (%2520 olmasın)
+const uriOf = u => { try { return encodeURI(decodeURI(u)); } catch (e) { return encodeURI(u); } };
 
 // ---- neyzen.com ----
 // Makam listesi: ../makamlar/x.html bağlantıları
@@ -66,7 +69,7 @@ const parseNeyzenMakamPage = (html, makamName) => {
       form: first.replace(/\s*\(.*$/, "").trim(),
       composer: (cells[1] || "").replace(/\s*\(.*$/, "").trim(),
       makam: makamName || "", makamId,
-      url: SOURCES.neyzen.base + encodeURI(decodeEnt(a[1])), source: "neyzen",
+      url: SOURCES.neyzen.base + uriOf(decodeEnt(a[1])), source: "neyzen",
     });
   }
   return out;

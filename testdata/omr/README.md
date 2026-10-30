@@ -4,7 +4,8 @@ Nota okuyucunun (`omr.js`) gerçek notalarla denendiği örnekler. Örnekler tel
 (`.gitignore`); yalnızca bu dosya girer. Aşağıdakileri indirip bu klasöre koy.
 
 Her örneğin yanında aynı adla bir `.txt` dosyası beklenen notaları uygulamanın nota metniyle, tekrarlar açılmadan,
-yazıldığı gibi tutar. Bu dosya yoksa test yalnızca okunanı yazdırır.
+yazıldığı gibi tutar; okunan elle bununla karşılaştırılır (otomatik test yok). `.txt` yoksa örnek yalnızca kalıp
+kırpıntıları için kullanılır (aşağıda).
 
 Yerelde bulunan örnekler (son ölçüm: okunan notaların beklenen `.txt` ile eşleşme oranı):
 
