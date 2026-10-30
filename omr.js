@@ -86,22 +86,41 @@ const OMR = (() => {
         bits[y*W + x] = g[y*W + x] <= m*(1 + k*(sd/128 - 1)) && g[y*W + x] < 200 ? 1 : 0; } }
     return bits;
   }
-  // method "auto": kâğıt parlaklığı resim boyunca çok değişiyorsa (gölge, fotoğraf) Sauvola, yoksa Otsu
-  function binarize(img, method){
+  // İki tepelilik: sınıflar arası varyans / toplam varyans (Otsu eşiğinde). Temiz tarama ≈ 0,98, bulanık ≈ 0,87;
+  // gölgeli fotoğrafta kâğıt tepesi yayılır (≈ 0,6)
+  function bimodality(g, t){
+    let s = 0, q = 0, s1 = 0, n1 = 0;
+    for(let i = 0; i < g.length; i++){ const v = g[i]; s += v; q += v*v; if(v <= t){ s1 += v; n1++; } }
+    const n = g.length, m = s/n, vt = q/n - m*m, n2 = n - n1;
+    if(!(vt > 0) || !n1 || !n2) return 1;
+    const d = s1/n1 - (s - s1)/n2; return n1*n2*d*d/(n*n)/vt;
+  }
+  // method "auto": parlaklık histogramı iki tepeli değilse ya da kâğıt parlaklığı resim boyunca çok değişiyorsa
+  // (gölge, fotoğraf) Sauvola, yoksa Otsu. sp: dizek aralığı (Sauvola penceresi 2×sp); verilmezse Otsu'dan bulunur
+  function binarize(img, method, sp){
     const W = img.width, H = img.height, g = greyOf(img); method = method || "auto";
     const t = otsu(g);
+    const otsuBits = () => { const bits = new Uint8Array(W*H); for(let i = 0; i < bits.length; i++) bits[i] = g[i] <= t ? 1 : 0; return bits; };
     if(method === "auto"){
-      const n = 8, bg = [];
-      for(let ty = 0; ty < n; ty++) for(let tx = 0; tx < n; tx++){
-        let s = 0, c = 0;
-        for(let y = Math.floor(ty*H/n); y < Math.floor((ty + 1)*H/n); y += 2) for(let x = Math.floor(tx*W/n); x < Math.floor((tx + 1)*W/n); x += 2){ const v = g[y*W + x]; if(v > t){ s += v; c++; } }
-        if(c > 20) bg.push(s/c);
+      let uneven = t >= 0 && bimodality(g, t) < 0.8;
+      if(!uneven){
+        const n = 8, bg = [];
+        for(let ty = 0; ty < n; ty++) for(let tx = 0; tx < n; tx++){
+          let s = 0, c = 0;
+          for(let y = Math.floor(ty*H/n); y < Math.floor((ty + 1)*H/n); y += 2) for(let x = Math.floor(tx*W/n); x < Math.floor((tx + 1)*W/n); x += 2){ const v = g[y*W + x]; if(v > t){ s += v; c++; } }
+          if(c > 20) bg.push(s/c);
+        }
+        uneven = bg.length > 0 && Math.max(...bg) - Math.min(...bg) > 40;
       }
-      method = bg.length && Math.max(...bg) - Math.min(...bg) > 40 ? "sauvola" : "otsu";
+      method = uneven ? "sauvola" : "otsu";
     }
     let bits;
-    if(method === "sauvola") bits = sauvola(g, W, H, Math.max(15, Math.min(81, Math.round(Math.min(W, H)/40)) | 1), 0.2);
-    else { bits = new Uint8Array(W*H); for(let i = 0; i < bits.length; i++) bits[i] = g[i] <= t ? 1 : 0; }
+    if(method === "sauvola"){
+      if(!(sp > 0)) sp = findStaves({ bits:otsuBits(), width:W, height:H }).sp;
+      const win = sp > 0 ? Math.max(9, Math.round(2*sp) | 1) : Math.max(15, Math.min(81, Math.round(Math.min(W, H)/40)) | 1);
+      bits = sauvola(g, W, H, win, 0.2);
+    }
+    else bits = otsuBits();
     return { bits, width:W, height:H, method };
   }
 
@@ -553,7 +572,7 @@ const OMR = (() => {
     let scale = 1;
     const sp0 = findStaves(binarize(img, "otsu")).sp;
     if(sp0 > 1.3*TARGET_SP){ scale = TARGET_SP/sp0; img = downscale(img, scale); }
-    const d = deskew(binarize(img));
+    const d = deskew(binarize(img, "auto", sp0*scale));
     return { scale, angle:d.angle, bin:d.bin, st:findStaves(d.bin) };
   }
   // Düzeltilmiş (döndürülmüş, küçültülmüş) resimdeki kutu → özgün resim pikseli
@@ -899,6 +918,8 @@ const OMR = (() => {
       if(Math.abs(mid(staves[bi]) - y) <= 9*sp) bucket[bi].push(s);
     }
     for(const i of read) readStaff(staves[i], bucket[i], clean, sp, st);
+    // Dizek sayısına göre çok seyrek okuma (el yazısı, okunamayan basım): notalara güvenilmez
+    if(read.length >= 2 && st.notes.length < 2*read.length) for(const n of st.notes) n.conf *= 0.5;
     for(const n of st.notes) n.box = { page, ...toOrig(P, n.box) };
     return st;
   }
