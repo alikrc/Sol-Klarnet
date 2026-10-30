@@ -325,41 +325,38 @@
     play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>`,
     stop: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
     chev: `<svg class="tchev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`,
-    back: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`,
     go: `<svg class="hgo" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`
   };
   const card = id => `<button type="button" class="hcard" data-open="${id}"><span><b>${tabName(id)}</b><small>${BLURB[id]}</small></span>${ICON.go}</button>`;
   const root = $("practice");
+  // Bölüm ana sayfaları aynı kutuda: data-hub hangi bölümde görüneceğini söyler (Çalış ya da Eserler).
+  // Dersler'in ana sayfası yoktur: kökü Dersler / Yol haritası / Videolar segmentiyle seçilen sekmedir.
+  const HUB = { tech:["practice", L("Teknik", "Skills")], makam:["practice", "Makam"], progress:["practice", L("Takip", "Tracking")],
+    pieces:["pieces", L("Araçlar", "Tools")] };
+  const FEAT = ["archive", "band"];       // Eserler'in başında öne çıkan iki satır; Araçlar'da tekrar edilmez
   root.innerHTML = `
-    <div class="phead">
-      <div class="label" id="plabel">Çalışma</div>
-      <div class="pstat">
-        <span class="pmic" id="pmic"></span>
+    <div class="phub" id="phub">
+      <div class="pstat" data-hub="practice">
         <button class="pgoal" id="pgoal" type="button">
           <span id="pgoaltx"></span><i aria-hidden="true"><b id="pgoalbar"></b></i></button>
+        <span class="pmic" id="pmic"></span>
       </div>
-    </div>
-    <div class="phub" id="phub">
       ${helpBox("", HUB_HELP)}
-      <button type="button" class="hresume" id="hresume"></button>
-      <button type="button" class="hfeat" data-open="archive"><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
+      <button type="button" class="hresume" id="hresume" data-hub="practice"></button>
+      <button type="button" class="hresume hsearch" id="hsearch" data-hub="pieces"><span><small>${L("Ara", "Search")}</small>
+        <b>${L("Eser, besteci ya da makam", "Piece, composer or makam")}</b></span>${ICON.go}</button>
+      <button type="button" class="hfeat" data-open="archive" data-hub="pieces"><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
-      <button type="button" class="hfeat" data-open="band"><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
+      <button type="button" class="hfeat" data-open="band" data-hub="pieces"><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
         <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
-      ${GROUPS.slice(1).map(([g, name, members]) => `<section class="hgroup" data-g="${g}" aria-label="${name}">
-        ${members.length > 1 ? `<h3 class="label">${name}</h3>` : ""}
-        <div class="hcards">${members.map(card).join("")}</div></section>`).join("")}
+      ${GROUPS.slice(1).map(([g, , members]) => `<section class="hgroup" data-g="${g}" data-hub="${HUB[g][0]}" aria-label="${HUB[g][1]}">
+        <h3 class="label">${HUB[g][1]}</h3>
+        <div class="hcards">${members.filter(id => !FEAT.includes(id)).map(card).join("")}</div></section>`).join("")}
     </div>
     <div class="pex" id="pex" hidden>
-    <nav class="pnav" aria-label="Çalışma türü">
-      <div class="pbar">
-        <button type="button" class="pback" id="pback">${ICON.back}<span>${L("Çalışma", "Practice")}</span></button>
-        <h2 class="ptitle" id="ptitle"></h2>
-      </div>
-      <div class="psubs" role="tablist" aria-label="Çalışma türü">
-        ${TABS.map(([id, name]) => `<button type="button" role="tab" id="tab-${id}" aria-controls="pp-${id}" data-tab="${id}">${name}</button>`).join("")}
-      </div>
-    </nav>
+    <div class="seg rootseg" id="rootseg" role="tablist" aria-label="${L("Dersler", "Lessons")}">
+      ${GROUPS[0][2].map(id => `<button type="button" role="tab" data-root="${id}">${tabName(id)}</button>`).join("")}
+    </div>
     ${helpBox("phelp", "")}
     <div class="tools">
       <div class="tool" id="tmet">
@@ -398,7 +395,7 @@
         </div>
       </div>
     </div>
-    ${TABS.map(([id]) => `<div class="ppanel" role="tabpanel" id="pp-${id}" aria-labelledby="tab-${id}" hidden></div>`).join("")}
+    ${TABS.map(([id, name]) => `<div class="ppanel" role="region" id="pp-${id}" aria-label="${name}" hidden></div>`).join("")}
     </div>
   `;
 
@@ -434,7 +431,6 @@
   // Etkin modül kararlı nota/sessizlik olaylarını alır
   const modules = {};
   let active = null, parked = false;    // parked: uygulama arka plana geçince alıştırma durduruldu (aşağıda park)
-  const pnav = root.querySelector(".pnav");
   const descs = [];   // telefonda iki satıra kısalan açıklamalar
   // Gezinme nav.js'te: Nav.register ile hangi sayfanın görüneceği bildirilir. active: sesi ve olayları alan modül;
   // shown: ekranda görünen sekme (ana sayfadayken null). Alt menüyle başka bölüme geçmek modülü kapatmaz
@@ -447,18 +443,8 @@
     parked = false;
     active = id; shown = id;
     if(SK.nav.secOf(id) === "practice") store.set("ptab.prac", id);
-    root.classList.toggle("lessonsmode", isLesson(id));
-    $("plabel").textContent = isLesson(id) ? tabName("lessons") : L("Çalışma", "Practice");
-    const members = groupOf(id)[2];
     $("phub").hidden = true; $("pex").hidden = false;
-    $("ptitle").textContent = tabName(id);
-    TABS.forEach(([t]) => {
-      $("tab-"+t).hidden = !members.includes(t);
-      $("tab-"+t).setAttribute("aria-selected", t===id ? "true" : "false");
-      $("tab-"+t).tabIndex = t===id ? 0 : -1;
-      $("pp-"+t).hidden = t!==id;
-    });
-    pnav.classList.toggle("single", members.length < 2);
+    TABS.forEach(([t]) => { $("pp-"+t).hidden = t!==id; });
     if(!keep){
       closeTools();
       $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
@@ -477,22 +463,29 @@
     shown = null;
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
     $("pex").hidden = true; $("phub").hidden = false;
-    root.classList.remove("lessonsmode"); $("plabel").textContent = L("Çalışma", "Practice");
+    $("phub").querySelectorAll("[data-hub]").forEach(el => { el.hidden = el.dataset.hub !== sec; });
+    if(sec !== "practice") return;
     const last = store.get("ptab.prac", ""), r = $("hresume");
     r.hidden = !TABS.some(([t]) => t === last) || isLesson(last);
     if(r.hidden) return;
     r.dataset.open = last;
     r.innerHTML = `<span><small>${L("Kaldığın yerden devam et", "Pick up where you left off")}</small><b>${tabName(r.dataset.open)}</b></span>${ICON.go}`;
   }
-  $("pback").addEventListener("click", () => SK.nav.back());
   $("phub").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if(c) SK.nav.open(c.dataset.open); });
-  pnav.addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) SK.nav.open(b.dataset.tab); });
-  pnav.addEventListener("keydown", e => {
+  $("hsearch").addEventListener("click", () => $("gsbtn").click());
+  // Dersler kökünün segmenti: aynı seviyedeki üç görünüm, geçmişe yazılmaz
+  const rootBtns = [...root.querySelectorAll("[data-root]")];
+  function paintRoot(on){
+    $("rootseg").hidden = !on;
+    rootBtns.forEach(b => { const sel = b.dataset.root === active; b.setAttribute("aria-selected", sel); b.tabIndex = sel ? 0 : -1; });
+  }
+  $("rootseg").addEventListener("click", e => { const b = e.target.closest("[data-root]"); if(b) SK.nav.setRoot(b.dataset.root); });
+  $("rootseg").addEventListener("keydown", e => {
     const step = {ArrowRight:1, ArrowLeft:-1}[e.key];
-    if(!step || !e.target.closest(".psubs")) return;
+    if(!step) return;
     e.preventDefault();
-    const m = groupOf(active)[2], i = (m.indexOf(active) + step + m.length) % m.length;
-    SK.nav.open(m[i]); $("tab-"+m[i]).focus();
+    const m = GROUPS[0][2], i = (m.indexOf(active) + step + m.length) % m.length;
+    SK.nav.setRoot(m[i]); rootBtns[i].focus();
   });
   $("pgoal").addEventListener("click", () => SK.nav.open("progress"));
 
@@ -832,6 +825,7 @@
     show(sec, e, why){
       const id = e ? e.page : sec === "lessons" ? SK.nav.lroot() : null;
       if(id) selectTab(id); else showHub(sec, why);
+      paintRoot(sec === "lessons" && !e);
     },
     title: id => { const t = TABS.find(x => x[0] === id); return t && t[1]; }
   });

@@ -35,11 +35,22 @@
   function trim(s, n){ while(stacks[s].length > n){ const e = stacks[s].pop(); if(e.onPop) e.onPop(); } }
 
   const navBtns = document.querySelectorAll(".nav [data-sec]");
+  // Üst çubuk: kökte bölüm adı, iç sayfada ← ve sayfanın adı
+  const TITLES = { tune:"Sol Klarnet", lessons:L("Dersler", "Lessons"), practice:L("Çalış", "Practice"), pieces:L("Eserler", "Pieces"), settings:L("Ayarlar", "Settings") };
+  const backBtn = document.getElementById("navback"), titleEl = document.getElementById("navtitle");
+  function paintBar(){
+    const t = top();
+    document.body.classList.toggle("inner", !!t);
+    backBtn.hidden = !t;
+    titleEl.textContent = !t ? TITLES[sec] : t.title || (t.page === "review" ? L("Uzman kontrolü", "Expert review") : h ? h.title(t.page) : "");
+  }
+  backBtn.addEventListener("click", () => history.back());
   function render(why){
     document.body.dataset.sec = sec;
     SK.showView(viewFor(sec));
     navBtns.forEach(b => b.dataset.sec === sec ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     if(h && SHELL.includes(sec)) h.show(sec, top(), why);
+    paintBar();
     const t = top();
     window.scrollTo(0, (t ? t.y : rootY[sec]) || 0);
     if(started){
