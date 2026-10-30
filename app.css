@@ -859,6 +859,21 @@ body.npon .page{padding-bottom:calc(var(--nav-h) + var(--sab) + 90px)}
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:grid;place-items:center;
   padding:calc(16px + var(--sat)) calc(16px + var(--sar)) calc(16px + var(--sab)) calc(16px + var(--sal));overflow-y:auto}
 body.modal{overflow:hidden}
+/* Alttan açılan panel (yardım, metronom ve dron): sayfayı kaplamaz, geri tuşu kapatır */
+.scrim{position:fixed;inset:0;z-index:55;background:color-mix(in srgb,#000 45%,transparent)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:56;max-height:85dvh;overflow-y:auto;background:var(--surface);
+  border-radius:20px 20px 0 0;border-top:1px solid var(--line);outline:none;
+  padding:8px calc(18px + var(--sar)) calc(20px + var(--sab)) calc(18px + var(--sal));animation:sheetup .2s ease-out}
+.scrim[hidden],.sheet[hidden]{display:none}
+@media (min-width:768px){.sheet{left:max(16px,calc(50% - 280px));right:max(16px,calc(50% - 280px));bottom:16px;border-radius:20px;border:1px solid var(--line)}}
+@keyframes sheetup{from{transform:translateY(24px);opacity:0}}
+@media (prefers-reduced-motion: reduce){.sheet{animation:none}}
+.sheetgrip{width:40px;height:4px;border-radius:9px;background:var(--line);margin:0 auto 6px}
+.sheethead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.sheethead h2{margin:0;font:650 17px/1.2 var(--ui)}
+.sheethead .barico{margin-right:-8px}
+#sheetbody .tools{margin:0}
+#sheetbody .phelpbody{font-size:14px;line-height:1.6}
 .obcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;max-width:520px;width:100%;
   box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:12px}
 .obcard p{margin:0;font-size:14px;line-height:1.6}
@@ -875,9 +890,6 @@ body.modal{overflow:hidden}
 .obnav{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
 .goalok{color:var(--ok);font-weight:600}
 /* "Nasıl kullanılır?" notları */
-.phelp{margin:0 0 12px;font-size:13px;line-height:1.55;border:1px solid var(--line);border-radius:10px;background:var(--sunk);padding:8px 12px}
-.phelp summary{cursor:pointer;font-weight:600;color:var(--accent-ink)}
-.phelp[open] summary{margin-bottom:6px}
 .phelpbody p{margin:0 0 8px}
 .phelpbody ol{margin:0 0 4px;padding-left:20px}
 .phelpbody li{margin:3px 0}

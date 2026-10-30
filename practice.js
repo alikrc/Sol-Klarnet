@@ -320,7 +320,6 @@
         <li>Below: your best results in rhythm, ear, seyir, speed, ornaments and pieces, and your Mimic record.</li>
         <li>To see which notes you struggle with, turn on the “Intonation map” on the Tuner's note strip: flat or sharp notes are coloured.</li></ol>`)
   };
-  const helpBox = (id, body) => `<details class="phelp"${id ? ` id="${id}"` : ""}><summary>${L("Nasıl kullanılır?", "How to use")}</summary><div class="phelpbody"${id ? ` id="${id}body"` : ""}>${body}</div></details>`;
   const ICON = {
     play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>`,
     stop: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`,
@@ -341,7 +340,6 @@
           <span id="pgoaltx"></span><i aria-hidden="true"><b id="pgoalbar"></b></i></button>
         <span class="pmic" id="pmic"></span>
       </div>
-      ${helpBox("", HUB_HELP)}
       <button type="button" class="hresume" id="hresume" data-hub="practice"></button>
       <button type="button" class="hresume hsearch" id="hsearch" data-hub="pieces"><span><small>${L("Ara", "Search")}</small>
         <b>${L("Eser, besteci ya da makam", "Piece, composer or makam")}</b></span>${ICON.go}</button>
@@ -357,7 +355,6 @@
     <div class="seg rootseg" id="rootseg" role="tablist" aria-label="${L("Dersler", "Lessons")}">
       ${GROUPS[0][2].map(id => `<button type="button" role="tab" data-root="${id}">${tabName(id)}</button>`).join("")}
     </div>
-    ${helpBox("phelp", "")}
     <div class="tools">
       <div class="tool" id="tmet">
         <div class="thead">
@@ -412,8 +409,10 @@
     sum.setAttribute("aria-expanded", open ? "true" : "false");
     $(sum.getAttribute("aria-controls")).hidden = !open;
   }
-  const closeTools = () => root.querySelectorAll(".tool").forEach(tool => setToolOpen(tool, false));
-  root.querySelectorAll(".tool").forEach(tool => {
+  // Metronom ve dron üst çubuktaki ikondan alttan açılan panelde (nav.js openSheet) durur
+  const toolsEl = root.querySelector(".tools");
+  const closeTools = () => toolsEl.querySelectorAll(".tool").forEach(tool => setToolOpen(tool, false));
+  toolsEl.querySelectorAll(".tool").forEach(tool => {
     setToolOpen(tool, false);
     tool.querySelector(".tsum").addEventListener("click", () => setToolOpen(tool, !tool.classList.contains("open")));
   });
@@ -426,7 +425,20 @@
     btn.setAttribute("aria-label", PLAY_LABELS[btn.id][on ? 1 : 0]);
     btn.innerHTML = on ? ICON.stop : ICON.play;
     btn.closest(".tool").classList.toggle("on", on);
+    $("navtools").classList.toggle("on", !!toolsEl.querySelector(".tool.on"));
   }
+  // Yardım: sayfanın "Nasıl kullanılır?" metni panelde
+  const helpEl = document.createElement("div");
+  helpEl.className = "phelpbody";
+  // Araçları kullanan sayfalar: Teknik ve Makam alıştırmaları, Dersler, Etüt ve eserler
+  const TOOLS_ON = [...GROUPS[1][2], ...GROUPS[2][2], "lessons", "piece"];
+  const helpFor = () => shown ? HELP[shown] : SK.nav.sec() === "practice" ? HUB_HELP : "";
+  function paintIcons(){
+    $("navhelp").hidden = !helpFor();
+    $("navtools").hidden = !(shown && TOOLS_ON.includes(shown));
+  }
+  $("navhelp").addEventListener("click", () => { helpEl.innerHTML = helpFor(); SK.nav.openSheet(L("Nasıl kullanılır?", "How to use"), helpEl); });
+  $("navtools").addEventListener("click", () => SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl));
 
   // Etkin modül kararlı nota/sessizlik olaylarını alır
   const modules = {};
@@ -447,7 +459,6 @@
     TABS.forEach(([t]) => { $("pp-"+t).hidden = t!==id; });
     if(!keep){
       closeTools();
-      $("phelpbody").innerHTML = HELP[id] || ""; $("phelp").open = false;
       if(modules[id].enter) modules[id].enter();
     }
     fitDescs();
@@ -799,12 +810,16 @@
   // başladığında açık olan sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür.
   let soundTab = null, prevTab = null;
   const inPractice = () => document.body.dataset.view === "practice";
-  const openTools = () => { if(!(inPractice() && shown)) SK.openTab(active || store.get("ptab.prac", "quiz")); };
+  const toolsHere = () => inPractice() && TOOLS_ON.includes(shown);
+  const openTools = () => {
+    if(!toolsHere()) SK.openTab(TOOLS_ON.includes(active) ? active : store.get("ptab.prac", "quiz"));
+    SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl);
+  };
   const mediaIn = id => [...$("pp-" + id).querySelectorAll("audio, video")].some(x => !x.paused && !x.ended);
   SK.addSource(() => {
-    const out = [], toolsHere = inPractice() && !!shown;
-    if(met) out.push({ key:"met", title:L("Metronom", "Metronome"), sub:$("metsum").textContent, here:toolsHere, go:openTools, stop:stopMet });
-    if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here:toolsHere, go:openTools, stop:stopDrone });
+    const out = [], here = toolsHere();
+    if(met) out.push({ key:"met", title:L("Metronom", "Metronome"), sub:$("metsum").textContent, here, go:openTools, stop:stopMet });
+    if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here, go:openTools, stop:stopDrone });
     const age = SK.soundAge();
     if(age < 300 && (active || prevTab)) soundTab = active || prevTab;
     if(soundTab && (age < 2500 || mediaIn(soundTab))){
@@ -826,6 +841,7 @@
       const id = e ? e.page : sec === "lessons" ? SK.nav.lroot() : null;
       if(id) selectTab(id); else showHub(sec, why);
       paintRoot(sec === "lessons" && !e);
+      paintIcons();
     },
     title: id => { const t = TABS.find(x => x[0] === id); return t && t[1]; }
   });

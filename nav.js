@@ -41,10 +41,46 @@
   function paintBar(){
     const t = top();
     document.body.classList.toggle("inner", !!t);
+    // Yardım ve araç ikonlarını Çalışma kabuğu (practice.js) gösterir; başka bölümde gizli
+    if(!SHELL.includes(sec)) ["navhelp", "navtools"].forEach(id => { document.getElementById(id).hidden = true; });
     backBtn.hidden = !t;
     titleEl.textContent = !t ? TITLES[sec] : t.title || (t.page === "review" ? L("Uzman kontrolü", "Expert review") : h ? h.title(t.page) : "");
   }
   backBtn.addEventListener("click", () => history.back());
+
+  // Alttan açılan panel: açılınca geçmişe bir kayıt eklenir (sheet:1); geri tuşu, ✕, perdeye dokunma ve Esc kapatır
+  const sheet = document.getElementById("sheet"), scrim = document.getElementById("scrim");
+  const sheetBody = document.getElementById("sheetbody"), sheetTitle = document.getElementById("sheettitle");
+  let sheetFrom = null, pendingSheet = null;
+  function openSheet(title, el){
+    if(rebuilding){ pendingSheet = [title, el]; return; }    // geçmiş kurulunca açılır
+    if(el.parentNode !== sheetBody) sheetBody.appendChild(el);
+    [...sheetBody.children].forEach(c => { c.hidden = c !== el; });
+    sheetTitle.textContent = title;
+    if(sheet.hidden){
+      sheetFrom = document.activeElement;
+      sheet.hidden = scrim.hidden = false;
+      document.body.classList.add("modal");
+      const st = history.state || {};
+      history.pushState({ ...st, i:(st.i || 0) + 1, sheet:1 }, "");
+    }
+    sheet.scrollTop = 0; sheet.focus();
+  }
+  function hideSheet(){
+    if(sheet.hidden) return;
+    sheet.hidden = scrim.hidden = true;
+    document.body.classList.remove("modal");
+    if(sheetFrom && document.contains(sheetFrom)) sheetFrom.focus();
+    sheetFrom = null;
+  }
+  function closeSheet(){
+    if(sheet.hidden) return;
+    if(history.state && history.state.sheet) history.back(); else hideSheet();
+  }
+  scrim.addEventListener("click", closeSheet);
+  document.getElementById("sheetx").addEventListener("click", closeSheet);
+  document.getElementById("sheetx").setAttribute("aria-label", L("Kapat", "Close"));
+  sheet.addEventListener("keydown", e => { if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); closeSheet(); } });
   function render(why){
     document.body.dataset.sec = sec;
     SK.showView(viewFor(sec));
@@ -67,8 +103,10 @@
       const d = depth();
       for(let k = 1; k <= d; k++) history.pushState({ nav:1, i:k, d:k }, "");
       rebuilding = false; syncUrl();
+      if(pendingSheet){ const p = pendingSheet; pendingSheet = null; openSheet(...p); }
     };
     const i = curI();
+    hideSheet();                         // panelin kaydı da geri alınır
     rebuilding = true;
     if(i > 0){ window.addEventListener("popstate", push, { once:true }); history.go(-i); }
     else push();
@@ -76,6 +114,8 @@
   function push(entry){
     saveY();
     stacks[sec].push(entry);
+    // Panel açıkken sayfa açılırsa panelin kaydı sayfanın kaydı olur
+    if(!sheet.hidden){ hideSheet(); if(history.state && history.state.sheet){ history.replaceState({ nav:1, i:curI(), d:depth() }, ""); render("push"); return; } }
     if(!rebuilding) history.pushState({ nav:1, i:curI() + 1, d:depth() }, "");
     render("push");
   }
@@ -129,6 +169,7 @@
 
   window.addEventListener("popstate", e => {
     if(rebuilding) return;
+    if(!(e.state && e.state.sheet)) hideSheet();
     const d = (e.state && e.state.d) || 0, cur = depth();
     if(d < cur){
       if(d === 0 && sec !== "tune"){ trim(sec, 0); sec = "tune"; render("switch"); }
@@ -186,7 +227,8 @@
   document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g) SK.go(g.dataset.goto); });
 
   const Nav = window.Nav = SK.nav = {
-    SECS, secOf, start, switchTo, open, pushSub, setRoot, setAkort,
+    SECS, secOf, start, switchTo, open, pushSub, setRoot, setAkort, openSheet, closeSheet,
+    sheetOpen: () => !sheet.hidden,
     sec: () => sec, top, lroot: () => lroot,
     back: () => history.back(),
     register(hooks){ h = hooks; },
