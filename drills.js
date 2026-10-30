@@ -261,7 +261,7 @@ TRAINERS.makam = function(ctx){
   SK.openMakam = id => {
     const mk = makamById(id); if(!mk) return;
     ms.cur = mk; store.set("makam", mk.id); ex = null; stage.innerHTML = "";
-    SK.go("practice"); ctx.selectTab("makam");
+    ctx.selectTab("makam");
   };
   $("mklisten").addEventListener("click", async () => {
     const mk = ms.cur, token = {}; listenToken = token;

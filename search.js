@@ -36,8 +36,9 @@
 
     add("page", "tune", L("Akort", "Tuner"), L("Perde, koma sapması, entonasyon izi", "Perde, comma deviation, intonation trace"), "akort tuner mikrofon", view("tune"));
     add("page", "finger", L("Parmak", "Fingering"), L("Albert sistem parmak şeması", "Albert system fingering chart"), "parmak pozisyon şema fingering", view("finger"));
-    add("page", "practice", L("Çalışma", "Practice"), L("Bütün alıştırmalar", "All exercises"), "calisma practice alistirma", view("practice"));
-    add("page", "notes", L("Notalar", "Scores"), L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces"), "nota arsiv eser", () => SK.openTab("archive"));
+    add("page", "lessons", L("Dersler", "Lessons"), L("Adım adım dersler, yol haritası, videolar", "Step-by-step lessons, roadmap, videos"), "dersler lessons ders", view("lessons"));
+    add("page", "practice", L("Çalış", "Practice"), L("Teknik ve makam alıştırmaları", "Technique and makam exercises"), "calis calisma practice alistirma", view("practice"));
+    add("page", "pieces", L("Eserler", "Pieces"), L("Nota arşivi, eşlik, etütler, çevirici", "Score archive, play-along, études, converter"), "eserler nota notalar arsiv eser", view("pieces"));
     add("page", "settings", L("Ayarlar", "Settings"), L("Akort, çalışma, verilerim, görünüm", "Tuning, practice, my data, appearance"), "ayarlar settings", view("settings"));
     add("page", "review", L("Uzman kontrolü", "Expert review"), L("Parmak ve makam verisini işaretle", "Mark the fingering and makam data"), "uzman hoca rapor", view("review"));
 
@@ -180,7 +181,7 @@
     if(!it) return;
     if(it.kind !== "piece") remember(it.key);
     if(it.href){ close(); return; }          // bağlantı kendisi açılır (YouTube)
-    close(it.kind === "piece" ? () => { SK.go("practice"); SK.openArchive(it.id); } : it.go);
+    close(it.kind === "piece" ? () => SK.openArchive(it.id) : it.go);
   }
 
   openBtn.addEventListener("click", open);

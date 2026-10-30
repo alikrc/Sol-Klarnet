@@ -100,8 +100,8 @@
     }
     if(pickd.level === "makam") store.set("lesson.all", true);
     store.set("lesson.cur", "");
-    store.set("ptab", "lessons");
-    store.set("view", "practice");
+    store.set("nav.sec", "lessons");
+    store.set("nav.lroot", "lessons");
     store.set("onboard.done", true);
     store.set("onboard.resume", false);
     window.SK_RESETTING = true;
