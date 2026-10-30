@@ -124,8 +124,8 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 6. **Repertuvar:** Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
    seçki eklenecekse lisans koşulları kontrol edilmeli.
 7. **Nota bul gerçek cihazda denenmedi (30 Ekim 2026):** Arayüz tarayıcı panelinde sahte ağla (curl'den alınmış sayfalar)
-   denendi; `CapacitorHttp` ile gerçek arama, neyzen dizininin çıkarılması (89 makam sayfası, ~1,6 milyon karakter
-   `localStorage`'a sığıyor mu), projetsm.com'a cleartext istek (Android `network_security_config`, iOS ATS istisnası),
+   denendi; `CapacitorHttp` ile gerçek arama, neyzen dizininin çıkarılması (89 makam sayfası, ~1,6 milyon karakter;
+   IndexedDB'de, yedeğe girmez), projetsm.com'a cleartext istek (Android `network_security_config`, iOS ATS istisnası),
    GIF/PDF indirme ve "Dosyayı kaydet" paylaşımı `npm run android:apk` ile telefonda denenmeli.
 
 ## Sonraki adımlar (öncelik sırasıyla, 27 Ekim 2026)

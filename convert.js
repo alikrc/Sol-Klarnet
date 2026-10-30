@@ -119,6 +119,20 @@ async function httpGet(url, opts = {}){
   for(let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
   return new Blob([u8], { type: ck ? String(h[ck]).split(";")[0].trim() : "" });
 }
+// Nota bul neyzen dizini: ayrı IndexedDB veritabanı (yedeğe girmez, localStorage kotasını kullanmaz). get/set anahtar → değer
+const NZDB = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open("sol-klarnet-notabul", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result); r.onerror = () => { dbp = null; rej(r.error); };
+  }));
+  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => {
+    const t = db.transaction("kv", mode), r = fn(t.objectStore("kv"));
+    t.oncomplete = () => res(r.result); t.onerror = t.onabort = () => rej(t.error || new Error("IndexedDB"));
+  }); };
+  return { get: k => tx("readonly", s => s.get(k)), set: (k, v) => tx("readwrite", s => s.put(v, k)) };
+})();
 // Blob → telefona kaydet / paylaş (drills.js kayıt paylaşımıyla aynı yol); birden çok dosya tek paylaşımda
 async function cvSaveBlobs(items, title){
   const P = window.Capacitor && window.Capacitor.Plugins;
@@ -415,38 +429,45 @@ TRAINERS.convert = function(ctx){
     : !(e && e.status) && navigator.onLine === false ? L("internet bağlantısı yok.", "no internet connection.")
     : L("site yanıt vermiyor.", "the site isn't responding."));
 
-  // Dizin cihazda sıkıştırılmış saklanır (adresin ortak başı ve kaynak adı atılır): ~8 700 eser ≈ 1,6 milyon karakter
+  // Dizin IndexedDB'de (NZDB) sıkıştırılmış saklanır (adresin ortak başı ve kaynak adı atılır): ~8 700 eser ≈ 1,6 milyon
+  // karakter. localStorage'a yazılmaz: kotayı doldurmasın, yedeğe girmesin. Önceki sürümün anahtarı silinir.
   let nzMem, nzBusy = null, nzStop = false;
+  try{ localStorage.removeItem("sk.convert.neyzen"); }catch(e){}
   const nzPack = r => ({ v:1, date: r.date, complete: r.complete, pagesDone: r.pagesDone.map(u => u.replace(NZ_B, "")),
     rows: r.entries.map(e => [e.title, e.form, e.composer, e.makam, e.makamId, e.url.replace(NZ_B, "")]) });
-  const nzFull = u => /^https?:/i.test(u) ? u : NZ_B + u;
+  // neyzen adresleri hep https (Android'de cleartext yalnızca projetsm.com'a açık)
+  const nzFull = u => /^https?:/i.test(u) ? u.replace(/^http:\/\/(www\.)?neyzen\.com\//i, NZ_B) : NZ_B + u;
   const nzUnpack = s => s && s.v === 1 && Array.isArray(s.rows) ? { date: s.date, complete: !!s.complete, pagesDone: (s.pagesDone || []).map(nzFull),
     entries: s.rows.map(([title, form, composer, makam, makamId, u]) => ({ title, form, composer, makam, makamId, url: nzFull(u), source:"neyzen" })) } : null;
-  const nzLoad = () => { if(nzMem === undefined) nzMem = nzUnpack(store.get("convert.neyzen", null)); return nzMem; };
+  const nzLoad = async () => { if(nzMem === undefined){ try{ nzMem = nzUnpack(await NZDB.get("neyzen")); }catch(e){ nzMem = null; } } return nzMem; };
   const nzFresh = x => x && x.complete && Date.now() - Date.parse(x.date) < NZ_DAYS*864e5;
   // Dizin gerekiyorsa çıkarılır (yoksa, yarımsa ya da eskiyse; force: Dizini yenile). Yarım dizin saklanır, sonraki aramada
-  // eksik sayfalar tamamlanır. Tam dizin yenilenirken yarıda kalırsa eskisi kalır. → { idx, err } (err: hata ya da "parse")
+  // eksik sayfalar tamamlanır. Tam dizin yenilenirken yarıda kalırsa eskisi kalır. → { idx, err, saveFail } (err: hata ya da
+  // "parse"; saveFail: cihaza yazılamadı, bu oturumda bellekten kullanılır)
   function nzEnsure(force){
     if(nzBusy) return nzBusy;
-    const old = nzLoad();
-    if(!force && nzFresh(old)) return Promise.resolve({ idx: old, err: null });
-    nzStop = false;
-    let lastErr = null;
-    // buildNeyzenIndex sözleşmesi: 2xx dışı yanıtta hata fırlatmalı (httpGet fırlatır); sekmeden çıkınca kalan istekler kesilir
-    const fetchText = async u => {
-      if(nzStop){ lastErr = new Error("iptal"); throw lastErr; }
-      try{ return await httpGet(u); }
-      catch(e){ lastErr = e; throw e; }
-    };
-    const prev = !force && old && !old.complete ? old : null;
     nzBusy = (async () => {
       try{
+        const old = await nzLoad();
+        if(!force && nzFresh(old)) return { idx: old, err: null };
+        nzStop = false;
+        let lastErr = null, saveFail = false;
+        // buildNeyzenIndex sözleşmesi: 2xx dışı yanıtta hata fırlatmalı (httpGet fırlatır); sekmeden çıkınca kalan istekler kesilir
+        const fetchText = async u => {
+          if(nzStop){ lastErr = new Error("iptal"); throw lastErr; }
+          try{ return await httpGet(u); }
+          catch(e){ lastErr = e; throw e; }
+        };
+        const prev = !force && old && !old.complete ? old : null;
         const r = await buildNeyzenIndex(fetchText, prev, (k, n) => { if(!nzStop) qmsg(L("Dizin hazırlanıyor ", "Preparing the index ") + k + "/" + n); });
         let idx = r;
         if(!r.complete && old && old.complete) idx = old;
-        else if(r.entries.length || r.pagesDone.length){ store.set("convert.neyzen", nzPack(r)); nzMem = r; }
+        else if(r.entries.length || r.pagesDone.length){
+          nzMem = r;
+          try{ await NZDB.set("neyzen", nzPack(r)); }catch(e){ saveFail = true; }
+        }
         const err = r.complete ? (r.entries.length ? null : "parse") : lastErr || "parse";   // hatasız yarım: liste boş çıktı
-        return { idx: idx && idx.entries.length ? idx : null, err };
+        return { idx: idx && idx.entries.length ? idx : null, err, saveFail };
       } finally { nzBusy = null; }
     })();
     return nzBusy;
@@ -478,6 +499,7 @@ TRAINERS.convert = function(ctx){
     if(nz){
       if(nz.idx && useNz && q) out = searchIndex(nz.idx.entries, q, { makamId });
       // Dizin varsa (yarım ya da eski de olsa) arama yine yapılır; hata ayrıca söylenir
+      if(nz.saveFail) errs.push(L("Dizin cihaza kaydedilemedi; bu oturumda bellekten kullanılıyor.", "The index couldn't be saved on the device; it is used from memory for this session."));
       if(nz.err && nz.err.message !== "iptal") errs.push(netErr(SITE.neyzen, nz.err) + (nz.idx ? " " + L("Eldeki dizinde arandı.", "Searched the index on hand.") : ""));
     }
     if(ps){
