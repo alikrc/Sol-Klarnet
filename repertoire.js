@@ -52,6 +52,7 @@ function scoreToText(notes){
 }
 // Düzeltme ekranının metin görünümü: metni yeniden okur, prev'in metni (scoreToText) değişmeyen parçalarında eski notayı
 // olduğu gibi tutar (adsız koma, güven, kutu). Baştan ve sondan eşleşen parçalar korunur; aradakiler yeniden okunur.
+// a, b: baştan ve sondan korunan nota sayısı (işaretleri kaydırmak için)
 function reparseKeeping(text, prev){
   const toks = text.split(/[\s;]+/).filter(t => t && t !== "|"), errors = [], items = [];
   for(const t of toks){ const r = parseScoreText(t); if(r.errors.length) errors.push(t); else items.push({ t, n: r.notes[0] }); }
@@ -59,7 +60,7 @@ function reparseKeeping(text, prev){
   let a = 0; while(a < items.length && a < prev.length && items[a].t === old[a]) a++;
   let b = 0; while(b < items.length - a && b < prev.length - a && items[items.length-1-b].t === old[prev.length-1-b]) b++;
   const notes = items.map((it, i) => i < a ? { ...prev[i] } : i >= items.length - b ? { ...prev[prev.length - (items.length - i)] } : it.n);
-  return { notes, errors };
+  return { notes, errors, a, b };
 }
 
 // ---- AEU koma işaretleri ----

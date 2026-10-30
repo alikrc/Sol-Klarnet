@@ -660,12 +660,16 @@ const OMR = (() => {
     const stemEnds = stems.flatMap(t => [[t.x, t.y0], [t.x, t.y1]]);
     // Ölçü çizgileri: dizek boyunca (≥ %92) siyah sütunlar (çizgiler silinmiş resimde; saplar ve anahtar hariç). Yalnızca
     // başı bulunan saplar atlanır: ölçü çizgisini geçen bağ yayı çizgiyi başlarla tek bileşen yapınca sap ayırma çizgiyi
-    // başsız "sap" olarak çıkarır, o sütun yine ölçü çizgisidir
+    // başsız "sap" olarak çıkarır, o sütun yine ölçü çizgisidir. Başsız sap ancak dizeğin içinde kalıyor ve uçlarında
+    // kiriş yoksa ölçü çizgisi sayılabilir (başı okunamamış notanın sapı ölçü çizgisi olmasın)
     const groups = [];
     {
       const ya = Math.round(S.y[0]), yb = Math.round(S.y[4]), n = yb - ya + 1;
       const xa = Math.max(0, Math.round(S.x0 - sp)), xb = Math.min(W - 2, Math.round(S.x1 + sp)), skip = new Uint8Array(W);
-      for(const h of heads){ const t = h.stem; for(let x = t.s.x - 1; x <= t.s.x + t.s.w; x++) if(x >= 0 && x < W) skip[x] = 1; }
+      const headed = new Set(heads.map(h => h.stem)), beams = sy.filter(s => s.cls === "beam");
+      const lineLike = t => t.y0 >= S.y[0] - 0.5*sp && t.y1 <= S.y[4] + 0.5*sp &&
+        !beams.some(b => b.x <= t.x + sp && b.x + b.w >= t.x - sp && (Math.abs(b.y - t.y0) <= sp || Math.abs(b.y + b.h - t.y1) <= sp || (b.y <= t.y0 && b.y + b.h >= t.y0) || (b.y <= t.y1 && b.y + b.h >= t.y1)));
+      for(const t of stems) if(headed.has(t) || !lineLike(t)) for(let x = t.s.x - 1; x <= t.s.x + t.s.w; x++) if(x >= 0 && x < W) skip[x] = 1;
       if(clef) for(let x = clef.x; x < clef.x + clef.w && x < W; x++) skip[x] = 1;
       const segs = []; let cur = null;
       for(let x = xa; x <= xb; x++){
@@ -844,12 +848,12 @@ const OMR = (() => {
     st.prevKey = keyMap;
     if(!st.keySig) st.keySig = key;
     const mark = (kind, i) => st.marks.push({ i, kind });
-    // değiştirici belleği ölçüyle sürer (ölçü dizek sonunda kapanmadıysa sonraki dizeğe geçer)
-    let mem = st.mem || new Map(), prevStaffNote = null;
+    // değiştirici belleği her dizekte sıfırdan (ölçü dizek sonunda sürse de; bağlı nota değiştiricisini bağla taşır)
+    let mem = new Map(), prevStaffNote = null;
     const closeBar = () => {
       if(st.cur.from === st.notes.length && !st.cur.sum) return;
       st.bars.push({ from:st.cur.from, to:st.notes.length, sum:st.cur.sum, carry:st.cur.carry || 0 });
-      st.lastBar = st.notes.slice(st.cur.from); st.lastSum = st.cur.sum;
+      st.lastBar = st.notes.slice(st.cur.from); st.lastSum = st.cur.sum; st.sums.push(st.cur.sum);
       st.cur = { from:st.notes.length, sum:0, carry:0 }; mem = new Map();
     };
     const pitchKey = n => n.natW + ":" + (n.acc && n.acc !== "natural" ? n.acc : "");
@@ -905,22 +909,28 @@ const OMR = (() => {
       } else st.notes.push(raw);
       prevStaffNote = n; firstOnStaff = false;
     }
-    // dizek sonu: ölçü çizgisiyle bitiyorsa ölçü kapanır, yoksa ölçü sonraki dizekte sürer (sayfa sonunda readRaw
-    // kapatır); son notadan dizek sonuna uzanan yay sonraki dizeğe bağdır
-    const endG = groups[groups.length - 1];
-    if(endG && endG.x1 >= S.x1 - sp && !ev.some(e => (e.n || e.m) && e.x > endG.x1)) closeBar();
-    st.mem = mem;
+    // dizek sonu: ölçü çizgisiyle bitiyorsa ölçü kapanır. Çizgi yoksa (sistem arasına bölünmüş ölçü ya da okunamayan
+    // son çizgi) ölçü yalnızca o ana kadarki en sık ölçü uzunluğundan açıkça kısaysa sonraki dizekte sürer (sayfa sonunda
+    // readRaw kapatır); uzunluk bilinmiyorsa ya da doluysa kapanır. Son notadan dizek sonuna uzanan yay sonraki dizeğe bağdır
+    const endG = groups[groups.length - 1], Lb = modeOf(st.sums);
+    if((endG && endG.x1 >= S.x1 - sp && !ev.some(e => (e.n || e.m) && e.x > endG.x1)) || !(Lb > 0) || st.cur.sum >= Lb - 1e-6) closeBar();
     const ln = notes.length ? notes.reduce((a, b) => b.x > a.x ? b : a) : null;
     st.tieOut = !!(ln && ln.s.x + ln.s.w + 8*sp >= S.x1 && arcAt(ln.s.x + ln.s.w + 0.1*sp, S.x1 - 0.3*sp, ln.cy));
     if(st.endSegno){ mark("toSegno", st.notes.length); st.endSegno = false; }
   }
 
+  // En sık değer (ölçü toplamları, dörtlük; 0,01'e yuvarlanır); boşsa 0
+  function modeOf(xs){
+    const cnt = new Map(); let best = 0, x = 0;
+    for(const v of xs){ const k = Math.round(v*100)/100, c = (cnt.get(k) || 0) + 1; cnt.set(k, c); if(c > best){ best = c; x = k; } }
+    return x;
+  }
   // Sayfayı ham notalara okur (perde henüz değiştirici sınıfıyla; Türk/Batı yorumu readPages'te). carry: önceki sayfadan
   // gelen okuma durumu { lastBar (% için), prevKey (donanım), tieOut, prevNote (sayfa aşan bağ) }; dönüşte st.carry
   function readRaw(img, page, carry){
     const P = prepare(img), { bin, st:S0 } = P, sp = S0.sp, c = carry || {};
     const st = { notes:[], marks:[], bars:[], cur:{ from:0, sum:0, carry:0 }, flags:[], keySig:null, sp:sp/P.scale, page, line:S0.line,
-      lastBar:c.lastBar, lastSum:c.lastSum, prevKey:c.prevKey, tieOut:c.tieOut, prevNote:c.prevNote, carry:c };
+      lastBar:c.lastBar, lastSum:c.lastSum, prevKey:c.prevKey, tieOut:c.tieOut, prevNote:c.prevNote, sums:(c.sums || []).slice(), carry:c };
     if(!S0.staves.length || !(sp > 0)){ st.flags.push("nostaff"); return st; }
     if(sp/P.scale < 8) st.flags.push("lowres");
     const clean = removeStaffLines(bin, S0.staves, S0), syms = symbols(clean, sp, S0.staves);
@@ -941,9 +951,9 @@ const OMR = (() => {
     // sayfa sonu: açık kalan ölçü kapanır
     if(st.cur.from < st.notes.length || st.cur.sum){
       st.bars.push({ from:st.cur.from, to:st.notes.length, sum:st.cur.sum, carry:st.cur.carry || 0 });
-      st.lastBar = st.notes.slice(st.cur.from); st.lastSum = st.cur.sum;
+      st.lastBar = st.notes.slice(st.cur.from); st.lastSum = st.cur.sum; st.sums.push(st.cur.sum);
     }
-    st.carry = { lastBar:st.lastBar, lastSum:st.lastSum, prevKey:st.prevKey, tieOut:st.tieOut,
+    st.carry = { lastBar:st.lastBar, lastSum:st.lastSum, prevKey:st.prevKey, tieOut:st.tieOut, sums:st.sums,
       prevNote:st.notes.length ? st.notes[st.notes.length - 1] : st.prevNote };
     // Okunan dizekten az perdeli nota (el yazısı, silik basım): notalara güvenilmez, "sparse" bayrağı
     if(read.length >= 2 && st.notes.filter(n => !n.rest).length < read.length){ st.flags.push("sparse"); for(const n of st.notes) n.conf *= 0.5; }

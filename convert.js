@@ -908,9 +908,20 @@ TRAINERS.convert = function(ctx){
   // (adsız koma, güven) korur.
   $("cvtext").addEventListener("input", () => {
     const st = S(); if(!st) return;
-    const r = reparseKeeping($("cvtext").value, st.notes);
+    const r = reparseKeeping($("cvtext").value, st.notes), P = st.notes.length, N = r.notes.length, cut = P - r.b;
+    // İşaretler (tekrar ve ölçü başları) düzenlenen bölgeye göre kayar: öncesi yerinde, sonrası N − P kadar, içindekiler
+    // bölgenin başına; önündeki nota değişen ölçü başının bağla taşan süresi (carry) sıfırlanır. Aynı yere düşen
+    // aynı tür işaretlerden biri kalır
+    const changed = cut > r.a || N !== P, seen = new Set();
+    st.marks = st.marks.map(m => {
+      const x = { ...m };
+      if(m.i >= cut && changed) x.i = m.i + N - P;
+      else if(m.i > r.a) x.i = r.a;
+      if(m.kind === "bar" && changed && (m.i === cut || (m.i > r.a && m.i < cut))) x.carry = 0;
+      return x;
+    }).filter(m => { const k = m.kind + "@" + m.i + (m.kind === "bar" ? ":" + (m.carry || 0) : "");
+      if(m.i > N || seen.has(k)) return false; seen.add(k); return true; });
     st.notes = r.notes;
-    st.marks = st.marks.filter(m => m.i <= st.notes.length);
     if(st.sel !== null && st.sel >= st.notes.length) st.sel = st.notes.length ? st.notes.length - 1 : null;
     st.dirty = true;
     render(true);
