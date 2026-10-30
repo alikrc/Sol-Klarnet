@@ -641,15 +641,27 @@ TRAINERS.convert = function(ctx){
   // state = { notes, marks, meter, tempo, makam, turkish, expand, sel, dirty, jobId, kind, raw, offset, name, source, flags, pages, cut, manual }
   // Önizleme adresleri iş bitince (kayıt ya da yeni iş) bırakılır
   const dropPages = st => { if(st && st.pages) st.pages.forEach(p => { if(/^blob:/.test(p.url)) URL.revokeObjectURL(p.url); }); };
+  // Kaydedilmemiş elle düzeltme varsa yeni okuma önce sorulur; vazgeçilirse yeni işin önizlemeleri bırakılır, ekran
+  // yerinde kalır (dönüş false)
   function open(job, id){
+    if(cvState && cvState.dirty && !confirm(L("Yeni okuma açılacak; elle yaptığın düzeltmeler silinecek. Devam edilsin mi?",
+      "A new reading will open; your manual corrections will be lost. Continue?"))){
+      if(job.pages && job.pages !== cvState.pages) dropPages(job);
+      return false;
+    }
     if(id === undefined) id = newJob();
     playStop();
     if(cvState && cvState.pages !== job.pages) dropPages(cvState);
     const turkish = job.kind === "audio" ? true : job.turkish != null ? job.turkish : store.get("convert.turkish", true);
+    // Ses güveni düşükse (ortalama < 0,5 ya da notaların %40'tan çoğu sarı) uyarı: eşlik ezgiyi örtüyor olabilir
+    const flags = (job.flags || []).slice(), sung = job.kind === "audio" ? job.notes.filter(n => !n.rest && n.conf != null) : [];
+    if(sung.length && (sung.reduce((a, n) => a + n.conf, 0)/sung.length < 0.5 || sung.filter(n => n.conf < 0.6).length > 0.4*sung.length))
+      flags.push({ tr: "Bu kayıtta ezgi net duyulmuyor (arkada eşlik olabilir); sarı notaları dikkatle denetle.",
+        en: "The melody isn't clear in this recording (there may be accompaniment); check the yellow notes carefully." });
     cvState = { notes: job.notes.map(n => ({ ...n })), marks: (job.marks || []).map(m => ({ ...m })), meter: job.meter || [4,4],
       tempo: Math.max(30, Math.min(240, Math.round(job.tempo || 80))), makam: job.makam || null, turkish, expand: true, sel: null, dirty: false,
       jobId: id, kind: job.kind || "image", raw: job.raw || null, offset: job.offset || 0, name: job.name || "", source: job.source || null,
-      flags: job.flags || [], pages: job.pages || null, cut: !!job.cut, manual: !!job.manual };
+      flags, pages: job.pages || null, cut: !!job.cut, manual: !!job.manual };
     msg(""); $("cvfix").hidden = true;
     srcZoom = 1;
     show(true);

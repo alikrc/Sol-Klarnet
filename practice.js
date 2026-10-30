@@ -282,13 +282,13 @@
           <b>Ladder:</b> the tempo rises as you play cleanly. <b>Play with me:</b> the band follows you; it comes in with your first note, tracks your tempo and waits when you stop.</li>
         <li>You can add your own tune by typing the notes and tapping Save, or load a score with “Import MusicXML”.</li></ol>`),
     convert: L(`<p><b>Ne işe yarar:</b> Bir notayı ya da kaydı esere çevirmek: okunan notaları düzeltip “Kendi eserlerim”e eklersin.</p>
-      <ol><li><b>PDF</b> en iyi sonucu verir. Resim çekiyorsan sayfayı düz ve tam çek, kenarları kırp.</li>
-        <li><b>YouTube</b> ya da başka bir kayıt için: videoyu başka bir cihazda ya da hoparlörde aç, telefonu hoparlöre yaklaştır ve “Dinleyerek yaz”a bas (en çok 3 dakika). Ses dosyan varsa “Ses dosyası seç”.</li>
+      <ol><li><b>PDF</b> en iyi sonucu verir. Resim çekiyorsan sayfayı düz ve tam çek, kenarları kırp. Eğri ya da gölgeli fotoğraflar zayıf okunur; tarama ya da ekran görüntüsü daha iyidir.</li>
+        <li><b>YouTube</b> ya da başka bir kayıt için: videoyu başka bir cihazda ya da hoparlörde aç, telefonu hoparlöre yaklaştır ve “Dinleyerek yaz”a bas (en çok 3 dakika). Ses dosyan varsa “Ses dosyası seç”. Arkada yoğun eşlik olan kayıtlarda ezgi iyi çıkmayabilir; tek çalgılı kayıt en iyisidir.</li>
         <li>Okunan notalar çip olarak görünür: <b>sarı</b> = emin değil, <b>turuncu</b> = ölçü tutmuyor, <b>kırmızı</b> = klarnet aralığı dışı. Bir çipe dokun, altındaki düğmelerle düzelt; ileri kullanıcı metin kutusundan da yazabilir.</li>
         <li>Okunanı kaydetmeden önce mutlaka <b>Dinle</b> ile kontrol et. Sonra ad ver ve Kaydet: eser “Etüt ve eserler”de açılır.</li></ol>`,
       `<p><b>What it's for:</b> turning a score or a recording into a piece: you correct the notes read and add them to “My pieces”.</p>
-      <ol><li>A <b>PDF</b> gives the best result. If you take a photo, shoot the page flat and whole, and crop the edges.</li>
-        <li>For <b>YouTube</b> or any other recording: play it on another device or a speaker, hold the phone close and tap “Write by ear” (3 minutes at most). If you have an audio file, use “Choose an audio file”.</li>
+      <ol><li>A <b>PDF</b> gives the best result. If you take a photo, shoot the page flat and whole, and crop the edges. Curved or shadowed photos read poorly; a scan or a screenshot is better.</li>
+        <li>For <b>YouTube</b> or any other recording: play it on another device or a speaker, hold the phone close and tap “Write by ear” (3 minutes at most). If you have an audio file, use “Choose an audio file”. With heavy accompaniment behind it the melody may not come out well; a solo recording works best.</li>
         <li>The notes read appear as chips: <b>yellow</b> = not sure, <b>orange</b> = the bar doesn't add up, <b>red</b> = outside the clarinet's range. Tap a chip and fix it with the buttons below; advanced users can type in the text box too.</li>
         <li>Always check the result with <b>Listen</b> before saving. Then name it and tap Save: the piece opens in “Études & pieces”.</li></ol>`),
     rec: L(`<p><b>Ne işe yarar:</b> Kendini dinlemek ve nerede pes ya da tiz kaldığını görmek.</p>
