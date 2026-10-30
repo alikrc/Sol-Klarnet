@@ -913,7 +913,7 @@ const OMR = (() => {
     return { w:p.w, c:p.c, d:n.d, rest:false, conf:+n.conf.toFixed(2), box:n.box };
   }
 
-  // Sayfalar (gri/RGB/RGBA resimler) → { notes, marks, bars, meter, flags, sp, turkish, keySig }. Worker'da çalışır;
+  // Sayfalar (gri/RGB/RGBA resimler) → { notes, marks, bars, meter, flags, nostaffPages, sp, turkish, keySig }. Worker'da çalışır;
   // onProgress(bitenSayfa, toplam) her sayfadan sonra çağrılır.
   function readPages(imgs, opts, onProgress){
     opts = opts || {};
@@ -929,11 +929,15 @@ const OMR = (() => {
       r.notes.forEach(n => notes.push(finish(n, turkish)));
       r.marks.forEach(m => marks.push({ i:m.i + off, kind:m.kind }));
       r.bars.forEach(b => bars.push({ from:b.from + off, to:b.to + off, sum:b.sum }));
-      r.flags.forEach(f => { if(!flags.includes(f)) flags.push(f); });
+      r.flags.forEach(f => { if(f !== "nostaff" && !flags.includes(f)) flags.push(f); });
       if(!sp && r.sp && !r.flags.includes("nostaff")) sp = r.sp;
     }
     // eserin sonundaki çift çizgi bölüm sonu değildir
     for(let i = marks.length - 1; i >= 0; i--) if(marks[i].kind === "sectionEnd" && marks[i].i >= notes.length) marks.splice(i, 1);
+    // dizeksiz sayfalar ayrıca bildirilir; "nostaff" yalnızca hiçbir sayfada dizek yoksa (boş kapak sayfası iyi okumayı
+    // geçersiz kılmasın)
+    const nostaffPages = raws.filter(r => r.flags.includes("nostaff")).map(r => r.page);
+    if(nostaffPages.length === raws.length) flags.unshift("nostaff");
     marks.sort((a, b) => a.i - b.i || MARK_ORDER[a.kind] - MARK_ORDER[b.kind]);
     if((marks.length || raws.some(r => r.repeatSeen)) && !flags.includes("repeat")) flags.push("repeat");
     const R = rep();
@@ -951,7 +955,7 @@ const OMR = (() => {
       const nt = natOfStep(k.step), p = finish({ natW:nt.w, acc:k.cls, d:1, conf:1 }, turkish);
       return { letter:LETTER_TR[nt.letter], step:k.step, cls:k.cls, k:turkish ? ACC_K[k.cls] : WEST_K[k.cls], w:p.w, c:p.c };
     }) : [];
-    return { notes, marks, bars:outBars, meter, flags, sp:+sp.toFixed(2), turkish, keySig };
+    return { notes, marks, bars:outBars, meter, flags, nostaffPages, sp:+sp.toFixed(2), turkish, keySig };
   }
   const readPage = (img, opts) => readPages([img], opts);
 
