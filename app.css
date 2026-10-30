@@ -759,6 +759,24 @@ svg.score{display:block}
 .cverr{color:#D2553A;font-weight:600;min-height:14px}
 #cvname{flex:1 1 160px;min-width:0}
 #cvtempo{width:64px}
+/* Çevir: kaynak görünümü. Sayfa resimleri alt alta, kutular çiplerle aynı renklerde; iki parmakla yakınlaşma (touch-action) */
+.cvsrcwrap{position:relative;margin:8px 0}
+.cvsrc{max-height:60vh;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain;border:1px solid var(--line);border-radius:8px;background:#fff}
+.cvpages{transform-origin:0 0}
+.cvpage{position:relative;width:100%}
+.cvpage+.cvpage{border-top:2px solid var(--line)}
+.cvpage img{display:block;width:100%;height:100%;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.cvboxes{position:absolute;inset:0}
+.cvbox{position:absolute;padding:0;margin:0;border:1.5px solid var(--teal);border-radius:4px;
+  background:color-mix(in srgb,var(--teal) 16%,transparent);cursor:pointer}
+.cvbox.unsure{background:color-mix(in srgb,#E3B22E 30%,transparent);border-color:#C99A1A}
+.cvbox.badbar{border-color:#E07B24;box-shadow:inset 0 0 0 1.5px #E07B24}
+.cvbox.outrange{background:color-mix(in srgb,#D2553A 30%,transparent);border-color:#D2553A}
+.cvbox.sel{outline:2.5px solid var(--teal);outline-offset:1px;background:color-mix(in srgb,var(--teal) 28%,transparent)}
+.cvbox.cur{outline:2.5px solid var(--accent);outline-offset:1px}
+.cvzoom{position:absolute;top:6px;right:6px;display:flex;gap:4px}
+.cvzoom .stopbtn{min-width:36px;font-size:16px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.cvadd .stopbtn{min-width:40px}
 /* Uygulama geneli arama */
 .barbtns{display:flex;align-items:center;gap:8px;flex:0 0 auto}
 .gsbtn{width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);

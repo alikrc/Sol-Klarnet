@@ -3,12 +3,46 @@
 // 22 050 Hz tek kanala indirilir, 5 sn'lik parçalarla çözülür (her parça ~0,1 sn; arada ara verilir, arayüz donmaz).
 // Mantık skills.js (audioNotes, joinAudioChunk, tuningOffset, quantizeRun) ve repertoire.js'te (düzeltme işlemleri).
 // Dışa: SK.openConvert(job) — job: { notes, tempo?, meter?, name?, makam?, kind:"audio"|"image", turkish?, pages?, marks?,
-// flags?, source?, raw?, offset? } (raw/offset: ses işinde tempo değişince yeniden ızgaraya oturtmak için).
+// flags?, source?, raw?, offset?, manual? } (raw/offset: ses işinde tempo değişince yeniden ızgaraya oturtmak için;
+// pages: [{ url, width, height }] kaynak görünümü; manual: okunamadı, resme bakarak yaz). imagesToPages(files) Görev 8/10 için.
+// Resim okuma omrworker.js'te (omr.js), Worker yalnızca resim seçilince açılır.
 
 // Kaydedilmemiş iş oturum boyunca burada durur: sekmeye dönünce yerinde
 let cvState = null, cvJobSeq = 0;
 const CV_SR = 22050, CV_MAX_SEC = 180, CV_CHUNK_SEC = 5, CV_OV_MS = 50, CV_MAX_MB = 60;
 const CV_METERS = [[2,4],[3,4],[4,4],[5,8],[6,8],[7,8],[9,8],[10,8],[12,8]];
+const CV_MAX_PX = 3000, CV_PREVIEW_PX = 2000, CV_MANUAL_CONF = 0.5;
+
+// Tuval → okuyucu sayfası: gri ton (Uint8, 1 kanal) ve küçültülmüş önizleme (objectURL). Görev 8 (PDF) de bunu kullanır.
+async function canvasToPage(cv){
+  const { width, height } = cv, rgba = cv.getContext("2d").getImageData(0, 0, width, height).data, data = new Uint8Array(width*height);
+  for(let i=0, j=0; i<data.length; i++, j+=4) data[i] = (rgba[j]*77 + rgba[j+1]*150 + rgba[j+2]*29) >> 8;
+  const k = Math.min(1, CV_PREVIEW_PX/Math.max(width, height)), pv = document.createElement("canvas");
+  pv.width = Math.max(1, Math.round(width*k)); pv.height = Math.max(1, Math.round(height*k));
+  pv.getContext("2d").drawImage(cv, 0, 0, pv.width, pv.height);
+  const blob = await new Promise(r => pv.toBlob(r, "image/jpeg", 0.85));
+  return { data, width, height, url: blob ? URL.createObjectURL(blob) : pv.toDataURL("image/jpeg", 0.85) };
+}
+// Resim dosyaları → [{ data, width, height, url }]; en uzun kenar 3000 px'e sınırlanır, saydam yer beyaz sayılır
+async function imagesToPages(files){
+  const out = [];
+  for(const f of files){
+    const src = URL.createObjectURL(f);
+    try{
+      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(f.name)); im.src = src; });
+      const k = Math.min(1, CV_MAX_PX/Math.max(img.naturalWidth, img.naturalHeight)), cv = document.createElement("canvas");
+      cv.width = Math.max(1, Math.round(img.naturalWidth*k)); cv.height = Math.max(1, Math.round(img.naturalHeight*k));
+      const g = cv.getContext("2d", { willReadFrequently: true });
+      g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+      g.drawImage(img, 0, 0, cv.width, cv.height);
+      out.push(await canvasToPage(cv));
+    } finally { URL.revokeObjectURL(src); }
+  }
+  return out;
+}
+// Dosya adından eser adı önerisi: uzantı ve "_" atılır, ilk iki sözcük büyük harfle ("hicaz_longa_aydin…" → "Hicaz Longa")
+const cvNameOf = file => file.replace(/\.[^.]+$/, "").replace(/[_\-.]+/g, " ").trim().split(/\s+/).slice(0, 2)
+  .map(w => w.charAt(0).toLocaleUpperCase("tr") + w.slice(1)).join(" ");
 
 TRAINERS.convert = function(ctx){
   const { SK, $, store, esc, nn, sleep } = ctx;
@@ -18,9 +52,10 @@ TRAINERS.convert = function(ctx){
       "Turn a score or a recording into a piece. The notes read appear below as chips; tap to correct them, check with Listen and save. Reading happens on the phone; files and audio never leave the device.")}</p>
     <div id="cvfind" hidden></div>
     <div class="pbar">
-      <button class="stopbtn" id="cvimg" type="button" hidden>${L("PDF ya da resim seç", "Choose a PDF or picture")}</button>
+      <button class="stopbtn" id="cvimg" type="button">${L("PDF ya da resim seç", "Choose a PDF or picture")}</button>
       <button class="stopbtn" id="cvaud" type="button">${L("Ses dosyası seç", "Choose an audio file")}</button>
       <input type="file" id="cvfile" accept="audio/*" hidden>
+      <input type="file" id="cvpic" accept="image/*,application/pdf" multiple hidden>
       <button class="primary small" id="cvlisten" type="button">${L("Dinleyerek yaz", "Write by ear")}</button>
       <span class="ltclock small" id="cvclock"></span>
     </div>
@@ -35,8 +70,22 @@ TRAINERS.convert = function(ctx){
         <select id="cvmeter" aria-label="${L("Ölçü", "Time signature")}"></select>
         <label class="chk"><input type="checkbox" id="cvexpand"> ${L("Tekrarları aç", "Expand repeats")}</label>
       </div>
-      <div class="cvsrc" id="cvsrc" hidden></div>
+      <div class="cvsrcwrap" id="cvsrcwrap" hidden>
+        <div class="cvsrc" id="cvsrc"><div class="cvpages" id="cvpages"></div></div>
+        <div class="cvzoom">
+          <button class="stopbtn" type="button" data-z="-1" aria-label="${L("Uzaklaştır", "Zoom out")}">−</button>
+          <button class="stopbtn" type="button" data-z="1" aria-label="${L("Yakınlaştır", "Zoom in")}">+</button>
+        </div>
+      </div>
       <div class="muted small" id="cvinfo"></div>
+      <div class="pbar cvadd" id="cvadd" hidden>
+        <span class="muted small">${L("Yeni nota:", "New note:")}</span>
+        <button class="stopbtn" type="button" data-add="1" aria-label="${L("Bir basamak yukarısını ekle", "Add one step higher")}">+ ▲</button>
+        <button class="stopbtn" type="button" data-add="0" aria-label="${L("Aynısını ekle", "Add the same")}">+ =</button>
+        <button class="stopbtn" type="button" data-add="-1" aria-label="${L("Bir basamak aşağısını ekle", "Add one step lower")}">+ ▼</button>
+        <button class="stopbtn" type="button" data-adur="0.5" aria-label="${L("Süreyi yarıya indir", "Halve the duration")}">½×</button>
+        <button class="stopbtn" type="button" data-adur="2" aria-label="${L("Süreyi iki katına çıkar", "Double the duration")}">2×</button>
+      </div>
       <div class="cvchips" id="cvchips" aria-label="${L("Okunan notalar", "Notes read")}"></div>
       <div class="pbar cvtools" id="cvtools">
         <button class="stopbtn" type="button" data-op="up" aria-label="${L("Bir basamak yukarı", "One step up")}">▲</button>
@@ -77,7 +126,11 @@ TRAINERS.convert = function(ctx){
 
   // ---- İş belirteci: her okuma yeni bir jobId alır; sonuç geldiğinde jobId eskiyse ekrana yazılmaz ----
   let curJob = 0, listening = null, playTok = null, accBase = null;   // accBase: değiştirici döngüsünün sürdüğü nota
-  const newJob = () => (curJob = ++cvJobSeq);
+  let omrW = null, omrRej = null;                                     // resim okuma Worker'ı; süren işin reddi
+  // Yeni iş eskisini iptal eder: süren resim okuması Worker kapatılarak durdurulur (yeniden açılınca kalıplar yeniden
+  // yüklenir); bekleyen okuma reddedilir ki önizlemeleri bırakılsın
+  function omrStop(){ const r = omrRej; omrRej = null; if(omrW){ omrW.terminate(); omrW = null; } if(r) r(new Error("iptal")); }
+  const newJob = () => { if(omrRej) omrStop(); return (curJob = ++cvJobSeq); };
   const stale = id => id !== curJob;
   const prog = (t, cls = "") => { $("cvprog").className = "fb " + cls; $("cvprog").textContent = t; };
   const msg = (t, cls = "") => { $("cvmsg").className = "fb " + cls; $("cvmsg").textContent = t; };
@@ -152,6 +205,56 @@ TRAINERS.convert = function(ctx){
     if(f) readFile(f);
   });
 
+  // ---- Resim: Worker'da okuma (omrworker.js → OMR.readPages) ----
+  function omrRun(id, pages){
+    return new Promise((res, rej) => {
+      if(!omrW) omrW = new Worker("omrworker.js");
+      omrRej = rej;
+      omrW.onmessage = e => {
+        const m = e.data;
+        if(m.jobId !== id || stale(id)) return;
+        if(m.progress !== undefined){ prog(L("Notalar okunuyor… %", "Reading the notes… ") + Math.round(m.progress*100) + (LANG === "en" ? "%" : "")); return; }
+        omrRej = null;
+        if(m.error) rej(new Error(m.error)); else res(m.result);
+      };
+      // Worker açılamadı (dosya yok, betik hatası): kapatılır, sonraki seçimde yeniden denenir
+      omrW.onerror = e => { e.preventDefault(); omrRej = null; if(omrW){ omrW.terminate(); omrW = null; } rej(new Error(e.message || "Worker")); };
+      // Gri baytlar Worker'a aktarılır (kopyalanmaz); önizleme adresleri burada kalır
+      omrW.postMessage({ jobId: id, pages: pages.map(p => ({ data: p.data, width: p.width, height: p.height })) }, pages.map(p => p.data.buffer));
+    });
+  }
+  const isPdf = f => f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+  async function readImages(files){
+    const id = newJob();
+    // Görev 8: PDF sayfaları pdf.js ile tuvale çizilip canvasToPage ile aynı biçime getirilecek
+    if(files.some(isPdf)){ prog(L("PDF okuma henüz yok. Şimdilik sayfanın resmini (fotoğraf ya da ekran görüntüsü) seç.", "Reading PDFs isn't available yet. For now choose a picture of the page (a photo or a screenshot)."), "bad"); return; }
+    prog(L("Resim açılıyor…", "Opening the picture…"));
+    let pages;
+    try{ pages = await imagesToPages(files); }
+    catch(e){ if(!stale(id)) prog(L("Resim açılamadı: ", "Couldn't open the picture: ") + (e.message || e), "bad"); return; }
+    const drop = () => pages.forEach(p => URL.revokeObjectURL(p.url));
+    if(stale(id)){ drop(); return; }
+    prog(L("Notalar okunuyor…", "Reading the notes…"));
+    let r;
+    try{ r = await omrRun(id, pages); }
+    catch(e){ drop(); if(!stale(id)) prog(L("Notalar okunamadı: ", "Couldn't read the notes: ") + (e.message || e), "bad"); return; }
+    if(stale(id)){ drop(); return; }
+    prog("");
+    // Dizek yoksa ya da okuma çok güvensizse sonuç atılır: boş şerit, resme bakarak yaz
+    const conf = r.notes.length ? r.notes.reduce((a, n) => a + n.conf, 0)/r.notes.length : 0;
+    const manual = r.flags.includes("nostaff") || conf < CV_MANUAL_CONF;
+    const flags = r.flags.filter(f => f !== "nostaff" || manual);
+    if(!manual && r.nostaffPages.length && pages.length > 1) flags.push({ tr: "Dizek bulunamayan sayfa atlandı: " + r.nostaffPages.map(p => p + 1).join(", ") + ".",
+      en: "Skipped page(s) without staves: " + r.nostaffPages.map(p => p + 1).join(", ") + "." });
+    open({ kind:"image", pages: pages.map(({ url, width, height }) => ({ url, width, height })), notes: manual ? [] : r.notes, marks: manual ? [] : r.marks,
+      meter: r.meter, turkish: manual ? undefined : r.turkish, flags, manual, name: cvNameOf(files[0].name) }, id);
+  }
+  $("cvimg").addEventListener("click", () => $("cvpic").click());
+  $("cvpic").addEventListener("change", () => {
+    const fs = [...$("cvpic").files]; $("cvpic").value = "";
+    if(fs.length) readImages(fs);
+  });
+
   // Dinleyerek yaz: mikrofondan en çok 3 dakika; durdurunca dosyayla aynı yol
   const clockName = () => L("Dinlenen ezgi ", "Melody by ear ") + new Date().toLocaleTimeString(LANG === "en" ? "en" : "tr", { hour:"2-digit", minute:"2-digit" });
   function listenUi(on){ $("cvlisten").textContent = on ? L("Durdur", "Stop") : L("Dinleyerek yaz", "Write by ear"); $("cvlisten").classList.toggle("listening", on); if(!on) $("cvclock").textContent = ""; }
@@ -189,16 +292,20 @@ TRAINERS.convert = function(ctx){
   $("cvlisten").addEventListener("click", () => listening ? stopListen() : startListen());
 
   // ---- Düzeltme ekranı ----
-  // state = { notes, marks, meter, tempo, makam, turkish, expand, sel, dirty, jobId, kind, raw, offset, name, source, flags, pages, cut }
+  // state = { notes, marks, meter, tempo, makam, turkish, expand, sel, dirty, jobId, kind, raw, offset, name, source, flags, pages, cut, manual }
+  // Önizleme adresleri iş bitince (kayıt ya da yeni iş) bırakılır
+  const dropPages = st => { if(st && st.pages) st.pages.forEach(p => { if(/^blob:/.test(p.url)) URL.revokeObjectURL(p.url); }); };
   function open(job, id){
     if(id === undefined) id = newJob();
     playStop();
+    if(cvState && cvState.pages !== job.pages) dropPages(cvState);
     const turkish = job.kind === "audio" ? true : job.turkish != null ? job.turkish : store.get("convert.turkish", true);
     cvState = { notes: job.notes.map(n => ({ ...n })), marks: (job.marks || []).map(m => ({ ...m })), meter: job.meter || [4,4],
       tempo: Math.max(30, Math.min(240, Math.round(job.tempo || 80))), makam: job.makam || null, turkish, expand: true, sel: null, dirty: false,
       jobId: id, kind: job.kind || "image", raw: job.raw || null, offset: job.offset || 0, name: job.name || "", source: job.source || null,
-      flags: job.flags || [], pages: job.pages || null, cut: !!job.cut };
+      flags: job.flags || [], pages: job.pages || null, cut: !!job.cut, manual: !!job.manual };
     msg(""); $("cvfix").hidden = true;
+    srcZoom = 1;
     show(true);
   }
   const S = () => cvState;
@@ -211,6 +318,13 @@ TRAINERS.convert = function(ctx){
   }
   const chipName = n => n.rest ? L("Sus", "Rest") : n.c !== null && n.c !== undefined && perdeName(n.c) ? perdeName(n.c) : nn(n.w);
   const MARK_SYM = { repStart:"‖:", repEnd:":‖", segno:"𝄋", toSegno:"D.S.", sectionEnd:"‖" };
+  // Okuyucu uyarıları (omr.js flags)
+  const FLAG_MSG = {
+    nostaff: () => L("Dizek bulunamadı.", "No staves were found."),
+    lowres: () => L("Resim küçük, okuma zayıf olabilir.", "The picture is small; the reading may be poor."),
+    pianoLowerSkipped: () => L("Piyano notası: yalnızca üst dizek okundu.", "Piano score: only the upper staff was read."),
+    repeat: () => L("Tekrarlar bulundu, 'Tekrarları aç' açık.", "Repeats were found; 'Expand repeats' is on.")
+  };
   const written = () => S().turkish ? S().notes : concertToWritten(S().notes, SK.T);
   function render(fromText){
     const st = S();
@@ -230,21 +344,26 @@ TRAINERS.convert = function(ctx){
     if(st.kind === "audio" && off !== 0) info.push(LANG === "en" ? "The recording is tuned " + Math.abs(off) + " commas " + (off < 0 ? "flat" : "sharp") + " (corrected)."
       : "Kayıt " + ctx.num(Math.abs(off), Number.isInteger(off) ? 0 : 1) + " koma " + (off < 0 ? "pes" : "tiz") + " akortlu (düzeltildi).");
     if(st.cut) info.push(L("Uzun kayıt: ilk 3 dakika okundu.", "Long recording: the first 3 minutes were read."));
-    info.push(...st.flags.map(f => typeof f === "string" ? f : pick(f, LANG)));
+    if(st.manual) info.push(L("Okuyamadım, notaları resme bakarak ekle.", "I couldn't read it; add the notes by looking at the picture."));
+    info.push(...st.flags.map(f => typeof f !== "string" ? pick(f, LANG) : FLAG_MSG[f] ? FLAG_MSG[f]() : f));
     $("cvinfo").textContent = info.join(" ");
-    // Çip şeridi: ölçü ayraçlı; sarı emin değil, turuncu ölçü tutmuyor, kırmızı aralık dışı
+    // Çip şeridi: ölçü ayraçlı; sarı emin değil, turuncu ölçü tutmuyor, kırmızı aralık dışı (kaynaktaki kutular da aynı renkte)
     const bars = barCheck(st.notes, st.meter), bad = new Set(rangeIssues(written())), barOf = [];
     bars.forEach(b => { for(let i=b.from;i<b.to;i++) barOf[i] = b; });
+    const tone = i => { const n = st.notes[i]; return [n.conf != null && n.conf < 0.6 ? "unsure" : "", barOf[i] && !barOf[i].ok ? "badbar" : "",
+      bad.has(i) ? "outrange" : "", st.sel === i ? "sel" : ""].filter(Boolean).join(" "); };
     const marksAt = i => st.marks.filter(m => m.i === i).map(m => `<span class="cvmark">${MARK_SYM[m.kind] || ""}</span>`).join("");
     let html = "";
     st.notes.forEach((n, i) => {
       if(i > 0 && barOf[i] !== barOf[i-1]) html += `<span class="cvbar" aria-hidden="true"></span>`;
       html += marksAt(i);
-      const cls = ["cvchip", n.conf != null && n.conf < 0.6 ? "unsure" : "", barOf[i] && !barOf[i].ok ? "badbar" : "", bad.has(i) ? "outrange" : "", st.sel === i ? "sel" : ""].filter(Boolean).join(" ");
-      html += `<button type="button" class="${cls}" data-i="${i}" aria-pressed="${st.sel === i}">${esc(chipName(n))} <i>${durSym(n.d)}</i></button>`;
+      html += `<button type="button" class="cvchip ${tone(i)}" data-i="${i}" aria-pressed="${st.sel === i}">${esc(chipName(n))} <i>${durSym(n.d)}</i></button>`;
     });
     html += marksAt(st.notes.length);
     $("cvchips").innerHTML = html || `<span class="muted small">${L("Nota yok.", "No notes.")}</span>`;
+    $("cvadd").hidden = !st.manual;
+    $("cvadd").querySelectorAll("[data-adur]").forEach(b => { b.disabled = st.sel === null; });
+    renderSrc(st, tone);
     $("cvtools").querySelectorAll("button").forEach(b => { b.disabled = st.sel === null; });
     if(!fromText){ $("cvtext").value = scoreToText(st.notes); $("cvterr").textContent = ""; }
     if(st.notes.length) drawScore($("cvscore"), written(), { meter: st.meter, names:true }); else $("cvscore").replaceChildren();
@@ -254,6 +373,102 @@ TRAINERS.convert = function(ctx){
     render();
     if(scroll) $("cvedit").scrollIntoView({ block:"nearest" });
   }
+
+  // ---- Kaynak görünümü: sayfa resimleri alt alta, okunan notaların kutuları üstünde (çiplerle aynı renkler) ----
+  // Yakınlaşma: iki parmakla (hareket sürerken CSS transform, bırakınca genişlik) ya da +/− düğmeleri, Ctrl+tekerlek.
+  let srcZoom = 1, srcKey = null, pinch = null;
+  const SRC_ZMAX = 6, clampZ = z => Math.max(1, Math.min(SRC_ZMAX, z));
+  function renderSrc(st, tone){
+    const wrap = $("cvsrcwrap"), pg = $("cvpages");
+    wrap.hidden = !(st.pages && st.pages.length);
+    if(wrap.hidden){ if(srcKey){ pg.replaceChildren(); srcKey = null; } return; }
+    if(srcKey !== st.pages){
+      srcKey = st.pages;
+      pg.style.width = srcZoom*100 + "%";
+      pg.innerHTML = st.pages.map((p, k) => `<div class="cvpage" style="aspect-ratio:${p.width}/${p.height}">
+        <img src="${p.url}" alt="${L("Sayfa ", "Page ")}${k + 1}" draggable="false"><div class="cvboxes" data-page="${k}" aria-hidden="true"></div></div>`).join("");
+    }
+    // Kutu nota başından biraz geniş: parmakla dokunulabilsin
+    const by = st.pages.map(() => []), pct = (v, of) => (v/of*100).toFixed(3) + "%";
+    st.notes.forEach((n, i) => {
+      const b = n.box, p = b && st.pages[b.page]; if(!p) return;
+      const pad = Math.max(b.w, b.h)*0.25;
+      by[b.page].push(`<button type="button" tabindex="-1" class="cvbox ${tone(i)}" data-i="${i}" style="left:${pct(b.x - pad, p.width)};top:${pct(b.y - pad, p.height)};width:${pct(b.w + 2*pad, p.width)};height:${pct(b.h + 2*pad, p.height)}"></button>`);
+    });
+    pg.querySelectorAll(".cvboxes").forEach(el => { el.innerHTML = by[+el.dataset.page].join(""); });
+  }
+  // (cx, cy): kaynak kutusuna göre sabit kalan nokta
+  function setZoom(z, cx, cy){
+    const sc = $("cvsrc"); z = clampZ(z);
+    const r = z/srcZoom, x = sc.scrollLeft + cx, y = sc.scrollTop + cy;
+    srcZoom = z; $("cvpages").style.width = z*100 + "%";
+    sc.scrollLeft = x*r - cx; sc.scrollTop = y*r - cy;
+  }
+  // Seçili çipin kutusu kaynakta ortaya kaydırılır (yalnızca kaynak kutusu kayar, sayfa yerinde kalır)
+  function scrollToBox(i){
+    const sc = $("cvsrc"), b = sc.querySelector(`.cvbox[data-i="${i}"]`);
+    if(!b || $("cvsrcwrap").hidden) return;
+    const r = sc.getBoundingClientRect(), q = b.getBoundingClientRect();
+    sc.scrollTo({ left: sc.scrollLeft + q.left - r.left - (r.width - q.width)/2, top: sc.scrollTop + q.top - r.top - (r.height - q.height)/2, behavior:"smooth" });
+  }
+  $("cvpages").addEventListener("click", e => {
+    const b = e.target.closest(".cvbox"); if(!b || !S()) return;
+    S().sel = +b.dataset.i; render();
+  });
+  P.querySelector(".cvzoom").addEventListener("click", e => {
+    const b = e.target.closest("[data-z]"); if(!b) return;
+    const sc = $("cvsrc");
+    setZoom(srcZoom*(+b.dataset.z > 0 ? 1.5 : 1/1.5), sc.clientWidth/2, sc.clientHeight/2);
+  });
+  {
+    const sc = $("cvsrc"), pg = $("cvpages");
+    const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    sc.addEventListener("touchstart", e => {
+      if(e.touches.length !== 2) return;
+      const r = sc.getBoundingClientRect(), t = e.touches;
+      pinch = { d0: dist(t) || 1, k: 1, cx: (t[0].clientX + t[1].clientX)/2 - r.left, cy: (t[0].clientY + t[1].clientY)/2 - r.top };
+      pg.style.transformOrigin = (sc.scrollLeft + pinch.cx) + "px " + (sc.scrollTop + pinch.cy) + "px";
+    }, { passive: true });
+    sc.addEventListener("touchmove", e => {
+      if(!pinch || e.touches.length !== 2) return;
+      if(e.cancelable) e.preventDefault();
+      pinch.k = clampZ(srcZoom*dist(e.touches)/pinch.d0)/srcZoom;
+      pg.style.transform = "scale(" + pinch.k + ")";
+    }, { passive: false });
+    const end = e => {
+      if(!pinch || e.touches.length >= 2) return;
+      const p = pinch; pinch = null;
+      pg.style.transform = "";
+      setZoom(srcZoom*p.k, p.cx, p.cy);
+    };
+    sc.addEventListener("touchend", end); sc.addEventListener("touchcancel", end);
+    sc.addEventListener("wheel", e => {
+      if(!e.ctrlKey) return;
+      e.preventDefault();
+      const r = sc.getBoundingClientRect();
+      setZoom(srcZoom*Math.exp(-e.deltaY/300), e.clientX - r.left, e.clientY - r.top);
+    }, { passive: false });
+  }
+
+  // Resme bakarak yaz: seçili (son eklenen) notanın bir basamak yukarısı / aynısı / aşağısı arkasına eklenir; ilk nota La4 ♩
+  $("cvadd").addEventListener("click", e => {
+    const st = S(), b = e.target.closest("[data-add],[data-adur]");
+    if(!st || !b) return;
+    if(b.dataset.adur){
+      const i = st.sel; if(i === null) return;
+      edit(st.notes.map((m, j) => j === i ? scaleDur(m, +b.dataset.adur) : m), i, [i]);
+      return;
+    }
+    const at = st.sel === null ? st.notes.length - 1 : st.sel;
+    let base = null;
+    for(let j=at;j>=0;j--) if(!st.notes[j].rest){ base = st.notes[j]; break; }
+    const d = at >= 0 ? st.notes[at].d : 1, dir = +b.dataset.add;
+    let x = base ? { w: base.w, c: base.c, d, rest:false } : { ...naturalOf({ w:69 }), d, rest:false };
+    if(base && dir) x = stepNote(x, dir);
+    x.conf = 1;
+    shiftMarks(at, 1);
+    edit([...st.notes.slice(0, at + 1), x, ...st.notes.slice(at + 1)], at + 1, [at + 1]);
+  });
   // Notalar değişti: elle düzeltme (dirty); düzeltilen nota artık "emin değil" sayılmaz
   function edit(notes, sel, touched){
     const st = S();
@@ -266,7 +481,7 @@ TRAINERS.convert = function(ctx){
   const shiftMarks = (from, delta) => { S().marks.forEach(m => { if(m.i > from) m.i = Math.max(from, m.i + delta); }); };
   $("cvchips").addEventListener("click", e => {
     const b = e.target.closest("[data-i]"); if(!b) return;
-    S().sel = +b.dataset.i; render();
+    S().sel = +b.dataset.i; render(); scrollToBox(S().sel);
   });
   $("cvtools").addEventListener("click", e => {
     const b = e.target.closest("[data-op]"), st = S();
@@ -354,7 +569,7 @@ TRAINERS.convert = function(ctx){
   $("cvname").addEventListener("input", () => { if(S()) S().name = $("cvname").value; });
 
   // Dinle: düzeltilmiş ezgi (yazılı) tempoda çalar; çalan çip vurgulanır
-  function playStop(){ if(playTok){ playTok = null; SK.stopSound(); } P.querySelectorAll(".cvchip.cur").forEach(c => c.classList.remove("cur")); }
+  function playStop(){ if(playTok){ playTok = null; SK.stopSound(); } P.querySelectorAll(".cvchip.cur,.cvbox.cur").forEach(c => c.classList.remove("cur")); }
   async function listen(){
     playStop();
     const st = S(); if(!st) return;
@@ -363,8 +578,8 @@ TRAINERS.convert = function(ctx){
     const freqOf = n => n.c != null ? (mk ? ctx.mkFreq(mk, n.c) : ctx.commaFreq(n.c)) : undefined;
     for(let i=0;i<notes.length;i++){
       if(playTok !== tok) return;
-      P.querySelectorAll(".cvchip.cur").forEach(c => c.classList.remove("cur"));
-      const chip = P.querySelector(`.cvchip[data-i="${i}"]`); if(chip) chip.classList.add("cur");
+      P.querySelectorAll(".cvchip.cur,.cvbox.cur").forEach(c => c.classList.remove("cur"));
+      P.querySelectorAll(`.cvchip[data-i="${i}"],.cvbox[data-i="${i}"]`).forEach(c => c.classList.add("cur"));
       const n = notes[i];
       if(n.rest) SK.stopSound(); else SK.play(n.w, freqOf(n));
       await sleep(n.d*beatMs*0.92);
@@ -393,7 +608,7 @@ TRAINERS.convert = function(ctx){
     const name = st.name.trim() || L("Çevrilen eser", "Converted piece");
     const piece = { name, notes, tempo: st.tempo, meter: st.meter, makam: st.makam };
     if(st.source) piece.source = st.source;
-    cvState = null; prog(""); render();
+    dropPages(st); cvState = null; prog(""); render();
     SK.addPieceFull(piece);
   });
   // Taşanlar: pesler bir oktav yukarı, tizler bir oktav aşağı. Hepsi: taşanların çoğunluğunun yönüne.
