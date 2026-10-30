@@ -362,6 +362,31 @@ function barCheck(notes, meter){
   }
   return best;
 }
+// Gerçek ölçü çizgileriyle ölçü denetimi (resimden okunan notada). starts: [{ i, carry }] ölçü başları (nota sırası);
+// carry: önceki ölçünün son notasından bu ölçüye bağla taşan süre. Her ölçü kendi toplamıyla denetlenir:
+// notaların süresi + gelen carry − sonraki ölçüye taşan carry. carry ancak önceki nota sus değilse ve ondan kısaysa
+// geçerlidir (nota silinip değiştiyse yok sayılır). Aynı yerde aynı carry'li ölçü başları tekdir; ilk ölçü eksikse
+// (anacrusis) tamam sayılır. Dönüş barCheck'inkiyle aynı biçimde.
+function barsAt(notes, starts, meter){
+  const L = meter[0]*4/meter[1], eps = 1e-6, N = notes.length;
+  const cOf = s => { const p = notes[s.i - 1]; return s.carry > eps && p && !p.rest && s.carry < p.d - eps ? s.carry : 0; };
+  const list = [{ i:0, carry:0 }];
+  for(const s of [...starts].sort((a, b) => a.i - b.i)){
+    if(!(s.i > 0) || s.i > N) continue;
+    const x = { i:s.i, carry:cOf(s) }, last = list[list.length - 1];
+    if(x.i === N && !x.carry) continue;
+    if(x.i === last.i && Math.abs(x.carry - last.carry) < eps) continue;
+    list.push(x);
+  }
+  const bars = [];
+  list.forEach((s, k) => {
+    const to = k + 1 < list.length ? list[k + 1].i : N, out = k + 1 < list.length ? list[k + 1].carry : 0;
+    let sum = s.carry - out; for(let i = s.i; i < to; i++) sum += notes[i].d;
+    if(s.i === to && Math.abs(sum) < eps) return;
+    bars.push({ from:s.i, to, sum, ok: Math.abs(sum - L) < eps || (k === 0 && sum < L) });
+  });
+  return bars;
+}
 // Ölçü toplamlarının (dörtlük) en sık değerinden payda/pay
 function meterFromBars(bars){
   if(!bars.length) return [4, 4];
@@ -440,6 +465,6 @@ function transposeAll(notes, steps, unit){
 if(typeof module !== "undefined") module.exports = {
   parseScoreText, scoreToText, reparseKeeping, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
   alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById,
-  naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, meterFromBars,
+  naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, barsAt, meterFromBars,
   expandRepeats, rangeIssues, shiftOctave, transposeAll
 };

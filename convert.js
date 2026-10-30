@@ -355,8 +355,10 @@ TRAINERS.convert = function(ctx){
       };
       // Worker açılamadı (dosya yok, betik hatası): kapatılır, sonraki seçimde yeniden denenir
       omrW.onerror = e => { e.preventDefault(); omrRej = null; if(omrW){ omrW.terminate(); omrW = null; } rej(new Error(e.message || "Worker")); };
-      // Gri baytlar Worker'a aktarılır (kopyalanmaz); önizleme adresleri burada kalır
-      omrW.postMessage({ jobId: id, pages: pages.map(p => ({ data: p.data, width: p.width, height: p.height })) }, pages.map(p => p.data.buffer));
+      // Gri baytlar Worker'a aktarılır (kopyalanmaz); önizleme adresleri burada kalır. AEU işareti görülmezse nota türü
+      // kullanıcının son seçimidir (değiştiriciler Worker'da o türe göre yorumlanır)
+      omrW.postMessage({ jobId: id, pages: pages.map(p => ({ data: p.data, width: p.width, height: p.height })),
+        opts: { fallbackTurkish: store.get("convert.turkish", true) } }, pages.map(p => p.data.buffer));
     });
   }
   // PDF çok sayfalıysa sayfa aralığı sorusu: iki sayı alanı, varsayılan hepsi. Yeni iş gelirse (newJob → rangeAbort) null döner
@@ -405,8 +407,11 @@ TRAINERS.convert = function(ctx){
     const flags = r.flags.filter(f => f !== "nostaff" || manual);
     if(!manual && r.nostaffPages.length && pages.length > 1) flags.push({ tr: "Dizek bulunamayan sayfa atlandı: " + r.nostaffPages.map(p => p + 1).join(", ") + ".",
       en: "Skipped page(s) without staves: " + r.nostaffPages.map(p => p + 1).join(", ") + "." });
-    open({ kind:"image", pages: pages.map(({ url, width, height }) => ({ url, width, height })), notes: manual ? [] : r.notes, marks: manual ? [] : r.marks,
-      meter: r.meter, turkish: manual ? undefined : r.turkish, flags, manual, name: meta.name || cvNameOf(files[0].name), makam: meta.makam, source: meta.source }, id);
+    // Gerçek ölçü çizgileri "bar" işaretleri olur: düzeltmede tekrar işaretleriyle birlikte kayar (shiftMarks).
+    // Nota türü yalnızca AEU işareti görüldüyse kesin; yoksa son seçim (open)
+    const bars = manual || !r.barStarts ? [] : r.barStarts.map(b => ({ i: b.i, kind:"bar", carry: b.carry || 0 }));
+    open({ kind:"image", pages: pages.map(({ url, width, height }) => ({ url, width, height })), notes: manual ? [] : r.notes, marks: manual ? [] : [...r.marks, ...bars],
+      meter: r.meter, turkish: !manual && r.aeu ? true : undefined, flags, manual, name: meta.name || cvNameOf(files[0].name), makam: meta.makam, source: meta.source }, id);
   }
   $("cvimg").addEventListener("click", () => $("cvpic").click());
   $("cvpic").addEventListener("change", () => {
@@ -665,6 +670,7 @@ TRAINERS.convert = function(ctx){
     lowres: () => L("Resim küçük, okuma zayıf olabilir.", "The picture is small; the reading may be poor."),
     sparse: () => L("Sayfada çok az nota okundu; el yazısı ya da silik olabilir.", "Very few notes were read on this page; it may be handwritten or faint."),
     pianoLowerSkipped: () => L("Piyano notası: yalnızca üst dizek okundu.", "Piano score: only the upper staff was read."),
+    mrepEmpty: () => L("Ölçü tekrarı (%) kopyalayacak ölçü bulamadı; yerine sus kondu, düzelt.", "A bar repeat (%) had no bar to copy; a rest stands in for it, fix it."),
     repeat: () => L("Tekrarlar bulundu, 'Tekrarları aç' açık.", "Repeats were found; 'Expand repeats' is on.")
   };
   const written = () => S().turkish ? S().notes : concertToWritten(S().notes, SK.T);
@@ -689,12 +695,14 @@ TRAINERS.convert = function(ctx){
     if(st.manual) info.push(L("Okuyamadım, notaları resme bakarak ekle.", "I couldn't read it; add the notes by looking at the picture."));
     info.push(...st.flags.map(f => typeof f !== "string" ? pick(f, LANG) : FLAG_MSG[f] ? FLAG_MSG[f]() : f));
     $("cvinfo").textContent = info.join(" ");
-    // Çip şeridi: ölçü ayraçlı; sarı emin değil, turuncu ölçü tutmuyor, kırmızı aralık dışı (kaynaktaki kutular da aynı renkte)
-    const bars = barCheck(st.notes, st.meter), bad = new Set(rangeIssues(written())), barOf = [];
+    // Çip şeridi: ölçü ayraçlı; sarı emin değil, turuncu ölçü tutmuyor, kırmızı aralık dışı (kaynaktaki kutular da aynı renkte).
+    // Resimden okunan notada ölçüler gerçek ölçü çizgilerinden ("bar" işaretleri), seste süre toplamından (barCheck)
+    const starts = st.marks.filter(m => m.kind === "bar");
+    const bars = starts.length ? barsAt(st.notes, starts, st.meter) : barCheck(st.notes, st.meter), bad = new Set(rangeIssues(written())), barOf = [];
     bars.forEach(b => { for(let i=b.from;i<b.to;i++) barOf[i] = b; });
     const tone = i => { const n = st.notes[i]; return [n.conf != null && n.conf < 0.6 ? "unsure" : "", barOf[i] && !barOf[i].ok ? "badbar" : "",
       bad.has(i) ? "outrange" : "", st.sel === i ? "sel" : ""].filter(Boolean).join(" "); };
-    const marksAt = i => st.marks.filter(m => m.i === i).map(m => `<span class="cvmark">${MARK_SYM[m.kind] || ""}</span>`).join("");
+    const marksAt = i => st.marks.filter(m => m.i === i && m.kind !== "bar").map(m => `<span class="cvmark">${MARK_SYM[m.kind] || ""}</span>`).join("");
     let html = "";
     st.notes.forEach((n, i) => {
       if(i > 0 && barOf[i] !== barOf[i-1]) html += `<span class="cvbar" aria-hidden="true"></span>`;
@@ -808,7 +816,7 @@ TRAINERS.convert = function(ctx){
     let x = base ? { w: base.w, c: base.c, d, rest:false } : { ...naturalOf({ w:69 }), d, rest:false };
     if(base && dir) x = stepNote(x, dir);
     x.conf = 1;
-    shiftMarks(at, 1);
+    carryAt(at + 1, null); shiftMarks(at, 1);
     edit([...st.notes.slice(0, at + 1), x, ...st.notes.slice(at + 1)], at + 1, [at + 1]);
   });
   // Notalar değişti: elle düzeltme (dirty); düzeltilen nota artık "emin değil" sayılmaz
@@ -819,8 +827,10 @@ TRAINERS.convert = function(ctx){
     st.dirty = true;
     msg(""); render();
   }
-  // Tekrar işaretleri nota eklenip silinince kayar
+  // Tekrar işaretleri ve ölçü başları ("bar") nota eklenip silinince kayar. carryAt: i'de başlayan ölçüye bağla taşan
+  // süre; araya nota girince ya da taşan nota silinince sıfırlanır (null), birleştirmede eklenir
   const shiftMarks = (from, delta) => { S().marks.forEach(m => { if(m.i > from) m.i = Math.max(from, m.i + delta); }); };
+  const carryAt = (i, add) => { S().marks.forEach(m => { if(m.kind === "bar" && m.i === i) m.carry = add === null ? 0 : (m.carry || 0) + add; }); };
   $("cvchips").addEventListener("click", e => {
     const b = e.target.closest("[data-i]"); if(!b) return;
     S().sel = +b.dataset.i; render(); scrollToBox(S().sel);
@@ -850,7 +860,7 @@ TRAINERS.convert = function(ctx){
       case "double": edit(set(scaleDur(n, 2)), i, [i]); break;
       case "dot": edit(set(toggleDot(n)), i, [i]); break;
       case "rest": edit(set(toRest(n)), i, [i]); break;
-      case "del": shiftMarks(i, -1); edit(ns.filter((m, j) => j !== i), i, []); break;
+      case "del": carryAt(i + 1, null); shiftMarks(i, -1); edit(ns.filter((m, j) => j !== i), i, []); break;
       case "ins": {
         const x = { ...n, conf:1 }; delete x.box;
         shiftMarks(i, 1); edit([...ns.slice(0, i), x, ...ns.slice(i)], i, [i]);
@@ -859,7 +869,8 @@ TRAINERS.convert = function(ctx){
       case "merge": {
         const out = mergeNext(ns, i);
         if(out.length === ns.length){ msg(L("Yalnızca aynı perdedeki iki nota birleşir.", "Only two notes of the same pitch can be merged."), "bad"); return; }
-        shiftMarks(i + 1, -1); edit(out, i, [i]);
+        // ölçü çizgisini aşan birleştirme bağ gibidir: sonraki notanın süresi o ölçüye taşar
+        carryAt(i + 1, ns[i + 1].d); shiftMarks(i + 1, -1); edit(out, i, [i]);
         break;
       }
       case "octup": edit(shiftOctave(ns, [i], 1), i, [i]); break;
@@ -945,7 +956,8 @@ TRAINERS.convert = function(ctx){
       return;
     }
     if(!notes.some(n => !n.rest)){ msg(L("Nota yok.", "No notes."), "bad"); return; }
-    if(st.expand && st.marks.length) notes = expandRepeats(notes, st.marks);
+    const reps = st.marks.filter(m => m.kind !== "bar");
+    if(st.expand && reps.length) notes = expandRepeats(notes, reps);
     notes = notes.map(({ conf, box, ...n }) => n);
     const name = st.name.trim() || L("Çevrilen eser", "Converted piece");
     const piece = { name, notes, tempo: st.tempo, meter: st.meter, makam: st.makam };

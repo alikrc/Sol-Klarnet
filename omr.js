@@ -658,12 +658,14 @@ const OMR = (() => {
         if(t.y0 <= S.y[0] + 0.3*sp && t.y1 >= S.y[4] - 0.3*sp && thickNear(t)){ used.delete(h.s); t.parts.forEach(p => used.delete(p)); heads.splice(i, 1); } }
     }
     const stemEnds = stems.flatMap(t => [[t.x, t.y0], [t.x, t.y1]]);
-    // Ölçü çizgileri: dizek boyunca (≥ %92) siyah sütunlar (çizgiler silinmiş resimde; saplar ve anahtar hariç)
+    // Ölçü çizgileri: dizek boyunca (≥ %92) siyah sütunlar (çizgiler silinmiş resimde; saplar ve anahtar hariç). Yalnızca
+    // başı bulunan saplar atlanır: ölçü çizgisini geçen bağ yayı çizgiyi başlarla tek bileşen yapınca sap ayırma çizgiyi
+    // başsız "sap" olarak çıkarır, o sütun yine ölçü çizgisidir
     const groups = [];
     {
       const ya = Math.round(S.y[0]), yb = Math.round(S.y[4]), n = yb - ya + 1;
       const xa = Math.max(0, Math.round(S.x0 - sp)), xb = Math.min(W - 2, Math.round(S.x1 + sp)), skip = new Uint8Array(W);
-      for(const t of stems) for(let x = t.s.x - 1; x <= t.s.x + t.s.w; x++) if(x >= 0 && x < W) skip[x] = 1;
+      for(const h of heads){ const t = h.stem; for(let x = t.s.x - 1; x <= t.s.x + t.s.w; x++) if(x >= 0 && x < W) skip[x] = 1; }
       if(clef) for(let x = clef.x; x < clef.x + clef.w && x < W; x++) skip[x] = 1;
       const segs = []; let cur = null;
       for(let x = xa; x <= xb; x++){
@@ -842,12 +844,13 @@ const OMR = (() => {
     st.prevKey = keyMap;
     if(!st.keySig) st.keySig = key;
     const mark = (kind, i) => st.marks.push({ i, kind });
-    let mem = new Map(), prevStaffNote = null;
+    // değiştirici belleği ölçüyle sürer (ölçü dizek sonunda kapanmadıysa sonraki dizeğe geçer)
+    let mem = st.mem || new Map(), prevStaffNote = null;
     const closeBar = () => {
       if(st.cur.from === st.notes.length && !st.cur.sum) return;
-      st.bars.push({ from:st.cur.from, to:st.notes.length, sum:st.cur.sum });
-      st.lastBar = st.notes.slice(st.cur.from);
-      st.cur = { from:st.notes.length, sum:0 }; mem = new Map();
+      st.bars.push({ from:st.cur.from, to:st.notes.length, sum:st.cur.sum, carry:st.cur.carry || 0 });
+      st.lastBar = st.notes.slice(st.cur.from); st.lastSum = st.cur.sum;
+      st.cur = { from:st.notes.length, sum:0, carry:0 }; mem = new Map();
     };
     const pitchKey = n => n.natW + ":" + (n.acc && n.acc !== "natural" ? n.acc : "");
     let firstOnStaff = true;
@@ -869,6 +872,11 @@ const OMR = (() => {
       if(e.m){
         const box = { x:e.m.x, y:e.m.y, w:e.m.w, h:e.m.h };
         for(const n of st.lastBar || []){ st.notes.push({ ...n, box, conf:Math.min(n.conf, Math.min(1, e.m.conf/0.7)), copy:true }); st.cur.sum += n.d; }
+        // kopyalanacak ölçü yok (eserin başında %): ölçü kaybolmasın, güvensiz bir sus yer tutar ve uyarı çıkar
+        if(!(st.lastBar && st.lastBar.length)){
+          st.notes.push({ rest:true, d:st.lastSum || 4, conf:0.2, box, copy:true }); st.cur.sum += st.lastSum || 4;
+          if(!st.flags.includes("mrepEmpty")) st.flags.push("mrepEmpty");
+        }
         st.repeatSeen = true; prevStaffNote = null;
         continue;
       }
@@ -881,26 +889,38 @@ const OMR = (() => {
       st.cur.sum += n.d;
       // uzatma bağı: aynı harfteki önceki notaya yay varsa tek nota olur (ölçü çizgisini geçen bağlı nota
       // değiştiricisini yeniden yazmasa da önceki notanınkini taşır); dizek sonundan gelen bağ yeni dizeğin ilk notasına
-      const prev = st.notes[st.notes.length - 1], same = prev && !prev.rest && prev.natW === natW;
+      // sayfanın ilk notası önceki sayfanın son notasına bağlanabilir (st.prevNote, readPages'in taşıdığı)
+      const prev = st.notes.length ? st.notes[st.notes.length - 1] : st.prevNote, same = prev && !prev.rest && prev.natW === natW;
       const inStaff = same && prevStaffNote && tieBetween(prevStaffNote, n),
             fromPrev = same && !inStaff && firstOnStaff && st.tieOut && arcAt(Math.max(hdr + 0.1*sp, n.s.x - 3*sp), n.s.x - 0.1*sp, n.cy);
       if((inStaff || fromPrev) && !n.acc) raw.acc = prev.acc;
       if((inStaff || fromPrev) && pitchKey(prev) === pitchKey(raw)){
         prev.d += n.d; prev.conf = Math.min(prev.conf, n.conf); if(inStaff) prev.box = union(prev.box, n.box);
+        // ölçü çizgisini geçen bağ: nota önceki ölçüde kalır, bu ölçüye taşan süresi ölçünün carry'sine yazılır (arada
+        // kendi notası olmayan ölçüler de aynı notanın içindedir)
+        if(st.cur.from === st.notes.length){
+          st.cur.carry = (st.cur.carry || 0) + n.d;
+          for(const b of st.bars) if(b.from === st.notes.length) b.carry += n.d;
+        }
       } else st.notes.push(raw);
       prevStaffNote = n; firstOnStaff = false;
     }
-    // dizek sonu: ölçü kapanır; son notadan dizek sonuna uzanan yay sonraki dizeğe bağdır
-    closeBar();
+    // dizek sonu: ölçü çizgisiyle bitiyorsa ölçü kapanır, yoksa ölçü sonraki dizekte sürer (sayfa sonunda readRaw
+    // kapatır); son notadan dizek sonuna uzanan yay sonraki dizeğe bağdır
+    const endG = groups[groups.length - 1];
+    if(endG && endG.x1 >= S.x1 - sp && !ev.some(e => (e.n || e.m) && e.x > endG.x1)) closeBar();
+    st.mem = mem;
     const ln = notes.length ? notes.reduce((a, b) => b.x > a.x ? b : a) : null;
     st.tieOut = !!(ln && ln.s.x + ln.s.w + 8*sp >= S.x1 && arcAt(ln.s.x + ln.s.w + 0.1*sp, S.x1 - 0.3*sp, ln.cy));
     if(st.endSegno){ mark("toSegno", st.notes.length); st.endSegno = false; }
   }
 
-  // Sayfayı ham notalara okur (perde henüz değiştirici sınıfıyla; Türk/Batı yorumu readPages'te)
-  function readRaw(img, page){
-    const P = prepare(img), { bin, st:S0 } = P, sp = S0.sp;
-    const st = { notes:[], marks:[], bars:[], cur:{ from:0, sum:0 }, flags:[], keySig:null, sp:sp/P.scale, page, line:S0.line };
+  // Sayfayı ham notalara okur (perde henüz değiştirici sınıfıyla; Türk/Batı yorumu readPages'te). carry: önceki sayfadan
+  // gelen okuma durumu { lastBar (% için), prevKey (donanım), tieOut, prevNote (sayfa aşan bağ) }; dönüşte st.carry
+  function readRaw(img, page, carry){
+    const P = prepare(img), { bin, st:S0 } = P, sp = S0.sp, c = carry || {};
+    const st = { notes:[], marks:[], bars:[], cur:{ from:0, sum:0, carry:0 }, flags:[], keySig:null, sp:sp/P.scale, page, line:S0.line,
+      lastBar:c.lastBar, lastSum:c.lastSum, prevKey:c.prevKey, tieOut:c.tieOut, prevNote:c.prevNote, carry:c };
     if(!S0.staves.length || !(sp > 0)){ st.flags.push("nostaff"); return st; }
     if(sp/P.scale < 8) st.flags.push("lowres");
     const clean = removeStaffLines(bin, S0.staves, S0), syms = symbols(clean, sp, S0.staves);
@@ -918,6 +938,13 @@ const OMR = (() => {
       if(Math.abs(mid(staves[bi]) - y) <= 9*sp) bucket[bi].push(s);
     }
     for(const i of read) readStaff(staves[i], bucket[i], clean, sp, st);
+    // sayfa sonu: açık kalan ölçü kapanır
+    if(st.cur.from < st.notes.length || st.cur.sum){
+      st.bars.push({ from:st.cur.from, to:st.notes.length, sum:st.cur.sum, carry:st.cur.carry || 0 });
+      st.lastBar = st.notes.slice(st.cur.from); st.lastSum = st.cur.sum;
+    }
+    st.carry = { lastBar:st.lastBar, lastSum:st.lastSum, prevKey:st.prevKey, tieOut:st.tieOut,
+      prevNote:st.notes.length ? st.notes[st.notes.length - 1] : st.prevNote };
     // Okunan dizekten az perdeli nota (el yazısı, silik basım): notalara güvenilmez, "sparse" bayrağı
     if(read.length >= 2 && st.notes.filter(n => !n.rest).length < read.length){ st.flags.push("sparse"); for(const n of st.notes) n.conf *= 0.5; }
     for(const n of st.notes) n.box = { page, ...toOrig(P, n.box) };
@@ -934,22 +961,27 @@ const OMR = (() => {
     return { w:p.w, c:p.c, d:n.d, rest:false, conf:+n.conf.toFixed(2), box:n.box };
   }
 
-  // Sayfalar (gri/RGB/RGBA resimler) → { notes, marks, bars, meter, flags, nostaffPages, sp, turkish, keySig }. Worker'da çalışır;
-  // onProgress(bitenSayfa, toplam) her sayfadan sonra çağrılır.
+  // Sayfalar (gri/RGB/RGBA resimler) → { notes, marks, bars, barStarts, meter, flags, nostaffPages, sp, turkish, aeu, keySig }.
+  // Worker'da çalışır; onProgress(bitenSayfa, toplam) her sayfadan sonra çağrılır. Okuma durumu (son ölçü, donanım, bağ)
+  // sayfadan sayfaya taşınır. opts.turkish verilmezse AEU işareti görülünce Türk notası, görülmezse opts.fallbackTurkish
+  // (kullanıcının son seçimi; yoksa Batı notası). aeu: AEU işareti görüldü mü.
+  // barStarts: [{ i, carry }] gerçek ölçü çizgileri (en az iki ölçü okunduysa): ölçü i. notadan başlar, carry önceki ölçüden
+  // bağla taşan süredir (dörtlük)
   function readPages(imgs, opts, onProgress){
     opts = opts || {};
     const raws = [];
-    imgs.forEach((img, i) => { raws.push(readRaw(img, (opts.page || 0) + i)); if(onProgress) onProgress(i + 1, imgs.length); });
+    let carry = null;
+    imgs.forEach((img, i) => { const r = readRaw(img, (opts.page || 0) + i, carry); carry = r.carry; raws.push(r); if(onProgress) onProgress(i + 1, imgs.length); });
     const isAeu = c => /^aeu_/.test(c || "");
-    const turkish = opts.turkish !== undefined ? !!opts.turkish :
-      raws.some(r => (r.keySig || []).some(k => isAeu(k.cls)) || r.notes.some(n => isAeu(n.explicitAcc)));
+    const aeu = raws.some(r => (r.keySig || []).some(k => isAeu(k.cls)) || r.notes.some(n => isAeu(n.explicitAcc)));
+    const turkish = opts.turkish !== undefined ? !!opts.turkish : aeu || !!opts.fallbackTurkish;
     const notes = [], marks = [], bars = [], flags = [];
     let sp = 0;
     for(const r of raws){
       const off = notes.length;
       r.notes.forEach(n => notes.push(finish(n, turkish)));
       r.marks.forEach(m => marks.push({ i:m.i + off, kind:m.kind }));
-      r.bars.forEach(b => bars.push({ from:b.from + off, to:b.to + off, sum:b.sum }));
+      r.bars.forEach(b => bars.push({ from:b.from + off, to:b.to + off, sum:b.sum, carry:b.carry || 0 }));
       r.flags.forEach(f => { if(f !== "nostaff" && !flags.includes(f)) flags.push(f); });
       if(!sp && r.sp && !r.flags.includes("nostaff")) sp = r.sp;
     }
@@ -962,11 +994,12 @@ const OMR = (() => {
     marks.sort((a, b) => a.i - b.i || MARK_ORDER[a.kind] - MARK_ORDER[b.kind]);
     if((marks.length || raws.some(r => r.repeatSeen)) && !flags.includes("repeat")) flags.push("repeat");
     const R = rep();
-    let meter, outBars;
+    let meter, outBars, barStarts = null;
     if(bars.length >= 2){
       meter = R.meterFromBars(bars.map(b => b.sum));
       const L = meter[0]*4/meter[1];
       outBars = bars.map((b, i) => ({ from:b.from, to:b.to, sum:b.sum, ok:Math.abs(b.sum - L) < 1e-6 || (i === 0 && b.sum < L) }));
+      barStarts = bars.map(b => ({ i:b.from, carry:b.carry }));
     } else {
       meter = [4, 4];
       outBars = notes.length ? R.barCheck(notes, meter) : [];
@@ -976,7 +1009,7 @@ const OMR = (() => {
       const nt = natOfStep(k.step), p = finish({ natW:nt.w, acc:k.cls, d:1, conf:1 }, turkish);
       return { letter:LETTER_TR[nt.letter], step:k.step, cls:k.cls, k:turkish ? ACC_K[k.cls] : WEST_K[k.cls], w:p.w, c:p.c };
     }) : [];
-    return { notes, marks, bars:outBars, meter, flags, nostaffPages, sp:+sp.toFixed(2), turkish, keySig };
+    return { notes, marks, bars:outBars, barStarts, meter, flags, nostaffPages, sp:+sp.toFixed(2), turkish, aeu, keySig };
   }
   const readPage = (img, opts) => readPages([img], opts);
 
