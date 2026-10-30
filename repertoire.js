@@ -52,15 +52,47 @@ function scoreToText(notes){
 }
 // Düzeltme ekranının metin görünümü: metni yeniden okur, prev'in metni (scoreToText) değişmeyen parçalarında eski notayı
 // olduğu gibi tutar (adsız koma, güven, kutu). Baştan ve sondan eşleşen parçalar korunur; aradakiler yeniden okunur.
-// a, b: baştan ve sondan korunan nota sayısı (işaretleri kaydırmak için)
+// a, b: baştan ve sondan korunan nota sayısı (işaretleri kaydırmak için). Okunamayan parça (yazılırken "N", "Ne") atılmaz,
+// yer tutar: o sıradaki eski nota (yoksa güvensiz bir sus) kalır, nota sayısı yazarken değişmez
 function reparseKeeping(text, prev){
   const toks = text.split(/[\s;]+/).filter(t => t && t !== "|"), errors = [], items = [];
-  for(const t of toks){ const r = parseScoreText(t); if(r.errors.length) errors.push(t); else items.push({ t, n: r.notes[0] }); }
+  for(const t of toks){ const r = parseScoreText(t); if(r.errors.length){ errors.push(t); items.push({ t, n: null }); } else items.push({ t, n: r.notes[0] }); }
   const old = prev.map(n => scoreToText([n]));
   let a = 0; while(a < items.length && a < prev.length && items[a].t === old[a]) a++;
   let b = 0; while(b < items.length - a && b < prev.length - a && items[items.length-1-b].t === old[prev.length-1-b]) b++;
-  const notes = items.map((it, i) => i < a ? { ...prev[i] } : i >= items.length - b ? { ...prev[prev.length - (items.length - i)] } : it.n);
+  const notes = items.map((it, i) => i < a ? { ...prev[i] } : i >= items.length - b ? { ...prev[prev.length - (items.length - i)] }
+    : it.n || (prev[i] ? { ...prev[i] } : { w:null, c:null, d:1, rest:true, conf:0 }));
   return { notes, errors, a, b };
+}
+// Metin düzenlemesinden sonra işaretler (tekrar, ölçü başı "bar"): P eski, N yeni nota sayısı; a, b reparseKeeping'in
+// korunan baş ve son uzunlukları. Bölgenin öncesi ve tam başı (a) yerinde kalır (araya yazılan nota a'daki işaretin
+// ardına girer; silip yeniden yazınca işaret yerine döner), sonrası N − P kayar, içindekiler a'ya iner. Önündeki nota
+// değişen ölçü başının bağla taşan süresi (carry) sıfırlanır; a'ya inen ölçü başı orada zaten ölçü başı varsa düşer;
+// aynı yerde aynı tür işaretten biri kalır
+function remapMarks(marks, P, N, a, b){
+  const cut = P - b, changed = cut > a || N !== P;
+  if(!changed) return marks.map(m => ({ ...m }));
+  const barAt = new Set(marks.filter(m => m.kind === "bar" && (m.i <= a || m.i >= cut)).map(m => m.i <= a ? m.i : m.i + N - P));
+  const seen = new Set();
+  return marks.flatMap(m => {
+    const x = { ...m }, inside = m.i > a && m.i < cut;
+    if(m.i > a && m.i >= cut) x.i = m.i + N - P;
+    else if(inside) x.i = a;
+    if(m.kind === "bar" && m.i > a && m.i <= cut) x.carry = 0;
+    if(m.kind === "bar" && inside && barAt.has(a)) return [];
+    const k = x.kind + "@" + x.i + (x.kind === "bar" ? ":" + (x.carry || 0) : "");
+    if(x.i > N || seen.has(k)) return [];
+    seen.add(k); return [x];
+  });
+}
+// Metin kutusu düzenlemesinin işaretleri: remapMarks, ama metin daha önce görülmüş bir hale dönünce (sil-yeniden yaz, hepsini
+// değiştirip geri yapıştır) o halin işaretleri geri gelir; silip yazmanın hangi ölçüye düştüğü belirsizliği böyle kalkar.
+// memo: Map(metin → işaretler), çağıran tutar (en çok 50 hal). prev: düzenlemeden önceki notalar, r: reparseKeeping sonucu
+function textEditMarks(memo, prev, marks, r){
+  const cp = ms => ms.map(m => ({ ...m })), put = (k, ms) => { memo.delete(k); memo.set(k, cp(ms)); while(memo.size > 50) memo.delete(memo.keys().next().value); };
+  put(scoreToText(prev), marks);
+  const k = r.errors.length ? null : scoreToText(r.notes);
+  return k !== null && memo.has(k) ? cp(memo.get(k)) : remapMarks(marks, prev.length, r.notes.length, r.a, r.b);
 }
 
 // ---- AEU koma işaretleri ----
@@ -464,7 +496,7 @@ function transposeAll(notes, steps, unit){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  parseScoreText, scoreToText, reparseKeeping, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
+  parseScoreText, scoreToText, reparseKeeping, remapMarks, textEditMarks, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
   alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById,
   naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, barsAt, meterFromBars,
   expandRepeats, rangeIssues, shiftOctave, transposeAll
