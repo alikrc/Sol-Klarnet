@@ -4,7 +4,7 @@
 // Mantık skills.js (audioNotes, joinAudioChunk, tuningOffset, quantizeRun) ve repertoire.js'te (düzeltme işlemleri).
 // Dışa: SK.openConvert(job) — job: { notes, tempo?, meter?, name?, makam?, kind:"audio"|"image", turkish?, pages?, marks?,
 // flags?, source?, raw?, offset?, manual? } (raw/offset: ses işinde tempo değişince yeniden ızgaraya oturtmak için;
-// pages: [{ url, width, height }] kaynak görünümü; manual: okunamadı, resme bakarak yaz). imagesToPages(files) Görev 8/10 için.
+// pages: [{ url, width, height }] kaynak görünümü; manual: okunamadı, resme bakarak yaz). imagesToPages / pdfToPages / filesToPages: dosya → okuyucu sayfaları.
 // Resim okuma omrworker.js'te (omr.js), Worker yalnızca resim seçilince açılır.
 
 // Kaydedilmemiş iş oturum boyunca burada durur: sekmeye dönünce yerinde
@@ -13,7 +13,7 @@ const CV_SR = 22050, CV_MAX_SEC = 180, CV_CHUNK_SEC = 5, CV_OV_MS = 50, CV_MAX_M
 const CV_METERS = [[2,4],[3,4],[4,4],[5,8],[6,8],[7,8],[9,8],[10,8],[12,8]];
 const CV_MAX_PX = 3000, CV_PREVIEW_PX = 2000, CV_MANUAL_CONF = 0.5;
 
-// Tuval → okuyucu sayfası: gri ton (Uint8, 1 kanal) ve küçültülmüş önizleme (objectURL). Görev 8 (PDF) de bunu kullanır.
+// Tuval → okuyucu sayfası: gri ton (Uint8, 1 kanal) ve küçültülmüş önizleme (objectURL). PDF de bunu kullanır.
 async function canvasToPage(cv){
   const { width, height } = cv, rgba = cv.getContext("2d").getImageData(0, 0, width, height).data, data = new Uint8Array(width*height);
   for(let i=0, j=0; i<data.length; i++, j+=4) data[i] = (rgba[j]*77 + rgba[j+1]*150 + rgba[j+2]*29) >> 8;
@@ -23,21 +23,77 @@ async function canvasToPage(cv){
   const blob = await new Promise(r => pv.toBlob(r, "image/jpeg", 0.85));
   return { data, width, height, url: blob ? URL.createObjectURL(blob) : pv.toDataURL("image/jpeg", 0.85) };
 }
-// Resim dosyaları → [{ data, width, height, url }]; en uzun kenar 3000 px'e sınırlanır, saydam yer beyaz sayılır
-async function imagesToPages(files){
-  const out = [];
-  for(const f of files){
-    const src = URL.createObjectURL(f);
-    try{
-      const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(f.name)); im.src = src; });
-      const k = Math.min(1, CV_MAX_PX/Math.max(img.naturalWidth, img.naturalHeight)), cv = document.createElement("canvas");
-      cv.width = Math.max(1, Math.round(img.naturalWidth*k)); cv.height = Math.max(1, Math.round(img.naturalHeight*k));
+// Resim dosyaları → [{ data, width, height, url }]; en uzun kenar 3000 px'e sınırlanır, saydam yer beyaz sayılır.
+// Hata olursa o ana kadar açılan önizleme adresleri bırakılır (sızmaz)
+async function imagesToPages(files, out = []){
+  const first = out.length;
+  try{
+    for(const f of files){
+      const src = URL.createObjectURL(f);
+      try{
+        const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(f.name)); im.src = src; });
+        const k = Math.min(1, CV_MAX_PX/Math.max(img.naturalWidth, img.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(img.naturalWidth*k)); cv.height = Math.max(1, Math.round(img.naturalHeight*k));
+        const g = cv.getContext("2d", { willReadFrequently: true });
+        g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+        g.drawImage(img, 0, 0, cv.width, cv.height);
+        out.push(await canvasToPage(cv));
+      } finally { URL.revokeObjectURL(src); }
+    }
+  }catch(e){ out.splice(first).forEach(p => URL.revokeObjectURL(p.url)); throw e; }
+  return out;
+}
+// PDF → sayfalar: pdf.js yalnızca burada import() ile yüklenir (açılış süresi değişmez). Sayfa 2480 px genişliğe
+// (A4, 300 dpi) çizilir. Boş parolayla şifreli PDF sorunsuz açılır; parolalı olanda e.password = true.
+// opts: { ask(n) → Promise<[from,to]|null> (range verilmemişse ve n > 1 ise), isStale(), out }; sayfa arasında isStale
+// bakılır, iptalde "iptal" fırlatılır ve o ana kadarki önizlemeler bırakılır
+const CV_PDF_W = 2480;
+async function pdfToPages(file, range, opts = {}){
+  const out = opts.out || [], first = out.length, stale = opts.isStale || (() => false);
+  let pdf = null;
+  try{
+    const pdfjs = await import("./vendor/pdfjs/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdfjs/pdf.worker.min.mjs", location.href).href;
+    try{ pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise; }
+    catch(e){ if(e && e.name === "PasswordException"){ const pe = new Error("parola"); pe.password = true; throw pe; } throw e; }
+    if(stale()) throw new Error("iptal");
+    let from = 1, to = pdf.numPages;
+    if(range) { from = Math.max(1, Math.min(range[0], to)); to = Math.max(from, Math.min(range[1], to)); }
+    else if(to > 1 && opts.ask){
+      const r = await opts.ask(to);
+      if(!r || stale()) throw new Error("iptal");
+      from = r[0]; to = r[1];
+    }
+    for(let n=from; n<=to; n++){
+      if(stale()) throw new Error("iptal");
+      if(opts.onPage) opts.onPage(n - from + 1, to - from + 1);
+      const pg = await pdf.getPage(n), v0 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: CV_PDF_W/v0.width });
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
       const g = cv.getContext("2d", { willReadFrequently: true });
       g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
-      g.drawImage(img, 0, 0, cv.width, cv.height);
+      // intent "print": requestAnimationFrame beklemez (arka plandaki sekmede de ilerler), açıklama/form katmanı çizmez
+      await pg.render({ canvasContext: g, viewport: vp, intent: "print" }).promise;
+      pg.cleanup();
+      if(stale()) throw new Error("iptal");
       out.push(await canvasToPage(cv));
-    } finally { URL.revokeObjectURL(src); }
-  }
+      cv.width = cv.height = 0;   // bellek hemen serbest
+    }
+  }catch(e){ out.splice(first).forEach(p => URL.revokeObjectURL(p.url)); throw e; }
+  finally{ if(pdf) pdf.destroy(); }
+  return out;
+}
+// Karışık seçim (PDF + resim): seçilen sırayla tek sayfa listesine; bitişik resimler birlikte açılır
+async function filesToPages(files, opts = {}){
+  const out = [];
+  try{
+    for(let i=0; i<files.length;){
+      if(opts.isStale && opts.isStale()) throw new Error("iptal");
+      const f = files[i];
+      if(f.type === "application/pdf" || /.pdf$/i.test(f.name)){ await pdfToPages(f, null, Object.assign({}, opts, { out })); i++; }
+      else { let j = i; while(j < files.length && !(files[j].type === "application/pdf" || /.pdf$/i.test(files[j].name))) j++; await imagesToPages(files.slice(i, j), out); i = j; }
+    }
+  }catch(e){ out.forEach(p => URL.revokeObjectURL(p.url)); throw e; }
   return out;
 }
 // Dosya adından eser adı önerisi: uzantı ve "_" atılır, ilk iki sözcük büyük harfle ("hicaz_longa_aydin…" → "Hicaz Longa")
@@ -60,6 +116,7 @@ TRAINERS.convert = function(ctx){
       <span class="ltclock small" id="cvclock"></span>
     </div>
     <div class="fb" id="cvprog" aria-live="polite"></div>
+    <div class="pbar" id="cvrange" hidden></div>
     <div class="cvedit" id="cvedit" hidden>
       <div class="pbar">
         <select id="cvkind" aria-label="${L("Nota türü", "Score type")}">
@@ -126,11 +183,12 @@ TRAINERS.convert = function(ctx){
 
   // ---- İş belirteci: her okuma yeni bir jobId alır; sonuç geldiğinde jobId eskiyse ekrana yazılmaz ----
   let curJob = 0, listening = null, playTok = null, accBase = null;   // accBase: değiştirici döngüsünün sürdüğü nota
+  let rangeAbort = null;                                              // açık sayfa aralığı sorusunu kapatır (yeni iş gelince)
   let omrW = null, omrRej = null;                                     // resim okuma Worker'ı; süren işin reddi
   // Yeni iş eskisini iptal eder: süren resim okuması Worker kapatılarak durdurulur (yeniden açılınca kalıplar yeniden
   // yüklenir); bekleyen okuma reddedilir ki önizlemeleri bırakılsın
   function omrStop(){ const r = omrRej; omrRej = null; if(omrW){ omrW.terminate(); omrW = null; } if(r) r(new Error("iptal")); }
-  const newJob = () => { if(omrRej) omrStop(); return (curJob = ++cvJobSeq); };
+  const newJob = () => { if(omrRej) omrStop(); if(rangeAbort) rangeAbort(); return (curJob = ++cvJobSeq); };
   const stale = id => id !== curJob;
   const prog = (t, cls = "") => { $("cvprog").className = "fb " + cls; $("cvprog").textContent = t; };
   const msg = (t, cls = "") => { $("cvmsg").className = "fb " + cls; $("cvmsg").textContent = t; };
@@ -223,15 +281,37 @@ TRAINERS.convert = function(ctx){
       omrW.postMessage({ jobId: id, pages: pages.map(p => ({ data: p.data, width: p.width, height: p.height })) }, pages.map(p => p.data.buffer));
     });
   }
-  const isPdf = f => f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+  // PDF çok sayfalıysa sayfa aralığı sorusu: iki sayı alanı, varsayılan hepsi. Yeni iş gelirse (newJob → rangeAbort) null döner
+  function askRange(n){
+    return new Promise(res => {
+      const box = $("cvrange");
+      const done = v => { box.hidden = true; box.innerHTML = ""; rangeAbort = null; res(v); };
+      rangeAbort = () => done(null);
+      prog(L("Bu PDF " + n + " sayfa. Hangi sayfaları okuyayım?", "This PDF has " + n + " pages. Which pages should I read?"));
+      box.innerHTML = `<label class="tnum">${L("İlk sayfa", "From")} <input id="cvrfrom" type="number" min="1" max="${n}" value="1" aria-label="${L("İlk sayfa", "First page")}"></label>
+        <label class="tnum">${L("Son sayfa", "To")} <input id="cvrto" type="number" min="1" max="${n}" value="${n}" aria-label="${L("Son sayfa", "Last page")}"></label>
+        <button class="primary small" id="cvrok" type="button">${L("Oku", "Read")}</button>
+        <button class="stopbtn" id="cvrno" type="button">${L("Vazgeç", "Cancel")}</button>`;
+      box.hidden = false;
+      const num = (id, d) => { const v = parseInt($(id).value, 10); return Number.isFinite(v) ? Math.max(1, Math.min(n, v)) : d; };
+      $("cvrok").addEventListener("click", () => { const a = num("cvrfrom", 1), b = num("cvrto", n); done([Math.min(a, b), Math.max(a, b)]); });
+      $("cvrno").addEventListener("click", () => { prog(""); done(null); });
+    });
+  }
   async function readImages(files){
     const id = newJob();
-    // Görev 8: PDF sayfaları pdf.js ile tuvale çizilip canvasToPage ile aynı biçime getirilecek
-    if(files.some(isPdf)){ prog(L("PDF okuma henüz yok. Şimdilik sayfanın resmini (fotoğraf ya da ekran görüntüsü) seç.", "Reading PDFs isn't available yet. For now choose a picture of the page (a photo or a screenshot)."), "bad"); return; }
-    prog(L("Resim açılıyor…", "Opening the picture…"));
+    prog(L("Dosya açılıyor…", "Opening the file…"));
     let pages;
-    try{ pages = await imagesToPages(files); }
-    catch(e){ if(!stale(id)) prog(L("Resim açılamadı: ", "Couldn't open the picture: ") + (e.message || e), "bad"); return; }
+    try{
+      pages = await filesToPages(files, { isStale: () => stale(id), ask: askRange,
+        onPage: (k, m) => prog(L("PDF sayfası okunuyor… ", "Opening PDF page ") + k + "/" + m) });
+    }catch(e){
+      if(stale(id)) return;
+      if(e.password) prog(L("Bu PDF parolalı. Parolasız bir kopyasını seç.", "This PDF is password-protected. Choose a copy without a password."), "bad");
+      else if(e.message === "iptal") prog("");
+      else prog(L("Dosya açılamadı: ", "Couldn't open the file: ") + (e.message || e), "bad");
+      return;
+    }
     const drop = () => pages.forEach(p => URL.revokeObjectURL(p.url));
     if(stale(id)){ drop(); return; }
     prog(L("Notalar okunuyor…", "Reading the notes…"));

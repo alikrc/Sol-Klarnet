@@ -120,6 +120,8 @@ Parmak verisi ve mandal adları: [Woodwind Fingering Guide — Oehler/Albert](ht
 [mandal açıklaması](https://www.wfg.woodwind.org/clarinet/cl_fing.html). Temel parmaklar `ocl_bas_1–3`, alternatifler
 `ocl_alt_1–4` sayfalarından; Albert sistemde olmayan mandalları kullanan Oehler parmakları alınmadı.
 Fontlar Google Fonts'tan (SIL Open Font License).
+PDF okuma: [pdf.js](https://github.com/mozilla/pdf.js) (pdfjs-dist 4.10.38, Apache 2.0), `vendor/pdfjs/` altında; `npm run vendor`
+ile `node_modules`tan kopyalanır, uygulama yalnızca PDF seçilince yükler.
 
 Nota arşivi: [SymbTr](https://github.com/MTG/SymbTr) (M. K. Karaosmanoğlu, "A Turkish makam music symbolic database for
 music information retrieval: SymbTr", ISMIR 2012; Music Technology Group, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.

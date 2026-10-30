@@ -7,7 +7,7 @@ const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "www");
 const FILES = ["index.html", "app.css", "app.js", "i18n.js", "core.js", "learn.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "pieces.js", "band.js", "follow.js", "transcribe.js", "reading.js", "roadmap.js", "archive.js", "omrtemplates.js", "omr.js", "omrworker.js", "convert.js", "drills.js", "chartsheet.js", "lessonview.js", "practice.js", "review.js", "onboard.js", "search.js", "nowplaying.js", "pcmring.js",
   "sw.js", "manifest.webmanifest", "icon.svg", "privacy.html"];
-const DIRS = ["icons", "fonts", "notalar"];
+const DIRS = ["icons", "fonts", "notalar", "vendor"];
 
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT);
