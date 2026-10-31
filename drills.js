@@ -261,6 +261,7 @@ TRAINERS.makam = function(ctx){
   SK.openMakam = id => {
     const mk = makamById(id); if(!mk) return;
     ms.cur = mk; store.set("makam", mk.id); ex = null; stage.innerHTML = "";
+    render();                // başka bölümden açılınca modül dokunuşla devralınır (practice.js takeOver); seçili makam hemen görünsün
     ctx.selectTab("makam");
   };
   $("mklisten").addEventListener("click", async () => {

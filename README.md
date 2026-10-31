@@ -23,7 +23,7 @@ Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işl
 
 ## Çalışma bölümü
 
-Alt menüde beş bölüm (`nav.js`): **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler** (Dersler, Yol haritası,
+Alt menüde beş bölüm (`nav.js`): **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler** (Dersler, Teori, Yol haritası,
 Videolar), **Çalış** (**Teknik**: Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Usuller, Ritim heceleri, Hız, Süsleme; **Makam**: Dizi,
 Taklit, Seyir, Kulak, Dikte; **İlerleme**), **Eserler** (Nota arşivi, Eşlik, Etüt ve eserler, Kulaktan çıkar, Çevir, Kayıt) ve **Ayarlar**.
 Her bölüm kendi sayfa yığınını tutar: başka bölüme geçip dönünce kaldığın sayfa açılır, seçili bölüme yeniden dokununca bölümün başına dönülür.
@@ -34,6 +34,7 @@ telefonun geri tuşu hep aynı şeyi yapar: bir sayfa geri; bölümün başında
 | Sekme | İçerik |
 |---|---|
 | Dersler | 9 ünitede 77 ders: Başlarken (klarneti tanı, duruş/nefes, nota okuma, ritim), Temeller, Register ve klarino, Teknik ve üslup (uzun ton, register geçişi, dil vuruşu, dinamik, ses kalitesi, glissando, vibrato, usuller, kulak), Hız ve teknik (metronomla dizi, bağlı ve dille, parmak çevikliği, arpejler ve üçlüler, on altılıklar, makam dizileri hızda, hızlı etüt), Süsleme (çarpma, çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş, süslemeli etütler, grupetto, makamda süsleme), 20 makam dersi (19 makam) ve **bir eserin makamını bulma** (durak, çeşni, güçlü, seyir; kulakla makam tanı), **Trakya ve Roman** (kasap havası, karşılama, Roman havası, Nikriz, çiftetelli, Rumeli 7/8, Trakya üslubu, sirto ve köçekçe, zeybek 9/4, Ağır Roman ve çarpmalı tekrar, oyun havası öncesi taksim), okuma ve kulak (deşifre, dikte, aralıklar), İleri seviye (taksim, ileri kulak, iç tempo, makam perdeli deşifre ve dikte). **Bugünün çalışması** her gün bitirilen derslerden yeniden kurulur; bitirilen derslerin adımları artan aralıklarla (1, 3, 7, 21, 60 gün) **tekrar** olarak geri gelir, başarısız tekrar aralığı kısaltır. Her ünitenin sonunda karışık adımlı **ünite sınavı**; geçince ünite rozeti |
+| Teori | Sol klarnetçi için Türk müziği teorisi, sekiz konu: dizek ve sol anahtarı, nota değerleri ve ölçü, aralıklar ve koma (AEU 53 koma; düz ♯ +4, düz ♭ −5, slaşlı ♭ −4), perdeler ve isimleri, çeşniler (dörtlü ve beşliler, aralık harfleri), makam yapısı (durak, güçlü, yeden, seyir; makam seçici), usul ve ölçü (düm-tek ızgaraları), Sol klarnet transpozisyonu (Bolahenk). Nota örnekleri ve dinle düğmeleri, ilgili ders ve alıştırmalara kartlar, her konunun sonunda üç soruluk sınav (en iyi sonuç saklanır) |
 | Yol haritası | Altı aşama (Başlangıç, Temel çalgıcı, Orta, Makamlar, Oyun havaları, İleri); her aşamada dersler ve ölçülen kilometre taşları (uzun ton, ritim, kulak eşiği, deşifre, dikte, hız, tril, çarpma, seyir, etütler, eşlikle usule oturma). **Haftalık özet** (bu hafta / geçen hafta) ve **rozetler** (ünite sınavları, seri, günlük çalışma, toplam süre). Hedef tarz (oyun havaları / fasıl / ikisi) sırayı değiştirir; bu haftanın günleri ve odağı; son 4 haftanın hızından kalan süre tahmini |
 | Deşifre | Her turda yeni üretilen ezgiyi inceleme süresinden sonra sayımla tempoda çal; 4 seviye (Batı notaları → makam perdeleri ve 9/8, 7/8); doğru nota oranı |
 | Dikte | Ritim diktesi (dört notadan duyduğunu seç) ve ezgi diktesi (ilk nota verilir, kalanı perde düğmeleriyle ya da klarnetle çalarak yaz); 3 seviye |
@@ -118,6 +119,7 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `sources.js` | Nota bul: neyzen.com ve projetsm.com ayrıştırıcıları, neyzen dizini (IndexedDB); `SOURCES.neyzen.enabled` ile kapatılır |
 | `transcribe.js` | Kulaktan çıkar: WSOLA zaman uzatma, perde kaydırma, perde izi, sekme |
 | `reading.js` | Deşifre ezgisi, ritim ve ezgi diktesi, aralık soruları; Deşifre ve Dikte sekmeleri, ders adımları |
+| `teori.js` | Teori sekmesi (Dersler kökü): konu metinleri, nota örnekleri, aralık tablosu, çeşniler, makam seçici, usul ızgaraları, transpozisyon tablosu, konu sınavları |
 | `roadmap.js` | Yol haritası: aşamalar, kilometre taşları, hız tahmini, haftalık görünüm; sekme |
 | `archive.js`, `notalar/` | Nota arşivi sekmesi ve verisi (`notalar/index.json` dizin, her eser ayrı dosya); `scripts/symbtr.js` SymbTr deposundan üretir |
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |

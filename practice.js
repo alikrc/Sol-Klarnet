@@ -1,6 +1,6 @@
 // Dersler, Çalış ve Eserler bölümlerinin ortak kabuğu: bölüm ana sayfaları, usullü metronom ve durak sesi (dron), her zaman çalışan ölçümler
 // (entonasyon, pratik süresi, vibrato, glissando) ve sekmelere verilen ortak yardımcılar (ctx).
-// Sekmeler drills.js, trainers.js, pieces.js ve lessonview.js'te; mikrofon ve ses index.html'deki window.SK üzerinden.
+// Sekmeler drills.js, trainers.js, usuller.js, pieces.js, lessonview.js ve teori.js'te; mikrofon ve ses index.html'deki window.SK üzerinden.
 (function(){
   const SK = window.SK;
   if(!SK) return;
@@ -24,8 +24,8 @@
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hece",L("Ritim heceleri", "Rhythm syllables")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
-                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
-  const GROUPS = [["lessons","Dersler",["lessons","roadmap","videos"]],
+                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["progress","İlerleme"]];
+  const GROUPS = [["lessons","Dersler",["lessons","teori","roadmap","videos"]],
                   ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hece","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
@@ -60,6 +60,7 @@
     convert: L("PDF, resim ya da sesten esere", "From a PDF, picture or recording to a piece"),
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
     videos: L("Hocalardan makam, teknik ve süsleme videoları", "Makam, technique and ornament videos by masters"),
+    teori: L("Müzik teorisi: koma, perde, çeşni, makam, usul, transpozisyon", "Music theory: commas, perdes, çeşnis, makams, usuls, transposition"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
   };
   // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Üst çubuktaki ? ile alttan açılan panelde
@@ -334,6 +335,14 @@
       <ol><li>Pick a topic or makam, or search the titles.</li>
         <li>Tap a video to open it on YouTube. Needs an internet connection.</li>
         <li>When working on a makam, watch its explanation video first, then move on to Scale and Mimic.</li></ol>`),
+    teori: L(`<p><b>Ne işe yarar:</b> Çaldığın müziğin kurallarını anlamak: koma ve aralıklar, perde adları, çeşniler, makamın durağı ve güçlüsü, usul ve Sol klarnetin transpozisyonu.</p>
+      <ol><li>Konular baştan sona sıralı; birini seç. Her konuda kısa anlatım, nota örnekleri ve <b>Dinle</b> düğmeleri var.</li>
+        <li>Sondaki “Kendini dene” üç soru sorar; hepsini bilince konu listede ✓ alır.</li>
+        <li>“Çalışarak pekiştir” kartları konuyu çalarak öğreten ders ve alıştırmaları açar; ← ile buraya dönersin.</li></ol>`,
+      `<p><b>What it's for:</b> understanding the rules behind what you play: commas and intervals, perde names, çeşnis, a makam's final and dominant, usul and the G clarinet's transposition.</p>
+      <ol><li>The topics run in order; pick one. Each has a short explanation, notation and <b>Listen</b> buttons.</li>
+        <li>“Check yourself” at the end asks three questions; get them all right and the topic gets a ✓ in the list.</li>
+        <li>The “Put it into practice” cards open the lessons and exercises that teach the topic by playing; ← brings you back.</li></ol>`),
     progress: L(`<p><b>Ne işe yarar:</b> Ne kadar çalıştığını ve neyin geliştiğini görmek.</p>
       <ol><li>Üstte seri (kaç gün üst üste) ve bugünkü süre; günlük hedefi Ayarlar'dan değiştirebilirsin.</li>
         <li>Altta ritim, kulak, seyir, hız, süsleme ve eserlerdeki en iyi sonuçların ve Taklit rekorun.</li>
