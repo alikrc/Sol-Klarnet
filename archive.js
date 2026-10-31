@@ -165,7 +165,7 @@ TRAINERS.archive = function(ctx){
   const onPieceSub = () => { const t = SK.nav.top(); return !!(t && t.sub && t.sub.startsWith("eser:")); };
   function showList(){
     closePiece();
-    $("arlist").hidden = false; $("arpiece").hidden = true;
+    $("arlist").hidden = false; $("arpiece").hidden = true; P.classList.remove("aron");
     renderList();
   }
 
@@ -182,7 +182,7 @@ TRAINERS.archive = function(ctx){
     // Eser, arşivin alt sayfasıdır: üst çubukta adı ve ←; geri tuşu listeye döner. Eserden esere geçiş geri adımı eklemez
     (onPieceSub() ? SK.nav.replaceSub : SK.nav.pushSub)("eser:" + id, e.t, showList);
     closePiece();
-    $("arlist").hidden = true;
+    $("arlist").hidden = true; P.classList.add("aron");              // arşivin tanıtım metni eserde gizlenir
     const box = $("arpiece"); box.hidden = false;
     box.innerHTML = `<p class="muted">${L("Nota açılıyor…", "Opening the score…")}</p>`;
     let raw;
@@ -230,7 +230,7 @@ TRAINERS.archive = function(ctx){
           <button type="button" class="primary small" id="arplay">${L("▶ Çal", "▶ Play")}</button>
           <button type="button" class="stopbtn" id="arfrom0" aria-label="${L("Baştan çal", "Play from the start")}">⏮</button>
           <label class="tnum artempo">${L("Tempo", "Tempo")} <input id="arpct" type="range" min="25" max="150" step="5" value="100" aria-label="${L("Tempo yüzdesi", "Tempo percent")}"> <em id="arpctv">%100</em></label>
-          <button type="button" class="linkbtn" id="arpct100">%100</button>
+          <button type="button" class="linkbtn" id="arpct100" hidden>${L("↺ asıl tempo", "↺ reset tempo")}</button>
         </div>
         <div class="pbar">
           <button type="button" class="stopbtn" id="arab" aria-pressed="false">A–B</button>
@@ -238,14 +238,16 @@ TRAINERS.archive = function(ctx){
           <label class="arsel">${L("Eşlik", "Accomp.")} <select id="aracc" aria-label="${L("Eşlik", "Accompaniment")}">
             <option value="off">${L("Sessiz", "None")}</option><option value="met">${L("Metronom", "Metronome")}</option><option value="usul">${L("Usul (düm-tek)", "Usul (düm-tek)")}</option><option value="band">${L("Orkestra (darbuka, bas, ud)", "Band (darbuka, bass, oud)")}</option></select></label>
           <button type="button" class="stopbtn" id="armute" aria-pressed="false">${L("Melodiyi kapat", "Mute melody")}</button>
-        </div>
-        <div class="pbar">
-          <button type="button" class="stopbtn" id="arfollow">${L("🎤 Beni takip et", "🎤 Follow me")}</button>
-          <button type="button" class="stopbtn" id="arwith" title="${L("Orkestra seni izler: ilk notanla girer, temponu izler, durursan bekler", "The band follows you: comes in with your first note, tracks your tempo, waits when you stop")}">${L("🎤 Benimle çal", "🎤 Play with me")}</button>
-          <button type="button" class="stopbtn" id="artempo">${L("🎤 Tempolu çal", "🎤 Play in tempo")}</button>
-          <button type="button" class="stopbtn" id="arladder">${L("🎤 Merdiven", "🎤 Ladder")}</button>
           <button type="button" class="stopbtn" id="arfull" aria-pressed="false">${L("⛶ Tam ekran", "⛶ Full screen")}</button>
         </div>
+        <details class="armic"><summary>${L("🎤 Mikrofonla çal", "🎤 Play with the microphone")}</summary>
+          <div class="armodes">
+            <button type="button" class="armode" id="arfollow"><b>${L("Beni takip et", "Follow me")}</b><small>${L("Sen çal, nota çaldığın yeri gösterir", "You play; the score shows where you are")}</small></button>
+            <button type="button" class="armode" id="arwith"><b>${L("Benimle çal", "Play with me")}</b><small>${L("Orkestra seni izler: ilk notanla girer, durursan bekler", "The band follows you: comes in with your first note, waits when you stop")}</small></button>
+            <button type="button" class="armode" id="artempo"><b>${L("Tempolu çal", "Play in tempo")}</b><small>${L("Sayımla tempoda çal; perde ve zamanlama puanlanır", "Play in tempo after a count-in; pitch and timing are scored")}</small></button>
+            <button type="button" class="armode" id="arladder"><b>${L("Merdiven", "Ladder")}</b><small>${L("Yavaş başla; temiz çaldıkça tempo artar", "Start slow; the tempo rises as you play cleanly")}</small></button>
+          </div>
+        </details>
       </div>
       <details class="arset" id="arset"><summary>${L("Görünüm ve transpoze", "View and transpose")}</summary>
         <div class="arfgrid">
@@ -306,7 +308,7 @@ TRAINERS.archive = function(ctx){
       cur.io.observe($("arctl"));
     }
     $("arfrom0").addEventListener("click", () => { cur.startAt = 0; cur.loop = null; abInfo(); play(); });
-    const pctLabel = () => { $("arpctv").textContent = "%" + $("arpct").value; };
+    const pctLabel = () => { $("arpctv").textContent = "%" + $("arpct").value; $("arpct100").hidden = $("arpct").value === "100"; };
     $("arpct").addEventListener("input", pctLabel);
     $("arpct").addEventListener("change", () => { if(listening) play(); });
     $("arpct100").addEventListener("click", () => { $("arpct").value = 100; pctLabel(); if(listening) play(); });
@@ -459,6 +461,28 @@ TRAINERS.archive = function(ctx){
         const mw = ly.end - ly.start + 6;
         const newMeter = meterAt.has(m.from), sec = [...secAt.keys()].some(k => k >= m.from && k < m.to);
         const head = (newMeter || !line ? 46 : 34) + 14;
+        // Ölçü tek başına satıra sığmıyorsa (uzun usul, sık perde adları; telefonda) vuruş başlarından bölünür;
+        // yoksa satır sıkışır, perde adları üst üste biner ve satır ekrandan taşar
+        if(mw > avail - head){
+          // Önceki satırda yer varsa ölçü oradan başlar (bölünen ölçünün kuyruğu tek başına satır kaplamasın)
+          let cont = !!line && !sec && !newMeter && w < avail*0.7;
+          let from = m.from, x0 = ly.start, meter = newMeter || !line ? m.meter : null, used = cont ? w : meter ? 60 : 48, beats = 0, cand = -1;
+          ly.xs.forEach((x, k) => {
+            if(k) beats += ns[m.from + k - 1].d;
+            const onBeat = k > 0 && Math.abs(beats - Math.round(beats)) < 1e-6;
+            if(used + x - x0 + 24 > avail){
+              const at = cand > from - m.from ? cand : onBeat ? k : -1;     // son uygun vuruş başı
+              if(at > 0){
+                if(cont) line.to = m.from + at; else lines.push({ from, to: m.from + at, meter });
+                from = m.from + at; x0 = ly.xs[at]; meter = null; used = 48; cont = false;
+              }
+            }
+            if(onBeat) cand = k;
+          });
+          if(cont) line.to = m.to; else { line = { from, to: m.to, meter }; lines.push(line); }
+          w = used + ly.end - x0 + 6;
+          return;
+        }
         if(!line || sec || newMeter || w + mw > avail){
           line = { from: m.from, to: m.to, meter: newMeter || !line ? m.meter : null }; lines.push(line); w = head + mw;
         }else{ line.to = m.to; w += mw; }
@@ -636,7 +660,7 @@ TRAINERS.archive = function(ctx){
       for(let r = 0; r < 3; r++){ if(cur.stepToken !== token) return; SK.play(Math.round(67 + cur.karar*12/53), ctx.commaFreq(cur.karar)); await ctx.sleep(900); SK.stopSound(); await ctx.sleep(300); }
       say("", L("Karar perdesi: ", "Tonic: ") + perdeName(cur.karar)); markStep(4);
     }else if(k === 5){ if(!S.follow){ save("follow", true); $("arfol").checked = true; } play({ from:0, to:N, pct:0.75, loop:false, onEnd: () => markStep(5) }); }
-    else if(k === 6){ cur.learnStep = 6; $("arpct").value = 75; $("arpctv").textContent = "%75"; cur.player.startTempo(0.75); playLabel(true); }
+    else if(k === 6){ cur.learnStep = 6; $("arpct").value = 75; $("arpctv").textContent = "%75"; $("arpct100").hidden = false; cur.player.startTempo(0.75); playLabel(true); }
   }
   function learnResult(res){
     if(cur && cur.learnStep === 6 && res.mode === "tempo"){ cur.learnStep = null; if(res.v >= 60) markStep(6); }

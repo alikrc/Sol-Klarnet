@@ -39,7 +39,7 @@ const EXACT = {
   "Makam: hangi makamda çaldığını seçersen perdeler o makamın dizisine göre değerlendirilir. Kayıt ve diğer ölçümler de daha doğru olur. Serbest bırakırsan en yakın perde gösterilir.": "Makam: pick the makam you're playing and perdes are judged against its scale. Recording and other measurements become more accurate too. Leave it free and the nearest perde is shown.",
   "AEU kitaptaki kuramsal perdedir. İcra, ustaların gerçekte çaldığı perdedir (ör. Uşşak'ta Segâh biraz pes çalınır). Emin değilsen İcra'yı seç.": "AEU is the theoretical perde from the books. İcra is how masters actually play it (e.g. Segâh is played a little flat in Uşşak). If unsure, choose İcra.",
   "Alttaki iz son 8 saniyede çaldığın perdeyi çizer: çizgi yatay perde çizgisinin üstündeyse tizsin, altındaysa pessin.": "The trace below draws your pitch over the last 8 seconds: above the horizontal perde line you're sharp, below it flat.",
-  "Makam: serbest (tüm perdeler)": "Makam: free (all perdes)",
+  "Makam: serbest": "Makam: free",
   "Çalgı": "Instrument",
   "Yazılı nota ve perde adları seçilen klarnete göre hesaplanır. Parmak şeması Albert sistemdir; parmaklar her Albert klarnette yazılı notaya göre aynıdır.":
     "Written notes and perde names are computed for the selected clarinet. The fingering chart is Albert system; fingerings follow the written note on every Albert clarinet.",
@@ -75,7 +75,8 @@ const EXACT = {
     "Listens to your playing through the microphone and shows the perde (pitch degree), how many commas you are off, the written and sounding note, and the fingering for that note. The written note is a perfect fourth above the sounding pitch (Rast = written G).",
   "Mikrofonu başlat": "Start microphone", "Durdur": "Stop", "örnek gösterim": "sample view",
   "dinliyor": "listening", "durdu": "stopped", "sessiz": "silent", "izin bekleniyor": "waiting for permission",
-  "örnek ses çalıyor": "playing sample tone", "bu ortamda mikrofon açılamıyor (https gerekli)": "microphone unavailable here (https required)",
+  "örnek ses çalıyor": "playing sample tone", "mikrofon izni yok": "no microphone permission",
+  "mikrofon bulunamadı": "no microphone found", "mikrofon açılamadı": "couldn't open microphone","bu ortamda mikrofon açılamıyor (https gerekli)": "microphone unavailable here (https required)",
   "Diyapazon (La)": "Tuning (A)", "Gösterge": "Display", "Koma": "Commas", "Sent": "Cents", "Hassasiyet": "Sensitivity",
   "Mikrofon seviyesi": "Microphone level", "Tema": "Theme", "Otomatik": "Auto", "Açık": "Light", "Koyu": "Dark", "Dil": "Language",
   "Diyapazonu yarım Hz düşür": "Lower tuning by half a Hz", "Diyapazonu yarım Hz yükselt": "Raise tuning by half a Hz",

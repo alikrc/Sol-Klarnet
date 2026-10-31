@@ -78,8 +78,14 @@
 
   // Çalgı seçimi
   const instSel = $("inst");
-  INSTRUMENTS.forEach(i => instSel.add(new Option(i.name + " (" + L("yazılı = duyulan ", "written = sounding ") + (i.t >= 0 ? "+" : "−") + Math.abs(i.t) + L(" yarım ses", " semitones") + ")", i.id)));
+  // Seçenekte yalnızca ad (telefonda uzun metin kesiliyordu); yazılı–duyulan farkı altındaki açıklamada
+  INSTRUMENTS.forEach(i => instSel.add(new Option(i.name, i.id)));
   instSel.value = inst.id;
+  const instHint = document.createElement("span");
+  instHint.textContent = inst.t === 0 ? L("Bu klarnette yazılı nota duyulduğu gibidir.", "On this clarinet the written note sounds as written.")
+    : L("Bu klarnette yazılı nota, duyulan sesin " + Math.abs(inst.t) + " yarım ses " + (inst.t > 0 ? "üstüdür." : "altıdır."),
+        "On this clarinet the written note is " + Math.abs(inst.t) + " semitones " + (inst.t > 0 ? "above" : "below") + " the sounding pitch.");
+  instSel.nextElementSibling.prepend(instHint, " ");
   instSel.addEventListener("change", () => { store.set("inst", instSel.value); location.reload(); });
 
   // Hoparlör modu: tarayıcının yankı gidericisi uygulamanın kendi sesini (dron, metronom) mikrofondan çıkarır
@@ -775,17 +781,50 @@
     const got = tr.getSettings ? tr.getSettings().echoCancellation : undefined;
     if(got !== undefined && got !== want){ stop(); await start(); }
   }
+  // Ekranın altında kısa süreli uyarı (ör. mikrofon izni yok); hangi sayfada olunursa olunsun görünür
+  // action: { label, run } verilirse metnin altında bir düğme çıkar
+  let noticeEl = null, noticeTimer = null;
+  function notice(msg, action){
+    if(!noticeEl){
+      noticeEl = document.createElement("div");
+      noticeEl.className = "sknotice"; noticeEl.setAttribute("role", "alert");
+      noticeEl.innerHTML = `<span><span></span><br><button type="button" class="chipbtn"></button></span><button type="button" class="skx">×</button>`;
+      noticeEl.querySelector(".skx").setAttribute("aria-label", L("Kapat", "Close"));
+      noticeEl.querySelector(".skx").addEventListener("click", () => { noticeEl.hidden = true; });
+      document.body.appendChild(noticeEl);
+    }
+    noticeEl.querySelector("span span").textContent = msg;
+    const act = noticeEl.querySelector(".chipbtn");
+    act.hidden = !action; act.previousElementSibling.hidden = !action;
+    if(action){ act.textContent = action.label; act.onclick = () => { noticeEl.hidden = true; action.run(); }; }
+    noticeEl.hidden = false;
+    clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { noticeEl.hidden = true; }, 9000);
+  }
   async function start(){
     if(running || starting) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-      chip.textContent = "bu ortamda mikrofon açılamıyor (https gerekli)"; return;
+      chip.textContent = "bu ortamda mikrofon açılamıyor (https gerekli)";
+      notice(L("Bu ortamda mikrofon açılamıyor: sayfa https:// ya da uygulama olarak açılmalı.",
+               "The microphone can't be opened here: open the page over https:// or as the app."));
+      return;
     }
     starting = true; btn.disabled = true; chip.textContent = "izin bekleniyor";
     try{
       stream = await navigator.mediaDevices.getUserMedia({ audio:{
         echoCancellation: aecWanted(), noiseSuppression:false, autoGainControl:false }});
     }catch(e){
-      chip.textContent = "mikrofon açılamadı (" + e.name + ")";
+      const denied = e.name === "NotAllowedError" || e.name === "SecurityError";
+      chip.textContent = denied ? "mikrofon izni yok" : e.name === "NotFoundError" ? "mikrofon bulunamadı" : "mikrofon açılamadı";
+      notice(denied
+        ? (window.Capacitor
+            ? L("Mikrofon izni verilmedi. Telefonun Ayarlar → Uygulamalar → Sol Klarnet → İzinler bölümünden mikrofonu aç.",
+                "Microphone permission was not given. Turn it on in the phone's Settings → Apps → Sol Klarnet → Permissions.")
+            : L("Mikrofon izni verilmedi. Adres çubuğundaki kilit simgesine dokunup mikrofona izin ver, sonra yeniden dene.",
+                "Microphone permission was not given. Tap the lock icon in the address bar, allow the microphone, then try again."))
+        : e.name === "NotFoundError"
+          ? L("Mikrofon bulunamadı. Bir mikrofon ya da kulaklık bağla.", "No microphone found. Connect a microphone or headset.")
+          : L("Mikrofon açılamadı; başka bir uygulama kullanıyor olabilir. Onu kapatıp yeniden dene.",
+              "Couldn't open the microphone; another app may be using it. Close it and try again."));
       starting = false; btn.disabled = false;
       return;
     }
@@ -936,6 +975,7 @@
     on(ev, fn){ (listeners[ev] = listeners[ev] || []).push(fn); },
     store, cells,
     startMic: start,
+    notice,
     isListening: () => running,
     getStream: () => stream,
     play: (w, freq) => { play(w, freq); stripNote = false; }, stopSound, playGlide, stopAll,

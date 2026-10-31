@@ -44,22 +44,32 @@ TRAINERS.lessons = function(ctx){
       html += `<div class="lsunit"><i class="lsemo" aria-hidden="true">${ART.UNIT_EMOJI[u.id] || ""}</i>${esc(tx(u.name))}</div>`;
       for(const l of LESSONS.filter(x => x.unit === u.id)){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
-        html += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : " disabled"}>
+        html += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
           <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
       const ex = examFor(u.id);
       if(ex){
         const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
-        html += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : " disabled"}>
+        html += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
           <span><i class="lsemo" aria-hidden="true">🏅</i>${L("Ünite sınavı", "Unit test")}${done ? " · " + esc(tx(u.badge)) : ""}</span><small>${!open ? L("dersler bitince", "after the lessons") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
     }
     $("lslist").innerHTML = html;
   }
   $("lslist").addEventListener("click", e => {
-    const b = e.target.closest("[data-id]"); if(!b || b.disabled) return;
+    const b = e.target.closest("[data-id]"); if(!b) return;
+    if(b.hasAttribute("data-locked")){ lockedNote(lessonById(b.dataset.id)); return; }
     openSub(b.dataset.id === "daily" ? dailyLesson() : lessonById(b.dataset.id));
   });
+  // Kilitli derse dokununca neden kilitli olduğu ve sıradaki ders
+  function lockedNote(l){
+    const nx = nextLesson(prog, allOpen);
+    const msg = l && l.exam ? L("Ünite sınavı, ünitenin bütün dersleri bitince açılır.", "The unit test opens once every lesson in the unit is finished.")
+                            : L("Bu ders, önceki dersler bitince açılır.", "This lesson opens once the earlier lessons are finished.");
+    SK.notice(msg + " " + L("Hepsini hemen açmak için listenin altındaki “tüm dersleri aç” kutusunu işaretle.",
+                            "To open them all now, tick “unlock all lessons” below the list."),
+      nx ? { label: L("Sıradaki ders: ", "Next lesson: ") + tx(nx.title), run: () => openSub(nx) } : null);
+  }
   // Ders, Dersler'in alt sayfasıdır: üst çubukta adı ve ←. Telefonda ders açıkken liste gizlenir; geniş ekranda yan yana kalır.
   // Geri tuşu dersi bırakır (adım durur), son açılan ders geniş ekranda gösterilmeye devam eder.
   const grid = P.querySelector(".lsgrid");
@@ -218,11 +228,13 @@ TRAINERS.lessons = function(ctx){
   }
 
   // ---- Adım çalıştırma ----
+  const NO_MIC = new Set(["read", "listen", "ear"]);
   async function startStep(i){
     stopRun();
     const st = cur.steps[i], lesson = cur;
-    if(st.type === "quiz" && st.mode === "find") needMic();   // tıklayarak da cevaplanır, mikrofon şart değil
-    else if(st.type !== "listen" && !(await needMic())) return;
+    // Okuma, dinleme ve kulak adımları mikrofonsuz; Bul modu ve dikte tıklayarak da cevaplanır
+    if((st.type === "quiz" && st.mode === "find") || st.type === "dictation") needMic();
+    else if(!NO_MIC.has(st.type) && !(await needMic())) return;
     if(cur !== lesson) return;
     const stage = $("lss"+i); stage.hidden = false; stage.innerHTML = "";
     if(st.makam) SK.setTempContext(st.makam);           // günlük plandaki makam adımları
