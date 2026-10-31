@@ -1,8 +1,10 @@
 // Gezinme: alt menüdeki beş bölüm (Akort, Dersler, Çalış, Eserler, Ayarlar), her bölümün sayfa yığını,
 // tarayıcı geçmişi ve adres. Tek kural: her "içeri gir" geçmişe bir kayıt ekler, geri tuşu (ekrandaki ←,
-// Android ve tarayıcı geri) bir kayıt geri alır. Geçmiş her zaman yalnızca görünen bölümün yığınını yansıtır:
-// en altta Akort kaydı (i:0, d:0), bölüm Akort değilse üstünde bölüm kökü, sonra yığındaki her sayfa.
-// Bölüm değişince geçmiş tabana inip yeniden kurulur; böylece başka bölümün sayfaları geri tuşunun altında kalmaz.
+// Android ve tarayıcı geri) bir kayıt geri alır ve bir önceki görülen sayfaya döner.
+// Bölümler ziyaret sırasıyla bir izde (trail) durur; her bölüm izde bir kez, en son gidilen en üstte.
+// Geçmiş izi yansıtır: en altta ilk bölümün kökü (i:0, d:0), sonra o bölümün sayfaları, sonra sıradaki bölümün
+// kökü ve sayfaları... Bölümün kökünde geri tuşu izdeki bir önceki bölüme döner (açık sayfasıyla birlikte).
+// Bölüm değişince geçmiş tabana inip izin toplam derinliği kadar yeniden kurulur.
 // Dersler, Çalış ve Eserler aynı Çalışma kabuğunu (practice.js) gösterir: body[data-view="practice"],
 // hangi bölüm olduğu body[data-sec]'te. practice.js Nav.register ile sayfaları çizer.
 (function(){
@@ -19,9 +21,14 @@
   const stacks = Object.fromEntries(SECS.map(s => [s, []]));
   const rootY = {};
   let sec = "tune", akort = "tune", lroot = store.get("nav.lroot", "lessons");
+  let trail = ["tune"], booting = false;
+  // Bağlantıyla doğrudan bir sayfasına gelinen bölümün kökü geçmişte yer almaz: geri tuşu gelinen sayfaya döner
+  const rootless = {};
   let h = null, rebuilding = false, started = false;
   const route = { ders:null, eser:null };
-  const depth = (s = sec) => (s === "tune" ? 0 : 1) + stacks[s].length;
+  const depth = () => trail.reduce((n, s, k) => n + (k && !rootless[s] ? 1 : 0) + stacks[s].length, 0);
+  // Görünen bölümü değiştirir; bölüm izin en üstüne taşınır
+  function enter(s){ trail = trail.filter(x => x !== s); trail.push(s); sec = s; }
   const top = (s = sec) => stacks[s][stacks[s].length - 1] || null;
   const curI = () => (history.state && history.state.i) || 0;
 
@@ -122,19 +129,20 @@
 
   function switchTo(s){
     if(!SECS.includes(s)) s = "tune";
+    rootless[s] = false;
     if(s === sec && started){
       if(stacks[s].length){ saveY(); trim(s, 0); render("pop"); rebuild(); }
       else window.scrollTo({ top:0, behavior:"smooth" });   // kökteyken başa kaydır
       return;
     }
     saveY();
-    sec = s;
+    enter(s);
     render("switch");
     rebuild();
   }
   function open(page){
     const s = secOf(page), moved = s !== sec;
-    if(moved){ saveY(); sec = s; }
+    if(moved){ saveY(); enter(s); }
     if(s === "lessons" && LROOTS.includes(page)){
       if(stacks.lessons.length) trim("lessons", 0);
       lroot = page; store.set("nav.lroot", page);
@@ -149,7 +157,8 @@
       if(n < st.length || moved){ trim(s, n); render(moved ? "switch" : "pop"); rebuild(); }
       return;
     }
-    if(moved){ st.push({ page }); render("switch"); rebuild(); }
+    // Başka bölümden bağlantıyla gelindi: bölümün eski sayfaları atılır, geri tuşu doğrudan gelinen sayfaya döner
+    if(moved){ trim(s, 0); rootless[s] = !booting; st.push({ page }); render("switch"); rebuild(); }
     else push({ page });
   }
   // "Şu an çalıyor" çubuğu ve metronom paneli: sayfa bölümünün tepesindeyse yalnızca o bölüme geçilir
@@ -187,8 +196,19 @@
     if(!(e.state && e.state.sheet)) hideSheet();
     const d = (e.state && e.state.d) || 0, cur = depth();
     if(d < cur){
-      if(d === 0 && sec !== "tune"){ trim(sec, 0); sec = "tune"; render("switch"); }
-      else{ trim(sec, d - (sec === "tune" ? 0 : 1)); render("pop"); }
+      // Kayıt başına bir adım: önce bölümün sayfaları, bölüm kökündeyse izdeki önceki bölüm
+      saveY();
+      let n = cur, moved = false;
+      const leave = () => { rootless[sec] = false; trail.pop(); sec = trail[trail.length - 1]; moved = true; };
+      for(;;){
+        if(!stacks[sec].length && rootless[sec] && trail.length > 1){ leave(); continue; }   // kayıtsız kök atlanır
+        if(n <= d) break;
+        if(stacks[sec].length) trim(sec, stacks[sec].length - 1);
+        else if(trail.length > 1) leave();
+        else break;
+        n--;
+      }
+      render(moved ? "switch" : "pop");
     }else if(d > cur) history.go(cur - d);   // ileri tuşu: yığında olmayan kayda gidilmez
   });
 
@@ -234,6 +254,10 @@
     started = true;
     render("switch");
     if(nota) return;
+    booting = true;                      // açılışta açılan sayfanın bölüm kökü geri tuşunun altında kalır
+    try{ boot(qs, v, tab, known, last, lastTop); } finally{ booting = false; }
+  }
+  function boot(qs, v, tab, known, last, lastTop){
     if(qs.get("eser")) SK.openArchive(qs.get("eser"));
     else if(qs.get("ders")){ open("lessons"); SK.openLesson(qs.get("ders")); }
     else if(tab && known(tab)) open(tab);
