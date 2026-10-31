@@ -420,20 +420,36 @@
     "1","2","3","4","5","6","7","8","9","0","*","-"];
   const cells = new Map();
 
+  // Nota adı: Do Re Mi (varsayılan), C D E ya da ikisi birden (Ayarlar → Görünüm).
+  // İngilizcede çevirmen Sol4'ü zaten G4 yapar; orada hep tek ad yazılır.
+  const namesMode = () => { const v = LANG === "en" ? "solfej" : store.get("names", "solfej"); return v === "harf" || v === "ikisi" ? v : "solfej"; };
+  function noteLabel(w){
+    const n = noteName(w), m = namesMode();
+    return m === "harf" ? n.en : m === "ikisi" ? n.tr + "<em>" + n.en + "</em>" : n.tr;
+  }
+
   // Şerit tüm aralığı kapsar; en tiz birkaç notanın klavye tuşu yok, yalnızca tıklanır.
   for(let i = 0; i <= HIGH_NOTE - LOW; i++){
     const w = LOW + i, p = nearestPerde((w-67)*53/12);
     const el = document.createElement("button");
     el.className = "note"; el.type = "button";
     el.setAttribute("aria-label", (p ? p.name + ", " : "") + "yazılı " + noteName(w).tr + " çal");
-    el.innerHTML = '<span class="pn">' + (p ? p.name : "—") + '</span>' +
-                   '<span class="nn">' + noteName(w).tr + '</span>' +
+    el.innerHTML = '<span class="nn">' + noteLabel(w) + '</span>' +
+                   '<span class="pn">' + (p ? p.name : "—") + '</span>' +
                    (KEYLABEL[i] ? '<span class="kk">' + KEYLABEL[i] + '</span>' : '');
     el.setAttribute("aria-pressed", "false");
     el.addEventListener("click", () => toggleNote(w));
     $("rail").appendChild(el);
     cells.set(w, el);
   }
+
+  const namesBtns = document.querySelectorAll("#namesseg button");
+  $("namesrow").hidden = LANG === "en";
+  markSeg(namesBtns, "names", namesMode());
+  namesBtns.forEach(b => b.addEventListener("click", () => {
+    store.set("names", b.dataset.names); markSeg(namesBtns, "names", b.dataset.names);
+    cells.forEach((el, w) => { el.querySelector(".nn").innerHTML = noteLabel(w); });
+  }));
 
   // Klavye düzeni Chrome'da okunabiliyorsa etiketleri gerçek harflerle değiştir
   if(navigator.keyboard && navigator.keyboard.getLayoutMap){

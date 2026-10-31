@@ -80,6 +80,7 @@ const EXACT = {
   "Mikrofonu aç": "Turn on microphone",
   "mikrofon bulunamadı": "no microphone found", "mikrofon açılamadı": "couldn't open microphone","bu ortamda mikrofon açılamıyor (https gerekli)": "microphone unavailable here (https required)",
   "Diyapazon (La)": "Tuning (A)", "Gösterge": "Display", "Koma": "Commas", "Sent": "Cents", "Hassasiyet": "Sensitivity",
+  "Nota adları": "Note names", "İkisi": "Both", "Nota şeridinde notanın adı üstte, perde adı altında yazar.": "In the note strip the note name is on top, the perde name below.",
   "Mikrofon seviyesi": "Microphone level", "Tema": "Theme", "Otomatik": "Auto", "Açık": "Light", "Koyu": "Dark", "Dil": "Language",
   "Diyapazonu yarım Hz düşür": "Lower tuning by half a Hz", "Diyapazonu yarım Hz yükselt": "Raise tuning by half a Hz",
   "Turuncu çizgi sessizlik eşiği: çubuk bu çizgiyi geçince dinlenir": "Orange line is the silence threshold: sound is detected once the bar passes it",
