@@ -427,7 +427,7 @@ TRAINERS.archive = function(ctx){
           if(line && line !== curLine){
             curLine = line;
             const r = line.getBoundingClientRect(), full = document.body.classList.contains("arfullbody");
-            const pn = document.querySelector("#practice .pnav"), top = full || !pn ? 0 : Math.max(0, pn.getBoundingClientRect().bottom), bottom = full ? innerHeight : innerHeight - 90;
+            const bar = document.querySelector(".appbar"), top = full || !bar ? 0 : Math.max(0, bar.getBoundingClientRect().bottom), bottom = full ? innerHeight : innerHeight - 90;
             if(r.top < top + 8 || r.bottom > bottom - 8) line.scrollIntoView({ block:"center", behavior:"smooth" });
           }
         }

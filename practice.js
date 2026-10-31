@@ -448,16 +448,34 @@
   // Gezinme nav.js'te: Nav.register ile hangi sayfanın görüneceği bildirilir. active: sesi ve olayları alan modül;
   // shown: ekranda görünen sekme (ana sayfadayken null). Alt menüyle başka bölüme geçmek modülü kapatmaz
   // (ses sürer); başka bir modül açılınca ya da geri tuşuyla sayfadan çıkılınca modülün leave()'i çağrılır.
-  let shown = null;
-  function selectTab(id){
+  let shown = null, waiting = null;
+  function showPanel(id){
+    $("phub").hidden = true; $("pex").hidden = false;
+    TABS.forEach(([t]) => { $("pp-"+t).hidden = t!==id; });
+    fitDescs();
+  }
+  // Alt menüyle başka bölüme geçilince orada duran sayfa gösterilir ama açık modül kapatılmaz (sesi sürer);
+  // yeni sayfaya dokunulunca devralır. Modülün enter()'ı dokunuşun tıklaması işlendikten sonra çağrılır.
+  function takeOver(){
+    const id = waiting; waiting = null;
+    if(active && !parked && modules[active].leave) modules[active].leave();
+    parked = false; active = id;
+    if(SK.nav.secOf(id) === "practice") store.set("ptab.prac", id);
+    closeTools();
+    setTimeout(() => { if(active === id && modules[id].enter) modules[id].enter(); });
+  }
+  root.addEventListener("pointerdown", e => { if(waiting && e.target.closest("#pp-" + waiting)) takeOver(); }, true);
+  root.addEventListener("focusin", e => { if(waiting && e.target.closest("#pp-" + waiting)) takeOver(); });
+  function selectTab(id, why){
     // Aynı modüle dönülüyorsa (başka bölümden ya da alt menüden) baştan kurulmaz
     const keep = active === id && !parked;
+    if(why === "switch" && active && !keep && !parked){ waiting = id; shown = id; showPanel(id); return; }
+    waiting = null;
     if(active && active !== id && !parked && modules[active].leave) modules[active].leave();
     parked = false;
     active = id; shown = id;
     if(SK.nav.secOf(id) === "practice") store.set("ptab.prac", id);
-    $("phub").hidden = true; $("pex").hidden = false;
-    TABS.forEach(([t]) => { $("pp-"+t).hidden = t!==id; });
+    showPanel(id);
     if(!keep){
       closeTools();
       if(modules[id].enter) modules[id].enter();
@@ -472,7 +490,7 @@
       prevTab = active; soundTab = null; SK.resetSound();
       active = null; parked = false;
     }
-    shown = null;
+    shown = null; waiting = null;
     TABS.forEach(([t]) => { $("pp-"+t).hidden = true; });
     $("pex").hidden = true; $("phub").hidden = false;
     $("phub").querySelectorAll("[data-hub]").forEach(el => { el.hidden = el.dataset.hub !== sec; });
@@ -813,7 +831,7 @@
   const inPractice = () => document.body.dataset.view === "practice";
   const toolsHere = () => inPractice() && !$("navtools").hidden;
   const openTools = () => {
-    if(!toolsHere()) SK.openTab(TOOLS_ON.includes(active) ? active : store.get("ptab.prac", "quiz"));
+    if(!toolsHere()) SK.nav.reveal(TOOLS_ON.includes(active) ? active : store.get("ptab.prac", "quiz"));
     SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl);
   };
   const mediaIn = id => [...$("pp-" + id).querySelectorAll("audio, video")].some(x => !x.paused && !x.ended);
@@ -826,7 +844,7 @@
     if(soundTab && (age < 2500 || mediaIn(soundTab))){
       const id = soundTab, m = modules[id], sub = m.nowTitle ? m.nowTitle() : "";
       out.push({ key:"ex", title:tabName(id), sub, here: inPractice() && shown === id,
-        go: () => SK.openTab(id), stop: () => stopTab(id) });
+        go: () => SK.nav.reveal(id), stop: () => stopTab(id) });
     }else if(soundTab && !mediaIn(soundTab)) soundTab = null;
     return out;
   });
@@ -840,7 +858,7 @@
   SK.nav.register({
     show(sec, e, why){
       const id = e ? e.page : sec === "lessons" ? SK.nav.lroot() : null;
-      if(id) selectTab(id); else showHub(sec, why);
+      if(id) selectTab(id, why); else showHub(sec, why);
       paintRoot(sec === "lessons" && !e);
       paintIcons();
     },

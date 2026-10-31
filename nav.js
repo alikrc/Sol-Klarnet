@@ -152,6 +152,14 @@
     if(moved){ st.push({ page }); render("switch"); rebuild(); }
     else push({ page });
   }
+  // "Şu an çalıyor" çubuğu ve metronom paneli: sayfa bölümünün tepesindeyse yalnızca o bölüme geçilir
+  // (açık eser ya da ders kapanmasın); değilse sayfa açılır
+  function reveal(page){
+    const s = secOf(page), t = top(s);
+    const there = t ? t.page === page : s === "lessons" && lroot === page;
+    if(!there) return open(page);
+    if(s !== sec) switchTo(s);
+  }
   function pushSub(sub, title, onPop){
     const t = top();
     if(t && t.sub === sub) return;
@@ -188,7 +196,7 @@
   function syncUrl(){
     if(!started) return;
     const q = new URLSearchParams(), t = top();
-    if(sec === "tune"){ if(akort === "finger") q.set("view", "finger"); }
+    if(sec === "tune"){ if(document.body.dataset.view === "finger") q.set("view", "finger"); }
     else if(sec === "settings") q.set("view", viewFor(sec));
     else if(sec === "lessons"){ q.set("tab", lroot); if(t && t.sub && route.ders) q.set("ders", route.ders); }
     else if(!t) q.set("view", sec);
@@ -209,6 +217,14 @@
 
   // Açılış: bağlantı (?tab, ?ders, ?eser, ?view, #nota=) ya da son kullanılan bölüm ve sayfa
   function start(){
+    // Yeniden yüklemede eski kayıtlar geçmişte kalır: önce tabana inilir (yoksa Akort'ta geri tuşu bir kez boşa gider)
+    const old = history.state && history.state.nav && history.state.i;
+    if(old > 0){
+      const url = location.href;
+      window.addEventListener("popstate", () => { history.replaceState(null, "", url); start(); }, { once:true, capture:true });
+      history.go(-old);
+      return;
+    }
     // Adres ilk çizimde Akort'a göre yeniden yazılır; bağlantı ondan önce okunur
     const qs = new URLSearchParams(location.search), v = qs.get("view"), tab = qs.get("tab"), nota = /nota=/.test(location.hash);
     const known = p => p === "review" || (h && !!h.title(p));
@@ -234,7 +250,7 @@
   document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g) SK.go(g.dataset.goto); });
 
   const Nav = window.Nav = SK.nav = {
-    SECS, secOf, start, switchTo, open, pushSub, replaceSub, setRoot, setAkort, openSheet, closeSheet,
+    SECS, secOf, start, switchTo, open, reveal, pushSub, replaceSub, setRoot, setAkort, openSheet, closeSheet,
     sheetOpen: () => !sheet.hidden,
     sec: () => sec, top, lroot: () => lroot,
     back: () => history.back(),
