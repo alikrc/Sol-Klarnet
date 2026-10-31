@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
         android:theme="@style/AppTheme">
 
         <activity
@@ -38,6 +39,10 @@
     </application>
 
     <!-- Permissions -->
+
+    <!-- Parmak tablosunu (PDF/PNG) Belgeler klasörüne kaydetmek için; yalnızca Android 10 ve öncesinde gerekir -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
 
     <!-- İnternet yalnızca Nota bul için (neyzen.com, projetsm.com): giden yalnızca arama sözcüğü ve indirilen notanın adresi.
          Bütün uygulama dosyaları (fontlar dahil) uygulamanın içinde; cleartext yalnızca projetsm.com (network_security_config) -->

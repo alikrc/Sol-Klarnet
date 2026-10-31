@@ -159,22 +159,36 @@ function jpegPdf(jpeg, wpx, hpx){
   add("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF\n");
   return new Blob(parts, { type:"application/pdf" });
 }
-// Dosyayı kaydettir: Android/iOS'ta paylaşım menüsü, tarayıcıda indirme
+// Dosyayı cihaza kaydet. Android/iOS: Filesystem ile Belgeler/Sol Klarnet klasörüne yazılır (Android'de herkese açık
+// Documents; Android 10 ve öncesinde depolama izni sorulur. iOS'ta Dosyalar › iPhone'umda › Sol Klarnet).
+// Tarayıcı: <a download> (telefon tarayıcısında da indirir; paylaşım menüsü açılmaz).
+// Döner: { where, share } — where gösterilecek konum, share() isteğe bağlı paylaşım (yoksa null)
+const SHEET_DIR = "Sol Klarnet";
+const blobB64 = blob => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = no; r.readAsDataURL(blob); });
 async function saveBlob(blob, name){
-  const P = window.Capacitor && window.Capacitor.Plugins;
-  if(P && P.Filesystem && P.Share){
-    const data = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = no; r.readAsDataURL(blob); });
-    const w = await P.Filesystem.writeFile({ path:name, data, directory:"CACHE" });
-    await P.Share.share({ title:name, url:w.uri, dialogTitle:L("Parmak tablosunu kaydet", "Save the fingering chart") });
-    return;
+  const C = window.Capacitor, P = C && C.Plugins;
+  if(C && C.isNativePlatform && C.isNativePlatform() && P && P.Filesystem){
+    const data = await blobB64(blob);
+    const write = path => P.Filesystem.writeFile({ path:SHEET_DIR + "/" + path, data, directory:"DOCUMENTS", recursive:true });
+    let w;
+    // Android 11+: başka (ör. silinip yeniden kurulmuş) uygulamanın bıraktığı aynı adlı dosyanın üstüne yazılamaz → saatli ad
+    try{ w = await write(name); }
+    catch(e){ name = name.replace(/(\.\w+)$/, "-" + new Date().toTimeString().slice(0, 8).replace(/:/g, "") + "$1"); w = await write(name); }
+    const ios = C.getPlatform && C.getPlatform() === "ios";
+    return {
+      where: (ios ? L("Dosyalar › iPhone'umda › Sol Klarnet › ", "Files › On My iPhone › Sol Klarnet › ")
+                  : L("Belgeler › Sol Klarnet › ", "Documents › Sol Klarnet › ")) + name,
+      share: P.Share ? () => P.Share.share({ title:name, url:w.uri, dialogTitle:L("Parmak tablosunu paylaş", "Share the fingering chart") }) : null
+    };
   }
   const file = new File([blob], name, { type:blob.type });
-  if(navigator.canShare && navigator.canShare({ files:[file] }) && matchMedia("(pointer:coarse)").matches){
-    await navigator.share({ files:[file], title:name }); return;
-  }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  return {
+    where: L("İndirilenler › ", "Downloads › ") + name,
+    share: navigator.canShare && navigator.canShare({ files:[file] }) ? () => navigator.share({ files:[file], title:name }) : null
+  };
 }
 
 TRAINERS.tablo = function(ctx){
@@ -190,6 +204,7 @@ TRAINERS.tablo = function(ctx){
     <div class="tbdl">
       <button class="primary small" id="tbpdf" type="button">${L("Tek sayfa indir (PDF)", "Download one page (PDF)")}</button>
       <button class="stopbtn" id="tbpng" type="button">${L("Resim olarak indir (PNG)", "Download as image (PNG)")}</button>
+      <button class="stopbtn" id="tbshare" type="button" hidden>${L("Paylaş", "Share")}</button>
       <span class="reg" id="tbmsg" aria-live="polite">${L("A4, yazdırmaya hazır", "A4, ready to print")}</span>
     </div>
     <div class="tbsize"><span class="reg">${L("Sütun", "Columns")}</span>
@@ -232,9 +247,11 @@ TRAINERS.tablo = function(ctx){
   $("tbsize").addEventListener("click", e => { const b = e.target.closest("[data-cols]"); if(b) setCols(b.dataset.cols, true); });
   const live = w => cells.forEach((b, k) => b.classList.toggle("live", k === w));
 
-  const msg = $("tbmsg"), btns = [$("tbpdf"), $("tbpng")];
+  const msg = $("tbmsg"), btns = [$("tbpdf"), $("tbpng")], shareBtn = $("tbshare");
+  let share = null;
   async function download(kind){
     btns.forEach(b => b.disabled = true);
+    shareBtn.hidden = true; share = null;
     msg.textContent = L("Hazırlanıyor…", "Preparing…");
     try{
       const svg = fingerSheetSvg({ lang:LANG, fontCss: await sheetFontCss() });
@@ -245,8 +262,9 @@ TRAINERS.tablo = function(ctx){
         const jpg = await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.92));
         blob = jpegPdf(new Uint8Array(await jpg.arrayBuffer()), c.width, c.height);
       }else blob = await new Promise(ok => c.toBlob(ok, "image/png"));
-      await saveBlob(blob, base + "." + kind);
-      msg.textContent = L("Hazır: ", "Ready: ") + base + "." + kind + " (" + Math.round(blob.size/1024) + " KB)";
+      const r = await saveBlob(blob, base + "." + kind);
+      msg.textContent = L("Kaydedildi: ", "Saved: ") + r.where + " (" + Math.round(blob.size/1024) + " KB)";
+      share = r.share; shareBtn.hidden = !share;
     }catch(e){
       msg.textContent = e && e.name === "AbortError" ? L("A4, yazdırmaya hazır", "A4, ready to print")
         : L("İndirilemedi: ", "Couldn't download: ") + (e && e.message || e);
@@ -254,6 +272,10 @@ TRAINERS.tablo = function(ctx){
   }
   $("tbpdf").addEventListener("click", () => download("pdf"));
   $("tbpng").addEventListener("click", () => download("png"));
+  shareBtn.addEventListener("click", async () => {
+    try{ if(share) await share(); }
+    catch(e){ if(!e || e.name !== "AbortError") msg.textContent = L("Paylaşılamadı: ", "Couldn't share: ") + (e && e.message || e); }
+  });
   return {
     note(r){ live(r.inRange ? r.written : null); },
     silence(){ live(null); },
