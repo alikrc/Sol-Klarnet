@@ -149,6 +149,8 @@ const EXACT = {
   // Çalışma: genel
   "Çalışma": "Practice", "Çalış": "Practice", "Eserler": "Pieces", "Akort": "Tuner", "Parmak": "Fingering", "Ayarlar": "Settings", "Notalar": "Scores", "Ana gezinme": "Main navigation", "Akort ve parmak": "Tuner and fingering",
   "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy",
+  "Fotoğraflar (Wikimedia Commons):": "Photos (Wikimedia Commons):", "klarnet": "clarinet", "ud": "oud", "ağızlık": "mouthpiece",
+  "Kırpılıp küçültüldü; kırpılmış hâlleri de aynı lisansla.": "Cropped and resized; the crops carry the same licence.",
   "Parmak pozisyonunu göster": "Show fingering", "Bütün parmaklar tek sayfada: parmak tablosu": "Every fingering on one page: fingering chart", "Nota şeridi": "Note strip", "Mikrofon": "Mic", "Çalınan perde ve sapma": "Played perde and deviation", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",
   "Parmak testi": "Fingering quiz", "Uzun ton": "Long tone", "Makam": "Makam", "Taklit": "Echo", "Eser takibi": "Melody follow",
   "Kayıt": "Recording", "İlerleme": "Progress",

@@ -349,7 +349,7 @@
     chev: `<svg class="tchev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`,
     go: `<svg class="hgo" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`
   };
-  const card = id => `<button type="button" class="hcard" data-open="${id}"><span><b>${tabName(id)}</b><small>${BLURB[id]}</small></span>${ICON.go}</button>`;
+  const card = id => `<button type="button" class="hcard" data-open="${id}"><span class="hic">${ART.icon(id)}</span><span><b>${tabName(id)}</b><small>${BLURB[id]}</small></span>${ICON.go}</button>`;
   const root = $("practice");
   // Bölüm ana sayfaları aynı kutuda: data-hub hangi bölümde görüneceğini söyler (Çalış ya da Eserler).
   // Dersler'in ana sayfası yoktur: kökü Dersler / Yol haritası / Videolar segmentiyle seçilen sekmedir.
@@ -364,14 +364,14 @@
         <span class="pmic" id="pmic"></span>
       </div>
       <button type="button" class="hresume" id="hresume" data-hub="practice"></button>
-      <button type="button" class="hresume hsearch" id="hsearch" data-hub="pieces"><span><small>${L("Ara", "Search")}</small>
+      <button type="button" class="hresume hsearch" id="hsearch" data-hub="pieces"><span class="hic">${ART.icon("search")}</span><span><small>${L("Ara", "Search")}</small>
         <b>${L("Eser, besteci ya da makam", "Piece, composer or makam")}</b></span>${ICON.go}</button>
-      <button type="button" class="hfeat" data-open="archive" data-hub="pieces"><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
+      <button type="button" class="hfeat" data-open="archive" data-hub="pieces"><span class="hthumb hscore">${ART.SCORE}</span><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
-      <button type="button" class="hfeat" data-open="band" data-hub="pieces"><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
+      <button type="button" class="hfeat" data-open="band" data-hub="pieces"><span class="hthumb">${ART.photo("darbuka")}${ART.photo("ud")}</span><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
         <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
       ${GROUPS.slice(1).map(([g, , members]) => `<section class="hgroup" data-g="${g}" data-hub="${HUB[g][0]}" aria-label="${HUB[g][1]}">
-        <h3 class="label">${HUB[g][1]}</h3>
+        <h3 class="label"><span class="hemo" aria-hidden="true">${ART.GROUP_EMOJI[g]}</span>${HUB[g][1]}</h3>
         <div class="hcards">${members.filter(id => !FEAT.includes(id)).map(card).join("")}</div></section>`).join("")}
     </div>
     <div class="pex" id="pex" hidden>
@@ -523,7 +523,7 @@
     r.hidden = !TABS.some(([t]) => t === last) || isLesson(last);
     if(r.hidden) return;
     r.dataset.open = last;
-    r.innerHTML = `<span><small>${L("Kaldığın yerden devam et", "Pick up where you left off")}</small><b>${tabName(r.dataset.open)}</b></span>${ICON.go}`;
+    r.innerHTML = `<span class="hic">${ART.icon(last)}</span><span><small>${L("Kaldığın yerden devam et", "Pick up where you left off")}</small><b>${tabName(r.dataset.open)}</b></span>${ICON.go}`;
   }
   $("phub").addEventListener("click", e => { const c = e.target.closest("[data-open]"); if(c) SK.nav.open(c.dataset.open); });
   $("hsearch").addEventListener("click", () => $("gsbtn").click());

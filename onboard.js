@@ -21,7 +21,9 @@
   function render(){
     const s = steps[i];
     let body = "";
+    const emo = e => `<div class="obemo" aria-hidden="true">${e}</div>`;
     if(s === "hello") body = `
+      <div class="obhero">${ART.photo("klarnet", "obphoto")}</div>
       <div class="eyebrow">${L("Hoş geldin", "Welcome")}</div>
       <h2 class="obtitle">${L("Sol klarneti sıfırdan ustalığa", "The G clarinet, from zero to mastery")}</h2>
       <p>${L("Bu uygulama çaldığını mikrofondan dinler: perdeni koma koma ölçer, parmak pozisyonunu gösterir, ritmini, ses kaliteni ve makam seyrini değerlendirir. 77 derslik müfredat klarneti ilk kez eline alan birini taksim yapabilecek seviyeye kadar götürür.",
@@ -31,24 +33,24 @@
         <button type="button" role="radio" data-lang="tr" aria-checked="${pickd.lang === "tr"}">Türkçe</button>
         <button type="button" role="radio" data-lang="en" aria-checked="${pickd.lang === "en"}">English</button>
       </div>`;
-    if(s === "inst") body = `
+    if(s === "inst") body = `<div class="obemo obemo-photo" aria-hidden="true">${ART.photo("agizlik", "")}</div>
       <h2 class="obtitle">${L("Hangi klarneti çalıyorsun?", "Which clarinet do you play?")}</h2>
       <p>${L("Türk müziğinde en yaygını Sol klarnettir. Yazılı nota ve perde adları seçtiğin klarnete göre hesaplanır.", "The G clarinet is the most common in Turkish music. Written notes and perde names are computed for the clarinet you choose.")}</p>
       <div class="oblist">${INSTRUMENTS.map(x => `<button type="button" class="obopt" data-inst="${x.id}" aria-pressed="${pickd.inst === x.id}"><strong>${x.name}</strong><span>${x.t ? L("yazılı nota duyulan sesin ", "written note is ") + Math.abs(x.t) + L(" yarım ses " + (x.t > 0 ? "üstü" : "altı"), " semitones " + (x.t > 0 ? "above" : "below") + " the sound") : L("yazıldığı gibi duyulur", "sounds as written")}</span></button>`).join("")}</div>`;
-    if(s === "level") body = `
+    if(s === "level") body = `${emo("🧭")}
       <h2 class="obtitle">${L("Nereden başlayalım?", "Where should we start?")}</h2>
       <div class="oblist">
-        <button type="button" class="obopt" data-level="new" aria-pressed="${pickd.level === "new"}"><strong>${L("Hiç çalmadım", "I've never played")}</strong><span>${L("Klarneti tanıma, duruş, nefes, nota okuma ve ritimle başla.", "Start with the instrument, posture, breathing, reading music and rhythm.")}</span></button>
-        <button type="button" class="obopt" data-level="some" aria-pressed="${pickd.level === "some"}"><strong>${L("Biraz çalabiliyorum", "I can play a little")}</strong><span>${L("Başlangıç bilgilerini geç, ilk notalardan başla; bildiğin dersleri hızla geçersin.", "Skip the introduction and start with the first notes; you'll get through what you know quickly.")}</span></button>
-        <button type="button" class="obopt" data-level="makam" aria-pressed="${pickd.level === "makam"}"><strong>${L("Makam çalışıyorum", "I already play makams")}</strong><span>${L("Bütün dersler açılır; akort ekranında makam seçip icra akordunu kullanabilirsin.", "All lessons are unlocked; pick a makam on the tuner and use practice tuning.")}</span></button>
+        <button type="button" class="obopt" data-level="new" aria-pressed="${pickd.level === "new"}"><i class="obicon" aria-hidden="true">🌱</i><strong>${L("Hiç çalmadım", "I've never played")}</strong><span>${L("Klarneti tanıma, duruş, nefes, nota okuma ve ritimle başla.", "Start with the instrument, posture, breathing, reading music and rhythm.")}</span></button>
+        <button type="button" class="obopt" data-level="some" aria-pressed="${pickd.level === "some"}"><i class="obicon" aria-hidden="true">🎵</i><strong>${L("Biraz çalabiliyorum", "I can play a little")}</strong><span>${L("Başlangıç bilgilerini geç, ilk notalardan başla; bildiğin dersleri hızla geçersin.", "Skip the introduction and start with the first notes; you'll get through what you know quickly.")}</span></button>
+        <button type="button" class="obopt" data-level="makam" aria-pressed="${pickd.level === "makam"}"><i class="obicon" aria-hidden="true">🎼</i><strong>${L("Makam çalışıyorum", "I already play makams")}</strong><span>${L("Bütün dersler açılır; akort ekranında makam seçip icra akordunu kullanabilirsin.", "All lessons are unlocked; pick a makam on the tuner and use practice tuning.")}</span></button>
       </div>`;
-    if(s === "mic") body = `
+    if(s === "mic") body = `${emo("🎤")}
       <h2 class="obtitle">${L("Mikrofon ve oda", "Microphone and room")}</h2>
       <p>${L("Mikrofon iznini ver; sonra 3 saniye sessiz kal, oda gürültüsü ölçülsün ve hassasiyet ona göre ayarlansın.", "Allow the microphone; then stay quiet for 3 seconds so the room noise can be measured and the sensitivity set.")}</p>
       <div class="pbar"><button class="primary small" type="button" data-ob="calib">${L("İzin ver ve ölç", "Allow and measure")}</button></div>
       <div class="muted" id="obcal">${pickd.sens ? L("Hassasiyet ", "Sensitivity ") + pickd.sens + L(" olarak ayarlandı.", " set.") : ""}</div>
       <p class="muted">${L("İpucu: telefonu nota sehpasına, klarnetin çanına 50 cm–1 m uzağa koy. Dron ve metronomu kulaklıkla dinlersen ölçüm daha temiz olur.", "Tip: put the phone on a music stand 50 cm–1 m from the bell. Using headphones for the drone and metronome gives cleaner measurements.")}</p>`;
-    if(s === "goal") body = `
+    if(s === "goal") body = `${emo("🎯")}
       <h2 class="obtitle">${L("Günlük hedefin", "Your daily goal")}</h2>
       <p>${L("Kısa ama her gün çalışmak, seyrek uzun çalışmaktan çok daha etkilidir. Seri, en az 1 dakika çaldığın her gün artar.", "Short daily practice beats long, rare sessions. Your streak grows every day you play at least a minute.")}</p>
       <div class="seg" role="radiogroup" aria-label="${L("Günlük hedef", "Daily goal")}">${[10, 15, 20, 30, 45].map(m => `<button type="button" role="radio" data-goal="${m}" aria-checked="${pickd.goal === m}">${m} ${L("dk", "min")}</button>`).join("")}</div>`;

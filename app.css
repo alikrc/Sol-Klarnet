@@ -1126,3 +1126,35 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .rccmpa .rcnew{color:var(--accent)}
 .rccmp small.good{color:var(--ok)}
 .rccmp small.bad{color:var(--bad)}
+
+/* Görseller (art.js): kart ikonları, emojiler, fotoğraflar */
+.hcard > .hic,.hresume > .hic{flex:0 0 auto;display:grid;place-items:center;width:40px;height:40px;border-radius:11px;
+  background:color-mix(in srgb,var(--gc,var(--accent)) 16%,var(--surface));color:var(--gc,var(--accent-ink))}
+.hcard > span:not(.hic),.hresume > span:not(.hic){flex:1 1 auto}
+.aic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hresume > .hic{background:color-mix(in srgb,var(--accent) 22%,var(--surface));color:var(--accent-ink)}
+.hsearch > .hic{background:var(--surface);color:var(--accent-ink)}
+.hemo{margin-right:6px;font-size:14px;letter-spacing:0}
+.hgroup h3:has(.hemo)::before{display:none}
+.hfeat > .hthumb{flex:0 0 auto;flex-direction:row;gap:0;width:76px;height:56px;border-radius:10px;overflow:hidden;background:var(--sunk)}
+.hthumb img{width:50%;height:100%;object-fit:cover;flex:1 1 0;min-width:0}
+.hthumb.hscore{display:grid;place-items:center;background:var(--surface);color:var(--teal);border:1px solid color-mix(in srgb,var(--teal) 30%,transparent)}
+.ascore{width:68px;height:50px;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.hfeat > span:not(.hthumb){flex:1 1 auto}
+.lsemo{font-style:normal;margin-right:6px;letter-spacing:0;text-transform:none}
+.lsunit .lsemo{font-size:13px}
+.lsitem > span{min-width:0}
+.semo{font-style:normal;margin-right:6px;letter-spacing:0}
+.obhero{margin:-24px -24px 4px;border-radius:18px 18px 0 0;overflow:hidden;padding:26px 20px 22px;transform:rotate(0);
+  background:radial-gradient(120% 140% at 80% 0%,color-mix(in srgb,var(--accent) 26%,var(--sunk)),var(--sunk) 70%);border-bottom:1px solid var(--line)}
+.obhero img{transform:rotate(-6deg)}
+.obphoto{display:block;width:100%;height:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.28))}
+.obemo{display:grid;place-items:center;width:56px;height:56px;border-radius:16px;font-size:30px;line-height:1;
+  background:color-mix(in srgb,var(--accent) 14%,var(--sunk))}
+.obemo-photo{overflow:hidden;padding:0}
+.obemo-photo img{width:100%;height:100%;object-fit:cover}
+.obopt:has(.obicon){display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center}
+.obopt:has(.obicon) > strong,.obopt:has(.obicon) > span{grid-column:2}
+.obopt > .obicon{grid-row:1 / span 2;font-style:normal;font-size:26px;line-height:1}
+.abphoto{display:block;width:min(100%,420px);height:auto;margin:2px 0 14px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.22))}
+.credits{display:block;margin-top:8px}

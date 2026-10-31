@@ -39,9 +39,9 @@ TRAINERS.lessons = function(ctx){
   function renderList(){
     const dl = dailyLesson(), dp = lessonProgress(dl, progFor(dl));
     let html = `<button type="button" class="lsitem daily${cur && cur.daily ? " cur" : ""}" data-id="daily">
-      <span>${esc(tx(dl.title))}</span><small>${dp.done === dp.total ? "✓" : dp.done + "/" + dp.total}</small></button>`;
+      <span><i class="lsemo" aria-hidden="true">☀️</i>${esc(tx(dl.title))}</span><small>${dp.done === dp.total ? "✓" : dp.done + "/" + dp.total}</small></button>`;
     for(const u of UNITS){
-      html += `<div class="lsunit">${esc(tx(u.name))}</div>`;
+      html += `<div class="lsunit"><i class="lsemo" aria-hidden="true">${ART.UNIT_EMOJI[u.id] || ""}</i>${esc(tx(u.name))}</div>`;
       for(const l of LESSONS.filter(x => x.unit === u.id)){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
         html += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : " disabled"}>
@@ -51,7 +51,7 @@ TRAINERS.lessons = function(ctx){
       if(ex){
         const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
         html += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : " disabled"}>
-          <span>${L("Ünite sınavı", "Unit test")}${done ? " · " + esc(tx(u.badge)) : ""}</span><small>${!open ? L("dersler bitince", "after the lessons") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
+          <span><i class="lsemo" aria-hidden="true">🏅</i>${L("Ünite sınavı", "Unit test")}${done ? " · " + esc(tx(u.badge)) : ""}</span><small>${!open ? L("dersler bitince", "after the lessons") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
     }
     $("lslist").innerHTML = html;
@@ -123,7 +123,7 @@ TRAINERS.lessons = function(ctx){
     cur = l; store.set("lesson.cur", l.id); SK.setRoute({ ders: l.id });
     const p = progFor(l), u = UNITS.find(x => x.id === l.unit), vids = l.daily ? [] : videosForLesson(l.id);
     $("lsbody").innerHTML = `
-      <div class="eyebrow">${u ? esc(tx(u.name)) : esc(dayKey(new Date()))}</div>
+      <div class="eyebrow">${u ? (ART.UNIT_EMOJI[u.id] || "") + " " + esc(tx(u.name)) : "☀️ " + esc(dayKey(new Date()))}</div>
       <h3 class="lstitle">${esc(tx(l.title))}</h3>
       ${l.text.map(t => `<p>${esc(tx(t))}</p>`).join("")}
       ${l.tips.length ? `<ul class="lstips">${l.tips.map(t => `<li>${esc(tx(t))}</li>`).join("")}</ul>` : ""}
@@ -144,14 +144,14 @@ TRAINERS.lessons = function(ctx){
   function renderNext(){
     const el = $("lsnext"); if(!el || !cur) return;
     if(!lessonDone(cur, progFor(cur))){ el.innerHTML = ""; return; }
-    if(cur.daily){ el.innerHTML = `<div class="lsdone"><strong>Bugünün çalışması tamam.</strong> Seri: ${streak(days)} gün.</div>`; return; }
+    if(cur.daily){ el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Bugünün çalışması tamam.</strong> <i class="lsemo" aria-hidden="true">🔥</i>Seri: ${streak(days)} gün.</div>`; return; }
     if(cur.exam){
       const u = UNITS.find(x => x.id === cur.unit);
-      el.innerHTML = `<div class="lsdone"><strong>${L("Sınavı geçtin!", "Test passed!")}</strong> ${L("Rozet", "Badge")}: ★ ${esc(tx(u.badge))} <button class="stopbtn small" type="button" data-act="tab" data-tab="roadmap">${L("Rozetlerim", "My badges")}</button></div>`;
+      el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🏆</i>${L("Sınavı geçtin!", "Test passed!")}</strong> ${L("Rozet", "Badge")}: ★ ${esc(tx(u.badge))} <button class="stopbtn small" type="button" data-act="tab" data-tab="roadmap">${L("Rozetlerim", "My badges")}</button></div>`;
       return;
     }
     const nx = nextLesson(prog, allOpen);
-    el.innerHTML = `<div class="lsdone"><strong>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>`;
+    el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>`;
   }
   $("lsbody").addEventListener("click", e => {
     const b = e.target.closest("[data-act]"); if(!b) return;
