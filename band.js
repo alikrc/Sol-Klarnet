@@ -24,16 +24,16 @@ const BAND_STYLES = {
                 bass:"1.......5.....",        chord:"....x...x....." },
   sirto:      { drum:"D..TD.T.",             drum2:"D..TD.Tk",             fill:"D.TkTkTk",
                 bass:"1...5...",              chord:"..x...x." },
-  zeybek:     { drum:"D...T.T.D...T.k.k.",   drum2:"D.k.T.T.D.k.T.k.k.",   fill:"D...T.T.D...TkTkTk",
-                bass:"1.......5.........",    chord:"....x.x.....x....." },
+  zeybek:     { drum:"D...T.T.D...T...T.",   drum2:"D.k.T.T.D.k.T.k.T.",   fill:"D...T.T.D...TkTkTk",
+                bass:"1.......5.........",    chord:"....x.x.....x...x." },
   sofyan:     { drum:"D...k.T.T...k.k.",     drum2:"D.k.k.T.T.k.k.k.",     fill:"D...k.T.TkTkTkTk",
                 bass:"1.......5.......",      chord:"....x...x...x..." },
   semai:      { drum:"D...T.k.T.k.",         drum2:"D.k.T.k.T.kk",         fill:"D...T.k.TkTk",
                 bass:"1.......5...",          chord:"....x...x..." },
-  aksak:      { drum:"D.k.T.T.D.k.T.k.k.",   drum2:"D.k.T.TkD.k.T.k.kk",   fill:"D.k.T.T.D.k.TkTkTk",
-                bass:"1.......5.........",    chord:"....x.x.....x....." },
-  duyek:      { drum:"T.D...T.D...T.k.",     drum2:"T.D.k.T.D.k.T.k.",     fill:"T.D...T.TkTkTkTk",
-                bass:"..1.....5.......",      chord:"x.....x.....x..." }
+  aksak:      { drum:"D.k.T.T.D.k.T.k.T.",   drum2:"D.k.T.TkD.k.T.k.Tk",   fill:"D.k.T.T.D.k.TkTkTk",
+                bass:"1.......5.........",    chord:"....x.x.....x...x." },
+  duyek:      { drum:"D.T...T.D...T.k.",     drum2:"D.T.k.T.D.k.T.k.",     fill:"D.T...T.TkTkTkTk",
+                bass:"1.......5.......",      chord:"..x...x.....x..." }
 };
 // Ölçü vuruş grupları (usulü bilinmeyen eserler için; nota arşivindeki ARCH_GROUPS ile aynı)
 const BAND_GROUPS = { "2/4":[1,1], "3/4":[1,1,1], "4/4":[2,1,1], "3/8":[1,1,1], "5/8":[2,3], "6/8":[3,3], "6/4":[3,3], "7/8":[3,2,2],

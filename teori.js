@@ -179,8 +179,8 @@ const TH_TOPICS = [
     quiz:[
       { q:L("Usulde kalın vuruşun adı nedir?", "What is the deep stroke of an usul called?"), a:["Tek", "Düm", "Te"], ok:1,
         why:L("Kalın vuruş düm, ince vuruş tek.", "The deep stroke is düm, the light one tek.") },
-      { q:L("9/8 Aksak nasıl gruplanır?", "How is 9/8 Aksak grouped?"), a:["3+3+3", "2+2+2+3", "4+5"], ok:1,
-        why:L("Son grup üç sekizliktir; “aksak” adı buradan gelir.", "The last group is three eighths; that is where “aksak” (limping) comes from.") },
+      { q:L("9/8 Aksak nasıl gruplanır?", "How is 9/8 Aksak grouped?"), a:["3+3+3", "2+2+2+3", "3+2+2+2"], ok:1,
+        why:L("Aksak bir sofyan (2+2) ile bir Türk aksağının (2+3) birleşmesidir; sondaki üçlü grup ona topal yürüyüşünü verir.", "Aksak joins a sofyan (2+2) and a Türk aksağı (2+3); the closing group of three gives it its limp.") },
       { q:L("Sofyan kaç zamanlıdır?", "How many beats does Sofyan have?"), a:["2", "4", "8"], ok:1,
         why:L("Sofyan 4/4: düm iki vuruş, ardından iki tek.", "Sofyan is 4/4: a two-beat düm, then two teks.") }
     ] },

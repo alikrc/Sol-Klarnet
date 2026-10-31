@@ -8,7 +8,8 @@ const CORE = typeof module !== "undefined" ? require("./core.js")
 // ---- Makamlar ----
 // Perdeler Rast'a (yazılı Sol4) göre koma cinsinden, AEU 53 koma sistemi.
 // Diziler çeşni birleşimlerinden kuruldu (ör. Uşşak = Uşşak dörtlüsü + Bûselik beşlisi Nevâ'da);
-// asc çıkıcı, desc inici (pesten tize yazılı, inerken tersten çalınır). Bir hocaya kontrol ettirilmeli.
+// asc çıkıcı, desc inici (pesten tize yazılı, inerken tersten çalınır).
+// Durak, güçlü, yeden, dizi ve seyir TDV İslâm Ansiklopedisi'nin makam maddelerine göre; kaynaklar docs/KAYNAKLAR.md'de.
 const MAKAMS = [
   { id:"rast", name:"Rast", durak:0, guclu:31, yeden:-5,
     asc:[0,9,17,22,31,40,48,53], desc:[0,9,17,22,31,40,44,53],
@@ -24,28 +25,28 @@ const MAKAMS = [
     seyirEn:"Descending-ascending. Hüseynî pentachord on Dügâh + Uşşak tetrachord on Hüseynî. Dominant Hüseynî; Acem when coming down." },
   { id:"hicaz", name:"Hicaz", durak:9, guclu:31, yeden:0,
     asc:[9,14,26,31,40,48,53,62], desc:[9,14,26,31,40,44,53,62],
-    seyir:"İnici-çıkıcı (bazen çıkıcı). Dügâh'ta Hicaz dörtlüsü (Dik Kürdî, Nim Hicaz) + Nevâ'da Rast beşlisi. Ezgi Nevâ civarından başlar; Nevâ'da Rast çeşnisiyle yarım karar, inerken Acem ve Dügâh'ta tam karar.",
-    seyirEn:"Descending-ascending (sometimes ascending). Hicaz tetrachord on Dügâh (Dik Kürdî, Nim Hicaz) + Rast pentachord on Nevâ. The melody opens around Nevâ; half cadence on Nevâ with Rast, Acem coming down, final on Dügâh." },
-  { id:"huzzam", name:"Hüzzam", durak:17, guclu:31, yeden:9,
+    seyir:"İnici-çıkıcı (bazen çıkıcı). Dügâh'ta Hicaz dörtlüsü (Dik Kürdî, Nim Hicaz) + Nevâ'da Rast beşlisi. Ezgi durak ya da güçlü civarından başlar; Nevâ'da Rast çeşnisiyle yarım karar, Dügâh'ta tam karar. Nevâ'daki Rast beşlisi Acem'le de çalınır (acemli rast).",
+    seyirEn:"Descending-ascending (sometimes ascending). Hicaz tetrachord on Dügâh (Dik Kürdî, Nim Hicaz) + Rast pentachord on Nevâ. The melody opens around the final or the dominant; half cadence on Nevâ with Rast, final on Dügâh. The Rast pentachord on Nevâ is also played with Acem (acemli rast)." },
+  { id:"huzzam", name:"Hüzzam", durak:17, guclu:31, yeden:13,
     asc:[17,22,31,36,48,53,62,70], desc:[17,22,31,36,48,53,62,70],
     seyir:"İnici-çıkıcı. Segâh'ta Hüzzam beşlisi; ezgi durak ya da güçlü civarından başlar. Nevâ'da Hicaz çeşnisiyle (Hisar, Evç) yarım karar; Segâh'ta karar ederken Kürdî yeden olur. Hisar uygulamada biraz tiz basılır.",
     seyirEn:"Descending-ascending. Hüzzam pentachord on Segâh; the melody opens around the final or the dominant. Half cadence on Nevâ with Hicaz (Hisar, Evç); Kürdî leads into the final on Segâh. Hisar is played a little high in practice." },
-  { id:"segah", name:"Segâh", durak:17, guclu:31, yeden:9,
-    asc:[17,22,31,40,48,53,62,70], desc:[17,22,31,40,48,53,62,70],
-    seyir:"Çıkıcı. Segâh'ta Segâh beşlisi; Nevâ ve Evç çevresinde gezinip Segâh'ta karar; karar ederken Kürdî yeden olur.",
-    seyirEn:"Ascending. Segâh pentachord on Segâh; wanders around Nevâ and Evç and ends on Segâh, with Kürdî leading into the final." },
+  { id:"segah", name:"Segâh", durak:17, guclu:31, yeden:13,
+    asc:[17,22,31,39,48,53,62,70], desc:[17,22,31,40,44,53,62,70],
+    seyir:"Çıkıcı. Segâh'ta Segâh beşlisi (Dik Hisar, Evç); inerken Evç yerine Acem, Dik Hisar yerine çoğu zaman Hüseynî gelir. Nevâ'da yarım karar; Segâh'ta karar ederken Kürdî yeden olur.",
+    seyirEn:"Ascending. Segâh pentachord on Segâh (Dik Hisar, Evç); coming down, Acem replaces Evç and Hüseynî often replaces Dik Hisar. Half cadence on Nevâ; Kürdî leads into the final on Segâh." },
   { id:"saba", name:"Saba", durak:9, guclu:22, yeden:0,
     asc:[9,17,22,27,40,44,53,58], desc:[9,17,22,27,40,44,53,58],
     seyir:"Çıkıcı (bazen çıkıcı-inici). Dügâh'ta Saba dörtlüsü (Segâh, Çargâh, Hicaz). Güçlü Çargâh: orada Zirgüleli Hicaz çeşnisiyle yarım karar. Diziyi oktavda tekrar etmez.",
     seyirEn:"Ascending (sometimes ascending-descending). Saba tetrachord on Dügâh (Segâh, Çargâh, Hicaz). Dominant Çargâh: half cadence there with Zirgüleli Hicaz. The scale does not repeat at the octave." },
   { id:"kurdi", name:"Kürdî", durak:9, guclu:31, yeden:0,
     asc:[9,13,22,31,40,44,53,62], desc:[9,13,22,31,40,44,53,62],
-    seyir:"Çıkıcı. Dügâh'ta Kürdî dörtlüsü + Nevâ'da Bûselik beşlisi. Ezgi durak ya da güçlü civarından başlar; Çargâh'ta, Kürdî'de ve Rast'ta asma kararlar yapılır, Dügâh'ta karar.",
-    seyirEn:"Ascending. Kürdî tetrachord on Dügâh + Bûselik pentachord on Nevâ. The melody opens around the final or the dominant; passing cadences on Çargâh, Kürdî and Rast, final on Dügâh." },
+    seyir:"Çıkıcı (bazen çıkıcı-inici). Dügâh'ta Kürdî dörtlüsü + Nevâ'da Bûselik beşlisi. Ezgi durak ya da güçlü civarından başlar; Nevâ'da Bûselik çeşnisiyle yarım karar, Çargâh'ta, Kürdî'de ve Rast'ta asma kararlar, Dügâh'ta karar.",
+    seyirEn:"Ascending (sometimes ascending-descending). Kürdî tetrachord on Dügâh + Bûselik pentachord on Nevâ. The melody opens around the final or the dominant; half cadence on Nevâ with Bûselik, passing cadences on Çargâh, Kürdî and Rast, final on Dügâh." },
   { id:"nihavend", name:"Nihâvend", durak:0, guclu:31, yeden:-5,
     asc:[0,9,13,22,31,35,48,53], desc:[0,9,13,22,31,35,44,53],
-    seyir:"İnici-çıkıcı (bugün çıkıcı da kullanılır). Rast'ta Bûselik beşlisi + Nevâ'da Kürdî ya da (çıkarken) Hicaz dörtlüsü. Nevâ'da yarım, Nim Hisar ve Çargâh'ta asma karar; Rast'ta tam karar.",
-    seyirEn:"Descending-ascending (also ascending today). Bûselik pentachord on Rast + Kürdî or (going up) Hicaz tetrachord on Nevâ. Half cadence on Nevâ, passing cadences on Nim Hisar and Çargâh; final on Rast." },
+    seyir:"İnici-çıkıcı (bugün çıkıcı ya da inici de kullanılır). Rast'ta Bûselik beşlisi + Nevâ'da Kürdî ya da Hicaz dörtlüsü. Nevâ'da çoğunlukla Kürdî'yle yarım, Nim Hisar ve Çargâh'ta asma karar; Rast'ta tam karar.",
+    seyirEn:"Descending-ascending (today also ascending or descending). Bûselik pentachord on Rast + Kürdî or Hicaz tetrachord on Nevâ. Half cadence on Nevâ, mostly with Kürdî; passing cadences on Nim Hisar and Çargâh; final on Rast." },
   // ---- Genişletilmiş makamlar (ileri seviye) ----
   { id:"bayati", name:"Bayâtî", durak:9, guclu:31, yeden:0,
     asc:[9,17,22,31,40,44,53,62], desc:[9,17,22,31,40,44,53,62],
@@ -63,48 +64,48 @@ const MAKAMS = [
     asc:[9,14,26,31,40,48,53,62], desc:[9,14,26,31,40,44,53,62],
     seyir:"İnici-çıkıcı (bazen çıkıcı). Dügâh'ta Hicaz beşlisi + Hüseynî'de Uşşak dörtlüsü. Güçlü Hüseynî; Nevâ ve Hüseynî çevresinde gezinir, inerken Evç yerine Acem basılır.",
     seyirEn:"Descending-ascending (sometimes ascending). Hicaz pentachord on Dügâh + Uşşak tetrachord on Hüseynî. Dominant Hüseynî; wanders around Nevâ and Hüseynî, Acem replaces Evç coming down." },
-  { id:"zirguleli", name:"Zirgüleli Hicaz", durak:9, guclu:31, yeden:0,
-    asc:[9,14,26,31,36,48,53,62], desc:[9,14,26,31,36,48,53,62],
-    seyir:"Çıkıcı. Dügâh'ta Hicaz beşlisi + Nevâ'da Hicaz dörtlüsü (Hisar, Evç): iki Hicaz çeşnisi üst üste.",
-    seyirEn:"Ascending. Hicaz pentachord on Dügâh + Hicaz tetrachord on Nevâ (Hisar, Evç): two Hicaz flavours stacked." },
+  { id:"zirguleli", name:"Zirgüleli Hicaz", durak:9, guclu:40, yeden:4,
+    asc:[9,14,26,31,40,45,57,62], desc:[9,14,26,31,40,45,57,62],
+    seyir:"İnici-çıkıcı. Dügâh'ta Hicaz beşlisi + Hüseynî'de Hicaz dörtlüsü (Dik Acem, Nim Şehnaz): iki Hicaz çeşnisi üst üste. Ezgi güçlü Hüseynî civarından başlar, orada Hicaz çeşnisiyle yarım karar; Nim Zirgüle yeden olup Dügâh'ta karar.",
+    seyirEn:"Descending-ascending. Hicaz pentachord on Dügâh + Hicaz tetrachord on Hüseynî (Dik Acem, Nim Şehnaz): two Hicaz flavours stacked. The melody opens around the dominant Hüseynî, with a Hicaz half cadence there; Nim Zirgüle leads into the final on Dügâh." },
   { id:"suzinak", name:"Sûzinak", durak:0, guclu:31, yeden:-5,
     asc:[0,9,17,22,31,36,48,53], desc:[0,9,17,22,31,36,48,53],
-    seyir:"Çıkıcı. Rast'ta Rast beşlisi + Nevâ'da Hicaz dörtlüsü; Rast'ın parlaklığına Hicaz'ın rengi eklenir.",
-    seyirEn:"Ascending. Rast pentachord on Rast + Hicaz tetrachord on Nevâ; Rast's brightness with the colour of Hicaz." },
-  { id:"hicazkar", name:"Hicazkâr", durak:0, guclu:31, yeden:-5,
+    seyir:"İnici-çıkıcı. Rast'ta Rast beşlisi + Nevâ'da Hicaz dörtlüsü; Rast'ın parlaklığına Hicaz'ın rengi eklenir. Ezgi Nevâ civarından başlar, Nevâ'da Hicaz çeşnisiyle yarım karar; Rast'ta çoğu zaman yedensiz karar.",
+    seyirEn:"Descending-ascending. Rast pentachord on Rast + Hicaz tetrachord on Nevâ; Rast's brightness with the colour of Hicaz. The melody opens around Nevâ, with a Hicaz half cadence there; the final on Rast usually comes without the leading tone." },
+  { id:"hicazkar", name:"Hicazkâr", durak:0, guclu:53, yeden:-5,
     asc:[0,5,17,22,31,36,48,53], desc:[0,5,17,22,31,36,48,53],
-    seyir:"İnici-çıkıcı. Rast'ta Hicaz beşlisi (Zirgüle, Segâh) + Nevâ'da Hicaz dörtlüsü; Zirgüleli Hicaz'ın Rast'a göçürülmüşü.",
-    seyirEn:"Descending-ascending. Hicaz pentachord on Rast (Zirgüle, Segâh) + Hicaz tetrachord on Nevâ; Zirgüleli Hicaz transposed to Rast." },
-  { id:"kurdilihicazkar", name:"Kürdîli Hicazkâr", durak:0, guclu:22, yeden:-9,
+    seyir:"İnici. Rast'ta Hicaz beşlisi (Zirgüle, Segâh) + Nevâ'da Hicaz dörtlüsü; Zirgüleli Hicaz'ın Rast'a göçürülmüşü. Ezgi Gerdâniye civarından başlar, güçlü Gerdâniye'de yarım karar; Nevâ ikinci güçlüdür.",
+    seyirEn:"Descending. Hicaz pentachord on Rast (Zirgüle, Segâh) + Hicaz tetrachord on Nevâ; Zirgüleli Hicaz transposed to Rast. The melody starts around Gerdâniye, half cadence on the dominant Gerdâniye; Nevâ is the second dominant." },
+  { id:"kurdilihicazkar", name:"Kürdîli Hicazkâr", durak:0, guclu:53, yeden:-9,
     asc:[0,4,13,22,31,35,44,53], desc:[0,4,13,22,31,35,44,53],
-    seyir:"İnici. Rast'ta Kürdî dörtlüsü + Çargâh'ta Bûselik beşlisi; ezgi tizden başlar, Çargâh'ta yarım karar.",
-    seyirEn:"Descending. Kürdî tetrachord on Rast + Bûselik pentachord on Çargâh; the melody starts high, half cadence on Çargâh." },
-  { id:"mahur", name:"Mâhur", durak:0, guclu:31, yeden:-4,
+    seyir:"İnici. Rast'ta Kürdî dörtlüsü + Çargâh'ta Bûselik dizisi; ezgi Gerdâniye civarından başlar, güçlü Gerdâniye'de yarım karar. Karara yakın Acem Aşîran'da Bûselik'le kalmak âdettir.",
+    seyirEn:"Descending. Kürdî tetrachord on Rast + Bûselik scale on Çargâh; the melody starts around Gerdâniye, half cadence on the dominant Gerdâniye. Near the end it customarily rests on Acem Aşîran with Bûselik." },
+  { id:"mahur", name:"Mâhur", durak:0, guclu:53, yeden:-4,
     asc:[0,9,18,22,31,40,49,53], desc:[0,9,18,22,31,40,49,53],
-    seyir:"İnici. Rast'ta Çargâh beşlisi + Nevâ'da Çargâh dörtlüsü (Bûselik, Mâhur perdeleri); ezgi Gerdâniye civarından başlar.",
-    seyirEn:"Descending. Çargâh pentachord on Rast + Çargâh tetrachord on Nevâ (Bûselik and Mâhur perdes); the melody starts around Gerdâniye." },
-  { id:"acemasiran", name:"Acemaşîran", durak:-9, guclu:22, yeden:-13,
+    seyir:"İnici. Rast'ta Çargâh beşlisi + Nevâ'da Çargâh dörtlüsü (Bûselik, Mâhur perdeleri); ezgi Gerdâniye civarından başlar, güçlü Gerdâniye'de Çargâh çeşnisiyle yarım karar; Geveşt yeden olup Rast'ta karar.",
+    seyirEn:"Descending. Çargâh pentachord on Rast + Çargâh tetrachord on Nevâ (Bûselik and Mâhur perdes); the melody starts around Gerdâniye, half cadence with Çargâh on the dominant Gerdâniye; Geveşt leads into the final on Rast." },
+  { id:"acemasiran", name:"Acemaşîran", durak:-9, guclu:44, yeden:-13,
     asc:[-9,0,9,13,22,31,40,44], desc:[-9,0,9,13,22,31,40,44],
-    seyir:"İnici. Acem Aşîran'da Çargâh beşlisi + Çargâh'ta Çargâh dörtlüsü; Acem ve Kürdî perdeleri kullanılır.",
-    seyirEn:"Descending. Çargâh pentachord on Acem Aşîran + Çargâh tetrachord on Çargâh; uses the Acem and Kürdî perdes." },
-  // ---- Trakya ve Roman oyun havalarında sık kullanılan makam ----
+    seyir:"İnici. Acem makamı gibi gezinip Acem Aşîran'da Çargâh dörtlüsüyle karar verir; güçlüleri sırasıyla Acem, Çargâh ve Dügâh. Dizi: Acem Aşîran'da Çargâh beşlisi + Çargâh'ta Çargâh dörtlüsü (Kürdî perdesiyle).",
+    seyirEn:"Descending. It moves like the Acem makam and ends on Acem Aşîran with a Çargâh tetrachord; its dominants are Acem, Çargâh and Dügâh, in that order. Scale: Çargâh pentachord on Acem Aşîran + Çargâh tetrachord on Çargâh (with the Kürdî perde)." },
+  // ---- Trakya oyun havalarında da kullanılan makam ----
   { id:"nikriz", name:"Nikriz", durak:0, guclu:31, yeden:-5,
-    asc:[0,9,13,26,31,40,44,53], desc:[0,9,13,26,31,40,44,53],
-    seyir:"Çıkıcı. Rast'ta Nikriz beşlisi (Kürdî, Nim Hicaz) + Nevâ'da Bûselik dörtlüsü. Nevâ'da yarım, Rast'ta tam karar; Roman ve Trakya oyun havalarında çok sevilir.",
-    seyirEn:"Ascending. Nikriz pentachord on Rast (Kürdî, Nim Hicaz) + Bûselik tetrachord on Nevâ. Half cadence on Nevâ, final on Rast; a favourite of Roman and Thracian dance tunes." }
+    asc:[0,9,13,26,31,40,48,53], desc:[0,9,13,26,31,40,44,53],
+    seyir:"Çıkıcı (ya da inici-çıkıcı). Rast'ta Nikriz beşlisi (Kürdî, Nim Hicaz) + Nevâ'da Rast ve Bûselik dörtlüleri: çıkarken Rast (Evç), inerken Bûselik (Acem). Nevâ'da yarım, Rast'ta yedenli tam karar; Trakya karşılamalarında da kullanılır.",
+    seyirEn:"Ascending (or descending-ascending). Nikriz pentachord on Rast (Kürdî, Nim Hicaz) + Rast and Bûselik tetrachords on Nevâ: Rast (Evç) going up, Bûselik (Acem) coming down. Half cadence on Nevâ, final on Rast with the leading tone; also heard in Thracian karşılamas." }
 ];
 // Seyir türü: ezginin dizide nereden başlayıp nasıl gezindiği (seyir analizinde kullanılır)
 const SEYIR_TYPE = { rast:"cikici", ussak:"cikici", huseyni:"inici-cikici", hicaz:"inici-cikici", huzzam:"inici-cikici",
   segah:"cikici", saba:"cikici", kurdi:"cikici", nihavend:"inici-cikici", bayati:"inici-cikici", karcigar:"inici-cikici",
-  humayun:"inici-cikici", uzzal:"inici-cikici", zirguleli:"cikici", suzinak:"cikici", hicazkar:"inici-cikici",
+  humayun:"inici-cikici", uzzal:"inici-cikici", zirguleli:"inici-cikici", suzinak:"inici-cikici", hicazkar:"inici",
   kurdilihicazkar:"inici", mahur:"inici", acemasiran:"inici", nikriz:"cikici" };
-// İcra akordu: yaygın uygulamada AEU değerinden sapan perdeler (koma, perdenin mod 53 değerine göre).
-// Kaynak: icra ölçümleri üzerine yayınlar ve geleneksel ifade ("Uşşak Segâh'ı pes", "Saba Çargâh'ı pes",
-// "Hüzzam'da Hisar tiz"). Yaklaşıktır; bir hocayla kontrol edilmeli.
+// İcra akordu: uygulamada AEU değerinden sapan perdeler (koma, perdenin mod 53 değerine göre). Yalnız kaynağı olanlar:
+// Dügâh'taki Uşşak dörtlüsünün Segâh'ı 1-2 koma pes (Gürbüz 1983 ölçümü, Yarman 2008'de aktarılır);
+// Hüzzam'da Hisar tiz (TDV: Hisar-Evç artık ikilisi 12 değil 10,5-11 koma); Saba'da Hicaz 2-2,5 koma dik (TDV).
+// Yaklaşıktır; ayrıntı docs/KAYNAKLAR.md'de.
 const ICRA = {
-  rast:{ 17:-1, 48:-1 }, ussak:{ 17:-1.5 }, bayati:{ 17:-1.5 }, karcigar:{ 17:-1.5 },
-  huseyni:{ 17:-1.5, 48:-1 }, segah:{ 17:-1, 48:-1 }, huzzam:{ 17:-1, 36:1 },
-  saba:{ 17:-1.5, 22:-1 }, mahur:{ 49:-1 }, suzinak:{ 17:-1 }
+  ussak:{ 17:-1.5 }, bayati:{ 17:-1.5 }, karcigar:{ 17:-1.5 }, huseyni:{ 17:-1.5 },
+  huzzam:{ 36:1.5 }, saba:{ 27:2 }
 };
 MAKAMS.forEach(m => { m.seyirType = SEYIR_TYPE[m.id]; m.icra = ICRA[m.id] || {}; });
 const makamById = id => MAKAMS.find(m => m.id === id) || null;
@@ -151,11 +152,13 @@ function judgePerde(played, target, scale){
 const USULS = [
   { id:"semai",   name:"Semâî",      meter:"3/4",  strokes:[["D",1],["T",1],["T",1]] },
   { id:"sofyan",  name:"Sofyan",     meter:"4/4",  strokes:[["D",2],["T",1],["T",1]] },
-  { id:"duyek",   name:"Düyek",      meter:"8/8",  strokes:[["T",1],["D",2],["T",1],["D",2],["T",2]] },
-  { id:"aksak",   name:"Aksak",      meter:"9/8",  strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] },
-  { id:"agiraksak", name:"Ağır Aksak", meter:"9/4", strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] },
-  { id:"curcuna", name:"Curcuna",    meter:"10/8", strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",2]] },
-  { id:"turkaksagi", name:"Türk Aksağı", meter:"5/8", strokes:[["D",2],["T",1],["T",2]] },
+  // Klasik usullerin vuruşları TDV İslâm Ansiklopedisi'nin usul şemalarına göre (docs/KAYNAKLAR.md)
+  { id:"duyek",   name:"Düyek",      meter:"8/8",  strokes:[["D",1],["T",2],["T",1],["D",2],["T",2]] },
+  { id:"aksak",   name:"Aksak",      meter:"9/8",  strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",1]] },
+  { id:"agiraksak", name:"Ağır Aksak", meter:"9/4", strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",1]] },
+  // Curcuna: Aksak Semâî'nin 10/16 mertebesi, notada çoğu zaman 10/8 yazılır
+  { id:"curcuna", name:"Curcuna",    meter:"10/8", strokes:[["D",2],["T",1],["T",2],["D",2],["T",2],["T",1]] },
+  { id:"turkaksagi", name:"Türk Aksağı", meter:"5/8", strokes:[["D",2],["T",2],["T",1]] },
   { id:"yuruksemai", name:"Yürük Semâî", meter:"6/8", strokes:[["D",1],["T",1],["T",1],["D",1],["T",2]] },
   // Trakya, Rumeli ve Roman oyun havaları (halk: true). Vuruş kalıpları yaygın darbuka çalışından; bir hocaya kontrol ettirilmeli.
   { id:"kasap",      name:"Kasap havası", meter:"2/4", halk:true, strokes:[["D",1],["T",1]] },
@@ -164,8 +167,8 @@ const USULS = [
   { id:"roman",      name:"Roman havası", meter:"9/8", halk:true, strokes:[["D",2],["T",2],["T",2],["D",1],["T",2]] },
   { id:"rumeli",     name:"Rumeli",       meter:"7/8", halk:true, strokes:[["D",2],["T",2],["T",3]] },
   { id:"sirto",      name:"Sirto",        meter:"2/4", halk:true, strokes:[["D",1],["T",1]] },
-  // Zeybek: ağır 9/4 (2+2+2+3), klasik Ağır Aksak'ın halk çalışı
-  { id:"zeybek",     name:"Zeybek",       meter:"9/4", halk:true, strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] }
+  // Zeybek: ağır 9/4 (2+2+2+3), Ağır Aksak'ın vuruşlarıyla (TDV: ağır aksak ağır oyun havalarında da kullanılır)
+  { id:"zeybek",     name:"Zeybek",       meter:"9/4", halk:true, strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",1]] }
 ];
 // Usulü birim zaman dilimlerine açar: her dilim "D", "T" ya da "" (vuruşun devamı)
 function usulSlots(u){

@@ -636,23 +636,23 @@ const MAKAM2 = [
     [],
     [9, 14, 26, 31, 40, 31, 40, 48, 40, 31, 26, 14, 9]),
   makamLesson("zirguleli", "zirguleli", [
-    { tr:"Zirgüleli Hicaz'da iki Hicaz çeşnisi üst üste gelir: Dügâh'ta Hicaz beşlisi ve Nevâ'da Hicaz dörtlüsü (Hisar, Evç).",
-      en:"Zirgüleli Hicaz stacks two Hicaz flavours: a Hicaz pentachord on Dügâh and a Hicaz tetrachord on Nevâ (Hisar, Evç)." }],
-    [],
-    [9, 14, 26, 31, 36, 48, 53, 48, 36, 31, 26, 14, 9]),
+    { tr:"Zirgüleli Hicaz'da iki Hicaz çeşnisi üst üste gelir: Dügâh'ta Hicaz beşlisi ve Hüseynî'de Hicaz dörtlüsü (Dik Acem, Nim Şehnaz). Ezgi güçlü Hüseynî civarından başlar; Nim Zirgüle yeden olup Dügâh'ta karar verir.",
+      en:"Zirgüleli Hicaz stacks two Hicaz flavours: a Hicaz pentachord on Dügâh and a Hicaz tetrachord on Hüseynî (Dik Acem, Nim Şehnaz). The melody opens around the dominant Hüseynî; Nim Zirgüle leads into the final on Dügâh." }],
+    [{ tr:"Dik Acem Fa5'in 1 koma tizidir; Nim Şehnaz yazılı Sol♯5 parmağıyla çalınır.", en:"Dik Acem is F5 raised by one comma; Nim Şehnaz uses the written G♯5 fingering." }],
+    [40, 45, 57, 45, 40, 31, 26, 14, 9, 14, 26, 31, 26, 14, 9]),
   makamLesson("suzinak", "suzinak", [
-    { tr:"Sûzinak, Rast beşlisinin üstüne Nevâ'da Hicaz dörtlüsü koyar. Rast'ın parlak açılışından sonra Hisar ile Hicaz rengi duyulur.",
-      en:"Sûzinak puts a Hicaz tetrachord on Nevâ above a Rast pentachord. After Rast's bright opening the Hicaz colour appears with Hisar." }],
+    { tr:"Sûzinak, Rast beşlisinin üstüne Nevâ'da Hicaz dörtlüsü koyar. İnici-çıkıcıdır: ezgi Nevâ civarından başlar, Hisar ile Hicaz rengini gösterip Rast'a iner.",
+      en:"Sûzinak puts a Hicaz tetrachord on Nevâ above a Rast pentachord. It is descending-ascending: the melody opens around Nevâ, shows the Hicaz colour with Hisar and comes down to Rast." }],
     [],
-    [0, 9, 17, 22, 31, 36, 48, 36, 31, 22, 17, 9, 0]),
+    [31, 36, 48, 36, 31, 22, 17, 9, 0, 9, 17, 22, 17, 9, 0]),
   makamLesson("hicazkar", "hicazkar", [
-    { tr:"Hicazkâr, Zirgüleli Hicaz'ın Rast perdesine göçürülmüş hâlidir: Rast'ta Hicaz beşlisi (Zirgüle, Segâh) ve Nevâ'da Hicaz dörtlüsü.",
-      en:"Hicazkâr is Zirgüleli Hicaz transposed to Rast: a Hicaz pentachord on Rast (Zirgüle, Segâh) and a Hicaz tetrachord on Nevâ." }],
+    { tr:"Hicazkâr, Zirgüleli Hicaz'ın Rast perdesine göçürülmüş hâlidir: Rast'ta Hicaz beşlisi (Zirgüle, Segâh) ve Nevâ'da Hicaz dörtlüsü. İnici bir makamdır: ezgi Gerdâniye civarından başlar, Gerdâniye'de yarım karar verir.",
+      en:"Hicazkâr is Zirgüleli Hicaz transposed to Rast: a Hicaz pentachord on Rast (Zirgüle, Segâh) and a Hicaz tetrachord on Nevâ. It is a descending makam: the melody starts around Gerdâniye and makes its half cadence there." }],
     [{ tr:"Zirgüle yazılı Sol♯4 parmağıyla çalınır.", en:"Zirgüle uses the written G♯4 fingering." }],
-    [31, 36, 48, 36, 31, 22, 17, 5, 0, 5, 17, 22, 17, 5, 0]),
+    [53, 48, 36, 31, 36, 31, 22, 17, 5, 0, 5, 17, 22, 17, 5, 0]),
   makamLesson("kurdilihicazkar", "kurdilihicazkar", [
-    { tr:"Kürdîli Hicazkâr inici bir makamdır: ezgi tizden başlar, Çargâh'ta yarım karar verip Rast'a iner. Rast'ta Kürdî dörtlüsü ile Çargâh'ta Bûselik beşlisinden oluşur.",
-      en:"Kürdîli Hicazkâr is a descending makam: the melody starts high, makes a half cadence on Çargâh and descends to Rast. It is a Kürdî tetrachord on Rast plus a Bûselik pentachord on Çargâh." }],
+    { tr:"Kürdîli Hicazkâr inici bir makamdır: ezgi Gerdâniye civarından başlar, orada yarım karar verip Rast'a iner. Rast'ta Kürdî dörtlüsü ile Çargâh'ta Bûselik dizisinden oluşur.",
+      en:"Kürdîli Hicazkâr is a descending makam: the melody starts around Gerdâniye, makes its half cadence there and descends to Rast. It is a Kürdî tetrachord on Rast plus a Bûselik scale on Çargâh." }],
     [],
     [53, 44, 35, 31, 22, 31, 22, 13, 4, 0]),
   makamLesson("mahur", "mahur", [
@@ -661,8 +661,8 @@ const MAKAM2 = [
     [{ tr:"Mâhur perdesi yazılı Fa♯5'tir; Evç'ten biraz tiz bas.", en:"The Mâhur perde is written F♯5; play it a little higher than Evç." }],
     [53, 49, 40, 31, 22, 18, 9, 0, 9, 18, 22, 31, 22, 18, 9, 0]),
   makamLesson("acemasiran", "acemasiran", [
-    { tr:"Acemaşîran inici bir makamdır ve Acem Aşîran perdesinde (yazılı Fa4) karar verir: Acem Aşîran'da Çargâh beşlisi ile Çargâh'ta Çargâh dörtlüsü.",
-      en:"Acemaşîran is a descending makam that resolves on the Acem Aşîran perde (written F4): a Çargâh pentachord on Acem Aşîran plus a Çargâh tetrachord on Çargâh." }],
+    { tr:"Acemaşîran inici bir makamdır ve Acem Aşîran perdesinde (yazılı Fa4) Çargâh dörtlüsüyle karar verir. Dizisi Acem Aşîran'da Çargâh beşlisi ile Çargâh'ta Çargâh dörtlüsüdür; güçlüleri sırasıyla Acem, Çargâh ve Dügâh.",
+      en:"Acemaşîran is a descending makam that resolves on the Acem Aşîran perde (written F4) with a Çargâh tetrachord. Its scale is a Çargâh pentachord on Acem Aşîran plus a Çargâh tetrachord on Çargâh; its dominants are Acem, Çargâh and Dügâh, in that order." }],
     [],
     [44, 40, 31, 22, 13, 22, 13, 9, 0, -9]),
   // Makam ünitesinin kapanışı: duyulan ya da okunan bir eserin makamını bulma yöntemi
@@ -1056,8 +1056,8 @@ const TRAKYA = [
     text:[
       { tr:"Sol klarnet Trakya'da, Rumeli'de ve Roman müzisyenlerin elinde oyun havasının baş sazıdır. Bu üslupta ses parlak ve güçlüdür; ezgi bol çarpma, kayış ve düşüşle süslenir, usul ise hiç bırakılmaz.",
         en:"The G clarinet is the lead instrument of dance music in Thrace, the Balkans (Rumeli) and among Romani musicians. In this style the tone is bright and strong; the tune is full of grace notes, slides and falls, and the usul never lets go." },
-      { tr:"En sık usuller: kasap havası (2/4), karşılama ve Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) ve Rumeli havaları (7/8, 2+2+3). Makam olarak Hicaz, Kürdî, Uşşak, Hüseynî ve Nikriz öne çıkar.",
-        en:"The most common usuls: kasap (2/4), karşılama and Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) and Rumeli tunes (7/8, 2+2+3). The usual makams are Hicaz, Kürdî, Uşşak, Hüseynî and Nikriz." },
+      { tr:"En sık usuller: kasap havası (2/4), karşılama ve Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) ve Rumeli havaları (7/8, 2+2+3). Makam olarak Hicaz, Karcığar, Uşşak, Hüseynî ve Nikriz öne çıkar.",
+        en:"The most common usuls: kasap (2/4), karşılama and Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) and Rumeli tunes (7/8, 2+2+3). The usual makams are Hicaz, Karcığar, Uşşak, Hüseynî and Nikriz." },
       { tr:"Bu müzik kulaktan öğrenilir. Ünitedeki etütler bu üslupta yazıldı; asıl repertuvarı ustaların kayıtlarından Kulaktan çıkar aracıyla yavaşlatarak, Eşlik sekmesinde darbuka ve bas eşliğinde çalarak öğren.",
         en:"This music is learned by ear. The études in this unit are written in the style; learn the real repertoire from masters' recordings with the Learn by ear tool (slowed down), and play along with darbuka and bass in the Play-along tab." }
     ],
@@ -1114,8 +1114,8 @@ const TRAKYA = [
   { id:"nikriz", unit:"trakya", notes:[], makam:"nikriz",
     title:{ tr:"Nikriz makamı", en:"Makam Nikriz" },
     text:[
-      { tr:"Nikriz, Rast'ta Nikriz beşlisi (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) ile Nevâ'da Bûselik dörtlüsünden kurulur. Kürdî ile Nim Hicaz arasındaki artık ikili Nikriz'e Roman müziğinde sevilen rengini verir.",
-        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) with a Bûselik tetrachord on Nevâ. The augmented second between Kürdî and Nim Hicaz gives Nikriz the colour loved in Romani music." },
+      { tr:"Nikriz, Rast'ta Nikriz beşlisi (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) ile Nevâ'da Rast ve Bûselik dörtlülerinden kurulur: çıkarken Evç, inerken Acem. Kürdî ile Nim Hicaz arasındaki artık ikili Nikriz'e kendine özgü rengini verir; Trakya karşılamalarında da duyulur.",
+        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) with Rast and Bûselik tetrachords on Nevâ: Evç going up, Acem coming down. The augmented second between Kürdî and Nim Hicaz gives Nikriz its own colour; it is also heard in Thracian karşılamas." },
       { tr:"Güçlü Nevâ'dır; Nevâ'da yarım karar, Rast'ta tam karar verilir. Rast'a çoğunlukla Irak üzerinden (yeden) gelinir.",
         en:"The dominant is Nevâ; half cadence on Nevâ, final on Rast. Rast is usually approached through Irak (the leading note)." }
     ],

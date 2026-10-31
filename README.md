@@ -131,6 +131,9 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 
 ## Kaynaklar
 
+Bilgi içeren her bölümün (perdeler, makamlar, icra akordu, usuller, teori, parmaklar, sorunlar) kaynağı ve
+doğrulama sonucu: [docs/KAYNAKLAR.md](docs/KAYNAKLAR.md).
+
 Parmak verisi ve mandal adları: [Woodwind Fingering Guide — Oehler/Albert](https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html),
 [mandal açıklaması](https://www.wfg.woodwind.org/clarinet/cl_fing.html). Temel parmaklar `ocl_bas_1–3`, alternatifler
 `ocl_alt_1–4` sayfalarından; Albert sistemde olmayan mandalları kullanan Oehler parmakları alınmadı.
