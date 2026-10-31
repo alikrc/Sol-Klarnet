@@ -37,7 +37,7 @@ const RM_STAGES = [
       { id:"makamid", tab:"ear", title:{ tr:"Makam tanıma rekoru", en:"Makam ID record" }, unit:{ tr:" art arda", en:" in a row" }, target:5, get: st => st.earMakam || null },
       { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null }
     ] },
-  { id:"trakya", units:["trakya"], title:{ tr:"Oyun havaları: Trakya ve Roman", en:"Dance tunes: Thracian and Roman" },
+  { id:"trakya", units:["trakya"], title:{ tr:"Oyun havaları: Trakya ve Roman", en:"Dance tunes: Thracian and Romani" },
     goal:{ tr:"Kasap, karşılama, Roman havası, çiftetelli ve Rumeli havalarını usule oturarak, üslubuyla ve eşlikle çalarsın.", en:"You play kasap, karşılama, Roman havası, çiftetelli and Rumeli tunes in the groove, in style and with a band." },
     miles:[
       { id:"roman", tab:"piece", title:{ tr:"Roman havası etüdü (tempolu)", en:"Roman havası étude (in tempo)" }, unit:{ tr:"%", en:"%" }, target:80, get: st => st.pieceBest["e-roman"] || null },
@@ -212,7 +212,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
         "Six stages from zero to mastery. Each stage has lessons and measured milestones, computed from your best results in the exercises. The estimate uses your pace over the last four weeks.")}</p>
       <div class="pbar"><span class="label">${L("Hedefin", "Your goal")}</span>
         <div class="seg" role="radiogroup" id="rmstyle" aria-label="${L("Hedef tarz", "Goal style")}">
-          <button type="button" role="radio" data-s="dance" aria-checked="${style === "dance"}">${L("Oyun havaları (Trakya, Roman)", "Dance tunes (Thracian, Roman)")}</button>
+          <button type="button" role="radio" data-s="dance" aria-checked="${style === "dance"}">${L("Oyun havaları (Trakya, Roman)", "Dance tunes (Thracian, Romani)")}</button>
           <button type="button" role="radio" data-s="classic" aria-checked="${style === "classic"}">${L("Fasıl ve makam", "Fasıl and makam")}</button>
           <button type="button" role="radio" data-s="both" aria-checked="${style === "both"}">${L("İkisi", "Both")}</button></div></div>
       <div class="rmweek">

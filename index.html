@@ -82,13 +82,15 @@
     <button type="button" role="tab" data-goto="finger" id="tffinger" aria-selected="false">Parmak</button>
   </div>
   <main class="grid">
-    <section class="card" id="tunecard" aria-labelledby="perdelab">
+    <section class="card sample" id="tunecard" aria-labelledby="perdelab">
       <div class="cardhead">
         <div class="label" id="perdelab">AEU perdesi</div>
         <span class="chip" id="chip" role="status">örnek gösterim</span>
       </div>
       <div class="perde resting" id="perde">Rast</div>
       <div class="koma" id="koma">+0,0 koma sapma</div>
+      <div class="tuneidle" id="tuneidle"><span>Bu değerler örnek. Çaldığın notayı ölçmek için mikrofonu aç.</span>
+        <button type="button" class="primary small" id="tuneidlebtn">Mikrofonu aç</button></div>
       <div class="ctxrow">
         <label class="sr" for="tmakam">Makam bağlamı</label>
         <select id="tmakam"><option value="">Makam: serbest</option></select>
@@ -380,7 +382,7 @@
       <div class="about">
         <img class="abphoto" src="img/klarnet.webp" alt="" loading="lazy" decoding="async">
         <div class="eyebrow">Türk Sol klarneti · Albert sistem · AEU 53 koma</div>
-        <p class="lede">Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol).</p>
+        <p class="lede">Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Sol klarnette yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol); başka klarnet seçilirse fark ona göre hesaplanır.</p>
         <footer>
           Parmak verisi Woodwind Fingering Guide'ın Oehler/Albert temel
           (<a href="https://www.wfg.woodwind.org/clarinet/ocl_bas_1.html" target="_blank" rel="noopener">chalumeau</a>,
@@ -398,7 +400,10 @@
             <a href="https://commons.wikimedia.org/wiki/File:Selmer-clarinet-mouthpiece-reed-and-vandoren-ligature.jpg" target="_blank" rel="noopener">ağızlık</a> James Eaton-Lee, Gisbert K, CC BY-SA 3.0.
             Kırpılıp küçültüldü; kırpılmış hâlleri de aynı lisansla.</span>
         </footer>
-        <div class="aboutlinks"><a href="privacy.html">Gizlilik politikası</a> <button class="stopbtn" id="obagain" type="button">Karşılamayı yeniden aç</button></div>
+        <div class="aboutlinks"><a href="privacy.html">Gizlilik politikası</a>
+          <a href="https://github.com/alikrc/Sol-Klarnet/issues" target="_blank" rel="noopener">Hata bildir ya da öneri yaz</a>
+          <button class="stopbtn" id="obagain" type="button">Karşılamayı yeniden aç</button></div>
+        <div class="muted abver" id="appver"></div>
       </div>
     </div>
   </section>

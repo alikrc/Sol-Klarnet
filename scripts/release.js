@@ -1,5 +1,5 @@
 // Yeni sürüm: sürüm numarasını her yerde birlikte yükseltir.
-// - package.json "version"
+// - package.json "version", app.js APP_VERSION (Ayarlar → Hakkında)
 // - sw.js önbellek adı (sol-klarnet-vN): eski önbellek temizlensin
 // - Android: versionCode +1, versionName
 // - iOS: CURRENT_PROJECT_VERSION +1, MARKETING_VERSION
@@ -19,6 +19,8 @@ wr("package.json", JSON.stringify(pkg, null, 2) + "\n");
 let sw = rd("sw.js"), cache;
 sw = sw.replace(/const CACHE = "sol-klarnet-v(\d+)";/, (m, n) => (cache = `sol-klarnet-v${+n + 1}`, `const CACHE = "${cache}";`));
 wr("sw.js", sw);
+
+wr("app.js", rd("app.js").replace(/const APP_VERSION = "[^"]*";/, `const APP_VERSION = "${next}";`));
 
 let gradle = rd("android/app/build.gradle"), code;
 gradle = gradle.replace(/versionCode (\d+)/, (m, n) => (code = +n + 1, `versionCode ${code}`))

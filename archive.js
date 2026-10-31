@@ -124,7 +124,7 @@ TRAINERS.archive = function(ctx){
   function row(e, fv){
     return `<button type="button" class="arrow" data-id="${esc(e.id)}">
       <span class="arrt"><b>${esc(e.t)}</b>${fv.has(e.id) ? `<i class="arstar" aria-label="${L("favori", "favourite")}">★</i>` : ""}</span>
-      <span class="arrb">${esc(e.b || L("Anonim", "Anonymous"))}</span>
+      <span class="arrb">${esc(!e.b || e.b === "Anonim" ? L("Anonim", "Anonymous") : e.b)}</span>
       <span class="arrm">${esc(e.mkn)} · ${esc(e.fn)} · ${esc(e.un)} · ${archDur(e.s)} · <em class="arlv lv${e.lv}">${ARCH_LV[e.lv]}</em></span></button>`;
   }
   function renderList(){
@@ -216,7 +216,7 @@ TRAINERS.archive = function(ctx){
         <button type="button" class="stopbtn" id="aradd">${L("Eserlerime ekle", "Add to my pieces")}</button>
       </div>
       <h2 class="artitle">${esc(e.t)}</h2>
-      <p class="arby">${esc(e.b || L("Anonim", "Anonymous"))}${e.g ? " · " + L("Güfte: ", "Lyrics: ") + esc(e.g) : ""}</p>
+      <p class="arby">${esc(!e.b || e.b === "Anonim" ? L("Anonim", "Anonymous") : e.b)}${e.g ? " · " + L("Güfte: ", "Lyrics: ") + esc(e.g) : ""}</p>
       <div class="armeta">
         <button type="button" class="chipbtn" data-like="mk">${esc(e.mkn)}</button>
         <button type="button" class="chipbtn" data-like="f">${esc(e.fn)}</button>
@@ -293,8 +293,9 @@ TRAINERS.archive = function(ctx){
         makam: cur.tr.steps ? null : mkId, source: { site: "SymbTr", url: git } });
     });
     $("arpiece").querySelectorAll("[data-like]").forEach(b => b.addEventListener("click", () => listBy(b.dataset.like, e[b.dataset.like])));
+    // Benzer eserler; anonim eserler bir bestekâr gibi gruplanmaz
     const likes = [["mk", e.mk, L("Bu makamda", "In this makam")], ["u", e.u, L("Bu usulde", "In this usul")], ["f", e.f, L("Bu formda", "In this form")], ["b", e.b, L("Bu bestekârdan", "By this composer")]]
-      .filter(([, v]) => v).map(([k, v, t]) => [k, v, t, INDEX.list.filter(x => x[k] === v && x.id !== e.id).length]).filter(x => x[3]);
+      .filter(([k, v]) => v && !(k === "b" && v === "Anonim")).map(([k, v, t]) => [k, v, t, INDEX.list.filter(x => x[k] === v && x.id !== e.id).length]).filter(x => x[3]);
     $("arlikes").innerHTML = likes.map(([k, v, t, n]) => `<button type="button" class="chipbtn" data-k="${k}">${t} (${n})</button>`).join("");
     $("arlikes").addEventListener("click", ev => { const b = ev.target.closest("[data-k]"); if(b) listBy(b.dataset.k, e[b.dataset.k]); });
 

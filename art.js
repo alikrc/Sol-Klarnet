@@ -37,7 +37,7 @@
   // Ünite emojileri (Dersler listesi ve yol haritası)
   const UNIT_EMOJI = { baslangic:"🌱", temel:"🎵", klarino:"⛰️", teknik:"🎚️", hiz:"⚡", susleme:"✨", makam:"🎼", trakya:"💃", ileri:"🏆" };
   // Ana sayfa grup başlıkları
-  const GROUP_EMOJI = { tech:"🛠️", makam:"🎼", pieces:"🧰", progress:"📈" };
+  const GROUP_EMOJI = { finger:"🖐️", ritim:"🥁", tech:"🛠️", makam:"🎼", pieces:"🧰", progress:"📈" };
   const PHOTO = {
     klarnet: "img/klarnet.webp", darbuka: "img/darbuka.webp", ud: "img/ud.webp", agizlik: "img/agizlik.webp"
   };

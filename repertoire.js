@@ -279,7 +279,7 @@ const ETUDES = [
     text:"Nevâ Nim_Hicaz Dik_Kürdî Dügâh:1.5 | Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ Hüseynî Nevâ:1.5 | Hüseynî:0.5 Acem:0.5 Hüseynî Nevâ Nim_Hicaz:1.5 | " +
          "Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî Nim_Hicaz Dügâh:1.5 | Gerdâniye Acem Hüseynî Nevâ:1.5 | Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz Nevâ Hüseynî:1.5 | " +
          "Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî Dügâh Rast:1.5 | Dik_Kürdî:0.5 Nim_Hicaz:0.5 Dik_Kürdî Dügâh:2.5" },
-  { id:"e-roman", name:{ tr:"Roman havası (Kürdî, 9/8)", en:"Roman dance (Kürdî, 9/8)" }, level:6, makam:"kurdi", tempo:108, meter:[9,8], usul:"roman",
+  { id:"e-roman", name:{ tr:"Roman havası (Kürdî, 9/8)", en:"Romani dance (Kürdî, 9/8)" }, level:6, makam:"kurdi", tempo:108, meter:[9,8], usul:"roman",
     text:"Nevâ:0.5 Nevâ:0.5 Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Çargâh:0.5 Nevâ:1.5 | Çargâh:0.5 Çargâh:0.5 Nevâ:0.5 Çargâh:0.5 Kürdî:0.5 Dügâh:0.5 Kürdî:1.5 | " +
          "Kürdî:0.5 Çargâh:0.5 Nevâ:0.5 Hüseynî:0.5 Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Çargâh:0.5 Nevâ:0.5 | Çargâh:0.5 Kürdî:0.5 Dügâh:0.5 Kürdî:0.5 Çargâh Dügâh:1.5 | " +
          "Gerdâniye:0.5 Gerdâniye:0.5 Acem:0.5 Gerdâniye:0.5 Acem:0.5 Hüseynî:0.5 Acem:1.5 | Hüseynî:0.5 Hüseynî:0.5 Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Çargâh:0.5 Nevâ:1.5 | " +
@@ -293,7 +293,7 @@ const ETUDES = [
   { id:"e-nikriz", name:{ tr:"Nikriz etüdü", en:"Nikriz étude" }, level:6, makam:"nikriz", tempo:80, meter:[4,4],
     text:"Rast Dügâh Kürdî Nim_Hicaz | Nevâ:2 Hüseynî Nevâ | Nim_Hicaz Kürdî Dügâh Kürdî | Nim_Hicaz:4 | Nevâ Hüseynî Acem Gerdâniye | Acem Hüseynî Nevâ:2 | Nim_Hicaz Kürdî Dügâh Irak | Rast:4" },
   // Ağır Roman: kayarak giriş, çarpma, mordan, tril ve düşüşle
-  { id:"e-agir-roman", name:{ tr:"Süslemeli Ağır Roman (Hicaz, 9/8)", en:"Slow Roman with ornaments (Hicaz, 9/8)" }, level:6, makam:"hicaz", tempo:72, meter:[9,8], usul:"roman",
+  { id:"e-agir-roman", name:{ tr:"Süslemeli Ağır Roman (Hicaz, 9/8)", en:"Ağır Roman with ornaments (Hicaz, 9/8)" }, level:6, makam:"hicaz", tempo:72, meter:[9,8], usul:"roman",
     text:"Nevâ:1.5:k Nim_Hicaz:0.5 Dik_Kürdî:0.5 Nim_Hicaz:0.5 Nevâ:1.5 | Hüseynî:1:ç+ Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:2.5:d | Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Nevâ:1:m+ Dik_Kürdî:1.5 | " +
          "Dügâh:2:tr Dik_Kürdî Dügâh:1.5 | Dik_Kürdî:0.5:ç+ Nim_Hicaz:0.5 Nevâ Hüseynî:1:k Nevâ:1.5 | Nim_Hicaz:0.5 Nevâ:0.5 Nim_Hicaz:0.5 Dik_Kürdî:0.5 Dügâh Rast:1.5 | " +
          "Dik_Kürdî:1:ç+ Nim_Hicaz Dik_Kürdî Dügâh:1.5 | Dügâh:4.5:d" },
@@ -310,7 +310,7 @@ const ETUDES = [
   { id:"e-zeybek", name:{ tr:"Zeybek (Hüseynî, 9/4)", en:"Zeybek (Hüseynî, 9/4)" }, level:6, makam:"huseyni", tempo:84, meter:[9,4], usul:"zeybek",
     text:"Hüseynî:2:k Nevâ Hüseynî Acem:2 Hüseynî:3 | Nevâ:2 Çargâh Segâh Çargâh:2 Nevâ:3 | Hüseynî:2 Evç Gerdâniye Muhayyer:2 Gerdâniye:3:d | " +
          "Gerdâniye:2:k Acem Hüseynî Nevâ:2 Hüseynî:3 | Nevâ:2 Çargâh Segâh Dügâh:2 Segâh:3 | Çargâh:2 Nevâ Çargâh Segâh:2 Dügâh:3:d" },
-  { id:"e-agir-roman-kurdi", name:{ tr:"Ağır Roman, çarpmalı tekrar (Kürdî, 9/8)", en:"Slow Roman with split repeated notes (Kürdî, 9/8)" }, level:6, makam:"kurdi", tempo:66, meter:[9,8], usul:"roman",
+  { id:"e-agir-roman-kurdi", name:{ tr:"Ağır Roman, çarpmalı tekrar (Kürdî, 9/8)", en:"Ağır Roman with split repeated notes (Kürdî, 9/8)" }, level:6, makam:"kurdi", tempo:66, meter:[9,8], usul:"roman",
     text:"Nevâ:1:k Nevâ:0.5:ç+ Nevâ:0.5:ç+ Acem:0.5 Nevâ:0.5 Çargâh:1.5 | Çargâh:0.5 Çargâh:0.5:ç+ Nevâ:0.5 Çargâh:0.5 Kürdî Dügâh:1.5 | " +
          "Hüseynî Hüseynî:0.5:ç+ Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Nevâ:1.5:m+ | Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Çargâh:0.5 Kürdî:0.5 Çargâh:0.5 Nevâ:1.5:d | " +
          "Gerdâniye:1:k Gerdâniye:0.5:ç+ Acem:0.5 Hüseynî:0.5 Acem:0.5 Hüseynî:1.5 | Nevâ:0.5 Nevâ:0.5:ç+ Çargâh:0.5 Kürdî:0.5 Çargâh Dügâh:1.5 | " +

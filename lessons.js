@@ -34,7 +34,7 @@ const UNITS = [
   { id:"hiz", name:{ tr:"Hız ve teknik", en:"Speed and technique" }, badge:{ tr:"Hızlı parmaklar", en:"Fast fingers" } },
   { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" }, badge:{ tr:"Süsleme ustası", en:"Ornament master" } },
   { id:"makam",  name:{ tr:"Makamlar", en:"Makams" }, badge:{ tr:"Makam yolcusu", en:"Makam traveller" } },
-  { id:"trakya", name:{ tr:"Trakya ve Roman", en:"Thracian and Roman" }, badge:{ tr:"Trakya ve Roman ustası", en:"Thracian and Roman master" } },
+  { id:"trakya", name:{ tr:"Trakya ve Roman", en:"Thracian and Romani" }, badge:{ tr:"Trakya ve Roman ustası", en:"Thracian and Romani master" } },
   { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" }, badge:{ tr:"Taksimci", en:"Taksim player" } }
 ];
 
@@ -1052,10 +1052,10 @@ const HIZ = [
 // sirto (2/4), köçekçe (aksak 9/8), zeybek (9/4), Ağır Roman ve çarpmalı tekrar, Trakya üslubu (kayış, çarpma, düşüş) ve oyun havası öncesi taksim. Etütler repertoire.js'te (level 6), usuller learn.js'te.
 const TRAKYA = [
   { id:"trakya-giris", unit:"trakya", notes:[],
-    title:{ tr:"Trakya ve Roman klarneti, kasap havası", en:"Thracian and Roman clarinet, the kasap dance" },
+    title:{ tr:"Trakya ve Roman klarneti, kasap havası", en:"Thracian and Romani clarinet, the kasap dance" },
     text:[
       { tr:"Sol klarnet Trakya'da, Rumeli'de ve Roman müzisyenlerin elinde oyun havasının baş sazıdır. Bu üslupta ses parlak ve güçlüdür; ezgi bol çarpma, kayış ve düşüşle süslenir, usul ise hiç bırakılmaz.",
-        en:"The G clarinet is the lead instrument of dance music in Thrace, the Balkans (Rumeli) and among Roman musicians. In this style the tone is bright and strong; the tune is full of grace notes, slides and falls, and the usul never lets go." },
+        en:"The G clarinet is the lead instrument of dance music in Thrace, the Balkans (Rumeli) and among Romani musicians. In this style the tone is bright and strong; the tune is full of grace notes, slides and falls, and the usul never lets go." },
       { tr:"En sık usuller: kasap havası (2/4), karşılama ve Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) ve Rumeli havaları (7/8, 2+2+3). Makam olarak Hicaz, Kürdî, Uşşak, Hüseynî ve Nikriz öne çıkar.",
         en:"The most common usuls: kasap (2/4), karşılama and Roman havası (9/8, 2+2+2+3), çiftetelli (8/8) and Rumeli tunes (7/8, 2+2+3). The usual makams are Hicaz, Kürdî, Uşşak, Hüseynî and Nikriz." },
       { tr:"Bu müzik kulaktan öğrenilir. Ünitedeki etütler bu üslupta yazıldı; asıl repertuvarı ustaların kayıtlarından Kulaktan çıkar aracıyla yavaşlatarak, Eşlik sekmesinde darbuka ve bas eşliğinde çalarak öğren.",
@@ -1100,7 +1100,7 @@ const TRAKYA = [
       { tr:"Roman havası da 9/8'dir ama vurgusu farklıdır: son grup (3) “düm-tek” diye ikiye bölünür ve ölçünün sonunda bir sıçrama hissi verir. Ezgiler kısa, tekrar eden motiflerden kurulur.",
         en:"The Roman havası is also 9/8 but with a different accent: the last group (3) splits into “düm-tek”, giving a lift at the end of the bar. Tunes are built from short, repeating motifs." },
       { tr:"Aynı nota art arda gelince dil yerine çarpmalı tekrar dene (Süsleme ünitesi); Roman klarnetinin karakteri buradan gelir.",
-        en:"When the same note repeats, try a grace-note split instead of tonguing (Ornaments unit); this is where the character of Roman clarinet comes from." }
+        en:"When the same note repeats, try a grace-note split instead of tonguing (Ornaments unit); this is where the character of Romani clarinet comes from." }
     ],
     tips:[
       { tr:"Tempo merdiveniyle yavaştan başla; hızlanınca 9/8'in uzun vuruşu kısalmasın.", en:"Start slow with the tempo ladder; as you speed up, don't shorten the long beat of 9/8." }
@@ -1115,7 +1115,7 @@ const TRAKYA = [
     title:{ tr:"Nikriz makamı", en:"Makam Nikriz" },
     text:[
       { tr:"Nikriz, Rast'ta Nikriz beşlisi (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) ile Nevâ'da Bûselik dörtlüsünden kurulur. Kürdî ile Nim Hicaz arasındaki artık ikili Nikriz'e Roman müziğinde sevilen rengini verir.",
-        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) with a Bûselik tetrachord on Nevâ. The augmented second between Kürdî and Nim Hicaz gives Nikriz the colour loved in Roman music." },
+        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) with a Bûselik tetrachord on Nevâ. The augmented second between Kürdî and Nim Hicaz gives Nikriz the colour loved in Romani music." },
       { tr:"Güçlü Nevâ'dır; Nevâ'da yarım karar, Rast'ta tam karar verilir. Rast'a çoğunlukla Irak üzerinden (yeden) gelinir.",
         en:"The dominant is Nevâ; half cadence on Nevâ, final on Rast. Rast is usually approached through Irak (the leading note)." }
     ],
@@ -1160,7 +1160,7 @@ const TRAKYA = [
     title:{ tr:"Trakya üslubu: kayış, çarpma, düşüş", en:"Thracian style: slides, grace notes, falls" },
     text:[
       { tr:"Bu üslubu notadan çok süslemeler belirler: uzun notaya alttan kayarak girilir, vurgulu notalar çarpmayla, cümle sonları düşüşle süslenir. Ağır Roman bunların hepsini yavaş tempoda duyurur.",
-        en:"This style is defined more by ornaments than by notes: long notes are entered with a slide from below, accented notes get grace notes, phrase ends get falls. The slow Roman (ağır Roman) shows all of them at a slow tempo." }
+        en:"This style is defined more by ornaments than by notes: long notes are entered with a slide from below, accented notes get grace notes, phrase ends get falls. The ağır Roman (slow Romani dance) shows all of them at a slow tempo." }
     ],
     tips:[
       { tr:"Süslemeyi abartma: ana nota hep daha uzun ve daha güçlü kalmalı.", en:"Don't overdo it: the main note must stay longer and stronger." }
@@ -1209,10 +1209,10 @@ const TRAKYA = [
       { type:"piece", id:"e-zeybek", mode:"tempo", min:60 }
     ] },
   { id:"agir-roman", unit:"trakya", notes:[], makam:"kurdi",
-    title:{ tr:"Ağır Roman ve çarpmalı tekrar", en:"Slow Roman and split repeated notes" },
+    title:{ tr:"Ağır Roman ve çarpmalı tekrar", en:"Ağır Roman and split repeated notes" },
     text:[
       { tr:"Roman klarnetinin imzası çarpmalı tekrardır: aynı nota art arda gelince dille kesilmez, üstteki notaya kısacık vurularak bölünür. Ağır Roman bunu yavaş tempoda, her tekrarda duyurur.",
-        en:"The signature of Roman clarinet is the split repeated note: when a note repeats it isn't tongued but split by a very short tap on the note above. The slow Roman makes it heard on every repeat." },
+        en:"The signature of Romani clarinet is the split repeated note: when a note repeats it isn't tongued but split by a very short tap on the note above. The ağır Roman makes it heard on every repeat." },
       { tr:"Etüt Kürdî'dedir; aynı perdenin ikinci notasındaki ç+ işareti çarpmayı gösterir.",
         en:"The étude is in Kürdî; the ç+ mark on the second of two equal notes shows the grace note." }
     ],
@@ -1230,7 +1230,7 @@ const TRAKYA = [
     title:{ tr:"Oyun havası öncesi taksim", en:"The taksim before a dance tune" },
     text:[
       { tr:"Trakya ve Roman müziğinde oyun havasından önce kısa, usulsüz bir taksim çalınır: makamı tanıtır ve oyuna hazırlar. Genellikle güçlü civarında başlar, birkaç cümlede durağa iner ve oyun havası hemen başlar.",
-        en:"In Thracian and Roman music a short, unmetered taksim comes before the dance tune: it presents the makam and prepares the dance. It usually starts near the dominant, comes down to the final in a few phrases, and the dance starts straight away." },
+        en:"In Thracian and Romani music a short, unmetered taksim comes before the dance tune: it presents the makam and prepares the dance. It usually starts near the dominant, comes down to the final in a few phrases, and the dance starts straight away." },
       { tr:"Taksimden sonra oyuna geçmeyi Eşlik sekmesinde çalış: aynı makamı ve Roman havası ya da karşılama usulünü seç, “Taksimle başla”ya bas. Grup dem tutar; taksimi durakta uzun bir notayla bitirip nefes alınca oyun havasının ilk notasıyla seninle girer ve temponu izler.",
         en:"Practise going from the taksim into the dance in the Play-along tab: pick the same makam and the Roman havası or karşılama usul and press “Start with a taksim”. The band holds a drone; end the taksim with a long note on the tonic, take a breath, and it comes in with the first note of the dance tune and follows your tempo." }
     ],
@@ -1287,7 +1287,7 @@ const OKUMA1 = [
         en:"Hearing makam intervals lets you tell Uşşak's Segâh from Rast's, and Hicaz's augmented second from Kürdî." }
     ],
     tips:[
-      { tr:"Bildiğin ezgilerle eşleştir: dörtlü “düğün marşının” ilk iki notası gibi, Hicaz'ın artık ikilisi Roman havalarının rengi.", en:"Match intervals with tunes you know; Hicaz's augmented second is the colour of Roman tunes." }
+      { tr:"Bildiğin ezgilerle eşleştir: dörtlü “düğün marşının” ilk iki notası gibi, Hicaz'ın artık ikilisi Roman havalarının rengi.", en:"Match intervals with tunes you know; Hicaz's augmented second is the colour of Romani tunes." }
     ],
     steps:[
       { type:"ear", mode:"interval", pool:"bati", n:10, min:7 },

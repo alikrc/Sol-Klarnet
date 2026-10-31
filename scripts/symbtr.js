@@ -13,6 +13,7 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const { LOW_NOTE, HIGH_NOTE } = require("../core.js");
+const { fixEntry } = require("./basliklar.js");
 
 const args = process.argv.slice(2);
 const repo = args[0];
@@ -129,6 +130,7 @@ function difficulty(p){
       n: ws.length, s: Math.round(beats*60/p.tempo), tp: p.tempo, lo, hi, k: last, lyr: p.notes.some(n => n[3]) ? 1 : 0,
       fit: lo >= LOW_NOTE && hi <= HIGH_NOTE ? 1 : lo + 12 >= LOW_NOTE && hi + 12 <= HIGH_NOTE || lo - 12 >= LOW_NOTE && hi - 12 <= HIGH_NOTE ? 2 : 0,
       mb: mbid.get(id) || null, x: difficulty(p) });
+    fixEntry(index[index.length - 1]);                      // büyük harf hataları, bitişik form adları
   }
   // Seviye: zorluk puanının üçte birlik dilimleri (1 başlangıç, 2 orta, 3 ileri)
   const xs = index.map(e => e.x).sort((a, b) => a - b), q1 = xs[Math.floor(xs.length/3)], q2 = xs[Math.floor(xs.length*2/3)];

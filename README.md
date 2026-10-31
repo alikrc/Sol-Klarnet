@@ -24,8 +24,9 @@ Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işl
 ## Çalışma bölümü
 
 Alt menüde beş bölüm (`nav.js`): **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler** (Dersler, Teori, Yol haritası,
-Videolar), **Çalış** (**Teknik**: Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Usuller, Ritim heceleri, Hız, Süsleme; **Makam**: Dizi,
-Taklit, Seyir, Kulak, Dikte; **İlerleme**), **Eserler** (Nota arşivi, Eşlik, Etüt ve eserler, Kulaktan çıkar, Çevir, Kayıt) ve **Ayarlar**.
+Videolar), **Çalış** (başta Sorunlar ve çözümler; **Parmak ve nota**: Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre; **Ritim**: Ritim, Usuller,
+Ritim heceleri; **Ses ve teknik**: Uzun ton, Hız, Süsleme; **Makam ve kulak**: Dizi, Taklit, Seyir, Kulak, Dikte; **Takip**: Kayıt, İlerleme),
+**Eserler** (Nota arşivi, Eşlik, Etüt ve eserler, Kulaktan çıkar, Çevir) ve **Ayarlar**.
 Her bölüm kendi sayfa yığınını tutar: başka bölüme geçip dönünce kaldığın sayfa açılır, seçili bölüme yeniden dokununca bölümün başına dönülür.
 İç sayfalarda üstte tek satır vardır: ← ve sayfanın adı; yanında "Nasıl kullanılır?" ve metronom/dron alttan açılan panelde. Ekrandaki ← ile
 telefonun geri tuşu hep aynı şeyi yapar: bir sayfa geri; bölümün başında Akort'a, Akort'ta uygulamadan çıkış.

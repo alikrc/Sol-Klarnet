@@ -66,7 +66,7 @@ TUNER AND FINGERINGS
 • G, B♭, A, C and E♭ clarinets
 
 LESSONS AND ROADMAP
-• 77 lessons in nine units: from the first sound to taksim and Thracian and Roman dance tunes
+• 77 lessons in nine units: from the first sound to taksim and Thracian and Romani dance tunes
 • Today's practice: your weak notes plus spaced review (1, 3, 7, 21 days), rebuilt every day
 • Unit tests and badges, streaks and a weekly summary
 • A six-stage roadmap with measured milestones and a time estimate
@@ -76,7 +76,7 @@ MAKAM AND EAR
 • Comma threshold, pitch discrimination, makam and interval recognition; rhythm and melodic dictation, sight-reading
 
 DANCE TUNES AND PLAY-ALONG
-• Études for kasap, karşılama, Roman havası, çiftetelli, Rumeli, sirto, köçekçe, zeybek and slow Roman
+• Études for kasap, karşılama, Roman havası, çiftetelli, Rumeli, sirto, köçekçe, zeybek and ağır Roman
 • Darbuka, bass and oud band: groove measurement, second patterns and fills
 • Learn by ear: slow down a recording without changing pitch, loop it, transcribe it
 

@@ -20,16 +20,18 @@
 
   // ---- İskelet ----
   // Alıştırmalar beş gruba ayrılır ve üç bölümde görünür (nav.js): Dersler grubu Dersler bölümünün kökü (segmentle seçilir;
-  // mantığı ve verisi lessons.js'te), Teknik, Makam ve İlerleme Çalış'ın, Eserler grubu Eserler'in ana sayfasında kart olarak.
+  // mantığı ve verisi lessons.js'te), Çalış grupları (parmak, ritim, teknik, makam, takip) Çalış'ın, Eserler grubu Eserler'in ana sayfasında kart olarak.
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hece",L("Ritim heceleri", "Rhythm syllables")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["sorun",L("Sorunlar ve çözümler", "Problems & fixes")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","teori","roadmap","videos"]],
-                  ["tech",L("Teknik", "Skills"),["sorun","quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hece","hiz","susleme"]],
-                  ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
-                  ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
-                  ["progress","İlerleme",["progress"]]];
+                  ["finger",L("Parmak ve nota", "Fingers and notes"),["quiz","gorbas","staffmap","tablo","desifre"]],
+                  ["ritim",L("Ritim", "Rhythm"),["rhythm","usul","hece"]],
+                  ["tech",L("Ses ve teknik", "Tone and technique"),["sorun","long","hiz","susleme"]],
+                  ["makam",L("Makam ve kulak", "Makam and ear"),["makam","mimic","seyir","ear","dikte"]],
+                  ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert"]],
+                  ["progress",L("Takip", "Tracking"),["rec","progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
   const isLesson = id => GROUPS[0][2].includes(id);
   const tabName = id => TABS.find(t => t[0] === id)[1];
@@ -93,7 +95,7 @@
         <li>Bir kilometre taşına dokun: ilgili alıştırma açılır. Taşlar oradaki en iyi sonucundan hesaplanır.</li>
         <li>Tahmin son dört haftadaki hızına göredir; yeterli veri yoksa haftada 5 gün, günlük hedef kadar çalışacağın varsayılır.</li></ol>`,
       `<p><b>What it's for:</b> seeing the long road: six stages from zero to mastery, each with lessons and measured milestones.</p>
-      <ol><li>Choose your goal style at the top: with dance tunes, the Thracian and Roman stage comes before the makams.</li>
+      <ol><li>Choose your goal style at the top: with dance tunes, the Thracian and Romani stage comes before the makams.</li>
         <li>“This week” shows how many days you reached your goal; “This week's focus” shows the next lesson and the first missing milestone.</li>
         <li>Tap a milestone to open its exercise. Milestones come from your best result there.</li>
         <li>The estimate uses your pace over the last four weeks; without enough data it assumes 5 days a week at your daily goal.</li></ol>`),
@@ -134,7 +136,7 @@
         <li>Dalga biçimine dokun: oradan çalar. Parmağını sürükle: o bölge seçilir ve döngüye girer. A ve B düğmeleri de çalan yerden seçer.</li>
         <li>Hızı düşür (%50 iyi bir başlangıç): perde değişmez. Kayıt başka ahenkteyse “Perde” ve “İnce ayar” ile klarnetine uydur.</li>
         <li>Alttaki şerit çalan yerin perdesini yazar. İşaret koyarak cümleleri ayır; “Seçili bölgeyi notaya dök” notayı Çevir'de açar.</li></ol>`,
-      `<p><b>What it's for:</b> learning by ear from masters' recordings (the real way of learning in the Thracian and Roman tradition).</p>
+      `<p><b>What it's for:</b> learning by ear from masters' recordings (the real way of learning in the Thracian and Romani tradition).</p>
       <ol><li>Use “Open an audio / video file” to choose a recording on your phone (MP3, M4A, WAV, MP4…). The file never leaves the device.</li>
         <li>Tap the waveform to play from there. Drag to select a passage; it loops. The A and B buttons select from the playing position too.</li>
         <li>Lower the speed (50% is a good start): the pitch stays the same. If the recording is in another key, match your clarinet with “Pitch” and “Fine”.</li>
@@ -371,8 +373,9 @@
   const root = $("practice");
   // Bölüm ana sayfaları aynı kutuda: data-hub hangi bölümde görüneceğini söyler (Çalış ya da Eserler).
   // Dersler'in ana sayfası yoktur: kökü Dersler / Yol haritası / Videolar segmentiyle seçilen sekmedir.
-  const HUB = { tech:["practice", L("Teknik", "Skills")], makam:["practice", "Makam"], progress:["practice", L("Takip", "Tracking")],
-    pieces:["pieces", L("Araçlar", "Tools")] };
+  const HUB = { finger:["practice", L("Parmak ve nota", "Fingers and notes")], ritim:["practice", L("Ritim", "Rhythm")],
+    tech:["practice", L("Ses ve teknik", "Tone and technique")], makam:["practice", L("Makam ve kulak", "Makam and ear")],
+    progress:["practice", L("Takip", "Tracking")], pieces:["pieces", L("Araçlar", "Tools")] };
   const FEAT = ["archive", "band", "sorun"];   // Eserler'in ve Çalış'ın başında öne çıkan satırlar; gruplarında tekrar edilmez
   root.innerHTML = `
     <div class="phub" id="phub">
@@ -474,8 +477,8 @@
   // Yardım: sayfanın "Nasıl kullanılır?" metni panelde
   const helpEl = document.createElement("div");
   helpEl.className = "phelpbody";
-  // Araçları kullanan sayfalar: Teknik (Sorunlar hariç) ve Makam alıştırmaları, Dersler, Etüt ve eserler
-  const TOOLS_ON = [...GROUPS[1][2], ...GROUPS[2][2], "lessons", "piece"].filter(id => id !== "sorun");
+  // Araçları kullanan sayfalar: Çalış alıştırmaları (Sorunlar ve Takip hariç), Dersler, Etüt ve eserler
+  const TOOLS_ON = [...GROUPS.filter(g => !["lessons", "pieces", "progress"].includes(g[0])).flatMap(g => g[2]), "lessons", "piece"].filter(id => id !== "sorun");
   const helpFor = () => shown ? HELP[shown] : SK.nav.sec() === "practice" ? HUB_HELP : "";
   function paintIcons(){
     $("navhelp").hidden = !helpFor();

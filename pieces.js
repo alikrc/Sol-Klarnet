@@ -472,7 +472,7 @@ TRAINERS.piece = function(ctx){
     </details>`;
   let user = store.get("piece.user", []).map(normPiece);
   let player = null;
-  const LEVEL = { 1: L("Başlangıç", "Beginner"), 2: L("Temel", "Basic"), 3: L("Makam", "Makam"), 4: L("Makam (ileri)", "Makam (advanced)"), 5: L("Usul", "Usul"), 6: L("Trakya ve Roman", "Thracian and Roman") };
+  const LEVEL = { 1: L("Başlangıç", "Beginner"), 2: L("Temel", "Basic"), 3: L("Makam", "Makam"), 4: L("Makam (ileri)", "Makam (advanced)"), 5: L("Usul", "Usul"), 6: L("Trakya ve Roman", "Thracian and Romani") };
   function all(){
     return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo:e.tempo, meter:e.meter, makam:e.makam, usul:e.usul, group: LEVEL[e.level] })),
             ...user.map((p, i) => ({ ...p, key:"u"+i, own:true, group: L("Kendi eserlerim", "My pieces") }))];

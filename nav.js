@@ -14,7 +14,7 @@
   const SECS = ["tune", "lessons", "practice", "pieces", "settings"];
   const SHELL = ["lessons", "practice", "pieces"];
   const LROOTS = ["lessons", "teori", "roadmap", "videos"];       // Dersler kökünün segmentleri (geçmişe yazılmaz)
-  const PIECES = ["archive", "piece", "band", "kulaktan", "convert", "rec"];
+  const PIECES = ["archive", "piece", "band", "kulaktan", "convert"];
   const secOf = p => p === "review" ? "settings" : LROOTS.includes(p) ? "lessons" : PIECES.includes(p) ? "pieces" : "practice";
 
   // Yığın girdisi: { page, sub?, title?, onPop?, y }

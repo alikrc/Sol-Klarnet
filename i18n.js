@@ -71,11 +71,13 @@ const EXACT = {
   "Sol Klarnet — Akort, Parmak, Makam": "Turkish G Clarinet — Tuner, Fingerings, Makam",
   "Sol Klarnet": "Turkish G Clarinet",
   "Türk Sol klarneti · Albert sistem · AEU 53 koma": "Turkish G clarinet · Albert system · AEU 53-comma tuning",
-  "Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol).":
-    "Listens to your playing through the microphone and shows the perde (pitch degree), how many commas you are off, the written and sounding note, and the fingering for that note. The written note is a perfect fourth above the sounding pitch (Rast = written G).",
+  "Çaldığın sesi mikrofondan dinler; perdeyi, perdeden kaç koma saptığını, yazılı ve duyulan notayı ve o notanın parmak pozisyonunu gösterir. Sol klarnette yazılı nota, duyulan sesin tam dörtlü üstüdür (Rast = yazılı Sol); başka klarnet seçilirse fark ona göre hesaplanır.":
+    "Listens to your playing through the microphone and shows the perde (pitch degree), how many commas you are off, the written and sounding note, and the fingering for that note. On the G clarinet the written note is a perfect fourth above the sounding pitch (Rast = written G); with another clarinet the difference is computed for it.",
   "Mikrofonu başlat": "Start microphone", "Durdur": "Stop", "örnek gösterim": "sample view",
   "dinliyor": "listening", "durdu": "stopped", "sessiz": "silent", "izin bekleniyor": "waiting for permission",
   "örnek ses çalıyor": "playing sample tone", "mikrofon izni yok": "no microphone permission",
+  "Bu değerler örnek. Çaldığın notayı ölçmek için mikrofonu aç.": "These values are a sample. Turn on the microphone to measure what you play.",
+  "Mikrofonu aç": "Turn on microphone",
   "mikrofon bulunamadı": "no microphone found", "mikrofon açılamadı": "couldn't open microphone","bu ortamda mikrofon açılamıyor (https gerekli)": "microphone unavailable here (https required)",
   "Diyapazon (La)": "Tuning (A)", "Gösterge": "Display", "Koma": "Commas", "Sent": "Cents", "Hassasiyet": "Sensitivity",
   "Mikrofon seviyesi": "Microphone level", "Tema": "Theme", "Otomatik": "Auto", "Açık": "Light", "Koyu": "Dark", "Dil": "Language",
@@ -149,7 +151,7 @@ const EXACT = {
   "göre. Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.": ". Perde names follow the AEU 53-comma system, Rast = written G. Range: written E3 – E♭7.",
   // Çalışma: genel
   "Çalışma": "Practice", "Çalış": "Practice", "Eserler": "Pieces", "Akort": "Tuner", "Parmak": "Fingering", "Ayarlar": "Settings", "Notalar": "Scores", "Ana gezinme": "Main navigation", "Akort ve parmak": "Tuner and fingering",
-  "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy",
+  "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy", "Hata bildir ya da öneri yaz": "Report a bug or suggest something",
   "Fotoğraflar (Wikimedia Commons):": "Photos (Wikimedia Commons):", "klarnet": "clarinet", "ud": "oud", "ağızlık": "mouthpiece",
   "Kırpılıp küçültüldü; kırpılmış hâlleri de aynı lisansla.": "Cropped and resized; the crops carry the same licence.",
   "Parmak pozisyonunu göster": "Show fingering", "Bütün parmaklar tek sayfada: parmak tablosu": "Every fingering on one page: fingering chart", "Nota şeridi": "Note strip", "Mikrofon": "Mic", "Çalınan perde ve sapma": "Played perde and deviation", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",

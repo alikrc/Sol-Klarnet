@@ -2,6 +2,8 @@
 // Çalışma bölümü (practice.js) window.SK üzerinden buraya bağlanır.
 (function(){
   const $ = id => document.getElementById(id);
+  const APP_VERSION = "1.0.0";                          // npm run release günceller
+  $("appver").textContent = L("Sürüm ", "Version ") + APP_VERSION;
   const listeners = {};                                 // SK.on olay dinleyicileri (aşağıda)
   const btn=$("btn"), btnLab=$("btnlab"), chip=$("chip");
   const perdeEl=$("perde"), komaEl=$("koma"), needle=$("needle"), centtxt=$("centtxt"), track=$("track");
@@ -800,6 +802,7 @@
     noticeEl.hidden = false;
     clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { noticeEl.hidden = true; }, 9000);
   }
+  $("tuneidlebtn").addEventListener("click", () => start());
   async function start(){
     if(running || starting) return;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
@@ -841,6 +844,7 @@
     btnLab.textContent = "Durdur"; btn.classList.add("listening");
     chip.textContent = "dinliyor"; chip.classList.add("live");
     perdeEl.classList.remove("resting");
+    $("tuneidle").hidden = true; $("tunecard").classList.remove("sample");   // örnek değerler yerini ölçüme bırakır
     keepAwake();
     timer = setInterval(tick, 40);
     emit("mic", { on:true });

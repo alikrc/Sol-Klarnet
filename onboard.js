@@ -14,9 +14,9 @@
   function close(){ root.hidden = true; document.body.classList.remove("modal"); }
 
   const dots = () => `<div class="obdots" aria-hidden="true">${steps.map((_, k) => `<i class="${k === i ? "on" : k < i ? "done" : ""}"></i>`).join("")}</div>`;
-  const nav = (next = L("Devam", "Next"), skip = false) => `<div class="obnav">${i ? `<button class="stopbtn" type="button" data-ob="back">${L("Geri", "Back")}</button>` : "<span></span>"}
-    ${skip ? `<button class="stopbtn" type="button" data-ob="next">${L("Atla", "Skip")}</button>` : ""}
-    <button class="primary small" type="button" data-ob="next" ${steps[i] === "level" && !pickd.level ? "disabled" : ""}>${next}</button></div>`;
+  // later: ileri düğmesi "Şimdilik geç" olarak ikincil görünür (mikrofon ölçülmeden geçilirken)
+  const nav = (next = L("Devam", "Next"), later = false) => `<div class="obnav">${i ? `<button class="stopbtn" type="button" data-ob="back">${L("Geri", "Back")}</button>` : "<span></span>"}
+    <button class="${later ? "stopbtn" : "primary small"}" type="button" data-ob="next" ${steps[i] === "level" && !pickd.level ? "disabled" : ""}>${later ? L("Şimdilik geç", "Not now") : next}</button></div>`;
 
   function render(){
     const s = steps[i];
@@ -49,12 +49,12 @@
       <p>${L("Mikrofon iznini ver; sonra 3 saniye sessiz kal, oda gürültüsü ölçülsün ve hassasiyet ona göre ayarlansın.", "Allow the microphone; then stay quiet for 3 seconds so the room noise can be measured and the sensitivity set.")}</p>
       <div class="pbar"><button class="primary small" type="button" data-ob="calib">${L("İzin ver ve ölç", "Allow and measure")}</button></div>
       <div class="muted" id="obcal">${pickd.sens ? L("Hassasiyet ", "Sensitivity ") + pickd.sens + L(" olarak ayarlandı.", " set.") : ""}</div>
-      <p class="muted">${L("İpucu: telefonu nota sehpasına, klarnetin çanına 50 cm–1 m uzağa koy. Dron ve metronomu kulaklıkla dinlersen ölçüm daha temiz olur.", "Tip: put the phone on a music stand 50 cm–1 m from the bell. Using headphones for the drone and metronome gives cleaner measurements.")}</p>`;
+      <p class="muted">${L("İpucu: telefonu nota sehpasına, klarnetin çanına 50 cm–1 m uzağa koy. Uygulamanın çaldığı sesleri (metronom, örnek ezgiler) kulaklıkla dinlersen ölçüm daha temiz olur. Mikrofonu sonra da açabilirsin.", "Tip: put the phone on a music stand 50 cm–1 m from the bell. Listening to the app's sounds (metronome, examples) on headphones gives cleaner measurements. You can turn the microphone on later too.")}</p>`;
     if(s === "goal") body = `${emo("🎯")}
       <h2 class="obtitle">${L("Günlük hedefin", "Your daily goal")}</h2>
       <p>${L("Kısa ama her gün çalışmak, seyrek uzun çalışmaktan çok daha etkilidir. Seri, en az 1 dakika çaldığın her gün artar.", "Short daily practice beats long, rare sessions. Your streak grows every day you play at least a minute.")}</p>
       <div class="seg" role="radiogroup" aria-label="${L("Günlük hedef", "Daily goal")}">${[10, 15, 20, 30, 45].map(m => `<button type="button" role="radio" data-goal="${m}" aria-checked="${pickd.goal === m}">${m} ${L("dk", "min")}</button>`).join("")}</div>`;
-    root.querySelector(".obcard").innerHTML = dots() + body + nav(i === steps.length - 1 ? L("Başla", "Start") : L("Devam", "Next"), s === "mic");
+    root.querySelector(".obcard").innerHTML = dots() + body + nav(i === steps.length - 1 ? L("Başla", "Start") : L("Devam", "Next"), s === "mic" && !pickd.sens);
   }
 
   root.addEventListener("click", async e => {
@@ -75,7 +75,8 @@
       vals.sort((a, c) => a - c);
       const noise = vals.length ? vals[Math.floor(vals.length*0.9)] : 0.002, thr = Math.max(0.0015, noise*2.5);
       pickd.sens = Math.round(Math.min(10, Math.max(1, 1 + 9*Math.log(thr/0.03)/Math.log(0.002/0.03))));
-      msg.textContent = L("Hazır. Hassasiyet ", "Done. Sensitivity ") + pickd.sens + (pickd.sens <= 2 ? L(" (oda gürültülü; daha sessiz bir yer daha iyi olur).", " (noisy room; a quieter place would help).") : ".");
+      const done = L("Hazır. Hassasiyet ", "Done. Sensitivity ") + pickd.sens + (pickd.sens <= 2 ? L(" (oda gürültülü; daha sessiz bir yer daha iyi olur).", " (noisy room; a quieter place would help).") : ".");
+      render(); root.querySelector("#obcal").textContent = done;          // "Şimdilik geç" yerine "Devam"
       return;
     }
     if(act === "next"){

@@ -315,6 +315,7 @@ svg.smap{height:auto;display:block;background:var(--surface)}
 .hgroup{--gc:var(--accent)}
 .hgroup[data-g="lessons"]{--gc:var(--g-lessons)} .hgroup[data-g="tech"]{--gc:var(--g-tech)} .hgroup[data-g="makam"]{--gc:var(--g-makam)}
 .hgroup[data-g="pieces"]{--gc:var(--g-pieces)} .hgroup[data-g="progress"]{--gc:var(--g-progress)}
+.hgroup[data-g="finger"]{--gc:var(--g-pieces)} .hgroup[data-g="ritim"]{--gc:var(--g-lessons)}
 .hgroup .hcard{border-left:4px solid var(--gc);background:color-mix(in srgb,var(--gc) 7%,var(--surface))}
 .hgroup .hgo{stroke:var(--gc)}
 .hgroup h3::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gc);margin-right:8px;vertical-align:middle}
@@ -1232,3 +1233,9 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .sknotice .chipbtn{width:auto;height:auto;margin:8px 0 0;padding:8px 12px;font:600 13px/1 var(--ui);border:0;border-radius:999px;
   color:inherit;background:color-mix(in srgb,var(--paper) 16%,transparent)}
 @media (min-width:768px){.sknotice{left:50%;right:auto;transform:translateX(-50%);width:min(520px,calc(100vw - 48px));bottom:calc(var(--sab) + 20px)}}
+/* Akort: mikrofon hiç açılmadıysa değerler örnektir; soluk gösterilir ve yanında açıklama */
+#tunecard.sample .perde,#tunecard.sample .koma,#tunecard.sample .meter,#tunecard.sample .data{opacity:.45}
+.tuneidle{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0 4px;padding:10px 12px;border-radius:12px;
+  background:var(--sunk);font:500 13.5px/1.4 var(--ui);color:var(--ink)}
+.tuneidle span{flex:1 1 180px}
+.abver{margin-top:8px;font-size:12px}
