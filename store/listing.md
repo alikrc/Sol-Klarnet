@@ -13,7 +13,7 @@ Sol klarnet: koma akordu, parmak şeması, makam, oyun havaları ve 77 ders
 
 **Uzun açıklama:**
 
-Sol Klarnet, Türk Sol klarnetini (Albert sistem) sıfırdan öğrenmek ve ilerletmek isteyenler için hazırlandı. Mikrofondan çaldığını dinler, perdeni koma koma gösterir ve her gün ne çalışacağını söyler. Ses yalnızca telefonunda işlenir; uygulama internete bağlanmaz.
+Sol Klarnet, Türk Sol klarnetini (Albert sistem) sıfırdan öğrenmek ve ilerletmek isteyenler için hazırlandı. Mikrofondan çaldığını dinler, perdeni koma koma gösterir ve her gün ne çalışacağını söyler. Ses yalnızca telefonunda işlenir; internete yalnızca Nota bul çıkar.
 
 AKORT VE PARMAK
 • AEU perdeleri (53 koma) ve kaç koma saptığın; makam seçince yalnızca o makamın perdeleri
@@ -57,7 +57,7 @@ Turkish G clarinet: comma tuner, fingerings, makams, dance tunes and 77 lessons
 
 **Full description:**
 
-Sol Klarnet is for anyone learning the Turkish G clarinet (Albert system), from the very first note to taksim. It listens through the microphone, shows your pitch comma by comma and tells you what to practise each day. Sound is processed only on your phone; the app never goes online.
+Sol Klarnet is for anyone learning the Turkish G clarinet (Albert system), from the very first note to taksim. It listens through the microphone, shows your pitch comma by comma and tells you what to practise each day. Sound is processed only on your phone; only Find sheet music goes online.
 
 TUNER AND FINGERINGS
 • AEU perdes (53 commas) and how many commas you are off; pick a makam to judge against its perdes only
