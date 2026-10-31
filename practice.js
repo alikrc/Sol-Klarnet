@@ -22,11 +22,11 @@
   // Alıştırmalar beş gruba ayrılır ve üç bölümde görünür (nav.js): Dersler grubu Dersler bölümünün kökü (segmentle seçilir;
   // mantığı ve verisi lessons.js'te), Teknik, Makam ve İlerleme Çalış'ın, Eserler grubu Eserler'in ana sayfasında kart olarak.
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
-  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
+  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","roadmap","videos"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","hiz","susleme"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
@@ -47,6 +47,7 @@
     tablo: L("Bütün parmaklar tek bakışta; tek sayfa PDF indir", "Every fingering at a glance; download a one-page PDF"),
     long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
     rhythm: L("Metronomla zamanında çal", "Play in time with the metronome"),
+    usul: L("Ritim kalıpları: aksak, düyek, karşılama… dinle, vur, çal", "Rhythm patterns: aksak, düyek, karşılama… listen, tap, play"),
     hiz: L("Gam, arpej, dizi: tempo merdiveniyle hızlan", "Scales, arpeggios: speed up with the tempo ladder"),
     susleme: L("Çarpma, mordan, tril, kayış: ölçülerek", "Grace notes, mordents, trills, slides: measured"),
     makam: L("Makam dizisini çık ve in", "Play the makam scale up and down"),
@@ -201,6 +202,18 @@
         <li>Pick a pattern or usul and a tempo, tap Start.</li>
         <li>After a one-bar count-in, play short notes with the metronome (any note).</li>
         <li>You see accuracy, early/late and consistency. With an usul you play on its düm and tek strokes.</li></ol>`),
+    usul: L(`<p><b>Ne işe yarar:</b> Usulleri (ritim kalıplarını) tanımak ve çalabilmek. Bir eseri çalmadan önce usulünü bilmek, nerede düm nerede tek olduğunu duymaktır.</p>
+      <ol><li>Soldan (telefonda üstten) bir usul seç; kolaydan zora sıralıdır. Kutudaki dört nokta geçtiğin adımlardır.</li>
+        <li><b>Dinle ve say:</b> usul döngü hâlinde çalar; “Düm” ve “tek”i sesli say. Kalın kutular düm, ince kutular tek, noktalar sesin sürdüğü yer.</li>
+        <li><b>Elle vur:</b> bir ölçü sayımdan sonra Düm ve Tek düğmelerine vuruşlarla birlikte bas (klavyede F ve J). <b>Ezberden vur:</b> aynısı, ama usul susar; yalnız ölçü başı tıklar.</li>
+        <li><b>Klarnetle çal:</b> mikrofonu aç, düm ve tek vuruşlarında kısa notalar çal.</li>
+        <li>Zorlanırsan tempoyu − ile düşür; geçince artır. “Bu usulde eserler” arşivde o usuldeki eserleri listeler. <b>Hangi usul?</b> kulaktan tanımayı sınar.</li></ol>`,
+      `<p><b>What it's for:</b> recognising and playing usuls (rhythmic patterns). Knowing a piece's usul before you play it means hearing where the düm and the tek fall.</p>
+      <ol><li>Pick an usul on the left (at the top on a phone); they go from easy to hard. The four dots are the steps you've passed.</li>
+        <li><b>Listen and count:</b> the usul loops; say “Düm” and “tek” aloud. Bold boxes are düm, light ones tek, dots are where the sound carries on.</li>
+        <li><b>Tap along:</b> after a one-bar count-in, press Düm and Tek with the strokes (F and J on a keyboard). <b>Tap from memory:</b> the same, but the usul goes quiet; only the downbeat clicks.</li>
+        <li><b>Play it:</b> turn on the microphone and play short notes on the düm and tek strokes.</li>
+        <li>If it's hard, lower the tempo with −; raise it once you pass. “Pieces in this usul” lists them in the archive. <b>Which usul?</b> tests recognising them by ear.</li></ol>`),
     hiz: L(`<p><b>Ne işe yarar:</b> Parmakları hızlandırmak: gam, arpej, makam dizisi gibi kalıplar.</p>
       <ol><li>Bir kalıp seç (makam dizisi, Batı gamı, arpej…), nota değerini ve bağlı ya da dilli çalmayı seç.</li>
         <li>İstersen başlangıç temposunu (♩) değiştir, Başla'ya bas; bir ölçü sayımdan sonra kalıbı metronomla çal.</li>

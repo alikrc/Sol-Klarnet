@@ -116,7 +116,7 @@ function bandBarEvents(style, unitMs, root, fifth, parts = {}, drum = style.drum
 // ani değişim yanlış tempoya (3:2) kilitlenebiliyor, bu yüzden aralık dar tutuldu
 const BAND_FOLLOW = { lo:0.75, hi:1.3 };
 // Tempo önerisi (usul birimi/dk): oyun havalarında yaygın hız, öğrenmek için biraz yavaş
-const BAND_TEMPO = { sirto:104, zeybek:96, kasap:112, ciftetelli:176, karsilama:208, roman:216, rumeli:224, sofyan:96, semai:132, aksak:200, duyek:160, curcuna:200, agiraksak:110 };
+const BAND_TEMPO = { sirto:104, zeybek:96, kasap:112, ciftetelli:176, karsilama:208, roman:216, rumeli:224, sofyan:96, semai:132, aksak:200, duyek:160, curcuna:200, agiraksak:110, turkaksagi:176, yuruksemai:180 };
 
 if(typeof module !== "undefined") module.exports = { BAND_STYLES, BAND_GROUPS, BAND_TEMPO, BAND_FOLLOW, meterStrokes, stylesFromStrokes, bandStyle, autoFill, bandDrum, fifthOf, bandRoot, bandBarEvents, bandEventsFor };
 

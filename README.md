@@ -24,7 +24,7 @@ Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işl
 ## Çalışma bölümü
 
 Alt menüde beş bölüm (`nav.js`): **Akort** (üstteki geçişle **Parmak** şeması; geniş ekranda ikisi yan yana), **Dersler** (Dersler, Yol haritası,
-Videolar), **Çalış** (**Teknik**: Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Hız, Süsleme; **Makam**: Dizi,
+Videolar), **Çalış** (**Teknik**: Parmak testi, Gör ve bas, Dizek haritası, Parmak tablosu, Deşifre, Uzun ton, Ritim, Usuller, Hız, Süsleme; **Makam**: Dizi,
 Taklit, Seyir, Kulak, Dikte; **İlerleme**), **Eserler** (Nota arşivi, Eşlik, Etüt ve eserler, Kulaktan çıkar, Çevir, Kayıt) ve **Ayarlar**.
 Her bölüm kendi sayfa yığınını tutar: başka bölüme geçip dönünce kaldığın sayfa açılır, seçili bölüme yeniden dokununca bölümün başına dönülür.
 İç sayfalarda üstte tek satır vardır: ← ve sayfanın adı; yanında "Nasıl kullanılır?" ve metronom/dron alttan açılan panelde. Ekrandaki ← ile
@@ -48,6 +48,7 @@ telefonun geri tuşu hep aynı şeyi yapar: bir sayfa geri; bölümün başında
 | Hız | Makam dizisi, gam, arpej, üçlü atlama, dörtlü grup, register geçişi; sekizlik/triole/on altılık, bağlı ya da dille. Metronomla çalınır, ham sesten ölçülür (doğru nota, zamanlama, eşitlik, tempo kayması); **tempo merdiveni** temiz çalışta hızlanır. Kalıp başına en iyi tempo ve 14 günlük çizgi |
 | Süsleme | Çarpma, çarpmalı tekrar, mordan, tril, grupetto, kayarak giriş, düşüş; makam seçilirse komşu nota makam dizisinden. Her denemeden sonra perde eğrisi ve ne yapılacağı; en iyi tril hızı ve çarpma başarısı İlerleme'de. Ölçüm deneme bitince ham sesi 5 ms adımla yeniden çözer |
 | Ritim | Kalıplar ve usuller (Sofyan, Semâî, Düyek, Aksak, Ağır Aksak, Curcuna; oyun havaları: Kasap 2/4, Çiftetelli 8/8, Karşılama ve Roman havası 9/8, Rumeli 7/8); erken/geç ve tutarlılık; metronomsuz iç tempo; hoparlörle ya da çalarak gecikme ayarı |
+| Usuller | 15 usul kolaydan zora (Türk Aksağı 5/8 ve Yürük Semâî 6/8 dahil): ne olduğu, nerede çalındığı, düm-tek ızgarası ve hecelerle sayılışı. Her usul dört adımda öğrenilir: dinle ve say, Düm/Tek düğmeleriyle elle vur, ezberden vur (yalnız ölçü başı tık), klarnetle çal (mikrofon); adım puanları saklanır. **Hangi usul?** 8 soruluk kulaktan tanıma testi; “Bu usulde eserler” arşivi o usule süzer |
 | Kulak | Tiz mi pes mi (uyarlanır merdivenle koma eşiği), perde ayırt (ABX, 1 komaya kadar), makam tanı, aralık (Batı aralıkları; bakiye, mücenneb, tanini, artık ikili) |
 | Seyir | Serbest çalma / taksim: perdelerde süre, dizi dışı, güçlü vurgusu, açılış, karar; çalınan **süslemeler** (çarpma, çarpmalı tekrar, mordan, grupetto, tril, kayış, düşüş) ham sesten sayılır |
 | Nota arşivi | **Eserler** bölümünün başında. SymbTr'den 2200 eser (155 makam, 88 usul, 56 form), uygulamanın içinde. “Oyun havaları” hızlı süzgeci (karşılama, köçekçe, Rumeli türküsü, sirto, longa, zeybek…). Ad, bestekâr, makam ve usule göre arama; makam, form, usul, bestekâr, seviye, sözlü ve favori süzgeçleri; sıralama. Eser ekranında satırlara bölünmüş ya da tek şerit nota, AEU koma işaretleri, perde adları ve güfte heceleri; çal, notaya dokununca oradan çal, tempo %25–150, A–B ölçü döngüsü, bölüm ve cümle döngüsü, dem (karar perdesi), metronom, usul (düm-tek) ya da orkestra (darbuka, bas, ud) eşliği, melodiyi kapat; mikrofonla takip, **Benimle çal** (orkestra seni izler), tempolu çalma ve merdiven; perde perde transpoze ve oktav, nota boyutu, notayı izle, tam ekran, yazdır; yedi adımlık "Eseri öğren", benzer eserler, son açılanlar ve favoriler; "Eserlerime ekle" |
@@ -108,6 +109,7 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `drills.js` | Parmak testi, Uzun ton, Dizi (makam), Taklit, Kayıt ve İlerleme sekmeleri |
 | `lessonview.js` | Dersler sekmesi: ders listesi, ders sayfası ve adım çalıştırıcıları |
 | `trainers.js`, `pieces.js` | Ritim, Kulak, Seyir ve Eserler sekmeleri, yeni ders adımları |
+| `usuller.js` | Usuller sekmesi: usul öğretim metinleri, dinle/vur/ezber/çal adımları, düm-tek vuruş puanı, Hangi usul? testi |
 | `band.js` | Eşlik grubu: usul başına darbuka, bas ve ud kalıpları, sentez, Eşlik sekmesi; eser çalarlar için ölçü olayları |
 | `follow.js` | Seni izleyen eşlik: nota başları (`NoteStarts`), tempo haritası (`TempoMap`), eser takipçisi (`ScoreFollower`), notasız tempo izleme (`GrooveTracker`), haritaya göre çalan grup (`FollowBand`) |
 | `convert.js` | Çevir sekmesi: PDF/resim/ses seçimi, düzeltme ekranı, Nota bul arayüzü |

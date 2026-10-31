@@ -146,6 +146,8 @@ const USULS = [
   { id:"aksak",   name:"Aksak",      meter:"9/8",  strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] },
   { id:"agiraksak", name:"Ağır Aksak", meter:"9/4", strokes:[["D",2],["T",1],["T",1],["D",2],["T",3]] },
   { id:"curcuna", name:"Curcuna",    meter:"10/8", strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",2]] },
+  { id:"turkaksagi", name:"Türk Aksağı", meter:"5/8", strokes:[["D",2],["T",1],["T",2]] },
+  { id:"yuruksemai", name:"Yürük Semâî", meter:"6/8", strokes:[["D",1],["T",1],["T",1],["D",1],["T",2]] },
   // Trakya, Rumeli ve Roman oyun havaları (halk: true). Vuruş kalıpları yaygın darbuka çalışından; bir hocaya kontrol ettirilmeli.
   { id:"kasap",      name:"Kasap havası", meter:"2/4", halk:true, strokes:[["D",1],["T",1]] },
   { id:"ciftetelli", name:"Çiftetelli",   meter:"8/8", halk:true, strokes:[["D",1],["T",2],["T",1],["D",1],["D",1],["T",2]] },

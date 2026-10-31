@@ -863,6 +863,13 @@ TRAINERS.progress = function(ctx){
     const h = store.get("band.hist", []), g = h.filter(x => x.grid != null).map(x => x.grid);
     return h.length ? h.reduce((a, x) => a + x.bars, 0) + L(" ölçü", " bars") + (g.length ? " · " + L("en iyi usule oturma ", "best groove ") + "<strong>%" + Math.max(...g) + "</strong>" : "") : "—";
   }
+  function usulLine(){
+    const p = store.get("usul.prog", {}), q = store.get("usul.quiz.best", 0);
+    const full = Object.keys(p).filter(id => USUL_STEPS.every(st => p[id][st.id] != null && p[id][st.id] >= st.pass));
+    const any = Object.keys(p).length;
+    return any || q ? full.length + "/" + Object.keys(USUL_INFO).length + L(" usul öğrenildi", " usuls learned") +
+      (full.length ? " (" + full.map(id => USULS.find(u => u.id === id).name).join(", ") + ")" : "") + (q ? " · " + L("Hangi usul? rekoru ", "Which usul? record ") + q + "/8" : "") : "—";
+  }
   // İlerleme sayfası: ritim, kulak, seyir ve eser sonuçları
   function moreStats(){
     const rh = store.get("rhythm.hist", []), ear = store.get("ear.best", {}), sy = store.get("seyir.hist", []), pb = store.get("piece.best", {});
@@ -874,6 +881,7 @@ TRAINERS.progress = function(ctx){
     return `<div class="label">${L("Günlük hedef", "Daily goal")}</div>
       <p>${goal} ${L("dk · son 7 günün ", "min · reached on ")}${week}${L("'sinde tuttu", " of the last 7 days")} <button class="stopbtn" type="button" id="pggoal">${L("Değiştir", "Change")}</button></p>
       <div class="label">${L("Ritim", "Rhythm")}</div><p>${rh.length ? L("son 10 tur ortalaması ", "last 10 rounds average ") + "<strong>" + avg(last10) + "</strong> · " + L("en iyi ", "best ") + store.get("rhythm.best", 0) + " · " + rh.length + L(" tur", " rounds") : "—"}</p>
+      <div class="label">${L("Usuller", "Usuls")}</div><p>${usulLine()}</p>
       <div class="label">${L("Kulak", "Ear")}</div><p>${ear.pitch != null ? L("ayırt edebildiğin en küçük fark ", "smallest difference you can hear ") + "<strong>" + num(ear.pitch) + L(" koma</strong>", " commas</strong>") : "—"}${ear.makam ? " · " + L("makam tanıma rekoru ", "makam ID record ") + ear.makam : ""}</p>
       <div class="label">${L("Seyir (taksim)", "Seyir (taksim)")}</div><p>${sy.length ? L("son 10 ortalama ", "last 10 average ") + "<strong>" + avg(sy10) + "</strong> · " + Object.entries(syBy).map(([id, v]) => makamById(id).name + " " + v).join(" · ") : "—"}</p>
       <div class="label">${L("Hız", "Speed")}</div><p>${techLine()}</p>

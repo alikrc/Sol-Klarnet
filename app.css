@@ -713,6 +713,56 @@ svg.rhsvg{width:100%;height:auto;display:block;margin:8px 0;background:var(--sur
 .rhaxis{stroke:var(--line);stroke-width:1}
 .rhexp{stroke:var(--muted);stroke-width:1.5}
 .rhgood{fill:var(--ok)} .rhmid{fill:#D9A021} .rhbad{fill:var(--bad)} .rhextra{fill:var(--muted);opacity:.6}
+/* Usuller: liste, düm-tek ızgarası, vurma düğmeleri */
+#uslearn{display:grid;gap:14px}
+@media (min-width:900px){#uslearn{grid-template-columns:220px minmax(0,1fr);align-items:start}}
+.uslist{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+@media (min-width:900px){.uslist{flex-direction:column;overflow:visible}}
+.usgl{flex:0 0 auto;align-self:center;padding:0 4px}
+@media (min-width:900px){.usgl{align-self:auto;margin-top:8px}}
+.usitem{flex:0 0 auto;display:grid;grid-template-columns:auto auto;gap:4px 8px;align-items:baseline;text-align:left;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 11px}
+.usitem b{font:600 14px/1.1 var(--ui);white-space:nowrap}
+.usitem small{font:500 12px/1 var(--mono);color:var(--muted)}
+.usitem[aria-pressed="true"]{border-color:var(--g-tech);box-shadow:inset 0 0 0 1px var(--g-tech)}
+.usdots{grid-column:1/-1;display:flex;gap:4px}
+.usdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.usdots i.on{background:var(--ok)}
+.ushead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ushead h3{font:600 24px/1.1 var(--display);margin:0}
+.usmeter{font:600 16px var(--mono);color:var(--muted)}
+.usdesc{margin:8px 0 12px;line-height:1.55;max-width:62ch}
+.usrow{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:3px;max-width:640px}
+.uscell{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.uscell b{display:flex;align-items:center;justify-content:center;width:100%;height:40px;border-radius:7px;
+  font:600 12px/1 var(--ui);transition:transform .08s}
+.uscell i{font:500 10.5px/1 var(--mono);font-style:normal;color:var(--muted)}
+.uscell.D b{background:var(--g-tech);color:var(--surface)}
+.uscell.T b{background:var(--surface);color:var(--g-tech);box-shadow:inset 0 0 0 1.5px var(--g-tech)}
+.uscell.c b{background:transparent;color:var(--muted)}
+.uscell.x b{background:var(--sunk);box-shadow:inset 0 0 0 1px var(--line)}
+.uscell.now b{outline:2px solid var(--accent);outline-offset:1px;transform:scale(1.06)}
+.ussay{font:500 13px var(--mono);color:var(--muted);margin:8px 0 12px;word-spacing:2px}
+.ussteps{list-style:none;padding:0;margin:4px 0 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.usstep{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 12px}
+.usstep span{font:600 13.5px/1.2 var(--ui)}
+.usstep small{font:500 12px/1 var(--ui);color:var(--muted);min-height:12px}
+.ussteps li.next .usstep{border-color:var(--accent)}
+.ussteps li.ok .usstep small{color:var(--ok)}
+.ussteps li.ok .usstep span::after{content:" ✓";color:var(--ok)}
+.usbig{font:600 30px/1.2 var(--display);min-height:40px;margin:4px 0 8px}
+.uspad{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;max-width:520px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.uspad button{height:110px;border-radius:14px;font:700 20px/1 var(--ui);border:0}
+.uspadD{background:var(--g-tech);color:var(--surface)}
+.uspadT{background:var(--surface);color:var(--g-tech);box-shadow:inset 0 0 0 2px var(--g-tech) !important}
+.uspad button.hit{animation:ushit .15s ease-out}
+@keyframes ushit{from{transform:scale(.94);filter:brightness(1.25)}to{transform:none;filter:none}}
+.rhexp.usd{stroke:var(--g-tech);stroke-width:2.5}
+.uswrong{fill:var(--surface);stroke:var(--bad);stroke-width:2}
+.usqopts{max-width:420px}
+.usqopts .opt{font-size:15px}
+#usqfb .usrow{margin:6px 0}
 canvas.dyncv{width:100%;max-width:300px;height:60px;display:block;background:var(--surface);border-radius:8px;margin:6px 0}
 .sybars .barcol i.durak{background:var(--ink)} .sybars .barcol i.guclu{background:var(--accent)}
 .sybars .barcol small{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9.5px;max-height:70px;overflow:hidden}

@@ -644,6 +644,8 @@ TRAINERS.archive = function(ctx){
 
   // Eserler ana sayfası ve dışarıdan açma: SK.openArchive(id?)
   SK.openArchive = id => { ctx.selectTab("archive"); if(id) loadIndex().then(() => openPiece(id)); };
+  // Usuller sayfasından: o usuldeki eserler (SymbTr kimliği uygulamanın usul kimliğiyle aynı)
+  SK.archiveByUsul = u => { ctx.selectTab("archive"); loadIndex().then(() => listBy("u", u)); };
   // Uygulama geneli arama: dizin (search.js) ve sonuçları arşiv listesinde gösterme (süzgeçler temizlenir)
   SK.archiveIndex = () => loadIndex().then(ix => ix.list);
   SK.searchArchive = q => {
