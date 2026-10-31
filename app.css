@@ -758,6 +758,34 @@ svg.rhsvg{width:100%;height:auto;display:block;margin:8px 0;background:var(--sur
 .uspadT{background:var(--surface);color:var(--g-tech);box-shadow:inset 0 0 0 2px var(--g-tech) !important}
 .uspad button.hit{animation:ushit .15s ease-out}
 @keyframes ushit{from{transform:scale(.94);filter:brightness(1.25)}to{transform:none;filter:none}}
+/* Ritim heceleri: tek çizgili ritim notası, kalıp kartları, vurma düğmesi */
+svg.hcsvg{display:block;width:100%;max-width:560px;height:auto}
+svg.hcsvg.small{width:auto;height:84px;max-width:100%;margin:0 auto}
+.hcline{stroke:var(--muted);stroke-width:1.2}
+.hcstem{stroke:var(--ink);stroke-width:1.6}
+.hcbeam,.hcrest{fill:var(--ink)}
+.hn ellipse{fill:var(--ink)}
+.hn ellipse.hcopen{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.hc3{font:600 13px var(--ui);fill:var(--ink);text-anchor:middle}
+.hs{font:600 12.5px var(--ui);fill:var(--muted);text-anchor:middle}
+.hsrest{font-style:italic}
+.hn.on ellipse{fill:var(--g-tech)} .hn.on ellipse.hcopen{fill:var(--g-tech);stroke:var(--g-tech)} .hn.on .hcstem{stroke:var(--g-tech)}
+.hs.on{fill:var(--g-tech)}
+.hcfigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:12px 0 6px}
+.hcfig{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:8px 10px 10px}
+.hcfig b{font:600 17px/1.1 var(--display)}
+.hcfig small{font:500 12px/1.2 var(--ui);color:var(--muted)}
+.hcfig.now{border-color:var(--g-tech);box-shadow:inset 0 0 0 1px var(--g-tech)}
+@media (hover:hover){.hcfig:hover,.hcqopt:not(:disabled):hover{border-color:var(--accent)}}
+.hcbar{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:10px 0;max-width:600px}
+.hcsay{font:600 15px var(--mono);color:var(--muted);margin-top:2px;word-spacing:2px}
+.hcpad{margin-top:10px;max-width:520px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.hcpad button{width:100%;height:110px;border-radius:14px;border:0;font:700 20px/1 var(--ui);background:var(--g-tech);color:var(--surface)}
+.hcpad button.hit{animation:ushit .15s ease-out}
+.hcqopts{display:grid;gap:8px;margin:10px 0;max-width:600px}
+.hcqopt{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 10px}
+.hcqopt.right{border-color:var(--ok);box-shadow:inset 0 0 0 2px var(--ok)}
+.hcqopt.wrong{border-color:var(--bad);box-shadow:inset 0 0 0 2px var(--bad)}
 .rhexp.usd{stroke:var(--g-tech);stroke-width:2.5}
 .uswrong{fill:var(--surface);stroke:var(--bad);stroke-width:2}
 .usqopts{max-width:420px}

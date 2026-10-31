@@ -22,11 +22,11 @@
   // Alıştırmalar beş gruba ayrılır ve üç bölümde görünür (nav.js): Dersler grubu Dersler bölümünün kökü (segmentle seçilir;
   // mantığı ve verisi lessons.js'te), Teknik, Makam ve İlerleme Çalış'ın, Eserler grubu Eserler'in ana sayfasında kart olarak.
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
-  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
+  const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hece",L("Ritim heceleri", "Rhythm syllables")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
                 ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","roadmap","videos"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hiz","susleme"]],
+                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hece","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
@@ -48,6 +48,7 @@
     long: L("Bir notayı düz ve temiz tut", "Hold a note steady and clean"),
     rhythm: L("Metronomla zamanında çal", "Play in time with the metronome"),
     usul: L("Ritim kalıpları: aksak, düyek, karşılama… dinle, vur, çal", "Rhythm patterns: aksak, düyek, karşılama… listen, tap, play"),
+    hece: L("Nar, el-ma, por-ta-kal: nota değerlerini hecelerle öğren", "Tea, cof-fee, co-co-nut: learn note values by syllables"),
     hiz: L("Gam, arpej, dizi: tempo merdiveniyle hızlan", "Scales, arpeggios: speed up with the tempo ladder"),
     susleme: L("Çarpma, mordan, tril, kayış: ölçülerek", "Grace notes, mordents, trills, slides: measured"),
     makam: L("Makam dizisini çık ve in", "Play the makam scale up and down"),
@@ -214,6 +215,16 @@
         <li><b>Tap along:</b> after a one-bar count-in, press Düm and Tek with the strokes (F and J on a keyboard). <b>Tap from memory:</b> the same, but the usul goes quiet; only the downbeat clicks.</li>
         <li><b>Play it:</b> turn on the microphone and play short notes on the düm and tek strokes.</li>
         <li>If it's hard, lower the tempo with −; raise it once you pass. “Pieces in this usul” lists them in the archive. <b>Which usul?</b> tests recognising them by ear.</li></ol>`),
+    hece: L(`<p><b>Ne işe yarar:</b> Nota değerlerini (dörtlük, sekizlik, triole, onaltılık, ikilik, sus) kelime heceleriyle öğrenmek. Bir kelimeyi söylemek vuruşu kendiliğinden doğru böler: “nar” bir vuruş, “el-ma” iki eşit parça, “por-ta-kal” üç, “man-da-li-na” dört.</p>
+      <ol><li>Hece sistemini seç: Meyveler (nar, el-ma, por-ta-kal, man-da-li-na), İngilizce (tea, cof-fee, co-co-nut, wa-ter-mel-on) ya da okullardaki ta-ti.</li>
+        <li><b>Kalıplar:</b> bir kalıba dokun; dört vuruş çalar, heceleri sesli söyle.</li>
+        <li><b>Alıştırma:</b> seviyeyi seç, karışık bir ölçü gelir. Dinle ile heceleri söyle; <b>Elle vur</b> ile her hecede Vur düğmesine bas (klavyede boşluk); <b>Klarnetle çal</b> ile her hecede kısa bir nota çal.</li>
+        <li><b>Hangi ölçü?</b> duyduğun ölçüyü üç nota yazısı arasından bulursun.</li></ol>`,
+      `<p><b>What it's for:</b> learning note values (quarter, eighths, triplet, sixteenths, half, rest) with word syllables. Saying a word splits the beat for you: “tea” is one beat, “cof-fee” two equal parts, “co-co-nut” three, “wa-ter-mel-on” four.</p>
+      <ol><li>Pick a syllable set: Turkish fruits (nar, el-ma, por-ta-kal, man-da-li-na), English foods (tea, cof-fee, co-co-nut, wa-ter-mel-on) or school ta-ti.</li>
+        <li><b>Patterns:</b> tap one; it plays for four beats, say the syllables aloud.</li>
+        <li><b>Practice:</b> pick a level and you get a mixed bar. Say the syllables with Listen; <b>Tap it</b>: press Tap on every syllable (space on a keyboard); <b>Play it</b>: play a short note on every syllable.</li>
+        <li><b>Which bar?</b> find the bar you hear among three notations.</li></ol>`),
     hiz: L(`<p><b>Ne işe yarar:</b> Parmakları hızlandırmak: gam, arpej, makam dizisi gibi kalıplar.</p>
       <ol><li>Bir kalıp seç (makam dizisi, Batı gamı, arpej…), nota değerini ve bağlı ya da dilli çalmayı seç.</li>
         <li>İstersen başlangıç temposunu (♩) değiştir, Başla'ya bas; bir ölçü sayımdan sonra kalıbı metronomla çal.</li>

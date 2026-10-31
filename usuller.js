@@ -2,6 +2,7 @@
 // nerede çalındığı; dört adım: dinle ve say, elle vur (Düm ve Tek düğmeleri), ezberden vur (sayımdan sonra yalnız ölçü
 // başında hafif tık), klarnetle çal (mikrofon; trainers.js rhythmRun). "Hangi usul?" duyulan usulü sorar.
 // Vuruş kalıpları learn.js USULS'ta; burada öğretim metinleri, öğrenme sırası ve öğrenme temposu (usul birimi/dk).
+// Dosyanın sonunda Ritim heceleri sayfası: nota değerlerini kelime heceleriyle (nar, el-ma, por-ta-kal…) öğretir.
 
 const USUL_INFO = {
   semai:      { lv:1, tempo:90,  tr:"En kısa klasik usullerden: üç vuruş, düm tek tek. Vals gibi döner; şarkılarda sık.",
@@ -390,5 +391,351 @@ TRAINERS.usul = function(ctx){
     nowTitle: () => mode === "quiz" ? L("Hangi usul?", "Which usul?") : cur.name,
     stop(){ halt(); if(mode === "learn") idleStage(); else quizIdle(); quiz = null; },
     leave(){ halt(); quiz = null; if(mode === "quiz") quizIdle(); }
+  };
+};
+
+// ======== Ritim heceleri ========
+// Nota değerlerini kelime heceleriyle öğretme (İngilizcede "tea, cof-fee, co-co-nut, wa-ter-mel-on"). Her kalıp bir
+// vuruşluk (ikilik iki vuruş) nota öbeğidir; at: vuruş içindeki nota başları (vuruş cinsinden). Üç hece sistemi:
+// Türkçe meyveler, İngilizce yiyecekler ve okullardaki ta-ti (Kodály) heceleri.
+const HECE_FIGS = [
+  { id:"ta",   lv:1, beats:1, at:[0], name:L("Dörtlük", "Quarter note"),
+    syl:{ tr:["nar"], en:["tea"], ta:["ta"] } },
+  { id:"titi", lv:1, beats:1, at:[0, 0.5], name:L("İki sekizlik", "Two eighths"),
+    syl:{ tr:["el","ma"], en:["cof","fee"], ta:["ti","ti"] } },
+  { id:"sus",  lv:1, beats:1, at:[], name:L("Dörtlük sus", "Quarter rest"),
+    syl:{ tr:["sus"], en:["shh"], ta:["sus"] } },
+  { id:"taa",  lv:1, beats:2, at:[0], name:L("İkilik", "Half note"),
+    syl:{ tr:["na-ar"], en:["te-ea"], ta:["ta-a"] } },
+  { id:"tri",  lv:2, beats:1, at:[0, 1/3, 2/3], name:L("Triole (üç sekizlik)", "Triplet"),
+    syl:{ tr:["por","ta","kal"], en:["co","co","nut"], ta:["tri","o","la"] } },
+  { id:"tiri", lv:3, beats:1, at:[0, 0.25, 0.5, 0.75], name:L("Dört onaltılık", "Four sixteenths"),
+    syl:{ tr:["man","da","li","na"], en:["wa","ter","mel","on"], ta:["ti","ri","ti","ri"] } }
+];
+const HECE_SYS = [["tr", L("Meyveler", "Fruits (Turkish)")], ["en", L("İngilizce", "English foods")], ["ta", "Ta-ti"]];
+const HECE_LV = [[1, L("Kolay", "Easy")], [2, L("Orta", "Medium")], [3, L("Zor", "Hard")]];
+
+// Dört vuruşluk rastgele ölçü: seviyenin kalıpları, başta ve art arda sus yok; seviyenin yeni kalıbı en az bir kez
+function heceBar(lv){
+  const pool = HECE_FIGS.filter(f => f.lv <= lv), rnd = a => a[Math.floor(Math.random()*a.length)];
+  for(let tries = 0; tries < 50; tries++){
+    const bar = []; let b = 0;
+    while(b < 4){
+      const prev = bar[bar.length - 1];
+      bar.push(rnd(pool.filter(f => b + f.beats <= 4 && !(f.id === "sus" && (b === 0 || (prev && prev.id === "sus"))))));
+      b += bar[bar.length - 1].beats;
+    }
+    if(lv > 1 && !bar.some(f => f.lv === lv)) continue;
+    if(bar.filter(f => f.id === "ta").length > 2 || new Set(bar.map(f => f.id)).size < 2) continue;
+    return bar;
+  }
+  return [HECE_FIGS[0], HECE_FIGS[1], HECE_FIGS[0], HECE_FIGS[1]];
+}
+// Ölçünün nota başları (vuruş cinsinden) ve her notanın hecesi
+function heceEvents(bar, sys){
+  const out = []; let b = 0;
+  for(const f of bar){ f.at.forEach((x, j) => out.push({ at: b + x, syl: f.syl[sys][j] })); b += f.beats; }
+  return out;
+}
+// Tek çizgili ritim notası (SVG). Notalar .hn, heceler .hs; data-n ölçüdeki nota sırası. card: tek kalıp kartı
+// (ikilik de bir vuruş genişliğinde çizilir)
+function heceSvg(bar, sys, cls = "", card = false){
+  const P = 14, Y = 58, beats = bar.reduce((a, f) => a + f.beats, 0), BW = card ? 112/beats : 112, W = P*2 + beats*BW;
+  let s = `<svg class="hcsvg ${cls}" viewBox="0 0 ${W} 100" role="img" aria-label="${bar.map(f => f.syl[sys].join("-")).join(", ")}">
+    <line x1="${P - 6}" x2="${W - P + 6}" y1="${Y}" y2="${Y}" class="hcline"/><line x1="${W - P + 6}" x2="${W - P + 6}" y1="${Y - 14}" y2="${Y + 14}" class="hcline"/>`;
+  let b = 0, n = 0;
+  for(const f of bar){
+    const x0 = P + b*BW, k = f.at.length, gap = k > 1 ? (BW - 30)/(k - 1) : 0;
+    if(!k){
+      const cx = x0 + BW/2 - 4;
+      s += `<path class="hcrest" d="M${cx - 3},${Y - 18} l8,9 -6,7 8,9 c-7,-3 -11,1 -6,7 c-9,-4 -8,-12 0,-10 l-9,-9 6,-6 z"/>
+        <text x="${cx + 1}" y="92" class="hs hsrest">${f.syl[sys][0]}</text>`;
+    }else{
+      const xs = f.at.map((_, j) => x0 + 14 + j*gap);
+      xs.forEach((x, j) => {
+        s += `<g class="hn" data-n="${n + j}"><ellipse cx="${x}" cy="${Y}" rx="7" ry="5" transform="rotate(-20 ${x} ${Y})"${f.id === "taa" ? ' class="hcopen"' : ""}/>
+          <line x1="${x + 6.3}" x2="${x + 6.3}" y1="${Y - 2}" y2="${Y - 36}" class="hcstem"/></g>
+          <text x="${x + 2}" y="92" class="hs" data-n="${n + j}">${f.syl[sys][j]}</text>`;
+      });
+      if(k > 1){
+        const a = xs[0] + 5.3, z = xs[k - 1] + 7.3;
+        s += `<rect x="${a}" y="${Y - 37}" width="${z - a}" height="5" class="hcbeam"/>`;
+        if(f.id === "tiri") s += `<rect x="${a}" y="${Y - 29}" width="${z - a}" height="5" class="hcbeam"/>`;
+        if(f.id === "tri") s += `<text x="${(a + z)/2}" y="${Y - 43}" class="hc3">3</text>`;
+      }
+      n += k;
+    }
+    b += f.beats;
+  }
+  return s + "</svg>";
+}
+
+TRAINERS.hece = function(ctx){
+  const { SK, $, store, esc, hit, needMic } = ctx;
+  const P = $("pp-hece");
+  let sys = store.get("hece.sys", LANG === "en" ? "en" : "tr"), lv = store.get("hece.lv", 1);
+  let mode = "learn", bar = heceBar(lv), run = null, keyOff = null, quiz = null;
+
+  P.innerHTML = `
+    <p class="pdesc">${L("Nota değerlerini kelime heceleriyle öğren: dörtlük “nar”, iki sekizlik “el-ma”, triole “por-ta-kal”, dört onaltılık “man-da-li-na”. Heceyi söylemek vuruşu doğru böler. Önce kalıpları tek tek dinle, sonra karışık ölçüleri hecelerle say, elle vur ve klarnetle çal.",
+      "Learn note values with word syllables: a quarter is “tea”, two eighths “cof-fee”, a triplet “co-co-nut”, four sixteenths “wa-ter-mel-on”. Saying the word splits the beat correctly. Listen to each pattern first, then count mixed bars with the syllables, tap them and play them.")}</p>
+    <div class="pbar">
+      <div class="seg" role="radiogroup" aria-label="${L("Kip", "Mode")}" id="hcmode">
+        <button type="button" role="radio" data-m="learn">${L("Kalıplar", "Patterns")}</button>
+        <button type="button" role="radio" data-m="drill">${L("Alıştırma", "Practice")}</button>
+        <button type="button" role="radio" data-m="quiz">${L("Hangi ölçü?", "Which bar?")}</button></div>
+      <select id="hcsys" aria-label="${L("Heceler", "Syllables")}">${HECE_SYS.map(([id, n]) => `<option value="${id}">${n}</option>`).join("")}</select>
+      <div class="stepper"><button class="mini" type="button" data-hct="-4" aria-label="${L("Yavaşlat", "Slower")}">−</button>
+        <input id="hctempo" type="number" min="40" max="160" step="4" aria-label="Tempo">
+        <button class="mini" type="button" data-hct="4" aria-label="${L("Hızlandır", "Faster")}">+</button><em>${L("vuruş/dk", "bpm")}</em></div>
+    </div>
+    <div id="hclearn"><div class="hcfigs" id="hcfigs"></div>
+      <p class="muted small">${L("Bir kalıba dokun: dört vuruş boyunca çalar, sen heceleri sesli söyle.", "Tap a pattern: it plays for four beats; say the syllables aloud.")}</p></div>
+    <div id="hcdrill" hidden>
+      <div class="pbar"><div class="seg" role="radiogroup" aria-label="${L("Seviye", "Level")}" id="hclv">
+        ${HECE_LV.map(([v, n]) => `<button type="button" role="radio" data-lv="${v}">${n}</button>`).join("")}</div>
+        <button class="stopbtn" type="button" id="hcnew">${L("Yeni ölçü", "New bar")}</button></div>
+      <div class="hcbar" id="hcbar"></div>
+      <div class="pbar">
+        <button class="primary small" type="button" id="hclisten">${L("Dinle", "Listen")}</button>
+        <button class="stopbtn" type="button" id="hctap">${L("Elle vur", "Tap it")}</button>
+        <button class="stopbtn" type="button" id="hcplay">${L("Klarnetle çal", "Play it")}</button></div>
+      <div class="stage" id="hcstage"></div>
+    </div>
+    <div id="hcquiz" hidden><div class="stage" id="hcqstage"></div></div>`;
+
+  const tempo = () => Math.max(40, Math.min(160, +$("hctempo").value || 72));
+  const fig = id => HECE_FIGS.find(f => f.id === id);
+  $("hctempo").value = store.get("hece.tempo", 72);
+  $("hcsys").value = sys;
+
+  // ---- Çizim ----
+  function paintFigs(){
+    $("hcfigs").innerHTML = HECE_FIGS.map(f => `<button type="button" class="hcfig" data-f="${f.id}">
+      ${heceSvg([f], sys, "small", true)}<b>${f.syl[sys].join("-")}</b><small>${f.name}</small></button>`).join("");
+  }
+  function paintBar(){
+    $("hcbar").innerHTML = heceSvg(bar, sys) + `<div class="hcsay">${bar.map(f => f.syl[sys].join("-")).join("  ·  ")}</div>`;
+  }
+  function paint(){
+    paintFigs(); paintBar();
+    $("hclv").querySelectorAll("[data-lv]").forEach(b => b.setAttribute("aria-checked", +b.dataset.lv === lv ? "true" : "false"));
+  }
+  // Çalan notayı vurgula (el: SVG'nin kabı; n < 0 temizler)
+  const mark = (el, n) => el && el.querySelectorAll("[data-n]").forEach(x => x.classList.toggle("on", +x.dataset.n === n));
+
+  // ---- Ses ----
+  // Kısa, perdeli bir nota (heceyi duyurur); tıklardan ayrılsın diye üçgen dalga
+  function tone(a, t, dest){
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = "triangle"; o.frequency.value = 523.25;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+    o.connect(g).connect(dest); o.start(t); o.stop(t + 0.18);
+  }
+  // Ölçüyü çalar: countIn ölçü sayım, ardından bars ölçü; vuruşlarda tık, notes ise kalıbın notaları da.
+  // onCount(i) sayım vuruşu, onNote(n) o notanın duyulduğu an. startPerf: sayımdan sonraki ilk vuruş (performance.now)
+  function playBar(b, o){
+    const a = SK.audioCtx(), out = a.createGain(), beatS = 60/o.bpm, ev = heceEvents(b, sys), len = b.reduce((x, f) => x + f.beats, 0);
+    out.connect(a.destination);
+    const t0 = a.currentTime + 0.2, start = t0 + o.countIn*4*beatS, timers = [];
+    const at = s => Math.max(0, (s - a.currentTime)*1000);
+    for(let i = 0; i < o.countIn*4 + o.bars*len; i++) hit(a, (i < o.countIn*4 ? i % 4 : (i - o.countIn*4) % len) ? "T" : "D", t0 + i*beatS, i < o.countIn*4 ? 0.9 : 0.35, out);
+    for(let bb = 0; bb < o.bars; bb++) ev.forEach((e, n) => {
+      const t = start + (bb*len + e.at)*beatS;
+      if(o.notes) tone(a, t, out);
+      if(o.onNote) timers.push(setTimeout(() => o.onNote(n), at(t)));
+    });
+    if(o.onCount) for(let i = 0; i < o.countIn*4; i++) timers.push(setTimeout(() => o.onCount(i), at(t0 + i*beatS)));
+    timers.push(setTimeout(() => { if(o.onEnd) o.onEnd(); }, at(start + o.bars*len*beatS) + 150));
+    return { startPerf: ctxToPerf(a, start), beatMs: beatS*1000, ev, len,
+      stop(){ timers.forEach(clearTimeout); try { out.disconnect(); } catch(e){} } };
+  }
+  function halt(){
+    if(run){ run.stop(); run = null; }
+    if(keyOff){ keyOff(); keyOff = null; }
+    P.querySelectorAll(".hcsvg [data-n].on").forEach(x => x.classList.remove("on"));
+    P.querySelectorAll(".hcfig.now").forEach(x => x.classList.remove("now"));
+    $("hclisten").textContent = L("Dinle", "Listen");
+  }
+
+  // ---- Kalıplar ----
+  function playFig(id, btn){
+    const was = run && run.fig === id; halt(); if(was) return;
+    const f = fig(id), k = Math.max(1, f.at.length);
+    btn.classList.add("now");
+    const r = playBar(f.beats === 2 ? [f, f] : [f, f, f, f], { bpm: tempo(), countIn:0, bars:1, notes:true,
+      onNote: n => mark(btn, n % k), onEnd: () => { if(run === r) halt(); } });
+    run = r; r.fig = id;
+  }
+
+  // ---- Alıştırma ----
+  function listen(){
+    const was = run && run.kind === "listen"; halt(); if(was) return;
+    $("hclisten").textContent = L("Durdur", "Stop");
+    $("hcstage").innerHTML = `<div class="muted">${L("Notalarla birlikte heceleri sesli söyle. Kalın tık ölçü başı, ince tıklar vuruşlar.", "Say the syllables aloud with the notes. The deep click is the downbeat, the light ones are the beats.")}</div>`;
+    const r = playBar(bar, { bpm: tempo(), countIn:1, bars:2, notes:true, onNote: n => mark($("hcbar"), n), onEnd: () => { if(run === r) halt(); } });
+    run = r; r.kind = "listen";
+  }
+  function tapStep(){
+    halt();
+    $("hcstage").innerHTML = `<div class="muted">${L("Bir ölçü sayımdan sonra ölçüyü iki kez vur: her hecede bir kez. Metronom yalnız vuruşları çalar. Klavyede boşluk ya da herhangi bir harf.", "After a one-bar count-in, tap the bar twice: once per syllable. The metronome plays only the beats. On a keyboard: space or any letter.")}</div>
+      <div class="usbig" id="hccount">${L("Sayım", "Count-in")}</div>
+      <div class="hcpad"><button type="button" id="hcpadb">${L("Vur", "Tap")}</button></div>`;
+    const taps = [], btn = $("hcpadb"), bars = 2;
+    const press = t => {
+      if(!run || run.kind !== "tap") return;
+      taps.push({ k:"T", t }); btn.classList.remove("hit"); void btn.offsetWidth; btn.classList.add("hit");
+    };
+    btn.addEventListener("pointerdown", e => { e.preventDefault(); press(e.timeStamp || performance.now()); });
+    const onKey = e => {
+      if(e.repeat || e.ctrlKey || e.metaKey || e.altKey || !(e.key === " " || /^[a-z]$/i.test(e.key))) return;
+      e.preventDefault(); press(e.timeStamp || performance.now());
+    };
+    document.addEventListener("keydown", onKey); keyOff = () => document.removeEventListener("keydown", onKey);
+    const r = playBar(bar, { bpm: tempo(), countIn:1, bars, notes:false,
+      onCount: i => { const el = $("hccount"); if(el) el.textContent = L("Sayım ", "Count ") + (i + 1); },
+      onNote: n => { mark($("hcbar"), n); const el = $("hccount"); if(el) el.textContent = r.ev[n].syl; },
+      onEnd: () => {
+        if(keyOff){ keyOff(); keyOff = null; }
+        run = null; mark($("hcbar"), -1);
+        const expected = [];
+        for(let b = 0; b < bars; b++) r.ev.forEach(e => expected.push({ t: r.startPerf + (b*r.len + e.at)*r.beatMs, k:"T" }));
+        // Puanlama toleransı en kısa nota aralığına göre (onaltılıkta dar)
+        const step = Math.min(1, ...r.ev.map((e, i) => i ? e.at - r.ev[i-1].at : 1))*r.beatMs;
+        const res = usulTapScore(expected, taps.filter(p => p.t > r.startPerf - step*0.5), step);
+        const best = store.get("hece.best", {}); if(res.score > (best[lv] || 0)){ best[lv] = res.score; store.set("hece.best", best); }
+        showTap(res, expected[0].t, r.startPerf + bars*r.len*r.beatMs);
+      } });
+    run = r; r.kind = "tap";
+  }
+  function showTap(r, from, to){
+    const ms = v => Math.round(Math.abs(v));
+    const where = !r.hits.length ? "—" : Math.abs(r.mean) < 20 ? L("vuruşun üstünde", "on the beat") : r.mean < 0 ? ms(r.mean) + L(" ms erken", " ms early") : ms(r.mean) + L(" ms geç", " ms late");
+    const tips = [];
+    if(r.missed > r.n*0.3) tips.push(L("Birçok nota kaçtı: tempoyu düşür, önce Dinle ile heceleri söyle.", "Many notes were missed: lower the tempo and say the syllables with Listen first."));
+    if(r.extra > 2) tips.push(L("Fazla vuruş var: hecede bir kez vur; ikilikte ve susta bekle.", "Extra taps: tap once per syllable; wait on half notes and rests."));
+    if(Math.abs(r.mean) > 60) tips.push(r.mean < 0 ? L("Acele ediyorsun.", "You're rushing.") : L("Geride kalıyorsun.", "You're dragging."));
+    if(!tips.length && r.score >= 80) tips.push(L("Güzel. Yeni ölçüye geç ya da tempoyu artır.", "Nice. Try a new bar or raise the tempo."));
+    const best = store.get("hece.best", {})[lv] || 0;
+    $("hcstage").innerHTML = `<div class="result"><div class="big">${r.score}</div><div>${L("puan", "points")} · ${r.hits.length}/${r.n} ${L("nota", "notes")} · ${L("bu seviyede en iyi ", "best at this level ")}${best}</div></div>
+      <div class="kv"><div><span class="label">${L("Zamanlama", "Timing")}</span>${where}</div>
+        <div><span class="label">${L("Kaçan · fazla", "Missed · extra")}</span>${r.missed} · ${r.extra}</div></div>
+      ${tapSvg(r, from, to)}
+      ${tips.length ? `<div class="muted">${tips.join(" ")}</div>` : ""}
+      <div class="pbar"><button class="primary small" type="button" data-again="tap">${L("Yeniden", "Again")}</button>
+        <button class="stopbtn" type="button" data-again="new">${L("Yeni ölçü", "New bar")}</button></div>`;
+  }
+  function tapSvg(r, from, to){
+    const W = 600, t0 = from - 250, t1 = to, x = t => (((t - t0)/(t1 - t0))*W).toFixed(1);
+    let s = `<svg class="rhsvg" viewBox="0 0 ${W} 60" role="img" aria-label="${L("Notalar ve vurdukların", "Notes and your taps")}"><line x1="0" x2="${W}" y1="30" y2="30" class="rhaxis"/>`;
+    r.all.forEach(e => s += `<line x1="${x(e.t)}" x2="${x(e.t)}" y1="12" y2="48" class="rhexp"/>`);
+    r.hits.forEach(h => s += `<circle cx="${x(h.p.t)}" cy="30" r="5" class="rh${Math.abs(h.dev) <= 60 ? "good" : Math.abs(h.dev) <= 120 ? "mid" : "bad"}"/>`);
+    r.extras.forEach(p => s += `<circle cx="${x(p.t)}" cy="30" r="4" class="rhextra"/>`);
+    return s + "</svg>";
+  }
+  async function playStep(){
+    halt();
+    if(!(await needMic())) return;
+    const beatMs = 60000/tempo(), ev = heceEvents(bar, sys), pattern = { beats:4, at: ev.map(e => e.at) };
+    $("hcstage").innerHTML = `<div class="muted">${L("Bir ölçü sayımdan sonra ölçüyü iki kez klarnetle çal: her hecede kısa bir nota (hangi nota olduğu önemli değil). Heceleri içinden söyle, her notayı dille ayır.", "After a one-bar count-in, play the bar twice: a short note on each syllable (any note). Say the syllables in your head and tongue each note.")}</div>
+      <div class="usbig" id="hccount">${L("Sayım", "Count-in")}</div>`;
+    const r = rhythmRun(ctx, { beatMs, pattern, bars:2, silent:false, accents:["D","T","T","T"] }, res => {
+      run = null; mark($("hcbar"), -1);
+      const e = rhythmEval(ctx, res, beatMs, pattern);
+      $("hcstage").innerHTML = rhythmText(e) + rhythmSvg(res, e) +
+        `<div class="muted small">${L("Sonuçlar hep kayıksa Ritim sayfasında gecikme ayarını yap.", "If results are always off, run the latency setup on the Rhythm page.")}</div>
+        <div class="pbar"><button class="primary small" type="button" data-again="play">${L("Yeniden", "Again")}</button>
+        <button class="stopbtn" type="button" data-again="new">${L("Yeni ölçü", "New bar")}</button></div>`;
+    }, (i, counting) => {
+      const el = $("hccount"); if(el) el.textContent = counting ? L("Sayım ", "Count ") + (i % 4 + 1) : "";
+      if(!counting){ const beat = i % 4; mark($("hcbar"), ev.findIndex(x => x.at >= beat && x.at < beat + 1)); }
+    });
+    run = { kind:"play", stop: r.stop };
+  }
+
+  // ---- Hangi ölçü? ----
+  const QN = 6;
+  function quizIdle(){
+    const best = store.get("hece.quiz.best", 0);
+    $("hcqstage").innerHTML = `<p>${L("Bir ölçü iki kez çalar; üç notadan hangisi olduğunu bul. Zorluk Alıştırma'daki seviyedir. ", "A bar plays twice; pick it from three notations. The difficulty is the level set in Practice. ")}${QN}${L(" soru.", " questions.")}${best ? " " + L("Rekor ", "Record ") + best + "/" + QN + "." : ""}</p>
+      <div class="pbar"><button class="primary small" type="button" id="hcqgo">${L("Başla", "Start")}</button></div>`;
+  }
+  function quizNext(){
+    if(quiz.i >= QN) return quizEnd();
+    const key = b => b.map(f => f.id).join(), ans = heceBar(lv), opts = [ans];
+    for(let t = 0; opts.length < 3 && t < 60; t++){ const b = heceBar(lv); if(!opts.some(o => key(o) === key(b))) opts.push(b); }
+    opts.sort(() => Math.random() - 0.5);
+    quiz.q = { ans, opts, done:false };
+    $("hcqstage").innerHTML = `<div class="label">${L("Soru ", "Question ")}${quiz.i + 1} / ${QN}</div>
+      <p>${L("Dinle: hangi ölçü çalıyor?", "Listen: which bar is playing?")}</p>
+      <div class="hcqopts">${opts.map((o, k) => `<button type="button" class="hcqopt" data-q="${k}">${heceSvg(o, sys)}</button>`).join("")}</div>
+      <div class="pbar"><button class="stopbtn" type="button" id="hcqagain">${L("Tekrar dinle", "Hear again")}</button></div><div id="hcqfb"></div>`;
+    quizPlay();
+  }
+  function quizPlay(){
+    halt();
+    const r = playBar(quiz.q.ans, { bpm: tempo(), countIn:1, bars:2, notes:true, onEnd: () => { if(run === r) run = null; } });
+    run = r;
+  }
+  function quizAnswer(k){
+    const q = quiz.q; if(q.done) return; q.done = true;
+    const ok = q.opts[k] === q.ans; if(ok) quiz.right++;
+    $("hcqstage").querySelectorAll("[data-q]").forEach(b => { b.disabled = true;
+      if(q.opts[+b.dataset.q] === q.ans) b.classList.add("right"); else if(+b.dataset.q === k) b.classList.add("wrong"); });
+    $("hcqfb").innerHTML = `<p><b>${ok ? L("Doğru.", "Right.") : L("Çalan, yeşil ölçüydü.", "The green bar was playing.")}</b> ${esc(q.ans.map(f => f.syl[sys].join("-")).join(" · "))}</p>
+      <div class="pbar"><button class="primary small" type="button" id="hcqnext">${quiz.i + 1 < QN ? L("Sonraki", "Next") : L("Sonuç", "Result")}</button></div>`;
+    quiz.i++;
+  }
+  function quizEnd(){
+    halt();
+    const best = store.get("hece.quiz.best", 0);
+    if(quiz.right > best) store.set("hece.quiz.best", quiz.right);
+    $("hcqstage").innerHTML = `<div class="result"><div class="big">${quiz.right}/${QN}</div><div>${quiz.right > best ? "<strong>" + L("yeni rekor", "new record") + "</strong>" : L("rekor ", "record ") + best + "/" + QN}</div></div>
+      <div class="pbar"><button class="primary small" type="button" id="hcqgo">${L("Yeniden başla", "Start again")}</button></div>`;
+    quiz = null;
+  }
+  $("hcqstage").addEventListener("click", e => {
+    const t = e.target;
+    if(t.closest("#hcqgo")){ halt(); quiz = { i:0, right:0, q:null }; quizNext(); }
+    else if(t.closest("#hcqagain")) quizPlay();
+    else if(t.closest("#hcqnext")) quizNext();
+    else { const b = t.closest("[data-q]"); if(b && quiz) quizAnswer(+b.dataset.q); }
+  });
+
+  // ---- Olaylar ----
+  function drillIdle(){
+    $("hcstage").innerHTML = `<div class="muted">${L("Önce Dinle ile heceleri söyle, sonra Elle vur ya da Klarnetle çal.", "Say the syllables with Listen first, then Tap it or Play it.")}</div>`;
+  }
+  function setMode(m){
+    halt(); mode = m; quiz = null;
+    $("hcmode").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.m === m ? "true" : "false"));
+    $("hclearn").hidden = m !== "learn"; $("hcdrill").hidden = m !== "drill"; $("hcquiz").hidden = m !== "quiz";
+    if(m === "quiz") quizIdle(); else if(m === "drill") drillIdle();
+  }
+  const newBar = () => { halt(); bar = heceBar(lv); paintBar(); drillIdle(); };
+  $("hcmode").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if(b && b.dataset.m !== mode) setMode(b.dataset.m); });
+  $("hcsys").addEventListener("change", () => {
+    halt(); sys = $("hcsys").value; store.set("hece.sys", sys); paint();
+    if(mode === "quiz"){ quiz = null; quizIdle(); }
+  });
+  $("hclv").addEventListener("click", e => { const b = e.target.closest("[data-lv]"); if(!b) return; lv = +b.dataset.lv; store.set("hece.lv", lv); paint(); newBar(); });
+  $("hcfigs").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if(b) playFig(b.dataset.f, b); });
+  $("hcnew").addEventListener("click", newBar);
+  $("hclisten").addEventListener("click", listen);
+  $("hctap").addEventListener("click", tapStep);
+  $("hcplay").addEventListener("click", playStep);
+  $("hcstage").addEventListener("click", e => {
+    const b = e.target.closest("[data-again]"); if(!b) return;
+    if(b.dataset.again === "new") newBar(); else if(b.dataset.again === "tap") tapStep(); else playStep();
+  });
+  const setTempo = v => { $("hctempo").value = Math.max(40, Math.min(160, v)); store.set("hece.tempo", +$("hctempo").value); };
+  P.querySelectorAll("[data-hct]").forEach(b => b.addEventListener("click", () => setTempo(tempo() + +b.dataset.hct)));
+  $("hctempo").addEventListener("change", () => setTempo(tempo()));
+
+  paint(); setMode("learn");
+  return {
+    nowTitle: () => mode === "quiz" ? L("Hangi ölçü?", "Which bar?") : L("Ritim heceleri", "Rhythm syllables"),
+    stop(){ halt(); if(mode === "quiz"){ quiz = null; quizIdle(); } },
+    leave(){ halt(); if(mode === "quiz"){ quiz = null; quizIdle(); } }
   };
 };
