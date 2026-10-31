@@ -84,10 +84,11 @@
   <main class="grid">
     <section class="card sample" id="tunecard" aria-labelledby="perdelab">
       <div class="cardhead">
-        <div class="label" id="perdelab">AEU perdesi</div>
+        <div class="label" id="perdelab">Çalınan nota</div>
         <span class="chip" id="chip" role="status">örnek gösterim</span>
       </div>
-      <div class="perde resting" id="perde">Rast</div>
+      <div class="perde resting" id="perde">Sol4</div>
+      <div class="pnow" id="pnow">Rast</div>
       <div class="koma" id="koma">+0,0 koma sapma</div>
       <div class="tuneidle" id="tuneidle"><span>Bu değerler örnek. Çaldığın notayı ölçmek için mikrofonu aç.</span>
         <button type="button" class="primary small" id="tuneidlebtn">Mikrofonu aç</button></div>
@@ -146,7 +147,7 @@
         <span class="reg" id="reg">Chalumeau</span>
       </div>
       <div class="minitune resting" id="minitune">
-        <div class="mtname"><span class="mtperde" id="mtperde">Rast</span><span class="mtkoma" id="mtkoma">±0,0 koma</span></div>
+        <div class="mtname"><span class="mtperde" id="mtperde">Sol4</span><span class="mtpn" id="mtpn">Rast</span><span class="mtkoma" id="mtkoma">±0,0 koma</span></div>
         <div class="mttrack" aria-hidden="true"><div class="mtzone" id="mtzone"></div><div class="mtmid"></div><div class="mtneedle" id="mtneedle"></div></div>
         <div class="mtstate"><span>Çalınan perde ve sapma</span><b id="mtchip">örnek gösterim</b></div>
       </div>
@@ -381,7 +382,7 @@
             <button type="button" role="radio" data-names="harf">C D E</button>
             <button type="button" role="radio" data-names="ikisi">İkisi</button>
           </div>
-          <div class="hint">Nota şeridinde notanın adı üstte, perde adı altında yazar.</div>
+          <div class="hint">Akort göstergesinde ve nota şeridinde notanın adı üstte, perde adı altında yazar.</div>
         </div>
       </div>
     </div>

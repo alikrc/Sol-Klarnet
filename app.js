@@ -28,6 +28,13 @@
   if(settings.mode!=="koma" && settings.mode!=="sent") settings.mode = "koma";
   if(!(settings.sens>=1 && settings.sens<=10)) settings.sens = 5;
   setA4(settings.a4);
+  // Nota adı: Do Re Mi (varsayılan), C D E ya da ikisi birden (Ayarlar → Görünüm).
+  // İngilizcede çevirmen Sol4'ü zaten G4 yapar; orada hep tek ad yazılır.
+  const namesMode = () => { const v = LANG === "en" ? "solfej" : store.get("names", "solfej"); return v === "harf" || v === "ikisi" ? v : "solfej"; };
+  function nameHtml(n){
+    const m = namesMode();
+    return m === "harf" ? n.en : m === "ikisi" ? n.tr + "<em>" + n.en + "</em>" : n.tr;
+  }
   // Çalgı: yazılı nota = duyulan + T yarım ses (Sol klarnet 5). Değişince sayfa yeniden yüklenir.
   const inst = instrumentById(store.get("inst", "sol"));
   const T = inst.t;
@@ -135,7 +142,7 @@
     setTuningContext(tuningCtx(mk, c.mode));
     tMakam.value = c.mk || ""; tMakam.disabled = tempOn();
     markSeg(tuneBtns, "tune", c.mode);
-    $("perdelab").textContent = mk ? mk.name + " · " + (c.mode === "icra" ? L("icra", "practice") : "AEU") : L("AEU perdesi", "AEU perde");
+    $("perdelab").textContent = mk ? mk.name + " · " + (c.mode === "icra" ? L("icra", "practice") : "AEU") : L("Çalınan nota", "Your note");
     if(mk){
       const fix = Object.entries(mk.icra).map(([k, d]) => perdeNameAt(+k) + " " + fmtKoma(d));
       ctxHint.textContent = L("Durak ", "Final ") + perdeName(mk.durak) + " · " + L("güçlü ", "dominant ") + perdeName(mk.guclu) +
@@ -343,6 +350,7 @@
 
   // ---- Gösterim ----
   let lastShown = null, lastFingerKey = null;
+  const pnowEl=$("pnow"), mtPn=$("mtpn");
   const miniTune=$("minitune"), mtPerde=$("mtperde"), mtKoma=$("mtkoma"), mtNeedle=$("mtneedle"), mtZone=$("mtzone"), mtChip=$("mtchip");
   // Büyük göstergenin durumunu (dinliyor/sessiz, soluk perde) küçüğe yansıt
   function syncMini(){
@@ -358,9 +366,12 @@
     const komaMode = settings.mode==="koma" && r.inRange && r.perde;
     if(!r.inRange){
       perdeEl.textContent = "Aralık dışı";
+      pnowEl.textContent = "";
       komaEl.textContent = "yazılı " + r.writtenName.tr + " — parmak şeması Mi3–Mi♭7 arası";
     }else{
-      perdeEl.textContent = r.perde ? r.perde.name : r.writtenName.tr;
+      // Büyük satırda yazılı nota, altında perde adı
+      perdeEl.innerHTML = nameHtml(r.writtenName);
+      pnowEl.textContent = r.perde ? r.perde.name : "";
       komaEl.textContent = r.perde
         ? fmtKoma(r.perde.delta) + " koma sapma" + (r.perde.inScale === false ? " · " + L("dizi dışı", "outside the scale") : "")
         : "bu kaba bölge için AEU perde adı yok";
@@ -389,7 +400,8 @@
     mtNeedle.style.left = npos + "%";
     mtNeedle.classList.toggle("good", Math.abs(v) <= shownSc.ok);
     mtZone.style.left = (50 - shownSc.ok/shownSc.max*50) + "%"; mtZone.style.width = (shownSc.ok/shownSc.max*100) + "%";
-    mtPerde.textContent = perdeEl.textContent;
+    mtPerde.innerHTML = perdeEl.innerHTML;
+    mtPn.textContent = pnowEl.textContent;
     mtKoma.textContent = !r.inRange ? "—" : komaMode ? fmtKoma(r.perde.delta) + " koma"
       : (r.cents>0?"+":"") + r.cents + " sent";
 
@@ -420,21 +432,13 @@
     "1","2","3","4","5","6","7","8","9","0","*","-"];
   const cells = new Map();
 
-  // Nota adı: Do Re Mi (varsayılan), C D E ya da ikisi birden (Ayarlar → Görünüm).
-  // İngilizcede çevirmen Sol4'ü zaten G4 yapar; orada hep tek ad yazılır.
-  const namesMode = () => { const v = LANG === "en" ? "solfej" : store.get("names", "solfej"); return v === "harf" || v === "ikisi" ? v : "solfej"; };
-  function noteLabel(w){
-    const n = noteName(w), m = namesMode();
-    return m === "harf" ? n.en : m === "ikisi" ? n.tr + "<em>" + n.en + "</em>" : n.tr;
-  }
-
   // Şerit tüm aralığı kapsar; en tiz birkaç notanın klavye tuşu yok, yalnızca tıklanır.
   for(let i = 0; i <= HIGH_NOTE - LOW; i++){
     const w = LOW + i, p = nearestPerde((w-67)*53/12);
     const el = document.createElement("button");
     el.className = "note"; el.type = "button";
     el.setAttribute("aria-label", (p ? p.name + ", " : "") + "yazılı " + noteName(w).tr + " çal");
-    el.innerHTML = '<span class="nn">' + noteLabel(w) + '</span>' +
+    el.innerHTML = '<span class="nn">' + nameHtml(noteName(w)) + '</span>' +
                    '<span class="pn">' + (p ? p.name : "—") + '</span>' +
                    (KEYLABEL[i] ? '<span class="kk">' + KEYLABEL[i] + '</span>' : '');
     el.setAttribute("aria-pressed", "false");
@@ -448,7 +452,8 @@
   markSeg(namesBtns, "names", namesMode());
   namesBtns.forEach(b => b.addEventListener("click", () => {
     store.set("names", b.dataset.names); markSeg(namesBtns, "names", b.dataset.names);
-    cells.forEach((el, w) => { el.querySelector(".nn").innerHTML = noteLabel(w); });
+    cells.forEach((el, w) => { el.querySelector(".nn").innerHTML = nameHtml(noteName(w)); });
+    if(lastShown) show(lastShown);
   }));
 
   // Klavye düzeni Chrome'da okunabiliyorsa etiketleri gerçek harflerle değiştir
