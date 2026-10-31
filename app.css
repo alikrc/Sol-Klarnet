@@ -1193,3 +1193,24 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .thquiz .fb{margin:6px 0 0;font-size:13px}
 .thqs{display:inline-block;max-width:100%}
 .thres{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:15px}
+
+/* Sorunlar ve çözümler (sorunlar.js): arama, konu süzgeci, açılır sorun kartları */
+.hthumb.hsqemo{display:grid;place-items:center;font-size:30px;background:color-mix(in srgb,var(--teal) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--teal) 30%,transparent)}
+.sqfilt{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.sqfilt input{width:100%;font:500 16px var(--ui);padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.sqfilt input:focus{outline:2px solid var(--teal);outline-offset:1px}
+.sqfilt .mklist{margin:0}
+.sqitem{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:0 0 8px}
+.sqitem > summary{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;list-style:none}
+.sqitem > summary::-webkit-details-marker{display:none}
+.sqitem > summary::after{content:"";margin-left:auto;flex:0 0 auto;width:8px;height:8px;border:solid var(--muted);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .15s}
+.sqitem[open] > summary::after{transform:rotate(-135deg)}
+.sqitem > summary > span:not(.sqemo){display:flex;flex-direction:column;gap:2px;min-width:0}
+.sqitem > summary b{font:600 15.5px/1.25 var(--ui)}
+.sqitem > summary small{font:600 11.5px var(--ui);color:var(--muted)}
+.sqitem > summary:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:12px}
+.sqemo{font-size:24px;line-height:1;flex:0 0 auto}
+.sqbody{padding:0 14px 14px;border-top:1px solid var(--line)}
+.sqbody .thh:first-child{margin-top:12px}
+.sqbody .thlist{padding-left:20px}
+@media(max-width:700px){.sqfilt .mklist{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}.sqfilt .mklist button{flex:0 0 auto}}

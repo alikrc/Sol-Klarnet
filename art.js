@@ -5,6 +5,7 @@
     lessons:  `<path d="M4 5.5C6.5 4.5 9.5 4.5 12 6c2.5-1.5 5.5-1.5 8-.5V19c-2.5-1-5.5-1-8 .5-2.5-1.5-5.5-1.5-8-.5z"/><path d="M12 6v13.5"/>`,
     roadmap:  `<path d="M9 4L3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>`,
     teori:    `<path d="M12 3.5L2.5 8 12 12.5 21.5 8z"/><path d="M6.5 10v5c1.5 1.6 3.4 2.4 5.5 2.4s4-.8 5.5-2.4v-5"/><path d="M21.5 8v6"/>`,
+    sorun:    `<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5"/><path d="M12 17.2h.01" stroke-width="2.6"/>`,
     videos:   `<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9v6l5-3z"/>`,
     quiz:     `<rect x="8" y="2.5" width="8" height="19" rx="4"/><circle cx="12" cy="8" r="1.6"/><circle cx="12" cy="12.5" r="1.6"/><circle cx="12" cy="17" r="1.6"/>`,
     gorbas:   `<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/>`,

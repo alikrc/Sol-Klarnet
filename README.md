@@ -119,6 +119,7 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `sources.js` | Nota bul: neyzen.com ve projetsm.com ayrıştırıcıları, neyzen dizini (IndexedDB); `SOURCES.neyzen.enabled` ile kapatılır |
 | `transcribe.js` | Kulaktan çıkar: WSOLA zaman uzatma, perde kaydırma, perde izi, sekme |
 | `reading.js` | Deşifre ezgisi, ritim ve ezgi diktesi, aralık soruları; Deşifre ve Dikte sekmeleri, ders adımları |
+| `sorunlar.js` | Sorunlar ve çözümler (Çalış → Teknik): La–Si geçişi, gıcırtı, tiz notalar, perde, nefes, dil, parmak, süsleme, kamış; belirtiye göre arama ve ilgili ders/alıştırma düğmeleri. Kaynaklar `docs/SORUNLAR-KAYNAKLAR.md` |
 | `teori.js` | Teori sekmesi (Dersler kökü): konu metinleri, nota örnekleri, aralık tablosu, çeşniler, makam seçici, usul ızgaraları, transpozisyon tablosu, konu sınavları |
 | `roadmap.js` | Yol haritası: aşamalar, kilometre taşları, hız tahmini, haftalık görünüm; sekme |
 | `archive.js`, `notalar/` | Nota arşivi sekmesi ve verisi (`notalar/index.json` dizin, her eser ayrı dosya); `scripts/symbtr.js` SymbTr deposundan üretir |

@@ -5,7 +5,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "www");
-const FILES = ["index.html", "app.css", "app.js", "nav.js", "i18n.js", "art.js", "core.js", "learn.js", "sources.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "usuller.js", "pieces.js", "band.js", "follow.js", "transcribe.js", "reading.js", "roadmap.js", "archive.js", "omrtemplates.js", "omr.js", "omrworker.js", "convert.js", "drills.js", "chartsheet.js", "lessonview.js", "teori.js", "practice.js", "review.js", "onboard.js", "search.js", "nowplaying.js", "pcmring.js",
+const FILES = ["index.html", "app.css", "app.js", "nav.js", "i18n.js", "art.js", "core.js", "learn.js", "sources.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "usuller.js", "pieces.js", "band.js", "follow.js", "transcribe.js", "reading.js", "roadmap.js", "archive.js", "omrtemplates.js", "omr.js", "omrworker.js", "convert.js", "drills.js", "chartsheet.js", "lessonview.js", "teori.js", "sorunlar.js", "practice.js", "review.js", "onboard.js", "search.js", "nowplaying.js", "pcmring.js",
   "sw.js", "manifest.webmanifest", "icon.svg", "privacy.html"];
 const DIRS = ["icons", "img", "fonts", "notalar", "vendor"];
 

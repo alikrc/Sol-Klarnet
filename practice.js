@@ -24,9 +24,9 @@
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hece",L("Ritim heceleri", "Rhythm syllables")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
-                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["progress","İlerleme"]];
+                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["sorun",L("Sorunlar ve çözümler", "Problems & fixes")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","teori","roadmap","videos"]],
-                  ["tech",L("Teknik", "Skills"),["quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hece","hiz","susleme"]],
+                  ["tech",L("Teknik", "Skills"),["sorun","quiz","gorbas","staffmap","tablo","desifre","long","rhythm","usul","hece","hiz","susleme"]],
                   ["makam","Makam",["makam","mimic","seyir","ear","dikte"]],
                   ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert","rec"]],
                   ["progress","İlerleme",["progress"]]];
@@ -60,6 +60,7 @@
     convert: L("PDF, resim ya da sesten esere", "From a PDF, picture or recording to a piece"),
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
     videos: L("Hocalardan makam, teknik ve süsleme videoları", "Makam, technique and ornament videos by masters"),
+    sorun: L("La–Si geçişi, gıcırtı, tiz notalar, perde, nefes: belirti, neden, çözüm", "The A–B break, squeaks, high notes, pitch, breath: symptom, cause, fix"),
     teori: L("Müzik teorisi: koma, perde, çeşni, makam, usul, transpozisyon", "Music theory: commas, perdes, çeşnis, makams, usuls, transposition"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
   };
@@ -335,6 +336,14 @@
       <ol><li>Pick a topic or makam, or search the titles.</li>
         <li>Tap a video to open it on YouTube. Needs an internet connection.</li>
         <li>When working on a makam, watch its explanation video first, then move on to Scale and Mimic.</li></ol>`),
+    sorun: L(`<p><b>Ne işe yarar:</b> Çalarken takıldığın teknik sorunu (La–Si geçişi, gıcırtı, çıkmayan tiz notalar, pes ya da tiz çalmak, nefes, dil, parmak, süsleme, kamış) tanımak ve çözmek.</p>
+      <ol><li>Üstteki kutuya belirtiyi yaz (ör. “gıcırtı”, “Si4”, “nefes”) ya da bir konu seç.</li>
+        <li>Soruna dokun: belirti, nedenler ve adım adım ne yapacağın açılır.</li>
+        <li>“Hemen çalış” düğmeleri ilgili dersi, alıştırmayı ya da akort aracını açar; Uzun ton düğmesi doğru notayla açılır. ← ile buraya dönersin.</li></ol>`,
+      `<p><b>What it's for:</b> recognising and fixing a technical problem you're stuck on: the A–B break, squeaks, high notes that won't speak, playing flat or sharp, breath, tonguing, fingers, ornaments, reeds.</p>
+      <ol><li>Type the symptom in the box (e.g. “squeak”, “B4”, “breath”) or pick a topic.</li>
+        <li>Tap a problem to see what you notice, why it happens and what to do, step by step.</li>
+        <li>The “Practise it now” buttons open the lesson, drill or tuner; the Long tone button opens on the right note. ← brings you back.</li></ol>`),
     teori: L(`<p><b>Ne işe yarar:</b> Çaldığın müziğin kurallarını anlamak: koma ve aralıklar, perde adları, çeşniler, makamın durağı ve güçlüsü, usul ve Sol klarnetin transpozisyonu.</p>
       <ol><li>Konular baştan sona sıralı; birini seç. Her konuda kısa anlatım, nota örnekleri ve <b>Dinle</b> düğmeleri var.</li>
         <li>Sondaki “Kendini dene” üç soru sorar; hepsini bilince konu listede ✓ alır.</li>
@@ -364,7 +373,7 @@
   // Dersler'in ana sayfası yoktur: kökü Dersler / Yol haritası / Videolar segmentiyle seçilen sekmedir.
   const HUB = { tech:["practice", L("Teknik", "Skills")], makam:["practice", "Makam"], progress:["practice", L("Takip", "Tracking")],
     pieces:["pieces", L("Araçlar", "Tools")] };
-  const FEAT = ["archive", "band"];       // Eserler'in başında öne çıkan iki satır; Araçlar'da tekrar edilmez
+  const FEAT = ["archive", "band", "sorun"];   // Eserler'in ve Çalış'ın başında öne çıkan satırlar; gruplarında tekrar edilmez
   root.innerHTML = `
     <div class="phub" id="phub">
       <div class="pstat" data-hub="practice">
@@ -379,6 +388,8 @@
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
       <button type="button" class="hfeat" data-open="band" data-hub="pieces"><span class="hthumb">${ART.photo("darbuka")}${ART.photo("ud")}</span><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
         <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
+      <button type="button" class="hfeat hsorun" data-open="sorun" data-hub="practice"><span class="hthumb hsqemo" aria-hidden="true">🩺</span><span><small>${L("Sorunlar ve çözümler", "Problems & fixes")}</small>
+        <b>${L("La–Si geçişi, gıcırtı, tiz notalar… takıldığın yeri bul", "The A–B break, squeaks, high notes… find what's stuck")}</b></span>${ICON.go}</button>
       ${GROUPS.slice(1).map(([g, , members]) => `<section class="hgroup" data-g="${g}" data-hub="${HUB[g][0]}" aria-label="${HUB[g][1]}">
         <h3 class="label"><span class="hemo" aria-hidden="true">${ART.GROUP_EMOJI[g]}</span>${HUB[g][1]}</h3>
         <div class="hcards">${members.filter(id => !FEAT.includes(id)).map(card).join("")}</div></section>`).join("")}
@@ -463,8 +474,8 @@
   // Yardım: sayfanın "Nasıl kullanılır?" metni panelde
   const helpEl = document.createElement("div");
   helpEl.className = "phelpbody";
-  // Araçları kullanan sayfalar: Teknik ve Makam alıştırmaları, Dersler, Etüt ve eserler
-  const TOOLS_ON = [...GROUPS[1][2], ...GROUPS[2][2], "lessons", "piece"];
+  // Araçları kullanan sayfalar: Teknik (Sorunlar hariç) ve Makam alıştırmaları, Dersler, Etüt ve eserler
+  const TOOLS_ON = [...GROUPS[1][2], ...GROUPS[2][2], "lessons", "piece"].filter(id => id !== "sorun");
   const helpFor = () => shown ? HELP[shown] : SK.nav.sec() === "practice" ? HUB_HELP : "";
   function paintIcons(){
     $("navhelp").hidden = !helpFor();
