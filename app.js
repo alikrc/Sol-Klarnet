@@ -181,20 +181,21 @@
 
   // ---- Parmak şeması ----
   const ALL = [...document.querySelectorAll("svg.chart .hole, svg.chart .key")];
-  const FINGER_DOTS = h => h.map(x => x ? "●" : "○").join("");
+  const FINGER_DOTS = (h, half) => h.map((x, i) => x ? "●" : half && half[i] ? "◐" : "○").join("");
   const HOLE_NAME = { "h-T":"başparmak deliği", "k-R":"register mandalı",
     "h-lh1":"sol işaret deliği", "h-lh2":"sol orta deliği", "h-lh3":"sol yüzük deliği",
     "h-rh1":"sağ işaret deliği", "h-rh2":"sağ orta deliği", "h-rh3":"sağ yüzük deliği",
     "k-E-lp":"sol serçe Mi mandalı", "k-Fs-lp":"sol serçe Fa♯ mandalı", "k-Cs-lp":"sol serçe Sol♯ mandalı",
     "k-A":"La mandalı", "k-Gs-side":"Sol♯ yan mandalı", "k-Eb-sl":"Mi♭ ince mandalı", "k-Bb-sl":"Si♭ ince mandalı",
     "k-s1":"sağ 1. yan mandal", "k-s3":"sağ 2. yan mandal", "k-s4":"sağ 3. yan mandal",
-    "k-Gs-rp":"sağ serçe Sol♯ mandalı", "k-F-rp":"sağ serçe Fa mandalı" };
+    "k-a-rh":"sağ orta deliğin üstündeki mandal", "k-Gs-rp":"sağ serçe Sol♯ mandalı", "k-F-rp":"sağ serçe Fa mandalı" };
   // Şemayı basılı kimlik listesine göre boya; ekran okuyucu için basılı/değil durumunu da yaz
   function paint(ids){
     const on = new Set(ids);
     ALL.forEach(n => {
       n.classList.toggle("on", on.has(n.id));
-      n.setAttribute("aria-pressed", on.has(n.id) ? "true" : "false");
+      n.classList.toggle("half", on.has(n.id + "-half"));
+      n.setAttribute("aria-pressed", on.has(n.id) ? "true" : on.has(n.id + "-half") ? "mixed" : "false");
     });
   }
   ALL.forEach(n => {
@@ -255,15 +256,24 @@
   detailEl.open = store.get("fingerMoreOpen", false);
   detailEl.addEventListener("toggle", () => store.set("fingerMoreOpen", detailEl.open));
 
-  function showFingerings(list, written){
-    fingerList = list; fingerWritten = written; fingerIdx = 0;
-    altCountEl.textContent = list.length > 1 ? "· " + (list.length-1) + " alternatif" : "";
+  // Temel ve alternatiflerin ardından çeyrek ses pes (written − ½) ve tiz (written + ½) parmakları gelir.
+  // rec: hedef perdenin yakın olduğu çeyrek sesin anahtarı (quarterFor), o düğme işaretlenir.
+  let fingerRec = null;
+  function showFingerings(list, written, rec = null){
+    const qt = written == null || !list.length ? [] : [[written-1, -1], [written, 1]].flatMap(([k, dir]) =>
+      quarterFingeringsFor(k).map((f, j, a) => ({ ...f, qt: dir, rec: k === rec,
+        label: (dir < 0 ? L("¼ pes", "¼ flat") : L("¼ tiz", "¼ sharp")) + (a.length > 1 ? " " + (j+1) : "") })));
+    fingerList = [...list, ...qt]; fingerWritten = written; fingerIdx = 0; fingerRec = qt.some(f => f.rec) ? rec : null;
+    altCountEl.textContent = [list.length > 1 ? "· " + (list.length-1) + " alternatif" : "",
+      qt.length ? "· " + L("çeyrek ses", "quarter tones") + (fingerRec != null ? L(" önerilir", " suggested") : "") : ""].filter(Boolean).join(" ");
     manualMsg.textContent = MANUAL_HINT;
     altsEl.innerHTML = "";
-    if(list.length > 1) list.forEach((_, i) => {
+    if(fingerList.length > 1) fingerList.forEach((f, i) => {
       const b = document.createElement("button");
       b.type = "button"; b.setAttribute("role", "radio");
-      b.textContent = i===0 ? "Temel" : "Alt. " + i;
+      b.textContent = f.qt ? f.label : i===0 ? "Temel" : "Alt. " + i;
+      if(f.qt) b.classList.add("qt");
+      if(f.rec) b.classList.add("rec");
       b.addEventListener("click", () => selectFingering(i));
       altsEl.appendChild(b);
     });
@@ -276,8 +286,15 @@
       b.tabIndex = k===i ? 0 : -1;
     });
     const f = fingerList[i];
-    altNoteEl.textContent = f ? f.note : "";
-    drawFingering(f ? f.code : null, fingerWritten);
+    let note = f ? f.note : "";
+    if(f && f.qt) note = (f.qt < 0 ? L("Çeyrek ses pes: yazılı notadan ≈ 50 sent pes.", "Quarter tone flat: ≈ 50 cents below the written note.")
+                                   : L("Çeyrek ses tiz: yazılı notadan ≈ 50 sent tiz.", "Quarter tone sharp: ≈ 50 cents above the written note.")) +
+                         (f.note ? " " + f.note + "." : "") + L(" Kulakla ve akortla ayarla.", " Fine-tune by ear and with the tuner.");
+    else if(f && fingerRec != null)
+      note = (note ? note + ". " : "") + L("Bu perdenin hedefi çeyrek sese yakın: “" + (fingerRec < fingerWritten ? "¼ pes" : "¼ tiz") + "” parmağını dene.",
+                                          "This perde's target is close to a quarter tone: try the “" + (fingerRec < fingerWritten ? "¼ flat" : "¼ sharp") + "” fingering.");
+    altNoteEl.textContent = note;
+    drawFingering(f ? f.code : null, fingerWritten, f && f.qt);
   }
   // Ok tuşlarıyla seçenekler arasında gezin (radyo grubu davranışı)
   altsEl.addEventListener("keydown", e => {
@@ -317,13 +334,13 @@
     staffEl.setAttribute("aria-label", "Dizekte yazılı " + noteName(written).tr + (p.ottava ? ", 8va ile bir oktav aşağı yazılmış" : ""));
   }
 
-  function drawFingering(code, written){
+  function drawFingering(code, written, qt){
     paint([]);
     ALL.forEach(n => n.classList.remove("press", "lift"));
     drawStaff(written);
     stepsEl.innerHTML = "";
     fcode.textContent = code || "—";
-    fnote.innerHTML = written!=null ? noteName(written).tr + " <em>yazılı</em>" : "—";
+    fnote.innerHTML = written!=null ? noteName(written).tr + (qt ? (qt < 0 ? " − ¼" : " + ¼") : "") + " <em>yazılı</em>" : "—";
     if(!code){
       const li = document.createElement("li"); li.className = "idle";
       li.innerHTML = '<span class="part">—</span><span>Bu nota için parmak şeması yok (yazılı Mi3–Mi♭7 arası).</span>';
@@ -339,7 +356,7 @@
       const part = document.createElement("span"); part.className = "part"; part.textContent = r.part;
       const body = document.createElement("span");
       if(r.holes){
-        const d = document.createElement("span"); d.className = "dots"; d.textContent = FINGER_DOTS(r.holes);
+        const d = document.createElement("span"); d.className = "dots"; d.textContent = FINGER_DOTS(r.holes, r.half);
         d.setAttribute("aria-hidden","true"); body.appendChild(d);
       }
       body.appendChild(document.createTextNode(r.text));
@@ -410,9 +427,12 @@
 
     regEl.textContent = r.inRange ? r.register : "";
     const fk = r.inRange ? r.written : null;
-    if(fk !== lastFingerKey){
-      lastFingerKey = fk;
-      showFingerings(r.inRange ? r.fingerings : [], r.inRange ? r.written : null);
+    // Hedef perde (icra düzeltmesiyle) çeyrek sese yakınsa o çeyrek ses parmağı önerilir
+    const qk = r.inRange && r.perde ? quarterFor(r.perde.comma) : null;
+    const rec = qk === r.written || qk === r.written - 1 ? qk : null;
+    if(fk + ":" + rec !== lastFingerKey){
+      lastFingerKey = fk + ":" + rec;
+      showFingerings(r.inRange ? r.fingerings : [], r.inRange ? r.written : null, rec);
     }
     markActive(fk);
   }
@@ -579,21 +599,29 @@
       wave = actx.createPeriodicWave(new Float32Array([0,0,0,0,0,0,0,0]),
                                      new Float32Array([0,1,0,.42,0,.20,0,.10]));
     }
+    SAMPLER.load(actx);
     if(actx.state === "suspended") actx.resume();
     return actx;
+  }
+  // Klarnet sesi: örnekler yüklendiyse gerçek klarnet (sampler.js; perde playbackRate ile tam frekansa ayarlanır),
+  // yoksa tek sayılı harmonikli sentez. Dönen { src, out, rate(f) }: src durdurulur, rate(f) o frekansın hız/frekans değeri.
+  const KL_GAIN = 0.42, SYN_GAIN = 0.22;
+  function clarinet(a, freq, at){
+    const v = SAMPLER.klarnetVoice(a, freq, at);
+    if(v) return { src: v.src, out: v.out, param: v.src.playbackRate, rate: f => f/v.hz, gain: KL_GAIN };
+    const osc = a.createOscillator();
+    osc.setPeriodicWave(wave); osc.frequency.setValueAtTime(freq, at); osc.start(at);
+    return { src: osc, out: a.destination, param: osc.frequency, rate: f => f, gain: SYN_GAIN };
   }
   function noteOn(w, exact){
     if(voices.has(w)) return;
     const freq = exact || perdeFreq(w, T);
     const a = audioCtx(), t = a.currentTime;
-    const osc = a.createOscillator(), g = a.createGain();
-    osc.setPeriodicWave(wave);
-    osc.frequency.value = freq;
+    const c = clarinet(a, freq, t), g = a.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
-    osc.connect(g).connect(a.destination);
-    osc.start();
-    voices.set(w, {osc, g});
+    g.gain.exponentialRampToValueAtTime(c.gain, t + 0.02);
+    c.src.connect(g).connect(c.out);
+    voices.set(w, {osc: c.src, g});
     hist.length = 0; stab.reset();
   }
   // Süsleme örneği: [{ freq, ms, toFreq? }] tek osilatörde kesintisiz çalınır (kayışlar rampayla); bitince çözülür
@@ -606,20 +634,21 @@
   function playGlide(items){
     stopSound();
     const a = audioCtx(), t0 = a.currentTime + 0.02;
-    const osc = a.createOscillator(), g = a.createGain();
-    osc.setPeriodicWave(wave);
+    // Örnek, süslemenin ortalama perdesine en yakın nota; her adım çalma hızıyla tam frekansa ayarlanır
+    const mid = Math.exp(items.reduce((s, it) => s + Math.log(it.freq), 0)/items.length);
+    const c = clarinet(a, mid, t0), osc = c.src, g = a.createGain();
     let t = t0;
     for(const it of items){
-      osc.frequency.setValueAtTime(it.freq, t);
-      if(it.toFreq) osc.frequency.linearRampToValueAtTime(it.toFreq, t + it.ms/1000);
+      c.param.setValueAtTime(c.rate(it.freq), t);
+      if(it.toFreq) c.param.linearRampToValueAtTime(c.rate(it.toFreq), t + it.ms/1000);
       t += it.ms/1000;
     }
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.03);
-    g.gain.setValueAtTime(0.22, Math.max(t0 + 0.03, t - 0.1));
+    g.gain.exponentialRampToValueAtTime(c.gain, t0 + 0.03);
+    g.gain.setValueAtTime(c.gain, Math.max(t0 + 0.03, t - 0.1));
     g.gain.exponentialRampToValueAtTime(0.0001, t);
-    osc.connect(g).connect(a.destination);
-    osc.start(t0); osc.stop(t + 0.02);
+    osc.connect(g).connect(c.out);
+    osc.stop(t + 0.02);
     glideOsc = osc;
     synthUntil = performance.now() + (t - a.currentTime)*1000 + 300;   // yankı bitene kadar mikrofonu dinleme
     return new Promise(r => { osc.onended = () => { if(glideOsc === osc) glideOsc = null; r(); }; });

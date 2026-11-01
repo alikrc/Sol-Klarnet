@@ -149,7 +149,10 @@ const EXACT = {
   "chalumeau": "chalumeau", "klarino": "clarion", "altissimo": "altissimo", ") ve alternatif (": ") and alternative (",
   ") tablolarından; yalnızca Albert sistemde çalınabilen parmaklar alındı; mandal adları": ") tables; only fingerings playable on the Albert system are included; key names follow the",
   "WFG mandal açıklamasına": "WFG key guide",
-  "göre. Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.": ". Perde names follow the AEU 53-comma system, Rast = written G. Range: written E3 – E♭7.",
+  "Sesler: klarnet": "Sounds: clarinet", "(Si♭ klarnet kayıtları) · darbuka": "(B♭ clarinet recordings) · darbuka",
+  "(Versilian Studios, CC0) · ud ve bas uygulamada sentezlenir.": "(Versilian Studios, CC0) · oud and bass are synthesised in the app.",
+  "göre. Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7. Çeyrek ses parmakları WFG çeyrek ses tablolarından (Arnold Wendl:":
+    ". Perde names follow the AEU 53-comma system, Rast = written G. Range: written E3 – E♭7. Quarter-tone fingerings from the WFG quarter-tone charts (Arnold Wendl:",
   // Çalışma: genel
   "Çalışma": "Practice", "Çalış": "Practice", "Eserler": "Pieces", "Akort": "Tuner", "Parmak": "Fingering", "Ayarlar": "Settings", "Notalar": "Scores", "Ana gezinme": "Main navigation", "Akort ve parmak": "Tuner and fingering",
   "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy", "Hata bildir ya da öneri yaz": "Report a bug or suggest something",

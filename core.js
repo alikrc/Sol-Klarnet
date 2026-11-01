@@ -78,11 +78,60 @@ const ALT_FINGERINGS = {
 };
 const LOW_NOTE = 52, HIGH_NOTE = 99;   // yazılı Mi3 – Mi♭7
 
+// Çeyrek ses parmakları: anahtar yazılı notanın çeyrek ses tizi (52 = Mi3 + ¼ = Fa3 − ¼).
+// WFG Oehler/Albert çeyrek ses tabloları (Arnold Wendl): ocl_qt_1 (chalumeau), ocl_qt_2 (klarino),
+// ocl_qt_3 (altissimo). "½" yarım kapalı delik; "a" sağ orta deliğin üstündeki mandal.
+// Sağ 2. yan mandalı (WFG "2", Albert'te yok) kullanan iki parmak (La4 + ¼, La♯4 + ¼) alınmadı.
+const HALF = m => m + " mandalını yarım basarak perdeyi çeyrek sese ayarla";
+const QT_A = "Sağ orta deliğin üstündeki mandala bas; orta deliği kapatma, yüzük deliğini açık bırak";
+const QT_FINGERINGS = {
+  52:[["T 123E|123F",HALF("Mi")]],     53:[["T 123E F#|123F",HALF("Fa♯")]],
+  54:[["T 123|123F",HALF("Fa")]],      55:[["T 123E|123G#F",HALF("Sol♯")]],
+  56:[["T 123E|12-F",""]],              57:[["T 123|1½3","Sağ orta deliği yarıya kadar kapat"]],
+  58:[["T 123|1a-Bb-",QT_A]],          59:[["T 123|-2-F",""]],
+  60:[["T 123C#|1--",""]],              61:[["T 12-|12-",""]],
+  62:[["T 123C#|4---",""]],             63:[["T 1-3C#|1--",""],["T 1-3|-2-",""]],
+  64:[["T 1--|4---",""],["T 1-Eb-|---",""]],
+  65:[["T -2-|---","Avusturya modelleri için değil"]],
+  66:[["T ---|3---",""]],               67:[["T G#---|---",""]],
+  68:[["T A---|---",""]],               69:[["RT A1--|---",""]],
+  70:[["---|1---",""]],
+  71:[["R A---|1---",""],["RT A1--|1---",""]],
+  72:[["RT 123E F#|123F",""]],          73:[["RT 123|123F",HALF("Fa")]],
+  74:[["RT 123E|123G#F",""]],           75:[["RT 123|12-F",""]],
+  76:[["RT 123F#|12-G#",""]],           77:[["RT 123|1a--",QT_A]],
+  78:[["RT 123|--3",""],["RT 123|-2-",""]],
+  79:[["RT 123C#|1--",""],["RT 123C#|-2-",""]],
+  80:[["RT 12-E|123F",""]],             81:[["RT 12-|123F",""]],
+  82:[["RT 123F#|4123F",""],["RT 123E|4123",""]],
+  83:[["RT 1-3|123",""]],               84:[["RT -23|123",""]],
+  85:[["RT -23|12-G#",""]],             86:[["RT -23|1-Bb3G#","Si♭ ince mandalına sağ orta parmakla bas"]],
+  87:[["RT -23|1-3G#",""],["RT -23|1a--G#",QT_A],["RT -23|½--G#","Sağ işaret deliğini yarıya kadar kapat"]],
+  88:[["RT -23C#|1--G#",""],["RT -23C#|1-Bb-G#",""]],
+  89:[["RT 123C#|123G#",""]],
+  90:[["RT 12Eb-|123G#",""],["RT 12-|4123G#",""]],
+  91:[["RT 1--|3123G#",""]],            92:[["RT -23|1-3F",""]],
+  93:[["RT -23C#|123G#",""],["RT -23C#|12-",""]],
+  94:[["RT 123C#|12-F",""],["RT -23C#|12-F",""]],
+  95:[["RT 12Eb-|12Bb-F",""],["RT 12-|412Bb-F",""]]
+};
+
 // Notanın tüm parmakları; ilki temel parmak.
 function fingeringsFor(written){
   if(!FINGERINGS[written]) return [];
   return [{ code: FINGERINGS[written], note: "" },
           ...(ALT_FINGERINGS[written] || []).map(([code, note]) => ({ code, note }))];
+}
+// Yazılı notanın çeyrek ses tizinin (written + ½) parmakları
+function quarterFingeringsFor(written){
+  return (QT_FINGERINGS[written] || []).map(([code, note]) => ({ code, note }));
+}
+// Hedef perde (koma) çeyrek sese yarım sesten yakınsa o çeyrek sesin anahtarı (written + ½ → written), yoksa null.
+// AEU perdeleri tampere notadan en çok ~25 sent uzak; çeyrek sese icra düzeltmesiyle yaklaşırlar
+// (ör. Uşşak'ta Segâh 1,5 koma pes ≈ Si♭4 + ¼).
+function quarterFor(comma){
+  const w = 67 + comma*12/53, k = Math.floor(w);
+  return Math.abs(w - (k + 0.5)) < 0.25 && QT_FINGERINGS[k] ? k : null;
 }
 
 const PERDES = [
@@ -194,7 +243,8 @@ function perdeFreq(written, transpose){
   return midiToFreq(exact - transpose);
 }
 function parseFingering(code){
-  const out = { R:false, T:false, holes:{lh:[false,false,false], rh:[false,false,false]}, keys:[] };
+  const out = { R:false, T:false, holes:{lh:[false,false,false], rh:[false,false,false]},
+                half:{lh:[false,false,false], rh:[false,false,false]}, keys:[] };
   const raw = code.replace(/\s+/g,"");
   const bar = raw.indexOf("|");
   if(bar<0) throw new Error("gecersiz kod: "+code);
@@ -208,6 +258,7 @@ function parseFingering(code){
     while(i<s.length){
       const ch=s[i];
       if(ch==="-"){ if(hole>=3) throw new Error("fazla delik: "+code); hole++; i++; continue; }
+      if(ch==="½"){ if(hole>=3) throw new Error("fazla delik: "+code); out.half[hand][hole]=true; hole++; i++; continue; }
       if(ch>="1" && ch<="9"){
         const d=+ch;
         // "1---": deliklerden önce gelen 1, arkasında hâlâ üç delik varsa 1. yan mandaldır
@@ -250,6 +301,7 @@ function keyInfo(k){
   const side = {"1":1,"3":2,"4":3}[k.name];
   if(k.pos===0 && side)
     return { id:"k-s"+k.name, group:"rh", text: side + ". yan mandal (işaret parmağının yanıyla)" };
+  if(k.pos===1 && k.name==="a") return { id:"k-a-rh", group:"rh", text:"orta deliğin üstündeki mandal (orta parmakla, deliği kapatmadan)" };
   if(k.pos===2 && k.name==="Bb") return { id:"k-Bb-sl", group:"rh", text:"Si♭ ince mandalı (yüzük parmağıyla, 3. deliğin üstünde)" };
   const pinky = {"F":"k-F-rp","G#":"k-Gs-rp"}[k.name];
   if(k.pos===3 && pinky) return { id:pinky, group:"rp", text: tr + " mandalı" };
@@ -264,6 +316,7 @@ function fingeringIds(code){
   if(f.T) ids.push("h-T");
   f.holes.lh.forEach((v,i) => { if(v) ids.push("h-lh"+(i+1)); });
   f.holes.rh.forEach((v,i) => { if(v) ids.push("h-rh"+(i+1)); });
+  for(const hand of ["lh","rh"]) f.half[hand].forEach((v,i) => { if(v) ids.push("h-"+hand+(i+1)+"-half"); });
   for(const k of f.keys){
     const info = keyInfo(k);
     if(!info) throw new Error("bilinmeyen mandal: " + k.hand + " " + k.name + " (" + code + ")");
@@ -296,11 +349,12 @@ function findFingering(ids){
 function describeFingering(code){
   const f = parseFingering(code);
   const fingers = ["işaret","orta","yüzük"];
-  const holeText = holes => {
-    const closed = fingers.filter((_,i)=>holes[i]);
+  const holeText = (holes, half) => {
+    const closed = fingers.filter((_,i)=>holes[i]), halved = fingers.filter((_,i)=>half[i]);
+    const h = halved.length ? halved.join(" + ") + " yarım kapalı" : "";
     if(closed.length===3) return "üç delik kapalı";
-    if(closed.length===0) return "tüm delikler açık";
-    return closed.join(" + ") + " kapalı";
+    if(closed.length===0) return h || "tüm delikler açık";
+    return closed.join(" + ") + " kapalı" + (h ? " · " + h : "");
   };
   const extras = {"lh-top":[], lh:[], lp:[], rh:[], rp:[]};
   for(const k of f.keys){
@@ -314,11 +368,11 @@ function describeFingering(code){
               : "boşta (delik açık)";
   return [
     { part:"Sol başparmak", text: thumb, active: f.T || f.R },
-    { part:"Sol el", holes: f.holes.lh, text: [holeText(f.holes.lh), ...extras["lh-top"], ...extras.lh].join(" · "),
-      active: f.holes.lh.some(Boolean) || extras["lh-top"].length+extras.lh.length>0 },
+    { part:"Sol el", holes: f.holes.lh, half: f.half.lh, text: [holeText(f.holes.lh, f.half.lh), ...extras["lh-top"], ...extras.lh].join(" · "),
+      active: f.holes.lh.some(Boolean) || f.half.lh.some(Boolean) || extras["lh-top"].length+extras.lh.length>0 },
     { part:"Sol serçe", text: extras.lp.join(" · ") || "boşta", active: extras.lp.length>0 },
-    { part:"Sağ el", holes: f.holes.rh, text: [holeText(f.holes.rh), ...extras.rh].join(" · "),
-      active: f.holes.rh.some(Boolean) || extras.rh.length>0 },
+    { part:"Sağ el", holes: f.holes.rh, half: f.half.rh, text: [holeText(f.holes.rh, f.half.rh), ...extras.rh].join(" · "),
+      active: f.holes.rh.some(Boolean) || f.half.rh.some(Boolean) || extras.rh.length>0 },
     { part:"Sağ serçe", text: extras.rp.join(" · ") || "boşta", active: extras.rp.length>0 }
   ];
 }
@@ -467,7 +521,7 @@ function noteKey(r){ return r.written + ":" + (r.perde ? r.perde.comma : "-"); }
 
 if(typeof module !== "undefined") module.exports = {
   SOL_TRANSPOSE, INSTRUMENTS, instrumentById, pitchRange, setTuningContext, getTuningContext, contextPerde, perdeNameAt, mod53, fft, toneMag,
-  FINGERINGS, ALT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName, staffPos,
+  FINGERINGS, ALT_FINGERINGS, QT_FINGERINGS, LOW_NOTE, HIGH_NOTE, fingeringsFor, quarterFingeringsFor, quarterFor, PERDES, setA4, getA4, midiToFreq, freqToMidi, noteName, staffPos,
   nearestPerde, perdeFreq, parseFingering, keyInfo, fingeringIds, findFingering, describeFingering, analyze,
   sensitivityToRms, detectPitch, NoteStabilizer, noteKey
 };

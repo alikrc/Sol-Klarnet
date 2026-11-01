@@ -145,6 +145,10 @@ svg.chart{width:100%;max-width:330px;height:auto;display:block;margin:0 auto;
 .conn{stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
 .hole circle{fill:var(--surface);stroke:var(--metal-edge);stroke-width:3}
 .hole.on circle{fill:var(--accent);stroke:var(--accent-ink)}
+.hole.half circle{fill:url(#halfhole);stroke:var(--accent-ink)}
+.hf-on{stop-color:var(--accent)} .hf-off{stop-color:var(--surface)}
+.alts button.qt{border-style:dashed}
+.alts button.rec{box-shadow:0 0 0 2px var(--accent)}
 .key rect{fill:var(--metal);stroke:var(--metal-edge);stroke-width:1.2}
 .key text{font:600 10px var(--ui);fill:var(--key-ink);text-anchor:middle}
 .key.on rect{fill:var(--accent);stroke:var(--accent-ink);opacity:1}

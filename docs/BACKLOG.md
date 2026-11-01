@@ -1,5 +1,26 @@
 # Sol Klarnet — Backlog
 
+## Çeyrek ses parmakları ve gerçek çalgı sesleri — tamamlandı (1 Kasım 2026)
+
+- **Çeyrek ses parmakları** (`core.js` `QT_FINGERINGS`, `quarterFingeringsFor`, `quarterFor`): WFG'nin Oehler/Albert çeyrek
+  ses tablolarından (ocl_qt_1–3, Arnold Wendl) yazılı Mi3 + ¼ ile Si6 + ¼ arasında 44 çeyrek ses, 57 parmak. Sağ 2. yan
+  mandalı (Albert'te yok) kullanan iki parmak alınmadı. Yeni gösterimler: `½` yarım kapalı delik (şemada yarı dolu, talimatta
+  "yarım kapalı"), `a` sağ orta deliğin üstündeki mandal (şemada eklendi). Parmak kartında "¼ pes" / "¼ tiz" seçenekleri;
+  hedef perde (icra düzeltmesiyle) çeyrek sese yarım sesten yakınsa o seçenek işaretlenir ve önerilir (ör. Uşşak icrasında
+  Segâh ≈ Si♭4 + ¼). AEU perdelerinin hepsi tampere notaya ~25 sentten yakın olduğundan öneri yalnızca icra akordunda çıkar.
+  Uzman kontrolünde ayrı satırlar
+- **Klarnet sesi:** sentez yerine gerçek klarnet kaydı (`sampler.js`, `sounds/`; University of Iowa EMS Si♭ klarnet mf,
+  16 nota, döngülü, hafif oda yankısı). Her örneğin perdesi ölçüldü; çalma hızı istenen frekansa göre ayarlanır, kaydın kendi
+  akordu (tizde 30 sente kadar pes) sonuca girmez. Tarayıcıda ölçüldü: AEU ve icra perdelerinde sapma en çok 0,6 sent
+- **Darbuka:** VCSL (CC0) gerçek düm, tek ve ka. Düm perde bulucunun alt sınırının altına indirilir (Sol klarnette 87 Hz)
+- **Ud ve bas:** lisansı uygun gerçek ud örneği bulunamadı; genişletilmiş Karplus-Strong (mızrap kesiti, çekilen yer,
+  perdeye göre sönüm, gövde rezonansları, çift tel). Eski modelin döngü süzgeci perdeyi 2–9 sent pes çıkarıyordu; artık
+  süzgecin gecikmesi hesaba katılıyor (0,2 sent içinde)
+- **Komalı eserler:** 28 etüdün 842 notası makam dizilerinde; nota arşivinden rastgele 25 eserin (10 167 nota) komaları SymbTr
+  kaynağıyla birebir aynı (süs notaları bilerek süsleme işaretine çevriliyor)
+- **Denenmedi:** seslerin kulağa nasıl geldiği (bu ortamda dinlenemedi), telefonda yükleme süresi (örnekler 1,9 MB, ilk ses
+  açılınca yüklenir; yüklenene kadar eski sentez çalar). Çeyrek ses parmakları gerçek çalgıda denenmedi
+
 ## Nota çevirici — tamamlandı (30 Ekim 2026)
 
 Tasarım: [2026-10-24-nota-cevirici-design.md](superpowers/specs/2026-10-24-nota-cevirici-design.md) ·
@@ -56,7 +77,7 @@ plan: [2026-10-24-nota-cevirici.md](superpowers/plans/2026-10-24-nota-cevirici.m
   mordan, grupetto, tril, kayış ve düşüş sayılır. Yalnızca sentetik seslerle ayarlandı
 - **Mağaza:** telefon ekran görüntüleri ve 1024×500 tanıtım görseli (`npm run store-shots`), Türkçe/İngilizce kısa ve uzun açıklama
   (`store/listing.md`), manifest'te ekran görüntüleri
-- Yapılmadı: çeyrek ses parmakları (WFG `ocl_qt_1` sayfasına bu ortamdan erişilemedi; parmaklar kaynaktan alınmadan eklenmemeli)
+- Yapılmadı: çeyrek ses parmakları (sonra yapıldı, 1 Kasım 2026)
 
 ## Oyun havaları, eşlik, kulaktan çıkarma, okuma ve yol haritası — tamamlandı (26 Ekim 2026)
 
@@ -130,7 +151,10 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
    seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. 72 dersin metinleri ve 24 etüt de gözden geçirilmeli. Hız ünitesinin gam/arpej seçimi, hedef tempoları ve hızlı Hicaz etüdü
    (`e-hiz-hicaz`) de kontrol edilmeli. Süslemeler (Uzman kontrolü → Süslemeler): tanımlar,
    örnek sesler, ölçüm eşikleri (`skills.js` `ORN`; ör. tril düzeni ≤ 0,2, çarpma 20–120 ms) ve iki süslemeli etüt.
-   Yanlış bulunanlar `core.js` (FINGERINGS, ALT_FINGERINGS), `learn.js` (MAKAMS, SEYIR_TYPE, ICRA) ve
+   Çeyrek ses parmakları (Uzman kontrolü → Parmaklar, "+ ¼" satırları, 57 parmak) gerçek çalgıda denenmeli; özellikle
+   "a" mandalı (WFG: sağ orta deliğin üstündeki mandal) Türk Sol klarnetinde hangi mandala karşılık geliyor.
+   Yeni klarnet, darbuka, ud ve bas sesleri dinlenip beğenilmeli.
+   Yanlış bulunanlar `core.js` (FINGERINGS, ALT_FINGERINGS, QT_FINGERINGS), `learn.js` (MAKAMS, SEYIR_TYPE, ICRA) ve
    `repertoire.js` (ETUDES) içinde düzeltilir; testler tutarlılığı denetler.
 2. **Gerçek kayıtlar:** `testdata/README.md` içindeki listeye göre telefonla kayıt toplanıp `npm run audio-check` çalıştırılmalı.
    Süsleme eşikleri (`ORN`) yalnızca sentetik seslerle ayarlandı; süslemeli gerçek kayıtlarla gözden geçirilmeli.
@@ -165,9 +189,7 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
    çözümü telefonda ne kadar sürüyor, IndexedDB'de 50 kayıt ne kadar yer tutuyor. Bulgulara göre düzeltilir.
 2. **Mağazaya çıkış (proje sahibi):** Play Console hesabı, yükleme anahtarı, kapalı test, veri güvenliği formu. Görseller ve
    metinler `store/` klasöründe hazır. Ayrıntı: [TODO.md](TODO.md).
-3. **Çeyrek ses parmakları:** WFG `ocl_qt_1` sayfasından nim perdeler için parmaklar alınıp AEU komalarıyla eşleştirilmeli
-   (erişimi olan bir ortamda).
-4. **Daha sonra:** Kamerayla duruş ve ağız kontrolü; hoca–öğrenci modu (ödev, kayda yorum); cihazlar arası eşitleme.
+3. **Daha sonra:** Kamerayla duruş ve ağız kontrolü; hoca–öğrenci modu (ödev, kayda yorum); cihazlar arası eşitleme.
    İnternet kullanmak serbest (28 Ekim 2026, proje sahibi): internetsiz çalışma şartı yok.
 
 

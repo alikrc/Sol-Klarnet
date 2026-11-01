@@ -157,6 +157,7 @@
       </div>
 
       <svg class="chart" viewBox="0 0 320 640" role="group" aria-label="Albert sistem Türk Sol klarneti parmak şeması: çalgıcının gözünden görünüş, başparmak tarafı solda ayrıca çizili. Deliklere ve mandallara basarak parmak kurabilirsin; parmak bir notaya uyunca o nota çalar.">
+        <defs><linearGradient id="halfhole" x1="0" y1="0" x2="1" y2="0"><stop offset="50%" class="hf-on"/><stop offset="50%" class="hf-off"/></linearGradient></defs>
         <!-- gövde -->
         <path class="wood" d="M148,6 L172,6 L178,46 L142,46 Z"/>
         <rect class="ring" x="134" y="44" width="52" height="6" rx="2"/>
@@ -210,6 +211,7 @@
         <text class="cap" x="94" y="386" text-anchor="end">parmağı yanı)</text>
 
         <g class="hole" id="h-rh1"><circle cx="160" cy="392" r="15"/></g>
+        <g class="key" id="k-a-rh"><rect x="148" y="412" width="24" height="8" rx="4"/></g>
         <text class="flab r" x="188" y="396">işaret</text>
         <circle class="brille" cx="160" cy="447" r="20"/>
         <g class="hole" id="h-rh2"><circle cx="160" cy="447" r="15"/></g>
@@ -403,6 +405,13 @@
           <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_3.html" target="_blank" rel="noopener">3</a>,
           <a href="https://www.wfg.woodwind.org/clarinet/ocl_alt_4.html" target="_blank" rel="noopener">4</a>) tablolarından; yalnızca Albert sistemde çalınabilen parmaklar alındı; mandal adları <a href="https://www.wfg.woodwind.org/clarinet/cl_fing.html" target="_blank" rel="noopener">WFG mandal açıklamasına</a> göre.
           Perde adları AEU 53 koma sistemine göre, Rast = yazılı Sol. Kapsam: yazılı Mi3 – Mi♭7.
+          Çeyrek ses parmakları WFG çeyrek ses tablolarından (Arnold Wendl:
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_qt_1.html" target="_blank" rel="noopener">1</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_qt_2.html" target="_blank" rel="noopener">2</a>,
+          <a href="https://www.wfg.woodwind.org/clarinet/ocl_qt_3.html" target="_blank" rel="noopener">3</a>).
+          <span class="credits">Sesler: klarnet
+            <a href="https://theremin.music.uiowa.edu/MISBbclarinet.html" target="_blank" rel="noopener">University of Iowa Electronic Music Studios</a> (Si♭ klarnet kayıtları) ·
+            darbuka <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">VCSL</a> (Versilian Studios, CC0) · ud ve bas uygulamada sentezlenir.</span>
           <span class="credits">Fotoğraflar (Wikimedia Commons):
             <a href="https://commons.wikimedia.org/wiki/File:Rosewood_Albert_System_Clarinet.png" target="_blank" rel="noopener">klarnet</a> James Eaton-Lee, CC BY-SA 3.0 ·
             <a href="https://commons.wikimedia.org/wiki/File:Derbouka.jpg" target="_blank" rel="noopener">darbuka</a> Abdelouali, CC BY-SA 3.0 ·
@@ -432,6 +441,8 @@
 <script src="repertoire.js"></script>
 <script src="trainers.js"></script>
 <script src="usuller.js"></script>
+<script src="sounds/sounds.js"></script>
+<script src="sampler.js"></script>
 <script src="pieces.js"></script>
 <script src="band.js"></script>
 <script src="follow.js"></script>

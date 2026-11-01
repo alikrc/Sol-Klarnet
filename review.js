@@ -47,7 +47,10 @@
   }
   function allItems(){
     const out = [];
-    for(let w=LOW_NOTE; w<=HIGH_NOTE; w++) fingeringsFor(w).forEach((_, i) => out.push("f:" + w + ":" + i));
+    for(let w=LOW_NOTE; w<=HIGH_NOTE; w++){
+      fingeringsFor(w).forEach((_, i) => out.push("f:" + w + ":" + i));
+      quarterFingeringsFor(w).forEach((_, i) => out.push("q:" + w + ":" + i));
+    }
     MAKAMS.forEach(m => out.push("m:" + m.id));
     ORN_REVIEW.forEach(o => out.push("o:" + o.id));
     return out;
@@ -111,14 +114,14 @@
     c.querySelectorAll("[id]").forEach(n => { n.id = "rv-" + n.id; n.removeAttribute("tabindex"); n.removeAttribute("role"); n.removeAttribute("aria-label"); n.removeAttribute("aria-pressed"); });
     c.classList.add("minichart"); c.setAttribute("aria-hidden", "true");
     const on = new Set(fingeringIds(code).map(i => "rv-" + i));
-    c.querySelectorAll(".hole, .key").forEach(n => n.classList.toggle("on", on.has(n.id)));
+    c.querySelectorAll(".hole, .key").forEach(n => { n.classList.toggle("on", on.has(n.id)); n.classList.toggle("half", on.has(n.id + "-half")); });
     return c;
   }
 
   let tab = store.get("review.tab", "f");
   function markHeads(){
     root.querySelectorAll("details[data-w]").forEach(d => {
-      const w = +d.dataset.w, keys = fingeringsFor(w).map((_, i) => "f:" + w + ":" + i);
+      const w = +d.dataset.w, q = !!d.dataset.q, keys = (q ? quarterFingeringsFor(w) : fingeringsFor(w)).map((_, i) => (q ? "q:" : "f:") + w + ":" + i);
       const done = keys.filter(k => rv.items[k] && rv.items[k].v).length, bad = keys.some(k => rv.items[k] && rv.items[k].v === "bad");
       d.querySelector(".rvcount").textContent = done + "/" + keys.length + (bad ? " · " + L("yanlış var", "has errors") : "");
       d.classList.toggle("rvbad", bad);
@@ -130,22 +133,25 @@
     for(let w=LOW_NOTE; w<=HIGH_NOTE; w++){
       const p = nearestPerde((w-67)*53/12);
       html += `<details class="rvnote" data-w="${w}"><summary><strong>${nn(w)}</strong> <span class="muted">${p ? p.name + " · " : ""}${fingeringsFor(w).length} ${L("parmak", "fingering(s)")}</span> <span class="rvcount muted"></span></summary><div class="rvlist"></div></details>`;
+      // Çeyrek ses (WFG ocl_qt_*): yazılı notanın ≈ 50 sent tizi
+      const nq = quarterFingeringsFor(w).length;
+      if(nq) html += `<details class="rvnote" data-w="${w}" data-q="1"><summary><strong>${nn(w)} + ¼</strong> <span class="muted">${L("çeyrek ses", "quarter tone")} · ${nq} ${L("parmak", "fingering(s)")}</span> <span class="rvcount muted"></span></summary><div class="rvlist"></div></details>`;
     }
     body.innerHTML = html;
     body.querySelectorAll("details[data-w]").forEach(d => d.addEventListener("toggle", () => {
       if(!d.open || d.dataset.built) return;
       d.dataset.built = "1";
-      const w = +d.dataset.w, list = d.querySelector(".rvlist");
-      fingeringsFor(w).forEach((fg, i) => {
+      const w = +d.dataset.w, q = !!d.dataset.q, list = d.querySelector(".rvlist");
+      (q ? quarterFingeringsFor(w) : fingeringsFor(w)).forEach((fg, i) => {
         const item = document.createElement("div"); item.className = "rvitem";
         item.appendChild(chart(fg.code));
         const side = document.createElement("div");
         const steps = describeFingering(fg.code).filter(r => r.active).map(r => `<li><b>${esc(r.part)}</b> <span>${esc(r.text)}</span></li>`).join("");
-        side.innerHTML = `<div class="label">${i ? L("Alternatif ", "Alternative ") + i : L("Temel parmak", "Basic fingering")}</div>
+        side.innerHTML = `<div class="label">${q ? L("Çeyrek ses parmağı ", "Quarter-tone fingering ") + (i + 1) : i ? L("Alternatif ", "Alternative ") + i : L("Temel parmak", "Basic fingering")}</div>
           <code class="fcode">${esc(fg.code)}</code>${fg.note ? `<p class="muted">${esc(fg.note)}</p>` : ""}
           <ul class="rvsteps">${steps || `<li>${L("Hiçbir şey basılı değil", "Nothing pressed")}</li>`}</ul>
-          <button class="stopbtn" type="button" data-hear="${w}">${L("Notayı duy", "Hear the note")}</button>
-          ${verdictBox("f:" + w + ":" + i)}`;
+          <button class="stopbtn" type="button" data-hear="${w}"${q ? ' data-q="1"' : ""}>${L("Notayı duy", "Hear the note")}</button>
+          ${verdictBox((q ? "q:" : "f:") + w + ":" + i)}`;
         item.appendChild(side);
         list.appendChild(item);
       });
@@ -196,7 +202,7 @@
       return;
     }
     const h = e.target.closest("[data-hear]");
-    if(h){ const w = +h.dataset.hear; SK.play(w); await sleep(1200); if(SK.playing() === w) SK.stopSound(); return; }
+    if(h){ const w = +h.dataset.hear; SK.play(w, h.dataset.q ? midiToFreq(w + 0.5 - T) : undefined); await sleep(1200); if(SK.playing() === w) SK.stopSound(); return; }
     const m = e.target.closest("[data-mkhear]");
     if(m){
       const mk = makamById(m.dataset.mkhear), token = {}; hearToken = token;
@@ -224,6 +230,7 @@
       const it = rv.items[k]; if(!it) continue;
       let what;
       if(k.startsWith("f:")){ const [, w, i] = k.split(":"); what = nn(+w) + (+i ? " " + L("alt. ", "alt. ") + i : " " + L("temel", "basic")) + " [" + fingeringsFor(+w)[+i].code + "]"; }
+      else if(k.startsWith("q:")){ const [, w, i] = k.split(":"); what = nn(+w) + " + ¼ " + L("çeyrek ses ", "quarter tone ") + (+i + 1) + " [" + quarterFingeringsFor(+w)[+i].code + "]"; }
       else if(k.startsWith("o:")){ const o = ORN_REVIEW.find(x => x.id === k.slice(2)); what = L("Süsleme ", "Ornament ") + (o.etude ? pick(etudeById(o.etude).name, LANG) : o.name); }
       else what = "Makam " + makamById(k.slice(2)).name;
       lines.push(vt(it.v) + " · " + what + (it.c ? " — " + it.c : ""));

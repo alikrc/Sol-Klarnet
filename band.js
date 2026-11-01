@@ -121,23 +121,67 @@ const BAND_TEMPO = { sirto:104, zeybek:96, kasap:112, ciftetelli:176, karsilama:
 if(typeof module !== "undefined") module.exports = { BAND_STYLES, BAND_GROUPS, BAND_TEMPO, BAND_FOLLOW, meterStrokes, stylesFromStrokes, bandStyle, autoFill, bandDrum, fifthOf, bandRoot, bandBarEvents, bandEventsFor };
 
 // ======== Ses (yalnızca tarayıcı) ========
-// Ses düğümleri: darbuka düm (perde bulucunun alt sınırının altında, nota sanılmaz), tek ve ka (süzülmüş gürültü),
-// bas (mikrofon güvenliyse yalnızca sinüs ve perde bulucunun altında), ud (Karplus-Strong telli ses).
+// Darbuka: gerçek kayıt (sampler.js, VCSL CC0); düm perde bulucunun alt sınırının altına indirilerek çalar, nota sanılmaz.
+// Örnekler yüklenmemişse eski sentez (düm: inen sinüs, tek ve ka: süzülmüş gürültü).
+// Ud ve bas: genişletilmiş Karplus-Strong telli ses. Mızrap kesiti, telin çekildiği yer (tarak süzgeci), perdeye göre
+// sönüm, ud gövdesinin rezonansları; ud çift telli (iki tel çok az farklı akortta). Bas mikrofon güvenliyse yalnızca sinüs
+// ve perde bulucunun altında.
 const BAND_PLUCK = new Map();
-function bandPluckBuffer(a, f){
-  // Gecikme hattı tam sayı örnek; doğru perde playbackRate ile verilir
-  const N = Math.max(8, Math.round(a.sampleRate/f)), key = a.sampleRate + ":" + N;
-  if(BAND_PLUCK.has(key)) return { buf: BAND_PLUCK.get(key), rate: f*N/a.sampleRate };
-  const n = Math.round(a.sampleRate*1.3), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
-  const line = new Float32Array(N);
-  for(let i=0;i<N;i++) line[i] = Math.random()*2 - 1;
-  let p = 0;
-  for(let i=0;i<n;i++){
-    const q = (p + 1) % N, v = (line[p] + line[q])*0.5*0.997;
-    d[i] = line[p]; line[p] = v; p = q;
+const PLUCK = {
+  // t60: perdenin 60 dB sönme süresi (sn, 220 Hz'de; tizde kısalır), pick: çekilen yer (tel boyunun oranı),
+  // bright: döngü süzgecinin parlaklığı (0–1), body: [Hz, Q, kazanç dB] gövde rezonansları, lp: son alçak geçiren (Hz)
+  ud:   { t60: 1.9, pick: 0.16, bright: 0.55, len: 1.8, click: 0.35,
+          body: [[118, 3, 7], [235, 4, 4], [410, 3, 3], [2800, 1.2, -4]], lp: 5200 },
+  bass: { t60: 1.4, pick: 0.28, bright: 0.25, len: 1.4, click: 0.1,
+          body: [[70, 2, 4], [160, 3, 2]], lp: 1300 }
+};
+// Biquad süzgeç (RBJ): tepe (dB > 0 ya da < 0) ya da alçak geçiren; buffer üzerinde yerinde
+function bandBiquad(d, sr, type, f, q, db){
+  const w = 2*Math.PI*f/sr, al = Math.sin(w)/(2*q), cs = Math.cos(w), A = Math.pow(10, (db || 0)/40);
+  let b0, b1, b2, a0, a1, a2;
+  if(type === "peak"){ b0 = 1 + al*A; b1 = -2*cs; b2 = 1 - al*A; a0 = 1 + al/A; a1 = -2*cs; a2 = 1 - al/A; }
+  else { b0 = (1 - cs)/2; b1 = 1 - cs; b2 = (1 - cs)/2; a0 = 1 + al; a1 = -2*cs; a2 = 1 - al; }
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for(let i = 0; i < d.length; i++){
+    const x = d[i], y = (b0*x + b1*x1 + b2*x2 - a1*y1 - a2*y2)/a0;
+    x2 = x1; x1 = x; y2 = y1; y1 = y; d[i] = y;
   }
-  BAND_PLUCK.set(key, buf);
-  return { buf, rate: f*N/a.sampleRate };
+}
+function bandPluckBuffer(a, f, kind = "ud"){
+  // Gecikme hattı tam sayı örnek; döngü süzgeci de perdeyi az geciktirir (D örnek). Telin periyodu N + D;
+  // doğru perde playbackRate = f·(N + D)/sr ile verilir, komalar tam çıkar
+  const P = PLUCK[kind], sr = a.sampleRate, c = 0.25 + 0.5*P.bright;
+  const N = Math.max(8, Math.round(sr/f - (1 - c)/c)), key = kind + ":" + sr + ":" + N;
+  if(BAND_PLUCK.has(key)){ const h = BAND_PLUCK.get(key); return { buf: h.buf, rate: f*h.per/sr }; }
+  // Tek kutuplu alçak geçirenin temel frekanstaki evre gecikmesi (iki adımda yakınsar)
+  let D = (1 - c)/c;
+  for(let k = 0; k < 3; k++){ const w = 2*Math.PI/(N + D); D = Math.atan2((1 - c)*Math.sin(w), 1 - (1 - c)*Math.cos(w))/w; }
+  const n = Math.round(sr*P.len), buf = a.createBuffer(1, n, sr), d = buf.getChannelData(0);
+  // Uyarım: yumuşatılmış gürültü, çekilen yerin tarak süzgeci (o harmonikler zayıflar)
+  const exc = new Float32Array(N), M = Math.max(1, Math.round(P.pick*N));
+  let lp = 0;
+  for(let i = 0; i < N; i++){ lp += (Math.random()*2 - 1 - lp)*(0.35 + 0.5*P.bright); exc[i] = lp; }
+  const line = new Float32Array(N);
+  for(let i = 0; i < N; i++) line[i] = exc[i] - (i >= M ? exc[i - M] : 0);
+  // Döngü: periyot başına sönüm (t60 perdeye göre: tizde kısa) ve tek kutuplu alçak geçiren
+  const t60 = P.t60*Math.pow(220/f, 0.45), g = Math.pow(10, -3*N/(t60*sr));
+  let p = 0, s = line[N - 1];
+  for(let i = 0; i < n; i++){
+    const v = line[p];
+    d[i] = v;
+    s += c*(v - s);
+    line[p] = s*g;
+    p = (p + 1) % N;
+  }
+  // Mızrap kesiti: ilk 4 ms'de parlak gürültü
+  const ck = Math.round(sr*0.004);
+  for(let i = 0; i < ck; i++) d[i] += (Math.random()*2 - 1)*P.click*(1 - i/ck);
+  for(const [bf, q, db] of P.body) bandBiquad(d, sr, "peak", bf, q, db);
+  bandBiquad(d, sr, "lp", P.lp, 0.707);
+  let pk = 0; for(let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(d[i]));
+  for(let i = 0; i < n; i++) d[i] /= pk || 1;
+  BAND_PLUCK.set(key, { buf, per: N + D });
+  return { buf, rate: f*(N + D)/sr };
 }
 let BAND_NOISE = null;
 function bandNoise(a){
@@ -146,12 +190,27 @@ function bandNoise(a){
   for(let i=0;i<n;i++) d[i] = Math.random()*2 - 1;
   return (BAND_NOISE = b);
 }
+// Telli ses: kaynak (çift telde ikinci tel 1,5 sent tiz ve 4 ms geç), at anında başlar, dur sonunda söner
+function bandString(a, dest, f, at, dur, level, kind, course){
+  [0, 1].slice(0, course ? 2 : 1).forEach(i => {
+    const { buf, rate } = bandPluckBuffer(a, f, kind), src = a.createBufferSource(), gg = a.createGain(), t = at + i*0.004;
+    src.buffer = buf; src.playbackRate.value = rate*(i ? Math.pow(2, 1.5/1200) : 1);
+    const lv = level*(course ? 0.62 : 1);
+    gg.gain.setValueAtTime(lv, t); gg.gain.setValueAtTime(lv, t + dur*0.85);
+    gg.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(gg).connect(dest); src.start(t); src.stop(t + dur + 0.02);
+  });
+}
+// Darbuka dümünün kayıttaki perdesi (Hz)
+const DUM_HZ = 143;
 // Tek olayı çalar. at: ses saati (sn). o: { freq(c) → Hz (duyulan), micSafe, minHz (perde bulucunun alt sınırı), vol: { drum, bass, chord } }
 function bandPlay(a, dest, ev, at, o){
   const vol = (o.vol && o.vol[ev.part] != null ? o.vol[ev.part] : 1);
   if(vol <= 0) return;
   const g = a.createGain(); g.connect(dest);
   if(ev.part === "drum"){
+    const rate = ev.k === "D" ? Math.min(1, (o.minHz || 100)*0.88/DUM_HZ) : 1;
+    if(typeof SAMPLER !== "undefined" && SAMPLER.drum(a, ev.k, at, g, 1.1*vol, rate)) return;
     if(ev.k === "D"){
       const os = a.createOscillator();
       os.frequency.setValueAtTime(92, at); os.frequency.exponentialRampToValueAtTime(52, at + 0.12);
@@ -172,31 +231,23 @@ function bandPlay(a, dest, ev, at, o){
     let f = o.freq(ev.c);
     const top = o.micSafe ? (o.minHz || 100)*0.92 : 130;
     while(f >= top) f /= 2;
-    const os = a.createOscillator(), dur = Math.max(0.12, ev.dur/1000*0.92);
-    os.type = o.micSafe ? "sine" : "triangle"; os.frequency.value = f;
-    let out = os;
-    if(!o.micSafe){ const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420; os.connect(lp); out = lp; }
+    const dur = Math.max(0.12, ev.dur/1000*0.92);
+    if(!o.micSafe){ bandString(a, g, f, at, Math.max(0.25, dur), 0.55*vol, "bass", false); return; }
+    const os = a.createOscillator();
+    os.type = "sine"; os.frequency.value = f;
     g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.5*vol, at + 0.008);
     g.gain.exponentialRampToValueAtTime(0.28*vol, at + 0.18);
     g.gain.setValueAtTime(0.28*vol, at + Math.max(0.19, dur - 0.06));
     g.gain.exponentialRampToValueAtTime(0.001, at + dur);
-    out.connect(g); os.start(at); os.stop(at + dur + 0.02);
+    os.connect(g); os.start(at); os.stop(at + dur + 0.02);
     return;
   }
   if(ev.part === "chord"){
-    // Ud vuruşu: kök ve beşli, kök duyulan 130–260 Hz aralığında; telleri 12 ms arayla
+    // Ud vuruşu: kök ve beşli, kök duyulan 130–260 Hz aralığında; teller 14 ms arayla, mızrap aşağı
     let f = o.freq(ev.c);
     while(f >= 260) f /= 2; while(f < 130) f *= 2;
-    const f2 = f*Math.pow(2, (ev.c2 - ev.c)/53);
-    [f, f2, f*2].forEach((fr, i) => {
-      const { buf, rate } = bandPluckBuffer(a, fr), src = a.createBufferSource(), gg = a.createGain();
-      src.buffer = buf; src.playbackRate.value = rate;
-      const t = at + i*0.012, dur = Math.max(0.15, Math.min(0.7, ev.dur/1000));
-      gg.gain.setValueAtTime((i === 2 ? 0.12 : 0.2)*vol, t); gg.gain.setValueAtTime((i === 2 ? 0.12 : 0.2)*vol, t + dur*0.8);
-      gg.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      src.connect(gg).connect(g); src.start(t); src.stop(t + dur + 0.02);
-    });
-    g.gain.value = 1;
+    const f2 = f*Math.pow(2, (ev.c2 - ev.c)/53), dur = Math.max(0.2, Math.min(0.9, ev.dur/1000*1.2));
+    [f, f2, f*2].forEach((fr, i) => bandString(a, g, fr, at + i*0.014, dur, (i === 2 ? 0.16 : 0.24)*vol, "ud", true));
   }
 }
 // Çalan ud ve bas perdelerinin duyulan frekansları (mikrofon bunları nota saymasın)
