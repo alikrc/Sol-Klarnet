@@ -1,5 +1,86 @@
 # Sol Klarnet — Backlog
 
+## Uzman inceleme bulguları — bekliyor (2 Kasım 2026)
+
+Bir Türk musikisi ve Sol klarnet uzmanı gözüyle yazılmış inceleme listesi. Yeni özellikten önce mevcut içeriğin müzikal
+doğruluğu, gerçek Sol klarnete uygunluğu ve eğitim kalitesi. Çalışan özellikler bozulmayacak, mimari gereksiz yere
+değişmeyecek, mobil uyum korunacak.
+
+**Yöntem:** Tek seferde değiştirilmeyecek. Önce kod incelenip her madde doğrulanacak; her madde için "mevcut durum /
+önerilen çözüm" listesi çıkarılıp P0–P1–P2 sırası kesinleşecek, sonra aşama aşama uygulanacak. Her aşamanın sonunda:
+değişen dosyalar, yapılanlar, yapılan denetimler (projede test yok, bkz. kullanıcı kararı; tarayıcıda deneme ve ölçüm
+betikleri) ve gerçek klarnetle denenmesi gerekenler ayrıca yazılacak. Emin olunmayan müzikal bilgi kesin gibi sunulmayacak;
+teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamış her şey açıkça işaretlenecek.
+
+### P0 — kritik
+
+1. **Gerçek Sol klarnet ses analizi**
+   - Akort, uzun ses, hız, süsleme ve eşlik gerçek Sol klarnet kayıtlarıyla sınanabilmeli (`testdata/README.md`,
+     `npm run audio-check` var; kayıt yok)
+   - Vibrato, glissando, atak, nefes dalgalanması ve harmonik kaynaklı oktav hataları hesaba katılmalı (oktav koruması
+     2 Kasım'da eklendi, gerçek seste denenmedi)
+   - Üst harmoniklerin yanlış nota sayılması önlenmeli; gürültülü ortam ve farklı telefon mikrofonlarında davranış
+     iyileştirilmeli
+   - Gerçek kayıt yoksa sentetik sınamalar gerçek sınama gibi sunulmamalı (arayüz, belgeler, mağaza metni gözden geçirilecek)
+2. **Nota tanıma (OMR) ve koma işaretleri**
+   - Koma işaretleri birbirinden doğru ayrılmalı; Leland eğik çizgili bemolün düz bemol (−5 yerine −4) okunması giderilmeli
+   - Her notada güven puanı gösterilmeli (şimdi yalnızca "emin değil" sarısı var)
+   - Algılanan nota ve koma işareti elle düzeltilebilmeli (düzeltme ekranında koma seçimi var mı, bakılacak)
+   - Uzun PDF'lerde sayfa ve bellek sınırı; tanınmayan D.S. gibi işaretlerin ele alınması (en azından uyarı)
+3. **Çeyrek ses parmakları** (`core.js` `QT_FINGERINGS`, 57 parmak, WFG Oehler/Albert tablosundan)
+   - Albert Sol klarnete göre gözden geçirilmeli; doğrulanmamış pozisyon kesin gibi sunulmamalı
+   - Alternatifler ayrı kategoride; her pozisyon için ses kalitesi, geçiş kolaylığı, kullanım bağlamı
+   - Gerçek çalgıda doğrulanması gerekenler arayüzde işaretlenmeli ("a" mandalının karşılığı dahil)
+
+### P1 — Türk musikisi ve makam doğruluğu
+
+4. **İcra perdesi** (`learn.js` `ICRA`)
+   - Teorik AEU değerleri ile icrada kullanılan perde ayrı gösterilmeli; sabit koma düzeltmeleri mutlak doğru gibi sunulmamalı
+   - Çıkıcı ve inici seyirdeki perde farkları (ör. inişte pesleşen perdeler)
+   - Kullanıcı öğretmeninin ya da örnek aldığı icracının referansını ayarlayabilmeli
+   - Gerektiğinde tek değer yerine önerilen aralık
+5. **Makam eğitimi** (19/20 makam)
+   - Durak, güçlü, yeden ve seyir açıklamaları kontrol edilmeli; karakteristik çeşniler ayrıntılı anlatılmalı
+   - Çıkıcı ve inici seyir örnekleri, karakteristik ezgileri dinleten örnekler
+   - Benzer makamların karşılaştırması (ör. Uşşak/Bayâtî, Hicaz/Uzzal/Zirgüleli Hicaz, Kürdî/Kürdîli Hicazkâr)
+   - Taksim örnekleri makam çözümlemesiyle ilişkilendirilmeli
+6. **Usul ve ritim** (`learn.js` `USULS`, `usuller.js`)
+   - Zaman, vuruş, darb, düm, tek ve usul çevrimi kavramları ayrı anlatılmalı
+   - Sofyan gibi usullerde zaman sayısı ile darb sayısının farklı olabileceği açıklanmalı
+   - Roman, Karşılama, Çiftetelli ve Rumeli tek kesin kalıp gibi sunulmamalı; yöresel ve icracıya bağlı farklar belirtilmeli
+   - Ritimler sesli ve görsel örnekle desteklenmeli
+7. **Klarnet başlangıç eğitimi** — ayrı dersler: (1) parçalar ve montaj, (2) kamış seçimi ve takılması, (3) oturuş ve
+   tutuş, (4) sol ve sağ el parmak pozisyonları, (5) ağızlık ve dudak pozisyonu, (6) ilk ses, (7) uzun ses, (8) dil ile
+   başlatma (artikülasyon), (9) ilk nota geçişleri, (10) nefes kontrolü ve müzikal cümleleme
+   - Nefes: "karından nefes al" yerine alt kaburgaların genişlemesi, rahat nefes alma, kontrollü hava akışı
+   - Dudak: gevşeklik ile ağızlık çevresindeki sızdırmazlık arasındaki denge
+   - Kamış sertliği (2–2,5 gibi) kesin kural değil; bek açıklığı, kamış markası ve icracıya göre değişir
+   - Mevcut "Başlarken" ünitesi ile karşılaştırılıp eksik dersler eklenecek, var olanlar bölünecek
+8. **Ses ve video içerikleri**
+   - Si♭ klarnetten perde kaydırmayla üretilen örnekler gerçek Sol klarnet kaydı gibi sunulmamalı (`sampler.js` Iowa Si♭
+     örnekleri; arayüzde ve belgelerde açıkça yazılmalı)
+   - Mümkünse Albert sistem gerçek Sol klarnet kayıtları; her nota için farklı dinamikler
+   - Başlangıç dersleri tek uzun video yerine konuya özel kısa videolarla (`videos.js`)
+   - Farklı Türk klarnet icracılarından örnekler; klasik Türk musikisi, Trakya/Roman tavrı ve modern icra ayrı, doğru/yanlış
+     değil icra üslubu olarak anlatılmalı
+
+### P2 — öğrenme deneyimi
+
+9. - Seviyeye göre kişisel öğrenme akışı (karşılama akışı ve yol haritası var; seviye belirleme gözden geçirilecek)
+   - Her ders sonunda küçük uygulama ve değerlendirme; gelişimin zaman içinde takibi
+   - Duruş ve el pozisyonu için video kontrol listesi
+   - Öğrencinin kendi kayıtlarını karşılaştırması (eski kayıtla karşılaştırma var, 27 Ekim)
+   - Taksim eğitimi aşamalara bölünmeli: cümle kurma, seyir, çeşni, karar
+   - Yalnızca nota doğruluğu değil, ses kararlılığı ve ritim doğruluğu da takip edilmeli
+
+### Lisans ve telif
+
+10. - SymbTr ve diğer nota kaynaklarının lisans koşulları; CC BY-NC-SA 4.0 içeriklerin ticari kullanım açısından ayrıca
+      değerlendirilmesi (ücretli uygulamada NC sorunu)
+    - Her eserin bestecisi, telif ve kullanım durumu ayrı ayrı kontrol edilmeli
+    - Harici nota ve ses kaynaklarının (WFG, Iowa EMS, VCSL, neyzen.com, projetsm.com) kullanım izinleri belgelenmeli
+      (ör. `docs/LISANSLAR.md`)
+
 ## Eksikler listesinden: akort, dem, tolerans, ekipman, istatistik, paylaşım — tamamlandı (2 Kasım 2026)
 
 Gelen iki eksik listesindeki maddeler koda göre denetlendi. Zaten olanlar: dinlerken ekranın açık kalması (Wake Lock),
