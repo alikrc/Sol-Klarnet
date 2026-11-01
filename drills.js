@@ -833,7 +833,25 @@ TRAINERS.rec = function(ctx){
 
 // ======== İlerleme ========
 TRAINERS.progress = function(ctx){
-  const { $, store, num, sgn, label, days, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
+  const { $, store, num, sgn, label, days, daysMk, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
+  // Makamlara göre süre (son 30 gün) ve hafta günlerine göre ortalama
+  function mkTime(){
+    const lim = (() => { const x = new Date(); x.setDate(x.getDate() - 29); return dayKey(x); })(), tot = {};
+    for(const [k, dm] of Object.entries(daysMk)) if(k >= lim) for(const [mk, sec] of Object.entries(dm)) tot[mk] = (tot[mk] || 0) + sec;
+    const rows = Object.entries(tot).filter(([, s]) => s >= 30).sort((a, b) => b[1] - a[1]);
+    if(!rows.length) return `<p>—</p>`;
+    const max = rows[0][1];
+    return `<div class="mkbars">${rows.map(([mk, sec]) => {
+      const m = mk ? makamById(mk) : null, name = m ? m.name : L("Serbest (makam seçilmedi)", "Free (no makam)");
+      return `<div class="mkbar"><span>${name}</span><i style="width:${Math.max(2, Math.round(sec/max*100))}%"></i><em>${Math.round(sec/60)} ${L("dk", "min")}</em></div>`;
+    }).join("")}</div><div class="muted small">${L("Makam, akort ekranında seçili olan ya da çalıştığın ders/alıştırmanın makamıdır.", "The makam is the one selected on the tuner, or the makam of the lesson or exercise you were on.")}</div>`;
+  }
+  function weekdayLine(){
+    const sum = Array(7).fill(0), cnt = Array(7).fill(0);
+    for(let i=0;i<56;i++){ const d = new Date(); d.setDate(d.getDate()-i); const wd = (d.getDay()+6) % 7; sum[wd] += days[dayKey(d)] || 0; cnt[wd]++; }
+    const names = LANG === "en" ? ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] : ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+    return names.map((n, i) => n + " <strong>" + Math.round(sum[i]/cnt[i]/60) + "</strong>").join(" · ") + L(" dk (son 8 hafta ortalaması)", " min (last 8 weeks average)");
+  }
   // Hız: en çok çalışılan üç kalıbın en iyi temposu ve son 14 gündeki artışı
   function techLine(){
     const all = store.get("tech.best", {}), since = (() => { const x = new Date(); x.setDate(x.getDate() - 14); return dayKey(x); })();
@@ -926,6 +944,8 @@ TRAINERS.progress = function(ctx){
       <div class="bars" role="img" aria-label="Son 14 günün çalışma süreleri">${last.map(([k, s, d]) =>
         `<div class="barcol" title="${k}: ${Math.round(s/60)} dk"><i style="height:${Math.round(s/maxS*100)}%"></i><small>${d.getDate()}</small></div>`).join("")}</div>
       <div class="muted small">Seri için günde en az 1 dakika ses algılanmalı.</div>
+      <div class="label">${L("Hafta günlerine göre", "By weekday")}</div><p>${weekdayLine()}</p>
+      <div class="label">${L("Makamlara göre süre (son 30 gün)", "Time by makam (last 30 days)")}</div>${mkTime()}
       <div class="label">Parmak testi</div>
       <div class="tablewrap"><table class="rtable"><thead><tr><th>Bölge</th><th>Durum</th><th>Soru</th><th>Doğru</th><th>Son 20</th></tr></thead><tbody>${lvRows}</tbody></table></div>
       <div class="label">Uzun ton rekorları</div><p>${longTop.join(" · ") || "—"}</p>
@@ -943,7 +963,7 @@ TRAINERS.progress = function(ctx){
     });
     $("rsall").addEventListener("click", () => {
       if(!confirm(_t("Seri, ders, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır."))) return;
-      ["lesson.prog","lesson.daily","lesson.dailyDone","lesson.cur","lesson.srs","badges.seen","quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","makam.done","mimic.best","piece.done","days","int.stats"]
+      ["lesson.prog","lesson.daily","lesson.dailyDone","lesson.cur","lesson.srs","badges.seen","quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","makam.done","mimic.best","piece.done","days","days.mk","int.stats"]
         .forEach(k => { try{ localStorage.removeItem("sk." + k); }catch(e){} });
       markResetting();
       location.reload();

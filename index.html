@@ -99,6 +99,7 @@
           <button type="button" role="radio" data-tune="aeu">AEU</button>
           <button type="button" role="radio" data-tune="icra">İcra</button>
         </div>
+        <button type="button" class="chipbtn" id="tunedrone" aria-pressed="false" hidden></button>
       </div>
       <div class="reg ctxhint" id="ctxhint" hidden></div>
       <details class="phelp tunehelp"><summary>Nasıl kullanılır?</summary><div class="phelpbody">
@@ -135,7 +136,7 @@
       <div class="tracewrap">
         <div class="tracehead">
           <div class="label">Entonasyon izi · son 8 saniye</div>
-          <span class="reg">yatay çizgiler: AEU perdeleri · kesik çizgi: glissando</span>
+          <span class="reg">yatay çizgiler: AEU perdeleri · kalın: tutulan nota · ince: ham perde (kayış, çarpma) · kesik çizgi: glissando</span>
         </div>
         <canvas class="trace" id="trace" role="img" aria-label="Son 8 saniyede çalınan perdenin koma cinsinden grafiği"></canvas>
       </div>
@@ -292,6 +293,13 @@
             <button type="button" class="mini" id="a4up" aria-label="Diyapazonu yarım Hz yükselt">+</button>
             <em>Hz</em>
           </span>
+          <span class="trow a4pre">
+            <button type="button" class="chipbtn" data-a4="440">440</button>
+            <button type="button" class="chipbtn" data-a4="442">442</button>
+            <button type="button" class="chipbtn" data-a4="432">432</button>
+            <button type="button" class="chipbtn" id="a4listen">Dinleyerek ayarla</button>
+          </span>
+          <div class="hint" id="a4msg">Grubun akordu farklıysa: piyanodan, uddan ya da bir arkadaşının sazından bir nota çaldır ve “Dinleyerek ayarla”ya bas. 3 saniye dinlenir, diyapazon o sese göre kurulur.</div>
         </div>
         <div class="srow">
           <span class="label" id="modelab">Gösterge</span>
@@ -317,6 +325,16 @@
           <div class="hint" id="calibmsg">Çalmadan bekle; oda gürültüsü ölçülür ve eşik onun biraz üstüne kurulur.</div>
         </div>
         <div class="srow">
+          <label class="label" for="breath">Hava sesi süzgeci</label>
+          <input type="checkbox" id="breath" role="switch">
+          <div class="hint">Kamıştan hışırtı geliyorsa ya da ortam gürültülüyse aç: yalnızca perdesi net olan ses dinlenir, hava sesi ve hışırtı nota sayılmaz. Çok yumuşak (pp) notalar biraz geç algılanabilir.</div>
+        </div>
+        <div class="srow">
+          <span class="label">Entonasyon toleransı</span>
+          <span class="trow tolrow">temiz ± <input id="tolclean" type="number" min="0.1" max="1" step="0.05" inputmode="decimal" aria-label="Temiz sayılan sapma (koma)"> kabul ± <input id="tolok" type="number" min="0.3" max="3" step="0.1" inputmode="decimal" aria-label="Kabul edilen sapma (koma)"> <em>koma</em></span>
+          <div class="hint">Gösterge temiz bantta yeşil, kabul bandında petrol rengi olur. Kayıt ve alıştırmalar kabul bandının dışını pes ya da tiz sayar. Varsayılan ±0,25 ve ±1,5 koma.</div>
+        </div>
+        <div class="srow">
           <label class="label" for="aec">Hoparlör modu</label>
           <input type="checkbox" id="aec" role="switch">
           <div class="hint">Dron, metronom ya da örnek ses kulaklık yerine hoparlörden çalıyorsa aç: tarayıcının yankı gidericisi uygulamanın kendi sesini mikrofondan çıkarır. Kulaklıkla kapalı kalsın (ses daha temiz ölçülür).</div>
@@ -330,6 +348,11 @@
         <div class="srow">
           <label class="label" for="goalmin">Günlük hedef</label>
           <span class="tnum"><input id="goalmin" type="number" min="1" max="240" step="5" inputmode="numeric"> <em>dk</em></span>
+        </div>
+        <div class="srow">
+          <label class="label" for="awake">Ekran açık kalsın</label>
+          <input type="checkbox" id="awake" role="switch">
+          <div class="hint">Mikrofon dinlerken ekran zaten kararmaz. Bunu açarsan uygulama önündeyken (nota okurken, eşlik ya da dron çalarken de) ekran hiç kararmaz.</div>
         </div>
         <div class="srow" id="remrow" hidden>
           <label class="label" for="remon">Günlük hatırlatma</label>
@@ -460,6 +483,7 @@
 <script src="app.js"></script>
 <script src="nav.js"></script>
 <script src="practice.js"></script>
+<script src="equip.js"></script>
 <script src="review.js"></script>
 <script src="onboard.js"></script>
 <script src="search.js"></script>

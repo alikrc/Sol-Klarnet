@@ -49,6 +49,21 @@ const EXACT = {
   "Hoparlör modu": "Speaker mode",
   "Dron, metronom ya da örnek ses kulaklık yerine hoparlörden çalıyorsa aç: tarayıcının yankı gidericisi uygulamanın kendi sesini mikrofondan çıkarır. Kulaklıkla kapalı kalsın (ses daha temiz ölçülür).":
     "Turn on if the drone, metronome or reference notes play through the speaker instead of headphones: the browser's echo canceller removes the app's own sound from the microphone. Leave it off with headphones (cleaner measurement).",
+  // 2026-11 eklemeleri: diyapazon, hava süzgeci, tolerans, ekran
+  "Dinleyerek ayarla": "Set by ear",
+  "Grubun akordu farklıysa: piyanodan, uddan ya da bir arkadaşının sazından bir nota çaldır ve “Dinleyerek ayarla”ya bas. 3 saniye dinlenir, diyapazon o sese göre kurulur.":
+    "If your group tunes differently: have a piano, oud or a friend's instrument play a note and press “Set by ear”. It listens for 3 seconds and sets the reference pitch from that note.",
+  "Hava sesi süzgeci": "Breath noise filter",
+  "Kamıştan hışırtı geliyorsa ya da ortam gürültülüyse aç: yalnızca perdesi net olan ses dinlenir, hava sesi ve hışırtı nota sayılmaz. Çok yumuşak (pp) notalar biraz geç algılanabilir.":
+    "Turn on if the reed hisses or the room is noisy: only sound with a clear pitch is heard, air and hiss don't count as notes. Very soft (pp) notes may be detected a little later.",
+  "Entonasyon toleransı": "Intonation tolerance",
+  "temiz ±": "clean ±", "kabul ±": "accept ±",
+  "Temiz sayılan sapma (koma)": "Deviation counted as clean (commas)", "Kabul edilen sapma (koma)": "Deviation accepted (commas)",
+  "Gösterge temiz bantta yeşil, kabul bandında petrol rengi olur. Kayıt ve alıştırmalar kabul bandının dışını pes ya da tiz sayar. Varsayılan ±0,25 ve ±1,5 koma.":
+    "The needle is green in the clean band and teal in the accepted band. Recordings and exercises count anything outside the accepted band as flat or sharp. Default ±0,25 and ±1,5 commas.",
+  "Ekran açık kalsın": "Keep the screen on",
+  "Mikrofon dinlerken ekran zaten kararmaz. Bunu açarsan uygulama önündeyken (nota okurken, eşlik ya da dron çalarken de) ekran hiç kararmaz.":
+    "The screen already stays on while the microphone listens. With this on it never dims while the app is in front (also while reading music, or with play-along or the drone).",
   "Verilerim": "My data",
   "Yedek": "Backup",
   "Yedeği kaydet": "Save backup",
@@ -89,6 +104,7 @@ const EXACT = {
   "Aralık dışı": "Out of range", "bu kaba bölge için AEU perde adı yok": "no AEU perde name in this low region",
   "Entonasyon izi · son 8 saniye": "Intonation trace · last 8 seconds",
   "yatay çizgiler: AEU perdeleri · kesik çizgi: glissando": "horizontal lines: AEU perdes · dashed line: glissando",
+  "yatay çizgiler: AEU perdeleri · kalın: tutulan nota · ince: ham perde (kayış, çarpma) · kesik çizgi: glissando": "horizontal lines: AEU perdes · thick: held note · thin: raw pitch (slides, grace notes) · dashed line: glissando",
   "Son 8 saniyede çalınan perdenin koma cinsinden grafiği": "Graph of the played pitch in commas over the last 8 seconds",
   "düz": "steady", "koma": "commas",
   // Parmak kartı

@@ -472,6 +472,8 @@
     btn.setAttribute("aria-label", PLAY_LABELS[btn.id][on ? 1 : 0]);
     btn.innerHTML = on ? ICON.stop : ICON.play;
     btn.closest(".tool").classList.toggle("on", on);
+    // Akort ekranındaki dron düğmesi (app.js) durumu buradan izler
+    if(btn.id === "dronebtn") document.dispatchEvent(new CustomEvent("sk-drone", { detail:{ on } }));
     $("navtools").classList.toggle("on", !!toolsEl.querySelector(".tool.on"));
   }
   // Yardım: sayfanın "Nasıl kullanılır?" metni panelde
@@ -751,19 +753,23 @@
   SK.on("silence", () => collector.flush());
 
   const days = store.get("days", {});
+  // Makamlara göre süre: { "YYYY-MM-DD": { makamId ya da "": saniye } } (son 90 gün; makam akort bağlamından)
+  const daysMk = store.get("days.mk", {});
+  (() => { const old = new Date(); old.setDate(old.getDate() - 90); const lim = dayKey(old); for(const k in daysMk) if(k < lim) delete daysMk[k]; })();
   goalText();
   let lastRaw = 0, unsaved = 0;
   SK.on("raw", d => {
     const dt = d.t - lastRaw; lastRaw = d.t;
     if(dt > 0 && dt < 250){
-      const k = dayKey(new Date());
+      const k = dayKey(new Date()), mk = SK.tuningMakam() || "";
       days[k] = (days[k] || 0) + dt/1000; unsaved += dt;
+      const dm = daysMk[k] = daysMk[k] || {}; dm[mk] = (dm[mk] || 0) + dt/1000;
     }
-    if(unsaved > 5000){ unsaved = 0; store.set("days", days); }
+    if(unsaved > 5000){ unsaved = 0; store.set("days", days); store.set("days.mk", daysMk); }
     if(intDirty){ intDirty = false; store.set("int.stats", intStats); }
   });
   let resetting = false;
-  window.addEventListener("pagehide", () => { if(!resetting && !window.SK_RESETTING){ store.set("days", days); store.set("int.stats", intStats); } });
+  window.addEventListener("pagehide", () => { if(!resetting && !window.SK_RESETTING){ store.set("days", days); store.set("days.mk", daysMk); store.set("int.stats", intStats); } });
 
   // Vibrato: kararlı notanın son 1,5 saniyesindeki ham ölçümler
   const vibEl = $("vib");
@@ -832,7 +838,7 @@
   // Dizi ve Taklit aynı makamı, Dizi ile derslerin makam adımları aynı "çalışıldı" kaydını paylaşır
   const makamState = { cur: makamById(store.get("makam", "rast")) || MAKAMS[0], done: store.get("makam.done", {}) };
   const ctx = { SK, $, store, T, nn, num, sgn, esc, sleep, label, perdeOf, tgt, mkFreq, commaFreq, hit, needMic, holder,
-    miniChart, paintMini, staffSvg, toneKv, toneTips, markScale, days, intStats, paintHeat, goalText, makamState,
+    miniChart, paintMini, staffSvg, toneKv, toneTips, markScale, days, daysMk, intStats, paintHeat, goalText, makamState,
     droneOn: c => { setDrone(c); if(!drone) startDrone(); },
     droneOff: () => { if(drone) stopDrone(); },
     selectTab: id => SK.nav.open(id),
@@ -840,6 +846,13 @@
     setBandFreqs,
     markResetting: () => { resetting = true; } };
   TABS.forEach(([id]) => { modules[id] = TRAINERS[id](ctx); });
+  // Akort ekranı makamın durağında dron açabilsin (perde dron aralığına -22…62 oktavla taşınır)
+  SK.drone = {
+    on: c => { while(c > 62) c -= 53; while(c < -22) c += 53; const p = nearestPerde(c); ctx.droneOn(p ? p.comma : c); },
+    off: ctx.droneOff,
+    active: () => !!drone,
+    comma: () => +dronSel.value
+  };
 
   // Açıklamalar telefonda kısalır; "devamı" ile açılır
   root.querySelectorAll(".ppanel > .pdesc").forEach(p => {

@@ -172,7 +172,8 @@ TRAINERS.archive = function(ctx){
   // ======== Eser ekranı ========
   const S = {                                                     // görünüm ayarları (kalıcı)
     zoom: store.get("arch.zoom", 1), layout: store.get("arch.layout", "page"), follow: store.get("arch.follow", true),
-    lyr: store.get("arch.lyr", true), phr: store.get("arch.phr", false), acc: store.get("arch.acc", "off"), mute: false, dem: false };
+    lyr: store.get("arch.lyr", true), phr: store.get("arch.phr", false), acc: store.get("arch.acc", "off"), mute: false, dem: false,
+    ramp: store.get("arch.ramp", false) };
   let cur = null;          // { e (dizin), raw (dosya), base (asıl notalar), notes, ms (ölçüler), measOf, beatAt, player, ... }
   const save = (k, v) => { S[k] = v; store.set("arch." + k, v); };
 
@@ -234,6 +235,7 @@ TRAINERS.archive = function(ctx){
         </div>
         <div class="pbar">
           <button type="button" class="stopbtn" id="arab" aria-pressed="false">A–B</button>
+          <button type="button" class="stopbtn" id="arramp" aria-pressed="false" title="${L("A–B döngüsünde her turda tempo %5 artar (en çok asıl tempo)", "In an A–B loop the tempo rises 5% each round (up to the original tempo)")}">${L("Kademeli hızlan", "Speed up gradually")}</button>
           <button type="button" class="stopbtn" id="ardem" aria-pressed="false">${L("Dem", "Drone")}</button>
           <label class="arsel">${L("Eşlik", "Accomp.")} <select id="aracc" aria-label="${L("Eşlik", "Accompaniment")}">
             <option value="off">${L("Sessiz", "None")}</option><option value="met">${L("Metronom", "Metronome")}</option><option value="usul">${L("Usul (düm-tek)", "Usul (düm-tek)")}</option><option value="band">${L("Orkestra (darbuka, bas, ud)", "Band (darbuka, bass, oud)")}</option></select></label>
@@ -317,6 +319,13 @@ TRAINERS.archive = function(ctx){
       if(cur.loop || cur.pick){ cur.loop = null; cur.pick = null; abInfo(); return; }
       cur.pick = "A"; abInfo();
     });
+    $("arramp").setAttribute("aria-pressed", S.ramp);
+    $("arramp").addEventListener("click", () => {
+      save("ramp", !S.ramp); $("arramp").setAttribute("aria-pressed", S.ramp);
+      // Açılınca döngü yavaştan başlasın: tempo asıl tempodaysa %60'a iner
+      if(S.ramp && +$("arpct").value >= 100){ $("arpct").value = 60; pctLabel(); }
+      abInfo(); if(listening && cur.loop) play();
+    });
     $("ardem").addEventListener("click", () => setDem(!S.dem));
     $("aracc").value = S.acc;
     $("aracc").addEventListener("change", () => { save("acc", $("aracc").value); if(listening) play(); });
@@ -371,7 +380,8 @@ TRAINERS.archive = function(ctx){
     $("arab").textContent = cur.loop && !cur.pick ? `A–B: ${cur.measOf[cur.loop.from] + 1}–${cur.measOf[cur.loop.to - 1] + 1} ✕` : "A–B";
     if(cur.pick === "A") say("", L("Döngünün ilk ölçüsündeki bir notaya dokun.", "Tap a note in the first bar of the loop."));
     else if(cur.pick === "B") say("", L("Şimdi son ölçüdeki bir notaya dokun.", "Now tap a note in the last bar."));
-    else if(cur.loop) say("", L("Ölçü ", "Bars ") + (cur.measOf[cur.loop.from] + 1) + "–" + (cur.measOf[cur.loop.to - 1] + 1) + L(" tekrar tekrar çalar.", " will loop."));
+    else if(cur.loop) say("", L("Ölçü ", "Bars ") + (cur.measOf[cur.loop.from] + 1) + "–" + (cur.measOf[cur.loop.to - 1] + 1) + L(" tekrar tekrar çalar.", " will loop.") +
+      (S.ramp ? L(" Her turda tempo %5 artar (en çok %100).", " The tempo rises 5% each round (up to 100%).") : ""));
     else say("", "");
     markLoop();
   }
@@ -521,10 +531,20 @@ TRAINERS.archive = function(ctx){
     stopAll();
     const from = cur.loop ? cur.loop.from : (o.from != null ? o.from : cur.startAt), to = cur.loop ? cur.loop.to : (o.to != null ? o.to : cur.notes.length);
     const p = o.pct || pct(), acc = o.acc || S.acc, mute = o.mute != null ? o.mute : S.mute;
+    // Kademeli hızlanma: döngü tek tur çalınır, bitince tempo %5 artırılıp yeniden başlar
+    const ramp = !!cur.loop && S.ramp && o.loop == null;
     listening = true; playLabel(true);
-    cur.player.listen(p, { from, to, loop: o.loop != null ? o.loop : !!cur.loop, mute,
+    cur.player.listen(p, { from, to, loop: ramp ? false : o.loop != null ? o.loop : !!cur.loop, mute,
       onStart: (t0, beatMs) => startAcc(acc, t0, beatMs, from, to),
-      onEnd: () => { listening = false; stopAcc(); playLabel(false); if(o.onEnd) o.onEnd(); } });
+      onEnd: () => {
+        listening = false; stopAcc(); playLabel(false);
+        if(ramp && cur && cur.loop){
+          const v = Math.min(100, Math.max(+$("arpct").value, Math.round(p*100) + 5));
+          $("arpct").value = v; $("arpctv").textContent = "%" + v; $("arpct100").hidden = v === 100;
+          play(); return;
+        }
+        if(o.onEnd) o.onEnd();
+      } });
   }
   function stopAll(){
     listening = false; stopAcc();

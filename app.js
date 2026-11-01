@@ -22,8 +22,13 @@
   const settings = {
     a4: store.get("a4", 440),
     mode: store.get("mode", "koma"),
-    sens: store.get("sens", 5)
+    sens: store.get("sens", 5),
+    breath: !!store.get("breath", false),
+    tolClean: store.get("tol.clean", 0.25),     // koma: bu kadar sapma temiz (yeşil)
+    tolOk: store.get("tol.ok", 1.5)             // koma: bu kadarı kabul edilir; ötesi pes/tiz sayılır
   };
+  if(!(settings.tolClean>=0.1 && settings.tolClean<=1)) settings.tolClean = 0.25;
+  if(!(settings.tolOk>settings.tolClean && settings.tolOk<=3)) settings.tolOk = Math.max(1.5, settings.tolClean + 0.25);
   if(!(settings.a4>=430 && settings.a4<=450)) settings.a4 = 440;
   if(settings.mode!=="koma" && settings.mode!=="sent") settings.mode = "koma";
   if(!(settings.sens>=1 && settings.sens<=10)) settings.sens = 5;
@@ -47,7 +52,7 @@
     v = Math.round(Math.min(450, Math.max(430, v))*2)/2;
     if(!isFinite(v)) v = 440;
     settings.a4 = v; a4In.value = v; setA4(v); store.set("a4", v);
-    hist.length = 0; stab.reset(); trace.length = 0;
+    hist.length = 0; stab.reset(); trace.length = 0; rawTrace.length = 0;
     if(!running) show(lastShown ? analyze(perdeFreq(lastShown.written, T), T) : sample());
   }
   a4In.addEventListener("change", () => applyA4(parseFloat(a4In.value)));
@@ -126,6 +131,46 @@
   });
   const levelTaps = new Set();
 
+  // Hava sesi süzgeci: perde bulucu yalnızca netliği yüksek sesi kabul eder (hışırtı, nefes)
+  const breathIn = $("breath");
+  breathIn.checked = settings.breath;
+  breathIn.addEventListener("change", () => { settings.breath = breathIn.checked; store.set("breath", settings.breath); });
+
+  // Entonasyon toleransı: temiz < kabul; gösterge, kayıt ve alıştırmalar bu sınırları kullanır
+  const tolCleanIn = $("tolclean"), tolOkIn = $("tolok");
+  tolCleanIn.value = settings.tolClean; tolOkIn.value = settings.tolOk;
+  function setTol(){
+    let c = parseFloat(String(tolCleanIn.value).replace(",", ".")), o = parseFloat(String(tolOkIn.value).replace(",", "."));
+    if(!isFinite(c)) c = 0.25; if(!isFinite(o)) o = 1.5;
+    c = Math.round(Math.min(1, Math.max(0.1, c))*100)/100;
+    o = Math.round(Math.min(3, Math.max(c + 0.1, o))*10)/10;
+    settings.tolClean = c; settings.tolOk = o; tolCleanIn.value = c; tolOkIn.value = o;
+    store.set("tol.clean", c); store.set("tol.ok", o);
+    applyTol(); drawScale(); if(lastShown) show(lastShown);
+  }
+  tolCleanIn.addEventListener("change", setTol); tolOkIn.addEventListener("change", setTol);
+
+  // Diyapazon: hazır değerler ve dinleyerek ayar (çalınan sesin tampere notadan sapması diyapazona eklenir)
+  document.querySelectorAll("[data-a4]").forEach(b => b.addEventListener("click", () => applyA4(+b.dataset.a4)));
+  $("a4listen").addEventListener("click", async () => {
+    const msg = $("a4msg"), b = $("a4listen");
+    if(!running) await start();
+    if(!running){ msg.textContent = L("Mikrofon açılamadı.", "Couldn't open the microphone."); return; }
+    const offs = [], a4 = settings.a4;
+    const on = d => { if(d.freq > 0){ const x = 1200*Math.log2(d.freq/a4); offs.push(x - 100*Math.round(x/100)); } };
+    levelTaps.add(on); b.disabled = true;
+    msg.textContent = L("Dinleniyor… notayı 3 saniye tuttur.", "Listening… hold the note for 3 seconds.");
+    await new Promise(r => setTimeout(r, 3000));
+    levelTaps.delete(on); b.disabled = false;
+    if(offs.length < 25){ msg.textContent = L("Yeterince ses duyulmadı; notayı daha uzun ve yüksek çaldırıp yeniden dene.", "Not enough sound heard; have the note played longer and louder, then try again."); return; }
+    offs.sort((x, y) => x - y);
+    const q = k => offs[Math.floor(offs.length*k)], med = q(0.5);
+    if(q(0.8) - q(0.2) > 15){ msg.textContent = L("Ses sabit değildi (vibrato ya da birden çok nota). Tek notayı düz tuttur.", "The pitch wasn't steady (vibrato or several notes). Have one note held straight."); return; }
+    applyA4(a4*Math.pow(2, med/1200));
+    msg.textContent = L("Duyulan ses ", "The note was ") + (med >= 0 ? "+" : "") + Math.round(med) + L(" sent; diyapazon ", " cents off; reference set to ") + String(settings.a4).replace(".", LANG === "en" ? "." : ",") + " Hz" +
+      (Math.abs(a4*Math.pow(2, med/1200) - settings.a4) > 0.6 ? L(" (430–450 sınırında)", " (limited to 430–450)") : "");
+  });
+
   // ---- Makam bağlamı (akort ekranı) ----
   // Kullanıcının seçtiği makam kalıcıdır; çalışma bölümündeki bir makam dersi/alıştırması geçici bağlam kurar.
   const tMakam = $("tmakam"), tuneBtns = document.querySelectorAll("#tuneseg [data-tune]"), ctxHint = $("ctxhint");
@@ -150,24 +195,56 @@
         (tempOn() ? " · " + L("çalışma bölümünden", "set by the practice section") : "");
       ctxHint.hidden = false;
     }else ctxHint.hidden = true;
+    paintDroneBtn(mk);
     markRailScale(mk);
     relabelRail();
     hist.length = 0; stab.reset();
     if(!running) show(lastShown ? analyze(perdeFreq(lastShown.written, T), T) : sample());
   }
-  tMakam.addEventListener("change", () => { userCtx.mk = tMakam.value; store.set("tune.makam", userCtx.mk); applyCtx(); });
+  // Dem: seçili makamın durak perdesinde dron (practice.js SK.drone). Makam değişince açık dron yeni durağa geçer
+  const tDrone = $("tunedrone");
+  let droneMk = null;
+  function paintDroneBtn(mk){
+    droneMk = mk;
+    tDrone.hidden = !mk;
+    if(!mk) return;
+    const on = !!(window.SK && SK.drone && SK.drone.active());
+    tDrone.setAttribute("aria-pressed", on ? "true" : "false");
+    tDrone.textContent = (on ? "■ " : "▶ ") + L("Dem: ", "Drone: ") + perdeName(mk.durak);
+    tDrone.title = L("Makamın durak perdesinde arkada sürekli ses (dron)", "A steady background note on the makam's final");
+  }
+  tDrone.addEventListener("click", () => {
+    if(!droneMk || !SK.drone) return;
+    if(SK.drone.active()) SK.drone.off(); else { audioCtx(); SK.drone.on(droneMk.durak); }
+  });
+  document.addEventListener("sk-drone", () => paintDroneBtn(droneMk));
+  tMakam.addEventListener("change", () => {
+    userCtx.mk = tMakam.value; store.set("tune.makam", userCtx.mk); applyCtx();
+    const mk = makamById(userCtx.mk);
+    if(mk && SK.drone && SK.drone.active()) SK.drone.on(mk.durak);
+  });
   tuneBtns.forEach(b => b.addEventListener("click", () => { userCtx.mode = b.dataset.tune; store.set("tune.mode", userCtx.mode); applyCtx(); }));
 
   // ---- Gösterge ölçeği ----
   // Koma modu: en yakın AEU perdesinden sapma (±2 koma). Sent modu: tampere notadan sapma (±50 sent).
-  const SCALE = { koma:{ max:2, ticks:[-2,-1,0,1,2], ok:0.25 }, sent:{ max:50, ticks:[-50,-25,0,25,50], ok:5 } };
+  // ok: temiz bandı, near: kabul bandı (Ayarlar → Entonasyon toleransı; sent ölçeğinde komadan çevrilir)
+  const SCALE = { koma:{ max:2, ticks:[-2,-1,0,1,2], ok:0.25, near:1.5 }, sent:{ max:50, ticks:[-50,-25,0,25,50], ok:5, near:34 } };
+  function applyTol(){
+    SCALE.koma.ok = settings.tolClean; SCALE.koma.near = settings.tolOk;
+    SCALE.sent.ok = Math.round(settings.tolClean*1200/53); SCALE.sent.near = Math.round(settings.tolOk*1200/53);
+    // Kayıt ve alıştırma değerlendirmesi de aynı sınırı kullansın: kabul bandının dışı pes/tiz
+    if(typeof INTON !== "undefined") INTON.offKoma = settings.tolOk;
+  }
+  applyTol();
   function drawScale(){
     track.querySelectorAll(".tick,.ticklab,.zone").forEach(n => n.remove());
     const sc = SCALE[settings.mode];
-    const zone = document.createElement("div");
-    zone.className = "zone";
-    zone.style.left = (50 - sc.ok/sc.max*50) + "%"; zone.style.width = (sc.ok/sc.max*100) + "%";
-    track.insertBefore(zone, needle);
+    for(const [w, cls] of [[Math.min(sc.near, sc.max), "zone near"], [sc.ok, "zone"]]){
+      const zone = document.createElement("div");
+      zone.className = cls;
+      zone.style.left = (50 - w/sc.max*50) + "%"; zone.style.width = (w/sc.max*100) + "%";
+      track.insertBefore(zone, needle);
+    }
     sc.ticks.forEach(v => {
       const pos = 50 + v/sc.max*50;
       const t = document.createElement("div");
@@ -412,10 +489,12 @@
     const v = komaMode ? r.perde.delta : settings.mode==="sent" ? r.cents : r.cents*53/1200;
     needle.style.left = Math.max(0, Math.min(100, 50 + v/shownSc.max*50)) + "%";
     needle.classList.toggle("good", Math.abs(v) <= shownSc.ok);
+    needle.classList.toggle("near", Math.abs(v) > shownSc.ok && Math.abs(v) <= shownSc.near);
     // Küçük gösterge (parmak kartı)
     const npos = Math.max(0, Math.min(100, 50 + v/shownSc.max*50));
     mtNeedle.style.left = npos + "%";
     mtNeedle.classList.toggle("good", Math.abs(v) <= shownSc.ok);
+    mtNeedle.classList.toggle("near", Math.abs(v) > shownSc.ok && Math.abs(v) <= shownSc.near);
     mtZone.style.left = (50 - shownSc.ok/shownSc.max*50) + "%"; mtZone.style.width = (shownSc.ok/shownSc.max*100) + "%";
     mtPerde.innerHTML = perdeEl.innerHTML;
     mtPn.textContent = pnowEl.textContent;
@@ -682,6 +761,8 @@
   const canvas = $("trace"), TRACE_MS = 8000;
   const trace = [];          // {t, comma} ya da {t, comma:null} (sessizlik)
   const traceMarks = [];     // glissando işaretleri {t}
+  // Ham perde eğrisi: her ölçüm (kararlı nota beklenmeden). Notalar arası kayış, çarpma ve nefesle bükme burada görünür
+  const rawTrace = [];       // {t, comma} ya da {t, comma:null}
   let traceCenter = 0;
   function drawTrace(){
     const dpr = window.devicePixelRatio || 1;
@@ -715,6 +796,19 @@
       g.fillText(name, 8, yy);
       lastLabelY = yy;
     }
+    while(rawTrace.length && now - rawTrace[0].t > TRACE_MS) rawTrace.shift();
+    g.strokeStyle = col("--teal"); g.globalAlpha = 0.55; g.lineWidth = 1.25; g.lineJoin = "round";
+    g.beginPath();
+    let rpen = false, rprev = null;
+    for(const p of rawTrace){
+      // 20 komadan büyük sıçramada çizgi kopar: oktav ya da harmonik yanılgısı kayış gibi görünmesin
+      if(p.comma===null || (rprev !== null && Math.abs(p.comma - rprev) > 20)){ rpen = false; rprev = p.comma; if(p.comma===null) continue; }
+      const x = LEFT + (1 - (now - p.t)/TRACE_MS) * (W - LEFT);
+      const yy = Math.max(2, Math.min(H-2, y(p.comma)));
+      if(rpen) g.lineTo(x, yy); else { g.moveTo(x, yy); rpen = true; }
+      rprev = p.comma;
+    }
+    g.stroke(); g.globalAlpha = 1;
     g.strokeStyle = col("--accent"); g.lineWidth = 2; g.lineJoin = "round";
     g.beginPath();
     let pen = false;
@@ -764,11 +858,18 @@
       wakeLock.addEventListener("release", () => { wakeLock = null; });
     }catch(e){ wakeLock = null; }
   }
+  // Ayarlar → Ekran açık kalsın: mikrofon kapalıyken de kilit tutulur
+  const awakeIn = $("awake");
+  awakeIn.checked = !!store.get("awake", false);
+  const alwaysAwake = () => awakeIn.checked;
   function letSleep(){
+    if(alwaysAwake()) return;
     if(wakeLock){ wakeLock.release(); wakeLock = null; }
   }
+  awakeIn.addEventListener("change", () => { store.set("awake", awakeIn.checked); if(awakeIn.checked) keepAwake(); else if(!running) letSleep(); });
+  if(alwaysAwake()) keepAwake();
   document.addEventListener("visibilitychange", () => {
-    if(running && document.visibilityState === "visible") keepAwake();
+    if((running || alwaysAwake()) && document.visibilityState === "visible") keepAwake();
     // Android uygulamasında arka plana geçince mikrofonu bırak (izin göstergesi açık kalmasın)
     if(running && document.hidden && window.Capacitor) stop();
   });
@@ -836,7 +937,8 @@
   // Ekranın altında kısa süreli uyarı (ör. mikrofon izni yok); hangi sayfada olunursa olunsun görünür
   // action: { label, run } verilirse metnin altında bir düğme çıkar
   let noticeEl = null, noticeTimer = null;
-  function notice(msg, action){
+  // ms: ekranda kalma süresi (varsayılan 9 sn)
+  function notice(msg, action, ms = 9000){
     if(!noticeEl){
       noticeEl = document.createElement("div");
       noticeEl.className = "sknotice"; noticeEl.setAttribute("role", "alert");
@@ -850,7 +952,7 @@
     act.hidden = !action; act.previousElementSibling.hidden = !action;
     if(action){ act.textContent = action.label; act.onclick = () => { noticeEl.hidden = true; action.run(); }; }
     noticeEl.hidden = false;
-    clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { noticeEl.hidden = true; }, 9000);
+    clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { noticeEl.hidden = true; }, ms);
   }
   $("tuneidlebtn").addEventListener("click", () => start());
   async function start(){
@@ -920,6 +1022,7 @@
     perdeEl.style.opacity = .45;
     chip.textContent = "sessiz";
     if(trace.length && trace[trace.length-1].comma!==null) trace.push({t:performance.now(), comma:null});
+    if(rawTrace.length && rawTrace[rawTrace.length-1].comma!==null) rawTrace.push({t:performance.now(), comma:null});
   }
   // Ritim için nota başının kesin zamanı: son ~80 ms'yi 128 örneklik bloklara bölüp enerjinin
   // en son hızla yükseldiği bloğu bulur (40 ms'lik ölçüm aralığından bağımsız, ~3 ms çözünürlük).
@@ -963,7 +1066,7 @@
     // içerdiğinden alt harmonik denetimi kapanır.
     const win = lastFreq > 250 ? buf.subarray(buf.length - 2048) : buf;
     winLen = win.length;
-    const d = detectPitch(win, ctx.sampleRate, PR.min, PR.max, minRms, { subharmonic: !(window.SK && SK.droneActive) });
+    const d = detectPitch(win, ctx.sampleRate, PR.min, PR.max, minRms, { subharmonic: !(window.SK && SK.droneActive), minClarity: settings.breath ? 0.7 : 0 });
     // Dron ya da kayıt dinletilirken o ses nota sayılmasın (practice.js)
     if(d.freq > 0 && window.SK && window.SK.ignore && window.SK.ignore(d.freq, d.rms)) d.freq = -1;
     lastFreq = d.freq;
@@ -975,12 +1078,17 @@
     levelTaps.forEach(fn => fn(lev));
     emit("level", lev);
     if(d.freq > 0){
-      emit("raw", { t:now, freq:d.freq, comma:(freqToMidi(d.freq) + T - 67)*53/12, rms:d.rms, clarity:d.clarity });
+      const rawC = (freqToMidi(d.freq) + T - 67)*53/12;
+      emit("raw", { t:now, freq:d.freq, comma:rawC, rms:d.rms, clarity:d.clarity });
+      rawTrace.push({ t:now, comma:rawC });
       hist.push(d.freq); if(hist.length>5) hist.shift();
       const med = [...hist].sort((a,b)=>a-b)[Math.floor(hist.length/2)];
       const r = analyze(med, T);
       const prev = stab.shown;
-      if(stab.push(noteKey(r))){
+      // Oktav sıçrama koruması: register geçişinde perde bulucu bir an oktav üstü/altı görebilir.
+      // Gösterilen notadan tam bir oktav uzaktaki yeni nota ancak 5 ölçüm (200 ms) sürerse kabul edilir.
+      const octJump = !!(lastShown && stab.shown) && Math.abs(r.written - lastShown.written) === 12;
+      if(stab.push(noteKey(r), octJump ? 5 : undefined)){
         show(r);
         perdeEl.style.opacity = 1;
         chip.textContent = "dinliyor";
@@ -1116,6 +1224,14 @@
     return { app:"sol-klarnet", v:1, date:new Date().toISOString(), data };
   }
   const bkMsg = $("bkmsg"), BK_HINT = bkMsg.textContent;
+  // Son yedeğin tarihi ipucunda; 30 günü geçtiyse hatırlatılır
+  function bkAge(){
+    const last = store.get("bk.last", 0), d = last ? Math.floor((Date.now() - last)/864e5) : null;
+    const age = d === null ? L("Henüz yedek alınmadı.", "No backup yet.")
+      : d === 0 ? L("Son yedek bugün.", "Last backup today.") : L("Son yedek " + d + " gün önce.", "Last backup " + d + " days ago.");
+    bkMsg.textContent = (LANG === "en" ? translate(BK_HINT) : BK_HINT) + " " + age + (d === null || d > 30 ? L(" Yedeği Drive'a ya da e-postana kaydetmen önerilir.", " Saving it to Drive or your e-mail is recommended.") : "");
+  }
+
   $("bkexport").addEventListener("click", async () => {
     const json = JSON.stringify(backupData()), name = "sol-klarnet-" + dayKey(new Date()) + ".json";
     const P = window.Capacitor && window.Capacitor.Plugins;
@@ -1134,6 +1250,7 @@
           setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         }
       }
+      store.set("bk.last", Date.now());
       bkMsg.textContent = L("Yedek hazır: ", "Backup ready: ") + name + " (" + Math.round(json.length/1024) + " KB)";
     }catch(e){
       if(e && e.name === "AbortError") return;
@@ -1154,7 +1271,7 @@
     window.SK_RESETTING = true;
     location.reload();
   });
-  bkMsg.textContent = BK_HINT;
+  bkAge();
   // Tarayıcı depolama alanı sıkışınca verileri silmesin (yalnızca web; Android uygulamasında gerekmez)
   if(navigator.storage && navigator.storage.persist && !window.Capacitor)
     navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => {});

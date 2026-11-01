@@ -478,7 +478,8 @@ function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008, opts=
   };
   let gmax=0;
   for(let t=tauMin+1;t<tauMax;t++) if(isPeak(t)) gmax = Math.max(gmax, height(t));
-  if(gmax < 0.45) return { freq:-1, rms, clarity:gmax };
+  // opts.minClarity: hava sesi süzgeci açıkken daha yüksek netlik istenir (hışırtının periyodu zayıftır)
+  if(gmax < (opts.minClarity || 0.45)) return { freq:-1, rms, clarity:gmax };
   const thr = 0.9*gmax;
   let pick=-1;
   for(let t=tauMin+1;t<tauMax;t++) if(isPeak(t) && height(t)>=thr){ pick=t; break; }
@@ -509,11 +510,12 @@ function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008, opts=
 class NoteStabilizer{
   constructor(hold=3){ this.hold=hold; this.reset(); }
   reset(){ this.shown=null; this.cand=null; this.count=0; }
-  push(key){
+  // hold verilirse bu aday için varsayılan yerine o kadar ölçüm beklenir (oktav sıçrama koruması)
+  push(key, hold=this.hold){
     if(key===this.shown){ this.cand=null; this.count=0; return true; }
     if(key===this.cand) this.count++;
     else { this.cand=key; this.count=1; }
-    if(this.count>=this.hold){ this.shown=key; this.cand=null; this.count=0; return true; }
+    if(this.count>=hold){ this.shown=key; this.cand=null; this.count=0; return true; }
     return false;
   }
 }

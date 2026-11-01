@@ -422,6 +422,40 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
 }
 
 // Eski biçimdeki kendi ezgileri ({name, notes:[w]}) yeni biçime çevir
+// ---- Eser paylaşımı: eser sıkıştırılıp bağlantının # kısmına yazılır (sunucuya gitmez) ----
+// Bağlantı web sürümünü açar; uygulamada bağlantı "Eser ekle" kutusuna yapıştırılarak da eklenir.
+const SHARE_WEB = "https://alikrc.github.io/Sol-Klarnet/";
+// Açılıştaki adres nav.js tarafından yeniden yazılmadan önce okunur
+const SHARED_PIECE = (/[#&]paylas=([A-Za-z0-9_-]+)/.exec(location.hash) || [])[1] || null;
+const b64u = bytes => { let s = ""; for(let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode(...bytes.subarray(i, i+0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+const unb64u = str => { const s = atob(str.replace(/-/g, "+").replace(/_/g, "/")); const b = new Uint8Array(s.length); for(let i=0;i<s.length;i++) b[i] = s.charCodeAt(i); return b; };
+async function pipeBytes(bytes, stream){ return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+// Biçim: ilk harf "z" (deflate-raw) ya da "j" (sıkıştırmasız JSON), sonrası base64url
+async function encodePiece(p){
+  const json = JSON.stringify({ v:1, name:p.name, tempo:p.tempo, meter:p.meter, makam:p.makam || null,
+    notes: p.notes.map(n => { const o = { w:n.w, c:n.c, d:n.d }; if(n.rest) o.rest = true; if(n.orn) o.orn = n.orn; return o; }) });
+  const raw = new TextEncoder().encode(json);
+  if(typeof CompressionStream === "function") return "z" + b64u(await pipeBytes(raw, new CompressionStream("deflate-raw")));
+  return "j" + b64u(raw);
+}
+// Gelen veri doğrulanır: yalnızca bilinen alanlar, aralık içi notalar
+async function decodePiece(code){
+  const kind = code[0], bytes = unb64u(code.slice(1));
+  const raw = kind === "z" ? await pipeBytes(bytes, new DecompressionStream("deflate-raw")) : kind === "j" ? bytes : null;
+  if(!raw) throw new Error("biçim");
+  const o = JSON.parse(new TextDecoder().decode(raw));
+  if(!o || !Array.isArray(o.notes)) throw new Error("biçim");
+  const notes = o.notes.filter(n => n && typeof n.d === "number" && n.d > 0 && n.d <= 32).map(n => {
+    const x = { w: Math.round(+n.w) || 0, c: typeof n.c === "number" ? n.c : null, d: n.d, rest: !!n.rest };
+    if(n.orn && typeof n.orn === "object" && typeof n.orn.kind === "string") x.orn = n.orn;
+    return x;
+  }).filter(n => n.rest || (n.w >= LOW_NOTE && n.w <= HIGH_NOTE)).slice(0, 5000);
+  if(!notes.some(n => !n.rest)) throw new Error("nota yok");
+  const meter = Array.isArray(o.meter) && o.meter.length === 2 && o.meter.every(x => Number.isInteger(x) && x > 0 && x <= 32) ? o.meter : [4,4];
+  return { name: String(o.name || "").slice(0, 80) || L("Paylaşılan eser", "Shared piece"), notes,
+    tempo: Math.max(30, Math.min(240, Math.round(+o.tempo) || 80)), meter, makam: makamById(o.makam) ? o.makam : null };
+}
+
 function normPiece(p){
   if(p.notes.length && typeof p.notes[0] === "number")
     return { ...p, notes: p.notes.map(w => { const q = nearestPerde((w-67)*53/12); return { w, c: q ? q.comma : null, d:1, rest:false }; }), tempo: p.tempo || 80, meter: p.meter || [4,4] };
@@ -464,10 +498,12 @@ TRAINERS.piece = function(ctx){
       <label class="chk"><input type="checkbox" id="pcconcert"> ${L("Piyano (konser) notası: ", "Piano (concert-pitch) score: ") + ctx.esc(SK.inst.name) + L(" için çevir", ": transpose")}
         <em class="muted">(${L("yazılı = duyulan ", "written = sounding ") + (SK.T >= 0 ? "+" : "−") + Math.abs(SK.T) + L(" yarım ses", " semitones")}${SK.T === 5 ? ", Do(C) → Fa(F)" : ""})</em></label>
       <textarea id="pctext" rows="3" placeholder="Sol4 La4:0.5 Si4:0.5 Do5:2" aria-label="${L("Notalar", "Notes")}"></textarea>
+      <p class="muted small">${L("Sana gönderilen eser bağlantısını da bu kutuya yapıştırıp Kaydet'e basabilirsin.", "You can also paste a piece link someone sent you into this box and press Save.")}</p>
       <div class="pbar"><button class="stopbtn" id="pcsave" type="button">${L("Kaydet", "Save")}</button>
         <button class="stopbtn" id="pcimport" type="button">${L("MusicXML içe aktar", "Import MusicXML")}</button>
         <input type="file" id="pcfile" accept=".xml,.musicxml,.mxl,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml" hidden>
         <button class="stopbtn" id="pcdel" type="button">${L("Seçili kendi eserimi sil", "Delete the selected own piece")}</button>
+        <button class="stopbtn" id="pcshare" type="button">${L("Seçili eseri paylaş", "Share the selected piece")}</button>
         <span class="muted" id="pcmsg"></span></div>
     </details>`;
   let user = store.get("piece.user", []).map(normPiece);
@@ -527,7 +563,13 @@ TRAINERS.piece = function(ctx){
   $("pcconcert").checked = store.get("piece.concert", false);
   $("pcconcert").addEventListener("change", () => store.set("piece.concert", $("pcconcert").checked));
   const written = notes => $("pcconcert").checked ? concertToWritten(notes, SK.T) : notes;
-  $("pcsave").addEventListener("click", () => {
+  $("pcsave").addEventListener("click", async () => {
+    const link = /[#&]paylas=([A-Za-z0-9_-]+)/.exec($("pctext").value);
+    if(link){
+      try{ const p = await decodePiece(link[1]); addUser(p); $("pctext").value = ""; msg(L("“" + p.name + "” eklendi (", "Added “" + p.name + "” (") + p.notes.length + L(" nota).", " notes).")); }
+      catch(e){ msg(L("Bağlantı okunamadı; tamamını kopyaladığından emin ol.", "Couldn't read the link; make sure you copied all of it.")); }
+      return;
+    }
     const parsed = parseScoreText($("pctext").value), errors = parsed.errors, notes = written(parsed.notes);
     const bad = notes.filter(n => !n.rest && (n.w < LOW_NOTE || n.w > HIGH_NOTE));
     if(errors.length || bad.length || !notes.some(n => !n.rest)){
@@ -558,6 +600,63 @@ TRAINERS.piece = function(ctx){
     if(!confirm(L("Bu eser silinsin mi?", "Delete this piece?"))) return;
     user.splice(+k.slice(1), 1); store.set("piece.user", user); fillSel(); load();
   });
+  // Paylaş: bağlantı, kopyala / paylaş menüsü ve QR kod (vendor/qrcode, ilk paylaşımda yüklenir)
+  const shareEl = document.createElement("div");
+  shareEl.className = "pcsharebox";
+  let qrLoad = null;
+  const loadQr = () => qrLoad = qrLoad || new Promise((res, rej) => {
+    if(window.qrcode) return res(window.qrcode);
+    const sc = document.createElement("script"); sc.src = "vendor/qrcode/qrcode.js";
+    sc.onload = () => res(window.qrcode); sc.onerror = () => { qrLoad = null; rej(new Error("qr")); };
+    document.head.appendChild(sc);
+  });
+  $("pcshare").addEventListener("click", async () => {
+    const k = $("pcsel").value;
+    if(!k.startsWith("u")){ msg(L("Etütler herkeste var; kendi eserlerini paylaşabilirsin.", "Everyone has the études; you can share your own pieces.")); return; }
+    const p = user[+k.slice(1)];
+    const base = window.Capacitor || !/^https?:/.test(location.protocol) ? SHARE_WEB : location.origin + location.pathname;
+    const url = base + "#paylas=" + await encodePiece(p);
+    shareEl.innerHTML = `
+      <p>${L("Bu bağlantıyı açan kişi “" + ctx.esc(p.name) + "” eserini kendi eserlerine ekleyebilir. Eser bağlantının içindedir; hiçbir sunucuya yüklenmez.", "Whoever opens this link can add “" + ctx.esc(p.name) + "” to their pieces. The piece is inside the link itself; nothing is uploaded to a server.")}</p>
+      <input type="text" readonly class="pcshareurl" aria-label="${L("Paylaşım bağlantısı", "Share link")}">
+      <div class="pbar"><button class="primary small" type="button" data-sh="copy">${L("Bağlantıyı kopyala", "Copy link")}</button>
+        <button class="stopbtn" type="button" data-sh="send">${L("Paylaş…", "Share…")}</button><span class="muted" data-sh="msg"></span></div>
+      <div class="pcqr" aria-label="${L("Bağlantının QR kodu", "QR code of the link")}"></div>`;
+    const inp = shareEl.querySelector(".pcshareurl"), smsg = shareEl.querySelector('[data-sh="msg"]');
+    inp.value = url;
+    inp.addEventListener("focus", () => inp.select());
+    shareEl.querySelector('[data-sh="copy"]').addEventListener("click", async () => {
+      try{ await navigator.clipboard.writeText(url); smsg.textContent = L("Kopyalandı.", "Copied."); }
+      catch(e){ inp.focus(); inp.select(); smsg.textContent = L("Seçili bağlantıyı kopyala.", "Copy the selected link."); }
+    });
+    shareEl.querySelector('[data-sh="send"]').addEventListener("click", async () => {
+      const Pl = window.Capacitor && window.Capacitor.Plugins, title = p.name;
+      try{
+        if(Pl && Pl.Share) await Pl.Share.share({ title, text: title, url, dialogTitle: L("Eseri paylaş", "Share the piece") });
+        else if(navigator.share) await navigator.share({ title, url });
+        else { await navigator.clipboard.writeText(url); smsg.textContent = L("Bu tarayıcıda paylaş menüsü yok; bağlantı kopyalandı.", "No share menu in this browser; the link was copied."); }
+      }catch(e){ if(!(e && e.name === "AbortError")) smsg.textContent = L("Paylaşılamadı.", "Couldn't share."); }
+    });
+    SK.nav.openSheet(L("Eseri paylaş", "Share the piece"), shareEl);
+    const qrBox = shareEl.querySelector(".pcqr");
+    // Çok uzun bağlantı QR'a sığmaz ya da telefon kamerasıyla zor okunur (yaklaşık 1800 karakter sınır)
+    if(url.length > 1800){ qrBox.innerHTML = `<p class="muted small">${L("Eser QR koda sığmayacak kadar uzun; bağlantıyı gönder.", "The piece is too long for a QR code; send the link.")}</p>`; return; }
+    try{
+      const qr = (await loadQr())(0, "L"); qr.addData(url); qr.make();
+      qrBox.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    }catch(e){ qrBox.innerHTML = `<p class="muted small">${L("QR kod oluşturulamadı.", "Couldn't make the QR code.")}</p>`; }
+  });
+  // Açılış adresinde paylaşılan eser varsa eklemek için sor
+  if(SHARED_PIECE) decodePiece(SHARED_PIECE).then(p => {
+    // Yeniden yüklemede tekrar sorulmasın
+    history.replaceState(history.state, "", location.pathname + location.search);
+    const n = p.notes.filter(x => !x.rest).length;
+    // Geri tuşuyla aynı adrese dönülürse ikinci kez eklenmesin
+    const same = user.some(u => u.name === p.name && u.notes.length === p.notes.length && u.notes.every((x, i) => x.w === p.notes[i].w && x.d === p.notes[i].d));
+    if(same){ SK.notice(L("“" + p.name + "” zaten kendi eserlerinde.", "“" + p.name + "” is already in your pieces.")); return; }
+    SK.notice(L("Sana bir eser gönderildi: “" + p.name + "” (" + n + " nota).", "Someone sent you a piece: “" + p.name + "” (" + n + " notes)."),
+      { label: L("Eserlerime ekle", "Add to my pieces"), run: () => SK.addPieceFull(p) }, 60000);
+  }).catch(() => SK.notice(L("Paylaşılan eser bağlantısı okunamadı.", "Couldn't read the shared piece link.")));
   // Çevir sekmesinin düzeltme ekranından: { name, notes, tempo, meter, makam, source? } eklenir ve "Etüt ve eserler" o eserle açılır
   SK.addPieceFull = piece => {
     const p = { name: piece.name, notes: piece.notes, tempo: piece.tempo, meter: piece.meter, makam: piece.makam || null };

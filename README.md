@@ -143,6 +143,8 @@ Nota okuyucunun simge kalıpları [Bravura](https://github.com/steinbergmedia/br
 `testdata/fonts/` altında. Gerçek nota örnekleri telifli olabildiği için depoya girmez (`testdata/omr/README.md`).
 PDF okuma: [pdf.js](https://github.com/mozilla/pdf.js) (pdfjs-dist 4.10.38, Apache 2.0), `vendor/pdfjs/` altında; `npm run vendor`
 ile `node_modules`tan kopyalanır, uygulama yalnızca PDF seçilince yükler.
+Eser paylaşımındaki QR kod: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (1.4.4, MIT),
+`vendor/qrcode/` altında; `npm run vendor` ile kopyalanır, yalnızca eser paylaşılınca yüklenir.
 
 Nota bul: [neyzen.com](https://www.neyzen.com/) ve [projetsm.com](http://projetsm.com/) nota arşivleri aranır, seçilen dosya
 indirilip cihazda okunur; dosyalar uygulamaya kopyalanmaz. neyzen arama dizini IndexedDB'de saklanır. neyzen.com'dan

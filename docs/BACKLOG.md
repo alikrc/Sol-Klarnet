@@ -1,5 +1,40 @@
 # Sol Klarnet — Backlog
 
+## Eksikler listesinden: akort, dem, tolerans, ekipman, istatistik, paylaşım — tamamlandı (2 Kasım 2026)
+
+Gelen iki eksik listesindeki maddeler koda göre denetlendi. Zaten olanlar: dinlerken ekranın açık kalması (Wake Lock),
+ortam gürültüsüne göre eşik, dron, makam durak/güçlü bilgisi (akort ekranı, Teori), etütler ve teknik kalıpları, kayıtla
+senkron perde eğrisi ve çarpma/kayış tanıma (Kayıt, Seyir), arşivde A–B döngü ve tempo merdiveni, dosyaya yedek, kalıcı
+depolama izni, diyapazon 430–450 Hz, entonasyon haritası ve kaçan perdeler. Eksik olanlar yapıldı:
+
+- **Oktav sıçrama koruması** (`app.js` tick, `core.js` `NoteStabilizer.push(key, hold)`): gösterilen notadan tam bir oktav
+  uzaktaki nota ancak 5 ölçüm (200 ms) sürerse kabul edilir; register geçişindeki anlık oktav yanılgısı göstergeye ve
+  alıştırmalara geçmez (gerçek oktav atlaması 80 ms gecikir)
+- **Hava sesi süzgeci** (Ayarlar): açıkken perde bulucu netliği 0,7'nin altındaki sesi almaz (`detectPitch` `minClarity`)
+- **Entonasyon toleransı** (Ayarlar): temiz ±0,25 / kabul ±1,5 koma varsayılan; göstergede iki bant (yeşil, petrol) ve
+  kabul sınırı kayıt değerlendirmesinin pes/tiz eşiği (`INTON.offKoma`)
+- **Akort izinde ham perde eğrisi:** kalın çizgi tutulan nota, ince çizgi her ölçüm; notalar arası kayış, çarpma ve nefesle
+  bükme 8 saniyelik izde görünür
+- **Diyapazon:** 440 / 442 / 432 hazır değerleri ve "Dinleyerek ayarla" (3 sn dinler, tampere notadan sapmanın ortancası
+  diyapazona eklenir; ses sabit değilse reddeder)
+- **Dem:** akort ekranında makam seçilince "▶ Dem: <durak>" düğmesi; makam değişince açık dron yeni durağa geçer (`SK.drone`)
+- **Ekran açık kalsın** (Ayarlar): mikrofon kapalıyken de ekran kilidi tutulur. Yedek ipucunda son yedeğin tarihi; 30 günü
+  geçince Drive'a ya da e-postaya kaydetme önerisi
+- **Ekipmanım** (Ayarlar, `equip.js`): bek, kamış listesi, seçili kamışla perdesi duyulan süre, kamış notu, kamış ömrü
+  (varsayılan 25 saat) dolunca bir kez hatırlatma
+- **Arşivde kademeli hızlanma:** A–B döngüsünde her turda tempo %5 artar (en çok %100); açılınca tempo %60'tan başlar
+- **İstatistik** (Takip): makamlara göre süre (son 30 gün; makam akort bağlamından, `sk.days.mk`, 90 gün tutulur) ve hafta
+  günlerine göre ortalama süre
+- **Eser paylaşımı** (Etüt ve eserler): kendi eseri sıkıştırılıp bağlantının `#paylas=` kısmına yazılır, sunucuya gitmez;
+  kopyala, paylaş menüsü ve QR kod (`vendor/qrcode`, 1800 karakteri aşan bağlantıda QR yok). Bağlantıyı açan kişiye
+  "Eserlerime ekle" sorulur; uygulamada bağlantı "Eser ekle" kutusuna yapıştırılarak eklenir. Uygulamadan paylaşılan
+  bağlantı web sürümünü (alikrc.github.io/Sol-Klarnet) açar
+- **Yapılmadı:** bulut eşitleme (sunucu ve hesap gerektirir; yedek dosyası Drive'a kaydedilebiliyor); kamış/bek profiline
+  göre mikrofon ayarı (kamış perde ölçümünü değiştirmez; ortam ölçümü ve hava süzgeci yeterli); MIDI dışa aktarma
+- **Denenmedi:** gerçek mikrofonla (tarayıcı panelinde mikrofon yok): oktav koruması, hava süzgecinin pp notalara etkisi,
+  dinleyerek diyapazon, ham perde eğrisinin gerçek kayışlarda görünüşü, kamış süre sayımı. Paylaşım (gönder, aç, ekle),
+  QR, dem düğmesi, tolerans bantları, kademeli hızlanma ve istatistikler tarayıcıda denendi
+
 ## Çeyrek ses parmakları ve gerçek çalgı sesleri — tamamlandı (1 Kasım 2026)
 
 - **Çeyrek ses parmakları** (`core.js` `QT_FINGERINGS`, `quarterFingeringsFor`, `quarterFor`): WFG'nin Oehler/Albert çeyrek
