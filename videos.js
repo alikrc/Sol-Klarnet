@@ -198,6 +198,7 @@ const LESSON_VIDEOS = {
   "suzinak": ["KggrLL97a2k", "kP2hXNBI9lk"],
   "kurdilihicazkar": ["TWK0WRzhQJA", "lBl0pLF_pZk", "HPHhLSlTdR0"],
   "mahur": ["TVqK1lGOYj0", "EQ5RcDg7Jp4"],
+  "taksim-cumle": ["29c0HMGvJQE", "L95BQffW_CI"],
   "taksim-giris": ["uqul0B5lzV4", "L95BQffW_CI"],
   "taksim-2": ["GS9WdFsj0So", "oV9uc2wWgEg"]
 };

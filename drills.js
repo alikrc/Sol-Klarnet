@@ -182,7 +182,7 @@ TRAINERS.long = function(ctx){
     const prev = best[w];
     if(!prev || s.score > prev.score) best[w] = { score:s.score, d: dayKey(new Date()) };
     store.set("long.best", best);
-    const hist = store.get("long.hist", []); hist.push({ d: dayKey(new Date()), w, score:s.score }); store.set("long.hist", hist.slice(-100));
+    const hist = store.get("long.hist", []); hist.push({ d: dayKey(new Date()), w, score:s.score, sd:+s.sd.toFixed(2) }); store.set("long.hist", hist.slice(-100));
     stage.innerHTML = `<div class="result"><div class="big">${s.score}</div><div>puan · ${label(w)}${prev && s.score > prev.score ? " · <strong>yeni rekor</strong>" : prev ? " · rekor " + prev.score : ""}</div></div>
       <div class="kv"><div><span class="label">Süre</span>${num(durMs/1000)} sn</div>
       <div><span class="label">Ortalama sapma</span>${sgn(s.mean)} koma</div>
@@ -892,7 +892,7 @@ TRAINERS.rec = function(ctx){
 
 // ======== İlerleme ========
 TRAINERS.progress = function(ctx){
-  const { $, store, num, sgn, label, days, daysMk, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
+  const { $, store, num, sgn, esc, label, days, daysMk, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
   // Makamlara göre süre (son 30 gün) ve hafta günlerine göre ortalama
   function mkTime(){
     const lim = (() => { const x = new Date(); x.setDate(x.getDate() - 29); return dayKey(x); })(), tot = {};
@@ -948,6 +948,38 @@ TRAINERS.progress = function(ctx){
     return any || q ? full.length + "/" + Object.keys(USUL_INFO).length + L(" usul öğrenildi", " usuls learned") +
       (full.length ? " (" + full.map(id => USULS.find(u => u.id === id).name).join(", ") + ")" : "") + (q ? " · " + L("Hangi usul? rekoru ", "Which usul? record ") + q + "/8" : "") : "—";
   }
+  // Gelişim: son 8 haftanın haftalık ortalamaları. Kaynak: uzun ton (puan ve yayılım), ritim ve seyir geçmişleri
+  // (alıştırmalar ve ders adımları; her biri son 100 kayıt). Son 4 hafta önceki 4 haftayla karşılaştırılır.
+  function trendRow(name, hist, val, o = {}){
+    const wk = dk => Math.floor((Date.now() - new Date(dk + "T12:00:00").getTime())/(7*864e5));
+    const b = Array.from({ length:8 }, () => []);
+    hist.forEach(x => { const v = val(x), k = wk(x.d); if(v != null && k >= 0 && k < 8) b[k].push(v); });
+    const avg = a => a.length ? a.reduce((x, y) => x + y, 0)/a.length : null;
+    const wv = b.map(avg).reverse();                          // eskiden yeniye
+    if(wv.every(v => v == null)) return `<div class="trow"><span class="label">${name}</span><p class="muted">—</p></div>`;
+    const recent = avg(b.slice(0, 4).flat()), before = avg(b.slice(4).flat());
+    const max = o.max || Math.max(...wv.filter(v => v != null), 0.01);
+    const f = v => num(v, o.dec || 0) + (o.unit || "");
+    let cmp = "";
+    if(recent != null && before != null){
+      const d = recent - before, better = o.low ? d < 0 : d > 0, flat = Math.abs(d) < (o.eps || 2);
+      cmp = ` · ${L("önceki 4 hafta ", "previous 4 weeks ")}${f(before)} <strong class="${flat ? "" : better ? "up" : "down"}">${flat ? L("aynı", "steady") : better ? L("iyileşti", "improved") : L("geriledi", "slipped")}</strong>`;
+    }
+    return `<div class="trow"><span class="label">${name}</span>
+      <div class="bars tbars" role="img" aria-label="${esc(name)}">${wv.map((v, i) => `<div class="barcol" title="${v == null ? "—" : f(v)}"><i style="height:${v == null ? 0 : Math.max(3, Math.round(v/max*100))}%"></i><small>${i === 7 ? L("bu", "now") : "−" + (7 - i)}</small></div>`).join("")}</div>
+      <p>${recent != null ? L("son 4 hafta ", "last 4 weeks ") + "<strong>" + f(recent) + "</strong>" : L("son 4 haftada kayıt yok", "nothing in the last 4 weeks")}${cmp}</p></div>`;
+  }
+  function trends(){
+    const lh = store.get("long.hist", []), rh = store.get("rhythm.hist", []), sy = store.get("seyir.hist", []);
+    return `<div class="label">${L("Gelişim (haftalara göre)", "Progress by week")}</div>
+      <div class="trends">
+        ${trendRow(L("Uzun ton puanı", "Long tone score"), lh, x => x.score, { max:100 })}
+        ${trendRow(L("Ses kararlılığı (yayılım, koma; az iyi)", "Tone stability (spread, commas; lower is better)"), lh, x => x.sd, { low:true, dec:2, eps:0.05 })}
+        ${trendRow(L("Ritim puanı", "Rhythm score"), rh, x => x.score, { max:100 })}
+        ${trendRow(L("Taksim (seyir) puanı", "Taksim (seyir) score"), sy, x => x.score, { max:100 })}
+      </div>
+      <p class="muted small">${L("Sütunlar haftalık ortalama (soldan sağa 7 hafta önceden bu haftaya). Alıştırmalar ve ders adımları birlikte sayılır; yayılım bu sürümden önceki kayıtlarda yok.", "Bars are weekly averages (from 7 weeks ago on the left to this week). Practice tools and lesson steps count together; spread is missing from records made before this version.")}</p>`;
+  }
   // İlerleme sayfası: ritim, kulak, seyir ve eser sonuçları
   function moreStats(){
     const rh = store.get("rhythm.hist", []), ear = store.get("ear.best", {}), sy = store.get("seyir.hist", []), pb = store.get("piece.best", {});
@@ -956,7 +988,7 @@ TRAINERS.progress = function(ctx){
     const syBy = {}; sy.forEach(x => { syBy[x.mk] = Math.max(syBy[x.mk] || 0, x.score); });
     const goal = store.get("goal.min", 15);
     const week = (() => { let n = 0; for(let k=0;k<7;k++){ const d = new Date(); d.setDate(d.getDate()-k); if((days[dayKey(d)] || 0) >= goal*60) n++; } return n; })();
-    return `<div class="label">${L("Günlük hedef", "Daily goal")}</div>
+    return `${trends()}<div class="label">${L("Günlük hedef", "Daily goal")}</div>
       <p>${goal} ${L("dk · son 7 günün ", "min · reached on ")}${week}${L("'sinde tuttu", " of the last 7 days")} <button class="stopbtn" type="button" id="pggoal">${L("Değiştir", "Change")}</button></p>
       <div class="label">${L("Ritim", "Rhythm")}</div><p>${rh.length ? L("son 10 tur ortalaması ", "last 10 rounds average ") + "<strong>" + avg(last10) + "</strong> · " + L("en iyi ", "best ") + store.get("rhythm.best", 0) + " · " + rh.length + L(" tur", " rounds") : "—"}</p>
       <div class="label">${L("Usuller", "Usuls")}</div><p>${usulLine()}</p>
@@ -1022,7 +1054,7 @@ TRAINERS.progress = function(ctx){
     });
     $("rsall").addEventListener("click", () => {
       if(!confirm(_t("Seri, ders, test, uzun ton, makam, taklit ve entonasyon verilerinin hepsi silinsin mi? Kendi ezgilerin kalır."))) return;
-      ["lesson.prog","lesson.daily","lesson.dailyDone","lesson.cur","lesson.srs","badges.seen","quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","makam.done","mimic.best","piece.done","days","days.mk","int.stats"]
+      ["lesson.prog","lesson.daily","lesson.dailyDone","lesson.cur","lesson.srs","badges.seen","quiz.stats","quiz.recent","quiz.rounds","long.best","long.hist","check.durus","check.eller","makam.done","mimic.best","piece.done","days","days.mk","int.stats"]
         .forEach(k => { try{ localStorage.removeItem("sk." + k); }catch(e){} });
       markResetting();
       location.reload();

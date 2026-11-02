@@ -14,7 +14,8 @@
 //   read    { title, body }                   okuma (bilgi) adımı; "Okudum" ile geçilir
 //   rhythm  { pattern | usul, tempo, bars, silent, min }  metronomla çal, en az min ritim puanı
 //   dynamics{ note, sec, shape }              crescendo / decrescendo / messa di voce
-//   seyir   { makam, sec, min }               serbest çalma (taksim), en az min seyir puanı
+//   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim
+//                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
 //   piece   { id, mode: "tempo"|"free", min } etüt çal: tempoda en az min % doğru nota, serbestte en çok min hata
 //   hold'a quality eklenirse ses temizliği de en az o kadar olmalı
@@ -477,7 +478,15 @@ const BASLANGIC = [
         { tr:"Klarnetin ağırlığını sağ başparmak (dayanağın altında) taşır; ağız ve sol el yalnızca dengeler. Bilekler düz, dirsekler gövdeden hafifçe açık.",
           en:"The right thumb (under the thumb rest) carries the clarinet's weight; the mouth and left hand only steady it. Wrists straight, elbows slightly away from the body." },
         { tr:"Parmaklar doğal bir kavisle deliklerin üstünde, onlara yakın dursun. Kapatırken parmağın yumuşak ve düz yerini kullan, bastırma: delik sızdırmadan kapanınca yeter.",
-          en:"Fingers curve naturally and hover close above the holes. Cover with the soft, flat pad of the finger without pressing hard: a sealed hole is enough." } ] },
+          en:"Fingers curve naturally and hover close above the holes. Cover with the soft, flat pad of the finger without pressing hard: a sealed hole is enough." } ],
+        // Kontrol listesi (isteğe bağlı, geçmeyi engellemez): maddeler yukarıdaki anlatımdan
+        checkId:"durus", check:[
+          { tr:"Sandalyenin önündeyim, iki ayağım yere düz basıyor", en:"I sit towards the front of the chair, both feet flat on the floor" },
+          { tr:"Sırtım dik ama gergin değil; omuzlarım düşük", en:"My back is upright but not stiff; my shoulders are low" },
+          { tr:"Başım dik; klarneti ağzıma getiriyorum, başımı eğmiyorum", en:"My head is up; I bring the clarinet to my mouth instead of bending down" },
+          { tr:"Ağırlığı sağ başparmak taşıyor; bileklerim düz", en:"The right thumb carries the weight; my wrists are straight" },
+          { tr:"Dirseklerim gövdemden hafifçe açık", en:"My elbows are slightly away from my body" }
+        ] },
       { type:"listen", notes:[67] },
       { type:"hold", note:67, sec:3, min:30 },
       { type:"hold", note:67, sec:6, min:45 }
@@ -500,7 +509,15 @@ const BASLANGIC = [
         { tr:"Elin bir topu tutar gibi yuvarlak dursun; parmaklar gergin ya da dümdüz olmasın. Bileği kırma, başparmakla klarneti sıkma.",
           en:"Keep your hand rounded as if holding a ball; fingers neither tense nor straight. Don't bend the wrist or squeeze the clarinet with the thumb." },
         { tr:"Aynada ya da telefon kamerasıyla kendine bak: omuz kalkıyor mu, parmaklar delikten çok uzaklaşıyor mu, serçe parmak gergin mi?",
-          en:"Watch yourself in a mirror or on the phone camera: are your shoulders rising, are the fingers lifting far from the holes, is the little finger tense?" } ] },
+          en:"Watch yourself in a mirror or on the phone camera: are your shoulders rising, are the fingers lifting far from the holes, is the little finger tense?" } ],
+        checkId:"eller", check:[
+          { tr:"Sol el üstte, sağ el altta", en:"Left hand on top, right hand below" },
+          { tr:"Ellerim top tutar gibi yuvarlak; parmaklar dümdüz ya da gergin değil", en:"My hands are rounded as if holding a ball; fingers not straight or tense" },
+          { tr:"Parmağın düz yeri deliğin tam ortasında", en:"The flat pad of each finger sits right over the centre of the hole" },
+          { tr:"Kullanmadığım parmaklar deliğin bir iki santim üstünde bekliyor", en:"Unused fingers wait a centimetre or two above the holes" },
+          { tr:"Başparmakla klarneti sıkmıyorum; serçe parmaklarım gevşek", en:"I don't squeeze with the thumb; my little fingers are relaxed" },
+          { tr:"Çalarken omuzlarım kalkmıyor", en:"My shoulders don't rise while I play" }
+        ] },
       { type:"quiz", notes:[62, 64, 66, 67], mode:"find", n:6, min:4 }
     ] },
 
@@ -859,8 +876,25 @@ const MAKAM2 = [
 
 // ---- İleri seviye: taksim (seyir), ileri kulak ve ritim ----
 const ILERI = [
+  // Taksim aşamaları: cümle kurma → seyir → çeşni → karar → inici makamlar. Her aşama ayrı ölçülür (focus).
+  { id:"taksim-cumle", unit:"ileri", notes:[], makam:"rast",
+    title:{ tr:"Taksim 1: cümle kurma", en:"Taksim 1: building phrases" },
+    text:[
+      { tr:"Taksim, makamı usulsüz ve doğaçlama olarak sergilemektir. Önce cümle kurmayı çalışacağız: bir cümle, bir nefeste çalınan ve bir perdede dinlenerek biten kısa bir ezgidir. Cümleler arasında kısa bir sessizlik olur; dinleyen cümlenin nerede bittiğini duyar.",
+        en:"A taksim is an unmetered improvisation that presents the makam. First we practise building phrases: a phrase is a short melody played in one breath that ends by resting on a perde. There is a short silence between phrases, so the listener hears where each one ends." },
+      { tr:"Bu derste makamın kurallarına değil cümlelere bakılır: en az dört cümle, her biri birkaç saniye, her biri dizideki bir perdede tutularak bitiyor mu. Ezginin güzelliğini uygulama ölçemez; onu kulağın ve hocan değerlendirir.",
+        en:"This lesson looks at phrases, not at the makam's rules: at least four phrases, each a few seconds long, each ending held on a perde of the scale. The app cannot judge how beautiful the melody is; your ear and your teacher do that." }
+    ],
+    tips:[
+      { tr:"Konuşur gibi düşün: kısa bir soru, kısa bir cevap. Her cümleden sonra nefes al.", en:"Think of speech: a short question, a short answer. Breathe after each phrase." },
+      { tr:"Az perdeyle başla: durak ve üstündeki üç dört perde yeter.", en:"Start with few perdes: the final and the three or four above it are enough." }
+    ],
+    steps:[
+      { type:"seyir", makam:"rast", sec:45, min:60, focus:"cumle" },
+      { type:"seyir", makam:"ussak", sec:45, min:65, focus:"cumle" }
+    ] },
   { id:"taksim-giris", unit:"ileri", notes:[], makam:"rast",
-    title:{ tr:"Taksime giriş: seyir", en:"Introduction to taksim: seyir" },
+    title:{ tr:"Taksim 2: seyir", en:"Taksim 2: seyir" },
     text:[
       { tr:"Taksim, makamı usulsüz ve doğaçlama olarak sergilemektir. Bir makamı tanıtan dizisi değil seyridir: ezginin nereden başladığı, hangi perdelerde dinlendiği (güçlü, yarım karar) ve nerede bittiği (durak).",
         en:"A taksim is an unmetered improvisation that presents the makam. What defines a makam is not its scale but its seyir: where the melody starts, where it rests (dominant, half cadences) and where it ends (the final)." },
@@ -876,8 +910,38 @@ const ILERI = [
       { type:"seyir", makam:"ussak", sec:45, min:55 },
       { type:"seyir", makam:"hicaz", sec:60, min:60 }
     ] },
+  { id:"taksim-cesni", unit:"ileri", notes:[], makam:"ussak",
+    title:{ tr:"Taksim 3: çeşni ve yarım karar", en:"Taksim 3: çeşni and half cadence" },
+    text:[
+      { tr:"Makamın rengini çeşniler verir. Bu uygulamada makamın ilk çeşnisi, çıkış dizisinde durak ile güçlü arasındaki perdeler olarak alınır (Uşşak'ta Dügâh–Nevâ, Hicaz'da Dügâh–Nevâ). Bu perdeleri gezerek çeşniyi tanıt, sonra bir cümleyi güçlüde bitirerek yarım karar ver.",
+        en:"Çeşnis give the makam its colour. In this app the makam's first çeşni is taken as the perdes of the ascending scale from the final to the dominant (Dügâh–Nevâ in Uşşak and in Hicaz). Present the çeşni by moving through these perdes, then end a phrase on the dominant for a half cadence." },
+      { tr:"Ölçülen: bu perdelerin ne kadarına uğradığın ve güçlüde biten cümle sayısı. Çeşnide hangi perdenin nasıl basılacağı (ör. Uşşak'ın Segâh'ı) ayrı bir konudur; Akort ekranında icra perdesine bak.",
+        en:"What is measured: how many of these perdes you visit and how many phrases end on the dominant. How each perde of the çeşni is pitched (e.g. Segâh in Uşşak) is a separate matter; see the practice tuning in the Tuner." }
+    ],
+    tips:[
+      { tr:"Durağı dron yap; güçlüye vardığında orada biraz kal.", en:"Put a drone on the final; when you reach the dominant, stay there a moment." }
+    ],
+    steps:[
+      { type:"seyir", makam:"ussak", sec:60, min:65, focus:"cesni" },
+      { type:"seyir", makam:"hicaz", sec:60, min:65, focus:"cesni" }
+    ] },
+  { id:"taksim-karar", unit:"ileri", notes:[], makam:"rast",
+    title:{ tr:"Taksim 4: karar", en:"Taksim 4: the final cadence" },
+    text:[
+      { tr:"Taksim durakta karar vererek biter. Son cümle durağa üstten iner ya da yedenden çıkar ve durak uzunca tutulur; dinleyen taksimin bittiğini buradan anlar.",
+        en:"A taksim ends with a cadence on the final. The last phrase comes down to the final from above or rises to it from the leading tone, and the final is held for a while; this is how the listener knows the taksim is over." },
+      { tr:"Ölçülen: son cümlenin durakta bitmesi, son notanın en az bir saniye kadar tutulması ve durağa üstten ya da yedenden gelinmesi.",
+        en:"What is measured: whether the last phrase ends on the final, whether the last note is held for about a second, and whether you approach the final from above or from the leading tone." }
+    ],
+    tips:[
+      { tr:"Kararı acele etme: son cümleden önce güçlüde bir yarım karar, sonra durağa iniş.", en:"Don't rush the cadence: a half cadence on the dominant first, then the descent to the final." }
+    ],
+    steps:[
+      { type:"seyir", makam:"rast", sec:45, min:75, focus:"karar" },
+      { type:"seyir", makam:"hicaz", sec:45, min:75, focus:"karar" }
+    ] },
   { id:"taksim-2", unit:"ileri", notes:[],
-    title:{ tr:"Taksim: inici ve inici-çıkıcı makamlar", en:"Taksim: descending makams" },
+    title:{ tr:"Taksim 5: inici ve inici-çıkıcı makamlar", en:"Taksim 5: descending makams" },
     text:[
       { tr:"İnici makamlarda (Mâhur, Acemaşîran, Kürdîli Hicazkâr) taksim tiz bölgeden başlar ve adım adım durağa iner. İnici-çıkıcı makamlarda (Hüseynî, Bayâtî, Karcığar) güçlü civarından başlanır.",
         en:"In descending makams (Mâhur, Acemaşîran, Kürdîli Hicazkâr) the taksim starts high and steps down to the final. In descending-ascending makams (Hüseynî, Bayâtî, Karcığar) it starts around the dominant." }
@@ -1467,7 +1531,7 @@ LESSONS.push(...ILERI);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "rast-giris"), 0, ...SUSLEME);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "sus-carpma"), 0, ...HIZ);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "kulak-1") + 1, 0, ...OKUMA1);
-LESSONS.splice(LESSONS.findIndex(l => l.id === "taksim-giris"), 0, ...TRAKYA);
+LESSONS.splice(LESSONS.findIndex(l => l.id === "taksim-cumle"), 0, ...TRAKYA);
 LESSONS.push(...OKUMA2);
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
@@ -1605,7 +1669,9 @@ function stepTitle(step, lang = "tr"){
         " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan");
     }
     case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn");
-    case "seyir": return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
+    case "seyir": if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
+        return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
+      return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
     case "sight": return (en ? "Sight-reading: level " : "Deşifre: seviye ") + step.level + " · " + (en ? "at least " + step.min + "% correct notes" : "en az %" + step.min + " doğru nota");
     case "dictation": return (step.mode === "rhythm" ? (en ? "Rhythm dictation" : "Ritim dikte") : (en ? "Melodic dictation" : "Ezgi dikte")) + (en ? ": level " : ": seviye ") + step.level +
       " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");

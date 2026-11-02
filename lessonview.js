@@ -163,7 +163,40 @@ TRAINERS.lessons = function(ctx){
       return;
     }
     const nx = nextLesson(prog, allOpen);
-    el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>`;
+    el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>` + summaryHtml(cur);
+  }
+  // Ders sonu özeti: her ölçülen adımın en iyi sonucu ve geçme koşulu. Koşulu en az farkla geçilen adım tekrar için
+  // önerilir (oran: sonucun hedefe göre fazlası; hata sayısında azı iyidir)
+  function stepGoal(st){
+    switch(st.type){
+      case "notes": return { goal:st.maxMiss, low:true, unit:L(" hata", " mistakes") };
+      case "piece": return st.mode === "free" ? { goal:st.min, low:true, unit:L(" hata", " mistakes") } : { goal:st.min, unit:"%" };
+      case "scale": return { goal:st.min, pct:true };
+      case "mimic": return { goal:st.len, unit:L(" nota", " notes") };
+      case "vibrato": return { goal:st.sec, unit:L(" sn", " s") };
+      case "glide": return { goal:st.n };
+      case "tech": return { goal:st.target, unit:" ♩" };
+      case "ornament": return { goal:st.kind === "tril" ? st.rate : st.n };
+      case "hold": case "rhythm": case "seyir": return { goal:st.min, unit:L(" puan", " points") };
+      case "ear": case "sight": case "dictation": case "quiz": return { goal:st.min, unit: st.type === "sight" ? "%" : "/" + st.n };
+    }
+    return null;
+  }
+  function summaryHtml(l){
+    const p = (progFor(l)[l.id] || { s:{} }).s, rows = [];
+    l.steps.forEach((st, i) => {
+      const g = stepGoal(st), r = p[i]; if(!g || !r || r.v == null) return;
+      const f = x => g.pct ? Math.round(x*100) + "%" : num(x, Number.isInteger(x) ? 0 : 1) + (g.unit || "");
+      const margin = g.low ? (g.goal - r.v)/Math.max(1, g.goal) : (r.v - g.goal)/Math.max(g.pct ? 0.01 : 1, g.goal);
+      rows.push({ i, st, txt: f(r.v), goal: f(g.goal), margin });
+    });
+    if(!rows.length) return "";
+    const weak = rows.reduce((a, b) => b.margin < a.margin ? b : a);
+    return `<div class="lssum"><div class="label">${L("Ders özeti", "Lesson summary")}</div>
+      <ol>${rows.map(x => `<li value="${x.i + 1}"><span>${esc(stepTitle(x.st, LANG).split(" · ")[0])}</span> <b>${x.txt}</b> <small>${L("hedef ", "goal ")}${g0(x)}</small></li>`).join("")}</ol>
+      ${rows.length > 1 ? `<p class="muted small">${L("En az farkla geçtiğin adım: ", "The step you passed by the smallest margin: ")}${weak.i + 1}. ${L("Yarın bir kez daha çalmak iyi olur. Ses kararlılığı, ritim ve taksim puanlarının haftalara göre değişimi İlerleme'de.", "Playing it once more tomorrow is a good idea. Weekly changes in tone stability, rhythm and taksim scores are in Progress.")}</p>` : ""}
+      <button class="stopbtn small" type="button" data-act="tab" data-tab="progress">${L("Gelişimimi gör", "See my progress")}</button></div>`;
+    function g0(x){ return (stepGoal(x.st).low ? L("en çok ", "at most ") : L("en az ", "at least ")) + x.goal; }
   }
   $("lsbody").addEventListener("click", e => {
     const b = e.target.closest("[data-act]"); if(!b) return;
@@ -315,6 +348,7 @@ TRAINERS.lessons = function(ctx){
           <div><span class="label">Yayılım</span>${num(s.sd, 2)} koma</div>${toneKv(tq)}</div>
           <div class="muted">${Math.abs(s.mean) > 0.5 ? (s.mean > 0 ? "Tiz çalıyorsun; dudak baskısını azalt ya da biraz daha pes düşün." : "Pes çalıyorsun; hava desteğini artır.") : "Perdeye yakın."} ${s.sd > 0.5 ? "Ses dalgalanıyor: hava akışını sabitle." : ""} ${toneTips(tq)}</div>
           ${st.quality && tq && tq.clarity < st.quality ? `<div class="fb bad">${L("Ses temizliği en az %", "Tone clarity must be at least ")}${st.quality}${L(" olmalı.", "%.")}</div>` : ""}`;
+        const lh = store.get("long.hist", []); lh.push({ d: dayKey(new Date()), w, score:s.score, sd:+s.sd.toFixed(2), src:"ders" }); store.set("long.hist", lh.slice(-100));
         done({ v:s.score, q: tq ? tq.clarity : 0 });
       }
       return {

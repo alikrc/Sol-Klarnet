@@ -36,7 +36,7 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 1. **P0 — ses analizi, OMR, çeyrek ses parmakları** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 2. **P1 — icra perdesi, usul, başlangıç dersleri, ses etiketleri, lisans belgesi** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 3. **P1 — makam karşılaştırma ve örnekler, videolar** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
-4. **P2 — öğrenme deneyimi**
+4. **P2 — öğrenme deneyimi** — tamamlandı (3 Kasım 2026), ayrıntı aşağıda
 
 ### Aşama 1 (P0) — tamamlandı (2 Kasım 2026)
 
@@ -141,6 +141,38 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
   Hicaz ve Kürdî taksiminde yanlış alarm veriyor mu
 - **Proje sahibine kalan:** konuya özel kısa başlangıç videoları (eller, nefes, kamış takma) ve farklı icracı/üsluplardan
   örnekler çekilmeli ya da izinle bağlanmalı
+
+### Aşama 4 (P2) — tamamlandı (3 Kasım 2026)
+
+- **Değişen dosyalar:** `skills.js`, `trainers.js`, `lessons.js`, `lessonview.js`, `drills.js`, `videos.js`, `app.css`,
+  `sw.js` (önbellek v64)
+- **Ders sonu özeti:** biten derste her ölçülen adımın en iyi sonucu ve hedefi listelenir; hedefi en az farkla geçilen
+  adım "yarın bir kez daha" diye önerilir, "Gelişimimi gör" İlerleme'yi açar
+- **Gelişimin zaman içinde takibi** (İlerleme → "Gelişim (haftalara göre)"): son 8 haftanın haftalık ortalamaları ve son
+  4 haftanın önceki 4 haftayla karşılaştırması: uzun ton puanı, **ses kararlılığı** (uzun tonda sapmanın yayılımı, koma),
+  **ritim puanı**, taksim (seyir) puanı. Ders adımlarındaki uzun ton, ritim ve seyir sonuçları da artık geçmişe yazılıyor
+  (önceden yalnız alıştırma ekranları yazıyordu); yayılım bu sürümden önceki kayıtlarda yok
+- **Taksim aşamaları:** ileri ünitede beş ders: (1) cümle kurma — yeni, (2) seyir — var olan "Taksime giriş", (3) çeşni
+  ve yarım karar — yeni, (4) karar — yeni, (5) inici makamlar — var olan. Seyir adımına `focus` eklendi; puan o aşamanın
+  ölçüsüdür (`skills.js` `phraseAnalysis`): notalar en az 350 ms sessizlikle cümlelere bölünür.
+  - Cümle: en az 4 cümle, 1,5–10 sn, dizideki bir perdede tutularak biten
+  - Çeşni: durak ile güçlü arasındaki perdelerin gezilmesi ve güçlüde biten cümle
+  - Karar: son cümle durakta, son nota ≥ 800 ms, durağa üstten ya da yedenden gelinmesi
+  Metinler uygulamanın ölçebildiğini ve ölçemediğini (ezginin güzelliği) ayrı söyler; "ilk çeşni = durak–güçlü arası"
+  bu uygulamanın sadeleştirmesi olarak yazıldı. Var olan ders kimlikleri ve adım sayıları değişmedi; bitmiş dersler açık kalır
+- **Duruş ve el kontrol listesi:** "Doğru oturuş ve klarneti tutuş" (5 madde) ve "Sol ve sağ el parmak pozisyonları"
+  (6 madde) derslerinin okuma adımında; maddeler ders metninden alındı. Telefonla 20–30 sn video ya da ayna ile
+  işaretlenir, cihazda saklanır, geçmeyi engellemez. Kamerayla otomatik duruş denetimi yok
+- **Kişisel öğrenme akışı:** var olan karşılama akışı (deneyimliler için Başlarken ünitesini geçme) ve yol haritası
+  korundu; bu aşamada değiştirilmedi
+- **Yapılan denetimler:** Node'da `phraseAnalysis` yapay bir Uşşak taksimiyle (4 cümle, güçlü ve durak kalışları:
+  üç puan da 100); tarayıcıda taksim (karar) adımı yapay perde akışıyla (puan ve geri bildirim), ders özeti, kontrol
+  listesi (işaretleme ve saklama), İlerleme'deki haftalık eğriler (örnek geçmişle), yeni taksim derslerinin sırası.
+  Okuma adımındaki bir hata (ctx eksik) denetimde bulunup düzeltildi; sonra konsolda hata yok
+- **Uzman/hoca görmeli:** taksim aşamalarının sırası ve tanımları (özellikle çeşninin durak–güçlü arası olarak
+  sadeleştirilmesi, karar için "üstten ya da yedenden"); kontrol listesi maddeleri; geçme eşikleri (60–75)
+- **Gerçek klarnetle denenmeli:** cümle bölme eşiği (350 ms sessizlik) gerçek nefes aralarında doğru mu; ses kararlılığı
+  eğrisinin hafta hafta anlamlı değişip değişmediği
 
 ### Maddeler (gelen liste)
 

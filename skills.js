@@ -173,6 +173,70 @@ function seyirAnalysis(notes, mk){
   res.ok = res.inScale >= 0.8 && finalOk && gucluRank >= 0;
   return res;
 }
+// Taksim aşamaları (ders adımı seyir + focus): notalar sessizlikle (en az gapMs boşluk) cümlelere bölünür; her cümlenin
+// son notası kalış yeridir. Puanlar 0–100 ve yalnız ölçülebileni sayar (ezginin güzelliğini değil):
+//  cumle: en az 4 cümle, cümle süresi 1,5–10 sn, kalışın en az 300 ms ve dizideki bir perdede olması
+//  cesni: durak ile güçlü arasındaki perdelerin (makamın ilk çeşnisi, çıkış dizisinden) gezilmesi ve güçlüde biten cümle
+//  karar: son cümlenin durakta bitmesi, son notanın en az 800 ms tutulması, durağa üstten ya da yedenden gelinmesi
+function phraseAnalysis(notes, mk, gapMs = 350){
+  if(notes.length < 4) return null;
+  const phrases = [];
+  let cur = [notes[0]];
+  for(let i = 1; i < notes.length; i++){
+    if(notes[i].start - notes[i-1].end >= gapMs){ phrases.push(cur); cur = []; }
+    cur.push(notes[i]);
+  }
+  phrases.push(cur);
+  const m53 = c => ((c % 53) + 53) % 53, same = (a, b) => a !== null && m53(a) === m53(b);
+  const info = phrases.map(ph => {
+    const last = ph[ph.length-1], dur = last.end - ph[0].start;
+    return { n:ph.length, dur, last, rest: mapToScale(last.comma, mk), restMs: last.end - last.start };
+  });
+  const n = info.length;
+  const lenOk = info.filter(x => x.dur >= 1500 && x.dur <= 10000).length/n;
+  const restOk = info.filter(x => x.restMs >= 300 && x.rest !== null).length/n;
+  const cumle = Math.round(100*(0.4*Math.min(1, n/4) + 0.3*lenOk + 0.3*restOk));
+  // İlk çeşni: çıkış dizisinde durak ile güçlü arasındaki perdeler (güçlü dahil)
+  const lo = Math.min(mk.durak, mk.guclu), hi = Math.max(mk.durak, mk.guclu);
+  const cesniPerdes = mk.asc.filter(c => c >= lo && c <= hi);
+  const touched = new Set(notes.map(x => mapToScale(x.comma, mk)).filter(c => c !== null).map(m53));
+  const cover = cesniPerdes.filter(c => touched.has(m53(c))).length/cesniPerdes.length;
+  const gucluEnds = info.filter(x => same(x.rest, mk.guclu)).length;
+  const cesni = Math.round(100*(0.5*cover + 0.35*(gucluEnds >= 1 ? 1 : 0) + 0.15*(gucluEnds >= 2 ? 1 : 0)));
+  const lastPh = phrases[n-1], fin = info[n-1];
+  const onDurak = same(fin.rest, mk.durak), longEnd = fin.restMs >= 800;
+  const prev = lastPh.length >= 2 ? lastPh[lastPh.length-2] : null;
+  const approach = !!prev && (prev.comma > fin.last.comma + 2 || same(mapToScale(prev.comma, mk), mk.yeden));
+  const karar = Math.round(100*(0.5*(onDurak ? 1 : 0) + 0.25*(longEnd ? 1 : 0) + 0.25*(onDurak && approach ? 1 : 0)));
+  return { n, lenOk, restOk, cumle, cesniPerdes, cover, gucluEnds, cesni, onDurak, longEnd, approach, karar,
+    lastRest: fin.rest, avgSec: info.reduce((a, x) => a + x.dur, 0)/n/1000 };
+}
+// Aşama geri bildirimi: ölçülen her koşul için bir cümle
+function phraseFeedback(ph, mk, focus, lang = "tr"){
+  const en = lang === "en", pn = c => SLEARN.perdeName(c) || "?", pct = x => Math.round(x*100);
+  if(focus === "cumle") return [
+    en ? ph.n + " phrases, " + ph.avgSec.toFixed(1) + " s on average." + (ph.n < 4 ? " Play at least 4 short phrases with a breath between them." : "")
+       : ph.n + " cümle, ortalama " + ph.avgSec.toFixed(1).replace(".", ",") + " sn." + (ph.n < 4 ? " Aralarında nefes alarak en az 4 kısa cümle çal." : ""),
+    en ? pct(ph.lenOk) + "% of phrases were 1.5–10 s long." + (ph.lenOk < 0.7 ? " Very short bursts or one endless line are hard to follow." : "")
+       : "Cümlelerin %" + pct(ph.lenOk) + "'i 1,5–10 sn uzunluğunda." + (ph.lenOk < 0.7 ? " Çok kısa kırıntılar ya da hiç bitmeyen bir çizgi zor izlenir." : ""),
+    en ? pct(ph.restOk) + "% of phrases ended on a held perde of the scale." + (ph.restOk < 0.7 ? " End each phrase by resting on a perde." : "")
+       : "Cümlelerin %" + pct(ph.restOk) + "'i dizideki bir perdede tutularak bitti." + (ph.restOk < 0.7 ? " Her cümleyi bir perdede dinlenerek bitir." : "")
+  ];
+  if(focus === "cesni") return [
+    en ? "You visited " + pct(ph.cover) + "% of the perdes from the final to the dominant (" + ph.cesniPerdes.map(pn).join(", ") + ")."
+       : "Durak ile güçlü arasındaki perdelerin (" + ph.cesniPerdes.map(pn).join(", ") + ") %" + pct(ph.cover) + "'ini gezdin.",
+    ph.gucluEnds ? (en ? ph.gucluEnds + " phrase(s) rested on the dominant (" + pn(mk.guclu) + ")." : ph.gucluEnds + " cümle güçlüde (" + pn(mk.guclu) + ") dinlendi.")
+      : (en ? "No phrase rested on the dominant (" + pn(mk.guclu) + "); make a half cadence there." : "Hiçbir cümle güçlüde (" + pn(mk.guclu) + ") dinlenmedi; orada yarım karar ver.")
+  ];
+  return [
+    ph.onDurak ? (en ? "The last phrase ended on the final (" + pn(mk.durak) + ")." : "Son cümle durakta (" + pn(mk.durak) + ") bitti.")
+      : (en ? "The last phrase ended on " + (ph.lastRest !== null ? pn(ph.lastRest) : "a note outside the scale") + "; end on " + pn(mk.durak) + "."
+            : "Son cümle " + (ph.lastRest !== null ? pn(ph.lastRest) : "dizi dışı bir notada") + " bitti; " + pn(mk.durak) + " perdesinde bitir."),
+    ph.longEnd ? (en ? "You held the last note long enough." : "Son notayı yeterince tuttun.") : (en ? "Hold the last note longer (at least about a second)." : "Son notayı daha uzun tut (en az bir saniye kadar)."),
+    ph.onDurak && !ph.approach ? (en ? "Approach the final from above or from the leading tone (" + pn(mk.yeden) + ")." : "Durağa üstten ya da yedenden (" + pn(mk.yeden) + ") gel.")
+      : ph.onDurak ? (en ? "You approached the final from above or from the leading tone." : "Durağa üstten ya da yedenden geldin.") : ""
+  ].filter(Boolean);
+}
 // Benzer makama kayma: dizisi en çok iki perdeyle ayrılan makamların (learn.js similarMakams) ayırt edici perdelerinde
 // geçen süre. Ötekinin perdeleri bu makamınkilerden belirgin uzun çalındıysa (sürenin en az %8'i ve iki katı) o makam
 // döner. Her nota iki dizinin birleşimindeki en yakın perdeye (en çok 2 koma) bağlanır; dizisi aynı olanlar atlanır.
@@ -1137,5 +1201,5 @@ if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentScan, ornamentScanFeedback, ORN_SCAN_NAMES, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
-  toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, Staircase, perdePairs, makamChoices, makamPhrase
+  toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, phraseAnalysis, phraseFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

@@ -781,9 +781,16 @@ const TRAINER_STEPS = {
     });
   },
   // Okuma adımı: metin dersleri (bakım, duruş, nota okuma); "Okudum" ile geçilir
-  read(st, stage, done){
+  read(st, stage, done, ctx){
+    // Kontrol listesi (st.check): kendini aynada ya da videoda izleyip işaretlersin; işaretler cihazda kalır, geçmeyi engellemez
+    const ck = st.check ? ctx.store.get("check." + st.checkId, {}) : null;
     stage.innerHTML = (st.body || []).map(t => `<p>${pick(t, LANG)}</p>`).join("") +
+      (ck ? `<div class="label">${L("Kontrol listesi", "Checklist")} <small class="lsckn"></small></div>
+        <p class="muted small">${L("Telefonla kendini 20–30 saniye videoya çek (yandan ve önden) ya da aynaya bak; doğru olanları işaretle. Emin olmadıklarını hocana göster.", "Film yourself for 20–30 seconds with your phone (from the side and the front) or use a mirror; tick what is right. Show your teacher anything you're unsure of.")}</p>
+        <ul class="lscheck">${st.check.map((c, k) => `<li><label><input type="checkbox" data-ck="${k}"${ck[k] ? " checked" : ""}><span>${pick(c, LANG)}</span></label></li>`).join("")}</ul>` : "") +
       `<div class="pbar"><button class="primary small" type="button" data-read>${L("Okudum, anladım", "Read and understood")}</button></div>`;
+    const count = () => { const n = stage.querySelectorAll("[data-ck]:checked").length, el = stage.querySelector(".lsckn"); if(el) el.textContent = n + "/" + st.check.length; };
+    if(ck){ count(); stage.addEventListener("change", e => { const b = e.target.closest("[data-ck]"); if(!b) return; ck[b.dataset.ck] = b.checked; ck.d = dayKey(new Date()); ctx.store.set("check." + st.checkId, ck); count(); }); }
     stage.querySelector("[data-read]").addEventListener("click", () => done({ v:1 }));
     return {};
   },
@@ -796,6 +803,8 @@ const TRAINER_STEPS = {
     const r = rhythmRun(ctx, { beatMs, pattern, bars: st.bars || 4, silent: !!st.silent, accents: pattern.accents }, run => {
       const res = rhythmEval(ctx, run, beatMs, pattern);
       stage.innerHTML = rhythmText(res) + rhythmSvg(run, res);
+      // Gelişim eğrisi için ders ritim adımları da ritim geçmişine yazılır
+      const rh = ctx.store.get("rhythm.hist", []); rh.push({ d: dayKey(new Date()), p: st.usul || st.pattern, tempo: st.tempo, score: res.score, src:"ders" }); ctx.store.set("rhythm.hist", rh.slice(-100));
       done({ v: res.score });
     }, (i, counting) => {
       const el = stage.querySelector(".lrc"); if(!el) return;
@@ -862,11 +871,17 @@ const TRAINER_STEPS = {
     }, 250);
     function fin(){
       if(over) return; over = true; clearInterval(timer);
-      const res = seyirAnalysis(segmentNotes(frames, 150), mk);
+      const notes = segmentNotes(frames, 150), res = seyirAnalysis(notes, mk);
       if(!res){ cap.stop(); stage.querySelector(".lyr").innerHTML = `<div class="fb bad">${L("Yeterince nota yok.", "Not enough notes.")}</div>`; done({ v:0 }); return; }
-      stage.querySelector(".lyr").innerHTML = `<div class="result"><div class="big">${res.score}</div><div>${L("puan", "points")}</div></div><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul><div class="syorn"></div>`;
+      // Taksim aşaması (focus: cumle / cesni / karar): puan o aşamanın ölçüsüdür; genel seyir geri bildirimi altta kalır
+      const ph = st.focus ? phraseAnalysis(notes, mk) : null, v = ph ? ph[st.focus] : res.score;
+      const tips = ph ? `<ul class="lstips">${phraseFeedback(ph, mk, st.focus, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
+        <details class="lsmore"><summary>${L("Genel seyir değerlendirmesi", "General seyir feedback")} · ${res.score}</summary><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul></details>`
+        : `<ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`;
+      stage.querySelector(".lyr").innerHTML = `<div class="result"><div class="big">${v}</div><div>${L("puan", "points")}</div></div>${tips}<div class="syorn"></div>`;
       seyirOrnaments(ctx, cap, stage.querySelector(".syorn"));
-      done({ v: res.score });
+      const sh = ctx.store.get("seyir.hist", []); sh.push({ d: dayKey(new Date()), mk: mk.id, score: res.score, src:"ders" }); ctx.store.set("seyir.hist", sh.slice(-100));
+      done({ v });
     }
     stage.querySelector("[data-fin]").addEventListener("click", fin);
     return {
