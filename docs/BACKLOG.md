@@ -174,6 +174,27 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 - **Gerçek klarnetle denenmeli:** cümle bölme eşiği (350 ms sessizlik) gerçek nefes aralarında doğru mu; ses kararlılığı
   eğrisinin hafta hafta anlamlı değişip değişmediği
 
+### Kalanlar (liste 3 Kasım'da yeniden geldi, aşamalarla karşılaştırıldı)
+
+Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınmış. Açıkta kalanlar:
+
+- **Koşul sınamasında eksik koşullar** (P0, `scripts/audio-check.js` `CONDITIONS`): glissando (iki nota arası kayış),
+  sert atak (nota başındaki geçici ses), nefes dalgalanması (genlik oynaması) ve uzun tonun sonundaki sönüş yok; yalnızca
+  telefon, gürültü, vibrato, yankı, pesleştirme var. Sınamaya eklenip perde bulucu ve oktav koruması bunlarla denenmeli
+- **Sentetik/gerçek dili belgelerde** (P0): README'de `testdata/` "gerçek klarnet kayıtları" diye geçiyor; kayıtlar
+  gerçek ama Si♭ klarnet (Iowa), Sol klarnet değil. README ve mağaza metninde bu açıkça yazılmalı
+- **Kişisel öğrenme akışı / seviye belirleme** (P2): aşama 4'te değiştirilmedi. Karşılama akışı yalnızca Başlarken'i
+  geçmeyi soruyor; seviyeye (ör. kısa çalma sınaması) göre başlangıç ünitesi önerisi gözden geçirilmeli
+- **Makam çeşnileri ayrıntısı** (P1): seyir metinlerinde çeşniler adıyla geçiyor, ayrı ayrı anlatılmıyor (ör. Uşşak'taki
+  Segâh'ın rengi, Hicaz'ın artık ikilisi). Yalnızca kaynaklı bilgiyle (`docs/KAYNAKLAR.md`) yazılmalı; kaynak yoksa yazılmaz
+- **OMR değiştirici karışıklık tablosu** (P0): çizgili bemol çözüldü; 9 değiştiricinin hepsi için yazı tiplerinden
+  (Bravura, Leland) çizilip birbirine karışma oranı ölçülmedi, yalnızca örnek sayfalarda denendi
+- **Lisans tablosu** (P1): `lisans-besteciler.csv` ölüm yılı ve telif durumu sütunları hâlâ boş (502 besteci, 363 güfte
+  yazarı); ticari sürümden önce doldurulmalı
+- **Proje sahibine / uzmana bağlı** (kod değil): gerçek Albert Sol klarnet kayıtları (her notada pp/mf/ff) ve
+  `audio-check` ile sınama; 57 çeyrek ses parmağında ses kalitesi ve geçiş bilgisi; konuya özel kısa başlangıç videoları
+  (eller, nefes, kamış takma); farklı icracı ve üsluplardan izinli örnekler; aşamalardaki "Uzman/hoca görmeli" maddeleri
+
 ### Maddeler (gelen liste)
 
 ### P0 — kritik
