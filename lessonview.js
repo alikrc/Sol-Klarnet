@@ -638,6 +638,9 @@ TRAINERS.videos = function(ctx){
       <select id="vmk" aria-label="Makam"><option value="">${L("Bütün makamlar", "All makams")}</option>${mks.map(m => `<option value="${m.id}">${m.name}</option>`).join("")}</select>
       <input id="vq" type="search" placeholder="${L("Ara", "Search")}" aria-label="${L("Videolarda ara", "Search videos")}">
     </div>
+    <details class="vstyle"><summary>${L("Üslup üzerine", "On playing styles")}</summary>
+      <p>${L("Türk klarnet icrasında farklı tavırlar vardır: klasik Türk musikisi (fasıl, şarkı ve saz eserleri), Trakya ve Roman oyun havaları, modern ve karma icra. Bunlar doğru ya da yanlış değil, farklı üsluplardır: aynı makam farklı tavırlarda farklı süslenir, farklı perdelenir ve farklı cümlelenir.", "Turkish clarinet playing has several styles: classical Turkish music (fasıl, songs and instrumental pieces), Thracian and Romani dance music, and modern or mixed playing. None is right or wrong; they are styles. The same makam is ornamented, tuned and phrased differently in each.")}</p>
+      <p>${L("Buradaki videoların hepsi Çorlu'dan iki Sol klarnet hocasınındır ve onların tavrını gösterir. Başka icracılardan ve üsluplardan örnekler henüz yok. Etiketler (eski tavır, oyun havası, yakın çekim) yalnızca video başlığında yazandan alındı.", "All videos here are by two Sol clarinet teachers from Çorlu and show their style. Examples from other players and styles are not here yet. Tags (old style, dance tune, close-up) come only from what the video title says.")}</p></details>
     <div id="vout"></div>
     <p class="muted small">${L("Kaynak:", "Source:")} <a href="${VIDEO_CHANNEL}" target="_blank" rel="noopener">Çorlu Klarnet Üstatları</a> (YouTube). ${L("Videolar kanal sahiplerine aittir.", "Videos belong to the channel's owners.")}</p>`;
   const fold = s => s.toLocaleLowerCase("tr").normalize("NFD").replace(/\p{M}/gu, "").replace(/ı/g, "i");

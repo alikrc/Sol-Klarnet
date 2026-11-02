@@ -333,6 +333,8 @@ const TRAINERS = {
       const perdes = Object.entries(res.time).sort((a, b) => +a[0] - +b[0]), max = Math.max(...perdes.map(([, v]) => v));
       stage.innerHTML = `<div class="result"><div class="big">${res.score}</div><div>${L("puan", "points")} · ${mk.name} · ${notes.length} ${L("nota", "notes")}</div></div>
         <ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
+        <div class="pbar"><button class="stopbtn" type="button" data-symk="${mk.id}">${L(mk.name + " makamını incele", "Study " + mk.name)}</button>
+          ${res.drift ? `<button class="stopbtn" type="button" data-symk="${res.drift.mk.id}">${L(res.drift.mk.name + " makamını incele", "Study " + res.drift.mk.name)}</button>` : ""}</div>
         <div class="label">${L("Perdelerde geçen süre", "Time on each perde")}</div>
         <div class="bars sybars">${perdes.map(([p, v]) => `<div class="barcol" title="${perdeName(+p)}: ${ctx.num(v/1000)} s"><i style="height:${Math.round(v/max*100)}%" class="${(+p - mk.durak) % 53 === 0 ? "durak" : (+p - mk.guclu) % 53 === 0 ? "guclu" : ""}"></i><small>${perdeName(+p)}</small></div>`).join("")}</div>
         <div class="muted small">${L("Koyu: durak · turuncu: güçlü", "Dark: final · orange: dominant")}</div><div class="syorn"></div>`;
@@ -341,6 +343,8 @@ const TRAINERS = {
         const h = store.get("seyir.hist", []); if(h.length){ h[h.length-1].orn = sc.total; store.set("seyir.hist", h); }
       });
     }
+    // Sonuçtan makama: Dizi'de "Makamı tanı" (benzer makamlar, seyir örnekleri, videolar) açık gelir
+    stage.addEventListener("click", e => { const b = e.target.closest("[data-symk]"); if(b && SK.openMakam) SK.openMakam(b.dataset.symk, true); });
     $("systart").addEventListener("click", async () => {
       if(rec){ finish(); return; }
       if(!(await ctx.needMic())) return;

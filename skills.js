@@ -3,7 +3,7 @@
 // Tarayıcıda lessons.js'ten sonra <script src="skills.js"> ile, Node'da require("./skills.js") ile yüklenir.
 
 const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi, noteName, contextPerde };
-const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, tuningCtx, mean, sd, commaToWritten, perdeName, vibrato };
+const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, similarMakams, tuningCtx, mean, sd, commaToWritten, perdeName, vibrato };
 
 // ---- Nota başı (onset) bulma ----
 // Her ölçümde { t (ms), rms, on (perde bulundu mu), tOn? (pencere içinde enerjinin yükseldiği an) } gelir.
@@ -168,9 +168,31 @@ function seyirAnalysis(notes, mk){
     gucluShare: total ? gucluTime/total : 0, gucluRank, opening, openingOk: opening === want || (want === "mid" && opening !== "low"),
     low: Math.min(...commas), high: Math.max(...commas), time
   };
+  res.drift = similarDrift(mapped, mk, total);
   res.score = Math.round(100*(0.3*res.inScale + 0.3*(finalOk ? 1 : 0) + 0.2*(gucluRank >= 0 && gucluRank <= 2 ? 1 : gucluRank >= 0 ? 0.5 : 0) + 0.2*(res.openingOk ? 1 : 0)));
   res.ok = res.inScale >= 0.8 && finalOk && gucluRank >= 0;
   return res;
+}
+// Benzer makama kayma: dizisi en çok iki perdeyle ayrılan makamların (learn.js similarMakams) ayırt edici perdelerinde
+// geçen süre. Ötekinin perdeleri bu makamınkilerden belirgin uzun çalındıysa (sürenin en az %8'i ve iki katı) o makam
+// döner. Her nota iki dizinin birleşimindeki en yakın perdeye (en çok 2 koma) bağlanır; dizisi aynı olanlar atlanır.
+function similarDrift(mapped, mk, total){
+  if(!total) return null;
+  let best = null;
+  for(const x of SLEARN.similarMakams(mk, 2)){
+    if(!x.n) continue;
+    const own = x.only.map(c => ((c % 53) + 53) % 53), oth = x.other.map(c => ((c % 53) + 53) % 53);
+    const all = [...new Set([...mk.asc, ...mk.desc, ...x.mk.asc, ...x.mk.desc].map(c => ((c % 53) + 53) % 53))];
+    let tOwn = 0, tOth = 0;
+    for(const n of mapped){
+      let bk = null, bd = 3;
+      for(const k of all) for(let o = -2; o <= 3; o++){ const d = Math.abs(n.comma - (k + 53*o)); if(d < bd){ bd = d; bk = k; } }
+      if(bk === null) continue;
+      if(own.includes(bk)) tOwn += n.dur; else if(oth.includes(bk)) tOth += n.dur;
+    }
+    if(tOth >= 0.08*total && tOth >= 2*tOwn && (!best || tOth > best.t)) best = { mk:x.mk, t:tOth, share:tOth/total, other:x.other, only:x.only };
+  }
+  return best;
 }
 // Seyir analizinin okunur geri bildirimi
 function seyirFeedback(res, mk, lang = "tr"){
@@ -189,6 +211,11 @@ function seyirFeedback(res, mk, lang = "tr"){
   if(!res.openingOk) out.push(en ? mk.name + " has a " + typeEn + " seyir: " + (mk.seyirType === "cikici" ? "start around the final and climb." : mk.seyirType === "inici" ? "start in the upper register and come down." : "start around the dominant.")
                                : mk.name + " " + typeTr + " bir makam: " + (mk.seyirType === "cikici" ? "durak civarından başlayıp yüksel." : mk.seyirType === "inici" ? "tiz bölgeden başlayıp in." : "güçlü civarından başla."));
   else out.push(en ? "The opening fits the " + typeEn + " seyir." : "Açılış " + typeTr + " seyre uygun.");
+  if(res.drift){
+    const d = res.drift, oth = d.other.map(pn).join(", "), own = d.only.map(pn).join(", ");
+    out.push(en ? "You played " + oth + " a lot: that belongs to " + d.mk.name + ", a makam with a nearby scale." + (own ? " In " + mk.name + " it is " + own + "." : "") + " Compare the two in Scale."
+      : oth + " perdesinde çok durdun: bu, dizisi yakın olan " + d.mk.name + " makamının perdesi." + (own ? " " + mk.name + " makamında yerine " + own + " basılır." : "") + " İkisini Dizi'de karşılaştır.");
+  }
   return out;
 }
 

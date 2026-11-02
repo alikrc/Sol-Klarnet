@@ -35,7 +35,7 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 
 1. **P0 — ses analizi, OMR, çeyrek ses parmakları** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 2. **P1 — icra perdesi, usul, başlangıç dersleri, ses etiketleri, lisans belgesi** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
-3. **P1 — makam karşılaştırma ve örnekler, videolar**
+3. **P1 — makam karşılaştırma ve örnekler, videolar** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 4. **P2 — öğrenme deneyimi**
 
 ### Aşama 1 (P0) — tamamlandı (2 Kasım 2026)
@@ -107,7 +107,40 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 - **Uzman/hoca görmeli:** yeni 7 dersin metinleri (özellikle oturuş açısı, dudak ve nefes anlatımı, Albert el
   pozisyonları); Kendim akordunun hocalar için kullanışlı olup olmadığı; oyun havası çalışlarının "yaygın" sayılabilirliği
 - **Yapılmadı (aşama 3–4):** makam karşılaştırması ve ezgi örnekleri, taksim–makam bağı, kısa konu videoları ve
-  üslup etiketleri, P2 öğrenme deneyimi. Yeni gerçek Sol klarnet kayıtları ve videolar proje sahibine bağlı
+  üslup etiketleri (aşama 3'te yapıldı), P2 öğrenme deneyimi. Yeni gerçek Sol klarnet kayıtları ve videolar proje sahibine bağlı
+
+### Aşama 3 (P1) — tamamlandı (2 Kasım 2026)
+
+- **Değişen dosyalar:** `learn.js`, `skills.js`, `drills.js`, `trainers.js`, `teori.js`, `videos.js`, `lessonview.js`,
+  `app.css`, `sw.js` (önbellek v63)
+- **Benzer makamlar** (`learn.js` `similarMakams`): aynı durakta karar veren ve dizisi (çıkış + iniş, oktav farkı yok
+  sayılarak) en çok iki perdeyle ayrılan makamlar, uygulamadaki dizilerden hesaplanır; elle yazılmış iddia yok. Dizi
+  sekmesinde "Makamı tanı" bölümü: her benzer makam için ayıran perdeler ("Fark — Uşşak: Segâh · Kürdî: Kürdî"), güçlü
+  ve seyir türü farkı, "İkisini dinle" (iki makamın çıkışı arka arkaya) ve o makama geçiş. Uşşak/Bayâtî gibi dizisi aynı
+  olanlarda "fark seyirde ve ezgide". Teori sayfasındaki makam kartında da dizisi yakın makamlar yazar
+- **Ezgi örnekleri:** nota arşivindeki SymbTr seyir ezgileri (Rauf Yektâ, Şefik Gürmeriç, Erol Bingöl; 20 makamın
+  hepsinde 2–5 örnek) "Makamı tanı"dan açılır; arşiv ekranında dinlenir, takip edilerek çalınır. Örnekler kendimiz
+  yazılmadı, kaynak eserlerden alındı. (Erol Bingöl çağdaş bir müzisyen: telif denetimine bkz. `lisans-besteciler.csv`)
+- **Taksim–makam bağı** (`skills.js` `similarDrift`): taksim/seyir değerlendirmesinde, çalınan sürenin en az %8'i benzer
+  bir makamın ayırt edici perdesinde geçtiyse (ve bu makamın karşılık gelen perdesinden en az iki kat uzunsa) geri
+  bildirime "X perdesinde çok durdun: bu, dizisi yakın olan Y makamının perdesi" eklenir. Seyir sonucu ekranında
+  "makamını incele" düğmeleri Dizi'de "Makamı tanı"yı açar. Eşikler yapay notalarla denendi, gerçek taksimle değil
+- **Videolar:** Videolar sekmesinde "Üslup üzerine" kutusu (klasik / Trakya-Roman / modern icra doğru-yanlış değil
+  üslup; buradaki videoların hepsi Çorlu'dan iki hocanın tavrı, başka üsluplardan örnek henüz yok). Etiketler (eski
+  tavır, oyun havası, yakın çekim, caz) yalnızca başlıkta yazandan çıkar; videolara izlenmeden üslup etiketi verilmedi.
+  Yeni başlangıç derslerine var olan videolar bağlandı: kamış ve ağızlık (bek-kamış-üfleme videosu), dil ile başlatma
+  (dil vurma), ilk geçişler (yumuşak geçişler). Eller ve nefes-cümleleme derslerine uygun video yok
+- **Yapılan denetimler:** Node'da 20 makamın benzer listesi gözden geçirildi; `similarDrift` Uşşak hedefiyle üç yapay
+  taksimde (temiz Uşşak: uyarı yok; Kürdî perdesiyle: Kürdî; Evç'le: Hüseynî). Tarayıcıda Dizi → Makamı tanı (liste,
+  makam geçişi, İkisini dinle, seyir örneğinin arşivde açılması), teori makam kartı, Videolar üslup kutusu ve etiketler;
+  konsolda hata yok
+- **Uzman/hoca görmeli:** benzer makam listelerinin öğretici olup olmadığı (dizi yakınlığı müzikal yakınlıkla her zaman
+  örtüşmez; ör. Hüseynî'nin Uşşak'a "Evç farkıyla" benzemesi); taksimde geçki ile "yanlış makama kayma"yı ayırmak için
+  %8 eşiği; "Üslup üzerine" metni
+- **Gerçek klarnetle denenmeli:** taksim değerlendirmesindeki yeni uyarı (benzer makam perdesi) gerçek bir Uşşak,
+  Hicaz ve Kürdî taksiminde yanlış alarm veriyor mu
+- **Proje sahibine kalan:** konuya özel kısa başlangıç videoları (eller, nefes, kamış takma) ve farklı icracı/üsluplardan
+  örnekler çekilmeli ya da izinle bağlanmalı
 
 ### Maddeler (gelen liste)
 

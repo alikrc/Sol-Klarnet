@@ -319,6 +319,7 @@ TRAINERS.teori = function(ctx){
         <div><span class="label">Seyir</span>${TH_SEYIR[mk.seyirType] || ""}</div></div>
       <div class="chiprow scroll">${chips(mk.asc, mk)}</div>
       <p class="seyir">${esc(seyirText(mk, LANG))}</p>
+      ${(sim => sim.length ? `<p class="muted small">${L("Dizisi yakın makamlar: ", "Makams with a nearby scale: ")}${sim.map(x => x.mk.name).join(", ")}. ${L("Farklarını Dizi'de \"Makamı tanı\" bölümünde dinleyebilirsin.", "Compare them under \"Get to know the makam\" in Scale.")}</p>` : "")(similarMakams(mk, 2).slice(0, 4))}
       <div class="pbar">${playBtn('data-mkplay', L("Diziyi dinle", "Listen to the scale"))}
         <button class="stopbtn" type="button" data-mkdrone>${L("Durağı dron yap", "Drone the final")}</button>
         <button class="primary small" type="button" data-mkopen>${L("Dizi'de çalış", "Practise in Scale")}</button></div>

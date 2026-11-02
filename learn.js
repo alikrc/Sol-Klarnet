@@ -123,6 +123,23 @@ function setCustomIcra(map){ CUSTOM_ICRA = map || {}; }
 const offsetsFor = (mk, mode) => mode === "icra" ? mk.icra : mode === "ozel" ? (CUSTOM_ICRA[mk.id] || mk.icra) : {};
 MAKAMS.forEach(m => { m.seyirType = SEYIR_TYPE[m.id]; m.icra = ICRA[m.id] || {}; });
 const makamById = id => MAKAMS.find(m => m.id === id) || null;
+// Benzer makamlar: aynı durakta karar veren ve dizisi en çok maxDiff perdeyle ayrılan makamlar. Diziler yukarıdaki
+// tanımlardan hesaplanır (çıkış ve iniş birlikte, oktav farkı yok sayılır). only: yalnız bu makamda olan perdeler,
+// other: yalnız ötekinde olanlar (makamın kendi koma değerleriyle). Dizisi aynı olanlarda (Uşşak/Bayâtî) fark seyirdedir.
+function scaleMap(mk){
+  const m = new Map();
+  for(const c of [...mk.asc, ...mk.desc]){ const k = ((c % 53) + 53) % 53; if(!m.has(k)) m.set(k, c); }
+  return m;
+}
+function similarMakams(mk, maxDiff = 3){
+  const a = scaleMap(mk);
+  return MAKAMS.filter(o => o !== mk && o.durak === mk.durak).map(o => {
+    const b = scaleMap(o);
+    const only = [...a].filter(([k]) => !b.has(k)).map(([, c]) => c).sort((x, y) => x - y);
+    const other = [...b].filter(([k]) => !a.has(k)).map(([, c]) => c).sort((x, y) => x - y);
+    return { mk:o, only, other, n:Math.max(only.length, other.length), guclu:o.guclu !== mk.guclu, seyir:o.seyirType !== mk.seyirType };
+  }).filter(x => x.n <= maxDiff).sort((x, y) => x.n - y.n || x.mk.name.localeCompare(y.mk.name, "tr"));
+}
 const seyirText = (mk, lang) => lang === "en" && mk.seyirEn ? mk.seyirEn : mk.seyir;
 // Akort bağlamı: makamın perdeleri ve (icra seçiliyse) düzeltmeler
 function tuningCtx(mk, mode){
@@ -440,7 +457,7 @@ function streak(days, today = new Date()){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  MAKAMS, makamById, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
+  MAKAMS, makamById, similarMakams, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
   GB_ORDER, GB_START, GB_LEVELS, GB_FAST, gbState, gbNote, gbActive, gbMastered, gbPick, gbRecord,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,

@@ -224,6 +224,7 @@ TRAINERS.makam = function(ctx){
     <p class="pdesc">Makamı seç; dizisi nota şeridinde işaretlenir (çerçeveli: dizi, dolu: durak, noktalı: güçlü). Alıştırmada diziyi önce çık sonra in; her perdenin koma sapması gösterilir.</p>
     <div class="mklist" id="mklist" role="radiogroup" aria-label="Makam">${MAKAMS.map(m => `<button type="button" role="radio" data-id="${m.id}">${m.name}</button>`).join("")}</div>
     <div id="mkinfo"></div>
+    <details class="mkmore" id="mkmore"><summary>${L("Makamı tanı: benzer makamlar, seyir örnekleri, videolar", "Get to know the makam: similar makams, seyir examples, videos")}</summary><div id="mkmorebox"></div></details>
     <div class="pbar">
       <button class="stopbtn" id="mklisten" type="button">Diziyi dinle</button>
       <button class="stopbtn" id="mkdrone" type="button">Durağı dron yap</button>
@@ -251,16 +252,74 @@ TRAINERS.makam = function(ctx){
       <div class="label">Çıkış</div><div class="chiprow">${chips(mk.asc, "mka")}</div>
       <div class="label">İniş</div><div class="chiprow">${chips([...mk.desc].reverse(), "mkd")}</div>`;
     markScale(mk);
+    renderMore(mk);
   }
+  // Makamı tanı: aynı durakta dizisi en çok iki perdeyle ayrılan makamlar (learn.js similarMakams, dizilerden hesaplanır),
+  // nota arşivindeki SymbTr seyir ezgileri (Rauf Yekta, Şefik Gürmeriç, Erol Bingöl) ve bu makamın videoları
+  const TYPE = { cikici:L("çıkıcı", "ascending"), inici:L("inici", "descending"), "inici-cikici":L("inici-çıkıcı", "descending-ascending") };
+  const pl = cs => cs.map(perdeName).join(", ");
+  function simText(mk, x){
+    const o = x.mk, parts = [];
+    if(!x.n) parts.push(L("Dizi aynı; fark seyirde ve ezgide.", "Same scale; the difference is in the seyir and the melody."));
+    else if(!x.only.length) parts.push(o.name + L(" dizisinde ayrıca ", " also has ") + pl(x.other));
+    else if(!x.other.length) parts.push(mk.name + L(" dizisinde ayrıca ", " also has ") + pl(x.only));
+    else parts.push(L("Fark — ", "Difference — ") + mk.name + ": " + pl(x.only) + " · " + o.name + ": " + pl(x.other));
+    if(x.guclu) parts.push(L("güçlü ", "dominant ") + perdeName(mk.guclu) + " / " + perdeName(o.guclu));
+    if(x.seyir) parts.push("seyir " + TYPE[mk.seyirType] + " / " + TYPE[o.seyirType]);
+    return parts.join(" · ");
+  }
+  function renderMore(mk){
+    const sim = similarMakams(mk, 2).slice(0, 4);
+    const vids = typeof VIDEOS !== "undefined" ? VIDEOS.filter(v => v.makam === mk.id) : [];
+    $("mkmorebox").innerHTML = `
+      <div class="label">${L("Benzer makamlar", "Similar makams")}</div>
+      ${sim.length ? `<ul class="mksim">${sim.map(x => `<li><button type="button" class="linkbtn" data-mkgo="${x.mk.id}">${x.mk.name}</button>
+        <span>${esc(simText(mk, x))}</span> <button class="stopbtn small" type="button" data-mkcmp="${x.mk.id}">${L("İkisini dinle", "Hear both")}</button></li>`).join("")}</ul>
+        <p class="muted small">${L("Aynı durakta karar veren ve dizisi en çok iki perdeyle ayrılan makamlar; uygulamadaki dizilerden hesaplandı. Makamı yalnız dizi belirlemez: seyir, güçlü ve kalış yerleri de ayırır. \"İkisini dinle\" önce bu makamın, sonra ötekinin çıkışını çalar.", "Makams that end on the same final and whose scales differ by at most two perdes, computed from the scales in the app. A scale alone does not make a makam: the seyir, the dominant and the resting places matter too. \"Hear both\" plays this makam's ascent, then the other's.")}</p>`
+        : `<p class="muted small">${L("Aynı durakta dizisi yakın bir makam yok.", "No makam with a nearby scale ends on the same final.")}</p>`}
+      <div class="label">${L("Seyir örnekleri (nota arşivinden)", "Seyir examples (from the score archive)")}</div>
+      <div id="mkseyir" class="muted small">${L("Yükleniyor…", "Loading…")}</div>
+      ${vids.length ? `<div class="label">${L("Videolar", "Videos")} <small>${vids.length}</small></div>${videoRowsHtml(vids.slice(0, 5))}` : ""}`;
+    if(!$("mkmore").open) return;
+    fillSeyir(mk);
+  }
+  function fillSeyir(mk){
+    const box = $("mkseyir"); if(!box || box.dataset.mk === mk.id) return;
+    box.dataset.mk = mk.id;
+    SK.archiveIndex().then(list => {
+      if(ms.cur !== mk || !$("mkseyir")) return;
+      const ex = list.filter(e => e.f === "seyir" && archMakam(e.mk) === mk.id);
+      const n = list.filter(e => e.f !== "seyir" && archMakam(e.mk) === mk.id).length;
+      $("mkseyir").innerHTML = ex.length ? `<div class="pbar">${ex.map(e => `<button class="stopbtn small" type="button" data-arch="${esc(e.id)}">${esc(e.b)} · ${esc(e.un)}</button>`).join("")}</div>
+        <p class="muted small">${L("Seyir ezgisi, makamın nereden başlayıp nerelerde durduğunu ve nasıl karar verdiğini gösteren kısa bir örnek ezgidir (SymbTr). Açınca dinleyebilir, takip ederek çalabilirsin. Arşivde bu makamda ", "A seyir melody is a short example showing where the makam starts, where it rests and how it ends (SymbTr). Open it to listen and to play along. The archive holds ")}${n}${L(" eser daha var.", " more pieces in this makam.")}</p>`
+        : `<p class="muted small">${L("Arşivde bu makamın seyir örneği yok.", "The archive has no seyir example for this makam.")}</p>`;
+    }).catch(() => { const b = $("mkseyir"); if(b){ b.textContent = L("Arşiv açılamadı.", "Couldn't open the archive."); delete b.dataset.mk; } });
+  }
+  $("mkmore").addEventListener("toggle", () => { if($("mkmore").open) fillSeyir(ms.cur); });
+  $("mkmorebox").addEventListener("click", async e => {
+    const go = e.target.closest("[data-mkgo]"), cmp = e.target.closest("[data-mkcmp]"), ar = e.target.closest("[data-arch]");
+    if(go){ ms.cur = makamById(go.dataset.mkgo); store.set("makam", ms.cur.id); ex = null; stage.innerHTML = ""; SK.setTempContext(ms.cur.id); render(); return; }
+    if(ar){ SK.openArchive(ar.dataset.arch); return; }
+    if(cmp){
+      const a = ms.cur, b = makamById(cmp.dataset.mkcmp), token = {}; listenToken = token;
+      for(const it of [...a.asc.map(c => [a, c]), null, ...b.asc.map(c => [b, c])]){
+        if(listenToken !== token) return;
+        if(!it){ SK.stopSound(); await sleep(700); continue; }
+        SK.play(commaToWritten(it[1]), mkFreq(it[0], it[1])); await sleep(480);
+      }
+      if(listenToken === token) SK.stopSound();
+    }
+  });
   $("mklist").addEventListener("click", e => {
     const b = e.target.closest("button"); if(!b) return;
     ms.cur = makamById(b.dataset.id); store.set("makam", ms.cur.id);
     ex = null; stage.innerHTML = ""; SK.setTempContext(ms.cur.id); render();
   });
   // Arama ve dışarıdan açma: SK.openMakam(id) makamı seçip Dizi'yi açar
-  SK.openMakam = id => {
+  SK.openMakam = (id, more) => {
     const mk = makamById(id); if(!mk) return;
     ms.cur = mk; store.set("makam", mk.id); ex = null; stage.innerHTML = "";
+    if(more) $("mkmore").open = true;              // taksim sonucundan: "Makamı tanı" açık gelsin
     render();                // başka bölümden açılınca modül dokunuşla devralınır (practice.js takeOver); seçili makam hemen görünsün
     ctx.selectTab("makam");
   };

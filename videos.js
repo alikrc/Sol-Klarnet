@@ -13,6 +13,15 @@ const VIDEO_CATS = [
   { id:"eser", name:{ tr:"Örnek eserler", en:"Example pieces" } }
 ];
 
+// Etiketler yalnız başlıkta açıkça yazan niteliklerden çıkar. Videolara tek tek üslup (klasik / Trakya-Roman / modern)
+// etiketi verilmedi: hepsi aynı iki hocanın tavrıdır ve videolar bu amaçla izlenip sınıflanmadı.
+const VIDEO_TAGS = [
+  [/eski tavır/i, { tr:"eski tavır", en:"old style" }],
+  [/oyun hava|roman hava|karşılama/i, { tr:"oyun havası", en:"dance tune" }],
+  [/blues|\bcaz\b/i, { tr:"caz", en:"jazz" }],
+  [/yakın çekim/i, { tr:"yakın çekim", en:"close-up" }]
+];
+
 // [YouTube kimliği, başlık, çalan (VIDEO_BY), süre, kategori, makam (makamById kimliği, yoksa boş)]
 const VIDEOS = [
   // ---- Makam anlatımı ve etüt ----
@@ -142,11 +151,15 @@ const VIDEOS = [
   ["nvR5kiWsifw", "Hasretinle Yandı Gönlüm: ödev amaçlı örnek parça", "", "2:05", "eser", ""],
   ["TNpfyr85uwk", "Osman Aga: eğitim amaçlı yakın çekim", "ok", "1:42", "eser", ""],
   ["0ieROVd5IaQ", "Besame Mucho: ödev amaçlı basit icra", "", "1:31", "eser", ""]
-].map(([id, title, by, dur, cat, makam]) => ({ id, title, by, dur, cat, makam }));
+].map(([id, title, by, dur, cat, makam]) => ({ id, title, by, dur, cat, makam, tags:VIDEO_TAGS.filter(([re]) => re.test(title)).map(([, t]) => t) }));
 
 // Ders kimliği → video kimlikleri (en önemlisi önce)
 const LESSON_VIDEOS = {
   "klarneti-tani": ["DH9fhSIv-lY"],
+  "kamis": ["DH9fhSIv-lY"],
+  "agizlik": ["DH9fhSIv-lY"],
+  "dil-ilk": ["ylgh8GL-wS0"],
+  "ilk-gecis": ["UXyxS0xAEfM"],
   "durus-nefes": ["DH9fhSIv-lY"],
   "uzun-ton": ["DH9fhSIv-lY"],
   "ses-kalitesi": ["DH9fhSIv-lY", "VeqpyI0vGpU"],
@@ -198,7 +211,7 @@ const vEsc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", 
 function videoRowsHtml(list){
   return `<div class="vlist">${list.map(v => `<a class="vrow" href="${videoUrl(v.id)}" target="_blank" rel="noopener">
     <span class="vplay" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>
-    <span class="vtx"><b>${vEsc(v.title)}</b><small>${[VIDEO_BY[v.by], v.dur].filter(Boolean).map(vEsc).join(" · ")}</small></span>
+    <span class="vtx"><b>${vEsc(v.title)}</b><small>${[VIDEO_BY[v.by], v.dur].filter(Boolean).map(vEsc).join(" · ")}${(v.tags || []).map(t => ` <i class="vtag">${vEsc(typeof LANG !== "undefined" && LANG === "en" ? t.en : t.tr)}</i>`).join("")}</small></span>
     <span class="vext">YouTube ↗</span></a>`).join("")}</div>`;
 }
 

@@ -416,6 +416,17 @@ svg.minichart.tap .hole:focus-visible circle,svg.minichart.tap .key:focus-visibl
 .seyir{font-size:13px;line-height:1.55;margin:0 0 10px;max-width:75ch}
 .chiprow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
 .chiprow.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}
+.vtag{font-style:normal;font-size:10.5px;padding:1px 6px;border-radius:6px;background:var(--sunk);color:var(--muted);margin-left:4px;white-space:nowrap}
+.vstyle{margin:0 0 12px;font-size:13px;line-height:1.55}
+.vstyle > summary{cursor:pointer;font-weight:600;color:var(--teal)}
+.vstyle p{margin:6px 0;max-width:75ch}
+.mkmore{margin:4px 0 12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.mkmore > summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--teal)}
+.mkmore[open] > summary{margin-bottom:8px}
+.mksim{list-style:none;margin:4px 0 6px;padding:0;display:grid;gap:8px}
+.mksim li{font-size:13px;line-height:1.5}
+.mksim .linkbtn{padding:0 4px 0 0;font-size:13.5px}
+.mksim .stopbtn{padding:4px 10px;font-size:12px;margin-left:4px}
 .pchip{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;padding:7px 8px;border-radius:9px;
   background:var(--surface);border:1px solid var(--line);font-size:12px;flex:0 0 auto}
 .pchip b{font-weight:600;color:var(--teal)}
