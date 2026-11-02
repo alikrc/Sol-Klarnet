@@ -622,6 +622,11 @@ body[data-view="finger"] .note .pn{min-height:0}
 .ctxrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
 .ctxrow select{max-width:min(100%,260px)}
 .ctxhint{margin-top:8px;line-height:1.5}
+.tuneown{margin-top:8px;display:grid;gap:6px}
+.tuneown[hidden]{display:none}
+.tuneown .ownrow{display:flex;flex-wrap:wrap;gap:6px 10px}
+.tuneown label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.tuneown input{width:58px}
 
 /* Parmak kartındaki küçük akort göstergesi: çalınan perde + sapma iğnesi (geniş ekranda büyüğü yanda) */
 .minitune{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px 14px;

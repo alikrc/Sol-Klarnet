@@ -5,15 +5,15 @@
 // Dosyanın sonunda Ritim heceleri sayfası: nota değerlerini kelime heceleriyle (nar, el-ma, por-ta-kal…) öğretir.
 
 const USUL_INFO = {
-  semai:      { lv:1, tempo:90,  tr:"En kısa klasik usullerden: üç vuruş, düm tek tek. Vals gibi döner; şarkılarda sık.",
-                en:"One of the shortest classical usuls: three beats, düm tek tek. It turns like a waltz; common in şarkıs." },
-  sofyan:     { lv:1, tempo:90,  tr:"Dört vuruş: düm iki vuruş sürer, ardından iki tek. İlâhî ve şarkılarda çok sık; Batı müziğinin 4/4'üne benzer.",
-                en:"Four beats: the düm lasts two, then two teks. Very common in ilahis and şarkıs; close to Western 4/4." },
+  semai:      { lv:1, tempo:90,  tr:"En kısa klasik usullerden: üç zaman, üç darb: düm tek tek. Vals gibi döner; şarkılarda sık.",
+                en:"One of the shortest classical usuls: three beats (zaman), three strokes (darb): düm tek tek. It turns like a waltz; common in şarkıs." },
+  sofyan:     { lv:1, tempo:90,  tr:"Dört zaman ama üç darb: düm iki zaman sürer, ardından iki tek (te-ke). Zaman sayısıyla darb sayısının farklı olabileceğinin en basit örneği. İlâhî ve şarkılarda çok sık; Batı müziğinin 4/4'üne benzer.",
+                en:"Four beats (zaman) but three strokes (darb): the düm lasts two beats, then two teks (te-ke). The simplest case of beats and strokes differing. Very common in ilahis and şarkıs; close to Western 4/4." },
   kasap:      { lv:1, tempo:100, tr:"İki vuruş, düm tek. Düz ve hızlı yürüyen oyun havası.",
                 en:"Two beats, düm tek. A straight, fast-walking dance tune." },
   sirto:      { lv:1, tempo:96,  tr:"Kasap havası gibi düm tek, ama hafif ve zıplayarak çalınır. Fasıl sonlarında ve Rumeli'de çalınan sirtolar.",
                 en:"Düm tek like kasap havası, but played light and bouncing. The sirtos that close a fasıl, and Rumelian ones." },
-  duyek:      { lv:2, tempo:150, tr:"Sekiz sekizlik, beş vuruş: düm, uzun tek, kısa tek, uzun düm, uzun tek. İki sofyanın birleşmesidir. Şarkı, ilâhî ve peşrevlerde en çok çalınan usullerden.",
+  duyek:      { lv:2, tempo:150, tr:"Sekiz zaman (sekizlik), beş darb: düm, uzun tek, kısa tek, uzun düm, uzun tek. İki sofyanın birleşmesidir. Şarkı, ilâhî ve peşrevlerde en çok çalınan usullerden.",
                 en:"Eight eighths, five strokes: düm, long tek, short tek, long düm, long tek. It joins two sofyans. One of the most played usuls in şarkıs, ilahis and peşrevs." },
   ciftetelli: { lv:2, tempo:140, tr:"Göbek havası ve oyunlar. Düm, tek, tek, sonra art arda iki düm ve tek: ortadaki iki düm onu hemen tanıtır.",
                 en:"Belly-dance tunes and dances. Düm, tek, tek, then two düms in a row and a tek: those two düms give it away." },
@@ -21,7 +21,7 @@ const USUL_INFO = {
                 en:"Five eighths (2+3): a two-eighth düm, then a long tek and a short tek. That's where the limp comes from; in şarkıs, türküs, köçekçes and dance tunes." },
   yuruksemai: { lv:2, tempo:160, tr:"Altı sekizlik, iki üçlük (3+3): düm tek tek, düm tek. Hızlı semâî; fasılda ve şarkılarda.",
                 en:"Six eighths in two threes (3+3): düm tek tek, düm tek. The quick semai; in fasıl and şarkıs." },
-  aksak:      { lv:2, tempo:160, tr:"Dokuz sekizlik, altı vuruş (2+2+2+3): düm, te ke, düm, tek, tek. Bir sofyanla bir Türk aksağının birleşmesidir; çift zamanlı olmayışı ve 2+1 diye bitişi ona “aksak” (topal) adını verir. Şarkı, türkü, oyun havası ve ilâhîlerde çok sık.",
+  aksak:      { lv:2, tempo:160, tr:"Dokuz zaman (sekizlik), altı darb (2+2+2+3): düm, te ke, düm, tek, tek. Bir sofyanla bir Türk aksağının birleşmesidir; çift zamanlı olmayışı ve 2+1 diye bitişi ona “aksak” (topal) adını verir. Şarkı, türkü, oyun havası ve ilâhîlerde çok sık.",
                 en:"Nine eighths, six strokes (2+2+2+3): düm, te ke, düm, tek, tek. It joins a sofyan and a Türk aksağı; its odd length and 2+1 ending give it the name “aksak” (limping). Very common in şarkıs, türküs, dance tunes and ilahis." },
   karsilama:  { lv:2, tempo:160, tr:"Trakya karşılaması, dokuz sekizlik (2+2+2+3): düm tek düm tek. Aksak'ta ikinci ve son gruplar ikiye bölünür, karşılamada her grup tek vuruştur.",
                 en:"The Thracian karşılama, nine eighths (2+2+2+3): düm tek düm tek. In aksak the second and last groups split in two; here each group is a single stroke." },
@@ -29,7 +29,7 @@ const USUL_INFO = {
                 en:"Roman havası, nine eighths: düm tek tek, then a short düm and a tek. That short düm near the end makes the dance jump." },
   rumeli:     { lv:3, tempo:170, tr:"Yedi sekizlik (2+2+3): düm, tek, uzun tek. Rumeli ve Balkan oyunlarında.",
                 en:"Seven eighths (2+2+3): düm, tek, long tek. In Rumelian and Balkan dances." },
-  curcuna:    { lv:3, tempo:160, tr:"On sekizlik, altı vuruş: düm, te, uzun ke, düm, tek, tek. Aksak Semâî'nin yürük mertebesidir; Aksak'ın üçüncü vuruşu bir sekizlik uzamış gibidir. Köçekçe, oyun havası ve şarkılarda.",
+  curcuna:    { lv:3, tempo:160, tr:"On zaman (sekizlik), altı darb: düm, te, uzun ke, düm, tek, tek. Aksak Semâî'nin yürük mertebesidir; Aksak'ın üçüncü vuruşu bir sekizlik uzamış gibidir. Köçekçe, oyun havası ve şarkılarda.",
                 en:"Ten eighths, six strokes: düm, te, long ke, düm, tek, tek. The quick form of Aksak Semâî; like aksak with its third stroke one eighth longer. In köçekçes, dance tunes and şarkıs." },
   zeybek:     { lv:3, tempo:80,  tr:"Ege'nin ağır ve vakur zeybekleri, dokuz dörtlük: Ağır Aksak'ın vuruşlarıyla, çok ağır.",
                 en:"The slow, proud zeybeks of the Aegean, nine quarters: Ağır Aksak's strokes, very slow." },
@@ -82,6 +82,16 @@ TRAINERS.usul = function(ctx){
     <div class="pbar"><div class="seg" role="radiogroup" aria-label="${L("Kip", "Mode")}" id="usmode">
       <button type="button" role="radio" data-m="learn">${L("Öğren", "Learn")}</button>
       <button type="button" role="radio" data-m="quiz">${L("Hangi usul?", "Which usul?")}</button></div></div>
+    <details class="phelp"><summary>${L("Kavramlar: zaman, darb, düm, tek, çevrim", "Terms: zaman, darb, düm, tek, cycle")}</summary><div class="phelpbody">
+      <p>${L("Zaman: usulün saydığın eşit birimleri (ölçünün payı; 9/8'de dokuz sekizlik). Vuruş kelimesi gündelikte ikisi için de kullanılır; burada zaman sayılan birim, darb çalınan vuruştur.",
+        "Zaman (beat): the equal units you count (the top number; nine eighths in 9/8). Darb (stroke): a stroke actually played on the drum.")}</p>
+      <p>${L("Darb: usulü belirleyen vuruşlar. Düm kalın ve ağır (davulun ortası), tek ince ve hafif (kenarı); “te-ke” iki kısa tek. Bir darb birkaç zaman sürebilir, bu yüzden zaman ve darb sayısı farklı olabilir: Sofyan 4 zaman, 3 darbdır.",
+        "Darb: the strokes that define the usul. Düm is deep and heavy (the centre of the drum), tek is light (the rim); “te-ke” is two short teks. A stroke can last several beats, so the counts can differ: Sofyan has 4 beats and 3 strokes.")}</p>
+      <p>${L("Usul çevrimi: kalıbın bir kez baştan sona çalınması. Kısa usullerde bir çevrim bir ölçüdür; uzun usullerde (ör. Devr-i kebîr 28 zaman) bir çevrim birkaç ölçüye yazılır.",
+        "Usul cycle: one full pass through the pattern. In short usuls a cycle is one bar; long usuls (e.g. Devr-i kebîr, 28 beats) are written over several bars.")}</p>
+      <p>${L("Klasik usullerin kalıpları yazılı kaynaklardadır (TDV). Oyun havası ritimleri (kasap, çiftetelli, karşılama, Roman, Rumeli) yaşayan geleneklerdir; burada gösterilen yaygın bir çalıştır.",
+        "Classical usul patterns are written in the sources (TDV). Dance rhythms (kasap, çiftetelli, karşılama, Roman, Rumeli) are living traditions; what you see here is one common way to play them.")}</p>
+    </div></details>
     <div id="uslearn">
       <div class="uslist" id="uslist"></div>
       <div class="usbox">
@@ -141,8 +151,11 @@ TRAINERS.usul = function(ctx){
   }
   function paint(){
     const i = USUL_INFO[cur.id];
-    $("usname").textContent = cur.name; $("usmeter").textContent = cur.meter; $("uslv").textContent = USUL_LV[i.lv];
-    $("usdesc").textContent = pick(i, LANG);
+    // Zaman: usulün birim vuruş sayısı (ölçü payı); darb: düm ve tek vuruşlarının sayısı. İkisi farklı olabilir (Sofyan 4/3)
+    const zaman = +cur.meter.split("/")[0], darb = cur.strokes.length;
+    $("usname").textContent = cur.name; $("usmeter").textContent = cur.meter + " · " + zaman + L(" zaman · ", " beats · ") + darb + L(" darb", " strokes"); $("uslv").textContent = USUL_LV[i.lv];
+    $("usdesc").textContent = pick(i, LANG) + (cur.halk ? " " + L("Burada yaygın bir darbuka çalışı var; oyun havası ritimleri yöreye, icracıya ve oyuna göre değişir, tek doğru kalıp yoktur. Hocanın ya da dinlediğin topluluğun çalışını esas al.",
+      "This is one common darbuka pattern; dance rhythms vary by region, player and dance, and there is no single correct pattern. Follow your teacher's or your local group's version.") : "");
     $("ussay").textContent = cur.strokes.map(([s, d]) => usulSyl(s) + " –".repeat(d - 1)).join("  ");
     $("ustempo").value = store.get(tempoKey(), i.tempo); $("usunit").textContent = unitName(cur);
     paintGrid(false); paintList(); paintSteps(); idleStage();

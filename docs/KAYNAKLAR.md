@@ -147,7 +147,7 @@ Kaynak listesi: [SORUNLAR-KAYNAKLAR.md](SORUNLAR-KAYNAKLAR.md). Bütün bağlant
 ## 9. Veri kaynakları (lisanslar)
 
 - Nota arşivi: [SymbTr](https://github.com/MTG/SymbTr) (M. K. Karaosmanoğlu, ISMIR 2012; MTG, Universitat Pompeu
-  Fabra), CC BY-NC-SA 4.0. Ayrıntı README’de.
+  Fabra), CC BY-NC-SA 4.0. Ayrıntı README’de; lisans ve telif durumu [LISANSLAR.md](LISANSLAR.md).
 - Nota bul: [neyzen.com](https://www.neyzen.com/), [projetsm.com](http://projetsm.com/) (dosyalar cihazda okunur,
   uygulamaya kopyalanmaz).
 - Fontlar: Google Fonts ve [Leland](https://github.com/MuseScoreFonts/Leland) (SIL Open Font License).

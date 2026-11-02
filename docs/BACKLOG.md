@@ -34,7 +34,7 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 ### Aşamalar
 
 1. **P0 — ses analizi, OMR, çeyrek ses parmakları** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
-2. **P1 — icra perdesi, usul, başlangıç dersleri, ses etiketleri, lisans belgesi**
+2. **P1 — icra perdesi, usul, başlangıç dersleri, ses etiketleri, lisans belgesi** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 3. **P1 — makam karşılaştırma ve örnekler, videolar**
 4. **P2 — öğrenme deneyimi**
 
@@ -71,6 +71,43 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
   odada akort göstergesi (yeni gürültü denetimi pes notalarda oktav korumasını zayıflatıyor mu); pp pes notaların
   telefonda görünüp görünmediği; 57 çeyrek ses parmağı (uzman); gerçek Leland/Bravura basılı nota fotoğraflarında
   çizgili bemol
+
+### Aşama 2 (P1) — tamamlandı (2 Kasım 2026)
+
+**Değişen dosyalar:** `learn.js`, `app.js`, `index.html`, `app.css`, `i18n.js`, `usuller.js`, `lessons.js`,
+`lessonview.js`, `sorunlar.js`, `skills.js`; yeni `docs/LISANSLAR.md`, `docs/lisans-besteciler.csv`.
+
+- **İcra perdesi** (`learn.js` `ICRA_INFO`, `setCustomIcra`): icra düzeltmesinin yanında kaynağın aralığı ve varsa
+  çıkış/iniş farkı gösteriliyor. Uşşak ailesinde Segâh: −1,5 (−2 ile −1 arası; çıkarken ≈ −1, inerken ≈ −2, Gürbüz 1983
+  ölçümü); Hüzzam'da Hisar +1 ile +1,5; Saba'da Hicaz +2 ile +2,5. Ölçüm yine ortadaki değeri kullanıyor; çıkıp inerken
+  ayrı hedef yok (kaynak yalnız Segâh için var). Yardım metni "ustaların gerçekte çaldığı perde, emin değilsen İcra"
+  yerine "yaklaşık; icracıya, ezgiye ve tavra göre değişir" diyor
+- **Kendim akordu:** akort ekranında üçüncü seçenek. Seçili makamın her perdesi için öğretmeninin ya da örnek aldığı
+  icracının sapması girilir (−3…+3 koma, 0,5 adım, `sk.tune.custom`); akort ve alıştırmalar bu hedeflere göre ölçer,
+  "İcra değerlerine dön" sıfırlar
+- **Usul** (`usuller.js`): "Kavramlar" kutusu (zaman, darb, düm, tek, te-ke, usul çevrimi); başlıkta "4/4 · 4 zaman · 3
+  darb". Sofyan metni zaman/darb farkını anlatıyor, "vuruş" yerine zaman ya da darb. Oyun havası usullerinde "yaygın bir
+  çalış; yöreye, icracıya ve oyuna göre değişir, tek doğru kalıp yok"
+- **Başlangıç dersleri** (Başlarken ünitesi, 12 ders): parçalar ve montaj → kamış seçimi ve takma (yeni) → oturuş ve
+  tutuş → sol ve sağ el (yeni) → ağızlık ve dudak (yeni) → ilk ses (Temeller'den taşındı) → uzun ses (yeni) → dil ile
+  başlatma (yeni) → ilk geçişler (yeni) → nefes ve cümleleme (yeni) → nota okuma → ritim. Nefes: alt kaburgalar, rahat
+  alış, kontrollü akış ("karından" sözünün neyi anlattığı açıklanıyor). Dudak: gevşeklik ile köşelerdeki sızdırmazlık
+  dengesi; Türk tavrındaki esneklik "üslup farkı, kural değil". Kamış: numara markaya ve bek açıklığına göre değişir,
+  kulakla ve hocayla seçilir. Var olan derslerin kimliği ve adım sayısı aynı kaldı (eski ilerleme korunur); yeni dersler
+  teknik ünitesinin kilidini etkilemesin diye Başlarken'de. Toplam ders 84. Sorunlar sayfasının nefes ve gıcırtı
+  bağlantıları yeni derslere yönlendi, nefes tavsiyeleri aynı dile çekildi
+- **Örnek ses etiketi:** derslerin "Dinle" adımında ve Hakkında'da "Si♭ klarnet kaydı, perdesi ayarlı; Sol klarnetin
+  tınısı değil"
+- **Lisanslar** ([LISANSLAR.md](LISANSLAR.md)): her kaynak, lisansı, ücretsiz/ticari durumu ve yapılacak iş. SymbTr NC
+  şartı ticari sürümle çelişir; eser telifleri SymbTr lisansından ayrı. [lisans-besteciler.csv](lisans-besteciler.csv):
+  502 besteci, eser sayıları ve formlar; ölüm yılı ve telif durumu sütunları doldurulmalı (363 güfte yazarı ayrıca)
+- **Yapılan denetimler:** tarayıcıda akort ekranı (icra aralığı metni, Kendim düzenleyicisi, kayıt), usul sayfası
+  (Sofyan, Karşılama, kavramlar), yeni derslerin sırası ve içeriği, "Dinle" etiketi; konsolda hata yok. Node'da
+  `tuningCtx`/`perdeTarget` Kendim modu ve ders sırası
+- **Uzman/hoca görmeli:** yeni 7 dersin metinleri (özellikle oturuş açısı, dudak ve nefes anlatımı, Albert el
+  pozisyonları); Kendim akordunun hocalar için kullanışlı olup olmadığı; oyun havası çalışlarının "yaygın" sayılabilirliği
+- **Yapılmadı (aşama 3–4):** makam karşılaştırması ve ezgi örnekleri, taksim–makam bağı, kısa konu videoları ve
+  üslup etiketleri, P2 öğrenme deneyimi. Yeni gerçek Sol klarnet kayıtları ve videolar proje sahibine bağlı
 
 ### Maddeler (gelen liste)
 
@@ -344,7 +381,7 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 5. **Oyun havaları:** Yedi halk usulünün (sirto ve zeybek dahil) düm-tek kalıpları, ikinci çalışlar ve dolgular (`learn.js` USULS,
    `band.js` BAND_STYLES), Nikriz dizisi ve on bir Trakya/Roman etüdü (`repertoire.js`, level 6) bir Trakya ya da Roman klarnetçisine dinletilmeli. Eşlikle usule oturma eşiği
    (±60 ms) ve eşlik sızıntısının ayıklanması telefon hoparlörüyle denenmeli.
-6. **Repertuvar:** Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
+6. **Repertuvar ve lisans:** ayrıntı [LISANSLAR.md](LISANSLAR.md). Telifli eserler eklenmedi; kullanıcı MusicXML içe aktarabiliyor. SymbTr gibi açık lisanslı arşivlerden
    seçki eklenecekse lisans koşulları kontrol edilmeli.
 7. **Nota bul gerçek cihazda denenmedi (30 Ekim 2026):** Arayüz tarayıcı panelinde sahte ağla (curl'den alınmış sayfalar)
    denendi; `CapacitorHttp` ile gerçek arama, neyzen dizininin çıkarılması (89 makam sayfası, ~1,6 milyon karakter;

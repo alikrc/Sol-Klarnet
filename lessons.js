@@ -47,8 +47,8 @@ const LESSONS = [
         en:"On the G clarinet, written G4 is played with every hole open and is the Rast perde. The clarinet sounds a perfect fourth lower than written; the app always shows the written note." },
       { tr:"Kamışı ağızda birkaç dakika nemlendir. Üst dişler ağızlığın üstüne hafifçe değsin, alt dudak alt dişleri örtsün; dudak köşeleri ağızlığı her yandan sarsın, çene düz kalsın.",
         en:"Wet the reed in your mouth for a few minutes. Rest the upper teeth lightly on top of the mouthpiece and cover the lower teeth with the lower lip; the corners of the mouth hug the mouthpiece and the chin stays flat." },
-      { tr:"Nefesi karından al, sesi “tu” hecesiyle dilinle başlat. Önce kısa sesler, sonra uzun ve düz bir ses hedefle.",
-        en:"Breathe from the belly and start the sound with the tongue on a “tu” syllable. Aim for short notes first, then a long, steady one." }
+      { tr:"Omuzları kaldırmadan rahat bir nefes al (alt kaburgalar genişler), sesi “tu” hecesiyle dilinle başlat. Önce kısa sesler, sonra uzun ve düz bir ses hedefle.",
+        en:"Take a relaxed breath without lifting the shoulders (the lower ribs widen) and start the sound with the tongue on a “too” syllable. Aim for short notes first, then a long, steady one." }
     ],
     tips:[
       { tr:"Ses cızırdıyorsa ağızlığı ağzına biraz az al ya da dudak baskısını azalt.", en:"If it squeaks, take a little less mouthpiece or ease the lip pressure." },
@@ -410,55 +410,190 @@ const LESSONS = [
 // ---- Başlarken: hiç klarnet çalmamış biri için ----
 const BASLANGIC = [
   { id:"klarneti-tani", unit:"baslangic", notes:[],
-    title:{ tr:"Klarneti tanı ve kur", en:"Meet and assemble the clarinet" },
+    title:{ tr:"Klarnetin parçaları ve montajı", en:"The parts of the clarinet and assembly" },
     text:[
-      { tr:"Sol klarnet, Türk müziğinde en çok kullanılan klarnettir. Albert sistemdir: Batı'daki Boehm klarnetten daha az mandalı vardır, glissando ve kayan seslere çok uygundur.",
-        en:"The G clarinet is the most common clarinet in Turkish music. It is an Albert-system instrument: fewer keys than the Western Boehm clarinet and very well suited to glissandi and sliding sounds." }
+      { tr:"Sol klarnet Türk müziğinde en yaygın klarnettir. Çoğu Albert sistemdir: Batı'daki Boehm klarnetten daha az mandalı ve daha çok açık deliği vardır; bu da kayan seslere (glissando) ve dudakla perde oynatmaya uygundur.",
+        en:"The G clarinet is the most common clarinet in Turkish music. Most are Albert-system: fewer keys and more open holes than the Western Boehm clarinet, which suits slides (glissando) and bending the pitch with the lips." }
     ],
     tips:[
       { tr:"Klarneti kurarken mandallara değil, gövdenin tahta kısmına bastır; mandal ve halkalar kolay eğilir.", en:"When assembling, push on the wood, not the keys; keys and rings bend easily." }
     ],
     steps:[
       { type:"read", title:{ tr:"Parçalar", en:"The parts" }, body:[
-        { tr:"Yukarıdan aşağı: ağızlık (kamış ve bağ üstündedir), baş (fıçı), üst gövde (sol el), alt gövde (sağ el) ve kalak. Arkadaki başparmak deliği ve register mandalı sol başparmakla kullanılır.",
-          en:"From the top: the mouthpiece (with reed and ligature), the barrel, the upper joint (left hand), the lower joint (right hand) and the bell. The thumb hole and register key on the back are for the left thumb." },
+        { tr:"Yukarıdan aşağı: ağızlık (bek; kamış ve bağ üstündedir), baş (fıçı), üst gövde (sol el), alt gövde (sağ el) ve kalak. Arkadaki başparmak deliği ve register mandalı sol başparmakla kullanılır; sağ başparmak alt gövdenin arkasındaki dayanağın altına girer.",
+          en:"From the top: the mouthpiece (with reed and ligature), the barrel, the upper joint (left hand), the lower joint (right hand) and the bell. The thumb hole and register key on the back are for the left thumb; the right thumb goes under the thumb rest on the back of the lower joint." },
         { tr:"Uygulamadaki parmak şeması klarneti senin gözünden gösterir: üstte sol el, altta sağ el; başparmak deliği ve register solda ayrıca çizilidir.",
           en:"The fingering chart in the app shows the clarinet from your point of view: left hand on top, right hand below; the thumb hole and register key are drawn separately on the left." } ] },
       { type:"read", title:{ tr:"Kurma sırası", en:"Assembly order" }, body:[
-        { tr:"Mantarlara biraz mantar yağı sür. Kalağı alt gövdeye, alt gövdeyi üst gövdeye takarken köprü mandallarının hizalı olmasına dikkat et; sonra başı ve ağızlığı tak.",
-          en:"Put a little cork grease on the corks. Fit the bell to the lower joint and the lower joint to the upper joint, keeping the bridge keys lined up; then add the barrel and the mouthpiece." },
-        { tr:"Kamışı ıslat, ağızlığın düz yüzüne yerleştir: kamışın ucu ağızlığın ucuyla aynı hizada ya da kıl payı aşağıda olsun. Bağı kamışın kalın kısmına, fazla sıkmadan tak.",
-          en:"Wet the reed and place it on the flat side of the mouthpiece: the tip level with the mouthpiece tip or a hair below. Put the ligature over the thick part of the reed without over-tightening." } ] },
-      { type:"read", title:{ tr:"Kamış ve bakım", en:"Reeds and care" }, body:[
-        { tr:"Başlangıçta yumuşak kamış (2–2½ numara) kullan; sert kamış hem yorar hem sesi çıkarmayı zorlaştırır. Birkaç kamışı sırayla kullan, kamışları kutusunda sakla.",
-          en:"Start with a soft reed (strength 2–2½); a hard reed is tiring and makes the sound harder to produce. Rotate a few reeds and keep them in a case." },
-        { tr:"Çaldıktan sonra içini temizleme bezi (swab) ile kurula, kamışı çıkarıp sil. Klarneti güneşte, kaloriferin yanında ya da soğuk arabada bırakma: tahta çatlayabilir.",
-          en:"After playing, pull a swab through the bore and wipe the reed. Never leave the clarinet in the sun, by a radiator or in a cold car: the wood can crack." } ] }
+        { tr:"Mantarlar kuruysa biraz mantar yağı sür. Gövdeleri döndürerek, zorlamadan tak: kalak alt gövdeye, alt gövde üst gövdeye (köprü mandalları hizalı olsun; takarken üst gövdenin halkalarına basıp köprüyü kaldır), sonra baş ve ağızlık.",
+          en:"If the corks are dry, add a little cork grease. Twist the joints together without forcing: bell to lower joint, lower to upper joint (line up the bridge keys; press the upper rings to lift the bridge while fitting), then barrel and mouthpiece." },
+        { tr:"Kamışı en son, ağızlık yerine oturduktan sonra tak (sonraki ders). Sökerken tersi sırayla; önce kamışı çıkar.",
+          en:"Put the reed on last, once the mouthpiece is in place (next lesson). Take it apart in reverse order, reed first." } ] },
+      { type:"read", title:{ tr:"Bakım ve saklama", en:"Care and storage" }, body:[
+        { tr:"Çaldıktan sonra içini temizleme bezi (swab) ile kurula, kamışı çıkarıp kutusuna koy. Klarneti güneşte, kaloriferin yanında ya da soğuk arabada bırakma; soğuk tahtayı birden ısıtma: tahta çatlayabilir.",
+          en:"After playing, pull a swab through the bore and put the reed back in its case. Never leave the clarinet in the sun, by a radiator or in a cold car, and don't warm cold wood suddenly: it can crack." },
+        { tr:"Mandallar sertleşir ya da ses bir yerden hava kaçırır gibi olursa (özellikle pes notalarda) yastıklar sızdırıyor olabilir: bir tamirciye ya da hocana göster.",
+          en:"If keys get stiff or the sound seems to leak somewhere (especially on low notes), the pads may be leaking: show it to a repairer or your teacher." } ] }
+    ] },
+
+  { id:"kamis", unit:"baslangic", notes:[],
+    title:{ tr:"Kamış seçimi ve ağızlığa takılması", en:"Choosing a reed and fitting it" },
+    text:[
+      { tr:"Kamış sesin kaynağıdır: sert ya da yumuşak oluşu, ağızlığın (bekin) açıklığına ve senin ağzına uymalıdır. Tek bir doğru numara yoktur.",
+        en:"The reed is where the sound starts: how hard or soft it is must suit the mouthpiece opening and your embouchure. There is no single right number." }
+    ],
+    tips:[
+      { tr:"Yeni kamışı ilk günlerde kısa süre çal; birkaç kamışı sırayla kullanmak hepsinin ömrünü uzatır.", en:"Play a new reed only briefly for the first days; rotating a few reeds makes them all last longer." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Hangi kamış?", en:"Which reed?" }, body:[
+        { tr:"Numara markaya göre değişir: bir markanın 2½'si başka bir markanın 3'ü kadar sert olabilir. Bek de etkiler: açıklığı geniş (açık) bek genellikle daha yumuşak, dar (kapalı) bek daha sert kamışla iyi çalışır. Başlarken görece yumuşak bir kamışla başlamak yaygındır, ama bu bir kural değil.",
+          en:"Strength numbers differ between brands: one brand's 2½ can be as hard as another's 3. The mouthpiece matters too: a wide (open) tip usually works with a softer reed, a narrow (close) tip with a harder one. Starting on a relatively soft reed is common, but it isn't a rule." },
+        { tr:"Kulakla karar ver: ses ince, cızırtılı ve tize kaçıyorsa ya da kuvvetli çalınca kamış kapanıyorsa kamış yumuşak olabilir. Ses çıkarmak zor, ses havalı ve pes notalar geç konuşuyorsa sert olabilir. Kamışını hocanla birlikte seç; ilerledikçe değişebilir.",
+          en:"Decide by ear: if the sound is thin, buzzy and goes sharp, or the reed closes up when you play loud, it may be too soft. If it's hard to get a sound, the tone is airy and low notes are slow to speak, it may be too hard. Choose with your teacher; it may change as you progress." } ] },
+      { type:"read", title:{ tr:"Takma", en:"Fitting it" }, body:[
+        { tr:"Kamışın ucunu birkaç dakika ağzında ya da suda ıslat. Ağızlığın düz yüzüne yerleştir: kamışın ucu ağızlığın ucuyla aynı hizada ya da kıl payı aşağıda, kamış ortalanmış olsun.",
+          en:"Wet the reed tip in your mouth or in water for a few minutes. Place it on the flat side of the mouthpiece: tip level with the mouthpiece tip or a hair below, and centred." },
+        { tr:"Bağı kamışın kalın kısmına geçir, vidaları yalnızca kamış kaymayacak kadar sık. Fazla sıkmak kamışın titreşimini boğar. Ucu kırık ya da çatlak kamışı kullanma.",
+          en:"Slide the ligature over the thick part of the reed and tighten the screws only enough to stop it slipping. Over-tightening chokes the reed. Don't use a reed with a chipped or cracked tip." } ] }
     ] },
 
   { id:"durus-nefes", unit:"baslangic", notes:[67],
-    title:{ tr:"Duruş, ağız ve nefes", en:"Posture, embouchure and breath" },
+    title:{ tr:"Doğru oturuş ve klarneti tutuş", en:"Sitting well and holding the clarinet" },
     text:[
-      { tr:"İyi bir ses, iyi bir duruş ve nefesle başlar. Bu derste ağız pozisyonunu (embouchure) kurup ilk sesini uzun ve düz tutmayı deneyeceksin.",
-        en:"A good sound starts with good posture and breath. In this lesson you set up the embouchure and try to hold your first note long and steady." }
+      { tr:"Rahat bir duruş nefesi ve parmakları serbest bırakır. Bu derste oturuşu ve tutuşu kurup açık Sol'ü kısa kısa çalacaksın; ağız ve nefes ayrıntıları sonraki derslerde.",
+        en:"A relaxed posture frees the breath and the fingers. In this lesson you set up sitting and holding, then play short open Gs; embouchure and breathing come in the next lessons." }
     ],
     tips:[
-      { tr:"Omuzların düşük, sırtın dik olsun; klarnet gövdene yaklaşık 40 derece açıyla dursun.", en:"Keep your shoulders low and back straight; hold the clarinet at about 40 degrees from your body." }
+      { tr:"Klarneti ağzına getir, başını klarnete eğme.", en:"Bring the clarinet to your mouth; don't bend your head down to it." }
     ],
     steps:[
-      { type:"read", title:{ tr:"Ağız pozisyonu", en:"Embouchure" }, body:[
-        { tr:"Alt dudak alt dişlerin üstünü hafifçe örtsün, kamış alt dudağın üstüne otursun. Üst dişler ağızlığın üstüne hafifçe değsin. Dudak köşeleri ağızlığı her yandan sarsın, çene düz ve aşağıda kalsın.",
-          en:"The lower lip lightly covers the lower teeth and the reed rests on it. The upper teeth touch the top of the mouthpiece lightly. The corners of the mouth hug the mouthpiece and the chin stays flat and down." },
-        { tr:"Türk klarnetinde dudak biraz daha gevşek tutulur: perdeyi dudakla oynatabilmek (koma, glissando) bu esnekliğe bağlıdır.",
-          en:"Turkish clarinet players keep the lips a little looser: bending the pitch with the lips (commas, glissandi) depends on this flexibility." } ] },
-      { type:"read", title:{ tr:"Nefes", en:"Breathing" }, body:[
-        { tr:"Nefesi göğsünle değil karnınla al: alırken karın öne doğru şişer, omuzlar kalkmaz. Verirken havayı sabit bir akışla, ince bir hortumdan geçirir gibi gönder.",
-          en:"Breathe with your belly, not your chest: the belly moves out as you breathe in and the shoulders stay down. Send the air out in a steady stream, as if through a thin hose." },
-        { tr:"Sesi “tu” hecesiyle, dilinle kamışa dokunup çekerek başlat. Sesin ortası kadar sonu da önemlidir: havayı birden kesme.",
-          en:"Start the note with a “tu”: touch the reed with the tongue and release it. The end of the note matters as much as the middle: don't cut the air suddenly." } ] },
+      { type:"read", title:{ tr:"Oturuş", en:"Sitting" }, body:[
+        { tr:"Sandalyenin önüne doğru otur, ayaklar yere düz bassın. Sırt dik ama kaskatı değil; omuzlar düşük ve gevşek. Ayakta çalarken ağırlık iki ayağa eşit dağılsın.",
+          en:"Sit towards the front of the chair with both feet flat on the floor. Back upright but not stiff; shoulders low and loose. Standing, spread your weight evenly on both feet." },
+        { tr:"Başın dik; çene ne öne uzansın ne göğse gömülsün. Klarnet gövdenden yaklaşık 30–40 derece açıyla öne uzanır. Tam açı bekin ağza giriş açısına ve kişiye göre değişir; hocan ayarlar.",
+          en:"Keep your head up, the chin neither jutting forward nor tucked in. The clarinet points forward at roughly 30–40 degrees from your body. The exact angle depends on how the mouthpiece meets your mouth and on you; your teacher will adjust it." } ] },
+      { type:"read", title:{ tr:"Tutuş", en:"Holding" }, body:[
+        { tr:"Klarnetin ağırlığını sağ başparmak (dayanağın altında) taşır; ağız ve sol el yalnızca dengeler. Bilekler düz, dirsekler gövdeden hafifçe açık.",
+          en:"The right thumb (under the thumb rest) carries the clarinet's weight; the mouth and left hand only steady it. Wrists straight, elbows slightly away from the body." },
+        { tr:"Parmaklar doğal bir kavisle deliklerin üstünde, onlara yakın dursun. Kapatırken parmağın yumuşak ve düz yerini kullan, bastırma: delik sızdırmadan kapanınca yeter.",
+          en:"Fingers curve naturally and hover close above the holes. Cover with the soft, flat pad of the finger without pressing hard: a sealed hole is enough." } ] },
       { type:"listen", notes:[67] },
       { type:"hold", note:67, sec:3, min:30 },
       { type:"hold", note:67, sec:6, min:45 }
+    ] },
+
+  { id:"eller", unit:"baslangic", notes:[],
+    title:{ tr:"Sol ve sağ el parmak pozisyonları", en:"Left- and right-hand positions" },
+    text:[
+      { tr:"Sol el üstte, sağ el altta. Sol başparmak arkadaki deliği ve register mandalını, sol 1-2-3 parmaklar üst gövdenin üç deliğini kapatır. Sağ 1-2-3 parmaklar alt gövdenin üç deliğini kapatır, sağ başparmak dayanaktadır. Serçe parmaklar alttaki mandalları kullanır.",
+        en:"Left hand on top, right hand below. The left thumb covers the thumb hole and works the register key; left fingers 1-2-3 cover the three holes of the upper joint. Right fingers 1-2-3 cover the three holes of the lower joint and the right thumb sits on the rest. The little fingers work the low keys." },
+      { tr:"Albert klarnette birçok delik açıktır: parmak deliği tam ortalamazsa hava kaçar ve ses cızırdar. Parmağın düz yerini deliğin ortasına koy.",
+        en:"On an Albert clarinet many holes are open: if a finger misses the centre the hole leaks and the note squeaks. Place the flat pad right over the centre." }
+    ],
+    tips:[
+      { tr:"Kullanmadığın parmakları deliklerden uzaklaştırma; bir iki santim yukarıda bekleyen parmak hızlı ve temiz geçer.", en:"Don't lift unused fingers far; a finger waiting a centimetre or two above the hole moves quickly and cleanly." },
+      { tr:"Parmak kartında koyu delikler kapalı demektir; çalmadan önce kendi elinle karşılaştır.", en:"Dark holes on the fingering card are closed; compare with your own hand before playing." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Gevşek eller", en:"Relaxed hands" }, body:[
+        { tr:"Elin bir topu tutar gibi yuvarlak dursun; parmaklar gergin ya da dümdüz olmasın. Bileği kırma, başparmakla klarneti sıkma.",
+          en:"Keep your hand rounded as if holding a ball; fingers neither tense nor straight. Don't bend the wrist or squeeze the clarinet with the thumb." },
+        { tr:"Aynada ya da telefon kamerasıyla kendine bak: omuz kalkıyor mu, parmaklar delikten çok uzaklaşıyor mu, serçe parmak gergin mi?",
+          en:"Watch yourself in a mirror or on the phone camera: are your shoulders rising, are the fingers lifting far from the holes, is the little finger tense?" } ] },
+      { type:"quiz", notes:[62, 64, 66, 67], mode:"find", n:6, min:4 }
+    ] },
+
+  { id:"agizlik", unit:"baslangic", notes:[67],
+    title:{ tr:"Ağızlık ve dudak pozisyonu", en:"Mouthpiece and lip position" },
+    text:[
+      { tr:"Ağız pozisyonunda (embouchure) amaç iki şeyi birlikte tutmaktır: kamışın serbestçe titreyebileceği kadar gevşeklik ve havanın kaçmayacağı kadar sızdırmazlık.",
+        en:"The embouchure has to balance two things: enough looseness for the reed to vibrate freely and enough seal that no air escapes." }
+    ],
+    tips:[
+      { tr:"Yanaklar şişmesin; şişiyorsa köşeler gevşek ya da hava kaçıyor.", en:"Don't puff your cheeks; if they puff, the corners are slack or leaking." },
+      { tr:"Ses cızırdıyorsa ağızlığı biraz daha az al ya da dudak baskısını azalt.", en:"If it squeaks, take a little less mouthpiece or ease the lip pressure." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Yerleştirme", en:"Placement" }, body:[
+        { tr:"Alt dudak alt dişlerin üstünü yastık gibi örtsün, kamış bu yastığa otursun. Üst dişler ağızlığın üstüne hafifçe değsin. Ağızlığın ne kadarının ağza gireceği bekten beke değişir: ses ince ve sıkışıksa biraz daha çok, cızırtılı ya da kontrolsüzse biraz daha az al.",
+          en:"The lower lip covers the lower teeth like a cushion and the reed rests on it. The upper teeth rest lightly on top of the mouthpiece. How much mouthpiece goes in varies by mouthpiece: if the tone is thin and pinched take a little more, if it squeals or runs away take a little less." } ] },
+      { type:"read", title:{ tr:"Gevşeklik ve sızdırmazlık", en:"Looseness and seal" }, body:[
+        { tr:"Dudak köşeleri ağızlığı her yandan sarar ve havayı tutar; baskı kamışın üstünde değil, köşelerin çevresindedir. Çok sıkarsan kamış boğulur: ses ince, tiz ve sert olur. Çok gevşek bırakırsan hava kaçar: ses pes, dağınık ve havalı olur.",
+          en:"The corners of the mouth wrap the mouthpiece and hold the air; the pressure is around the corners, not on top of the reed. Bite too hard and the reed is choked: thin, sharp, hard tone. Too loose and air escapes: flat, spread, airy tone." },
+        { tr:"Türk tavrında perdeyi dudakla oynatmak (koma, kayış) önemlidir; bu yüzden birçok icracı alt dudağı Batı klasik okuluna göre biraz daha esnek tutar. Bu bir üslup farkıdır, kural değil; sızdırmazlık her tavırda gerekir.",
+          en:"In Turkish style, bending the pitch with the lips (commas, slides) matters, so many players keep the lower lip a little more flexible than in the Western classical school. That's a style difference, not a rule; the seal is needed in every style." } ] },
+      { type:"hold", note:67, sec:3, min:35 }
+    ] },
+
+  { id:"uzun-ses-ilk", unit:"baslangic", notes:[67, 66, 64],
+    title:{ tr:"Uzun ses çalışması", en:"Long-note practice" },
+    text:[
+      { tr:"Uzun ses, sesi sabit tutmayı öğretir: aynı güçte, aynı perdede, titremeden. Her gün birkaç dakika uzun ses bütün tekniğin temelidir.",
+        en:"Long notes teach you to keep the sound steady: same volume, same pitch, no wobble. A few minutes of long notes every day is the base of all technique." },
+      { tr:"Sesi rahat bir güçte başlat, ortada sabit tut, sonunda perdeyi düşürmeden bitir. Göstergedeki çizgi düz kalmalı.",
+        en:"Start at a comfortable volume, keep it steady in the middle and end without letting the pitch sag. The line on the tuner should stay flat." }
+    ],
+    tips:[
+      { tr:"Sesin sonunda perde düşüyorsa hava desteği bitiyordur: daha kısa tut ya da daha erken nefes al.", en:"If the pitch drops at the end, your air support is running out: hold shorter or breathe sooner." }
+    ],
+    steps:[
+      { type:"hold", note:67, sec:6, min:50 },
+      { type:"hold", note:66, sec:6, min:50 },
+      { type:"hold", note:64, sec:8, min:50 }
+    ] },
+
+  { id:"dil-ilk", unit:"baslangic", notes:[67],
+    title:{ tr:"Dil ile nota başlatma", en:"Starting notes with the tongue" },
+    text:[
+      { tr:"Notayı nefesle “hu” diye değil, dille başlatırız: dilin ucu kamışın ucuna hafifçe değer, hava arkada hazırdır; dil çekilince kamış titremeye başlar. “Tu” ya da “du” hecesi bu hareketi anlatır.",
+        en:"We start the note with the tongue, not with a breathy “hoo”: the tongue tip lightly touches the reed tip with the air ready behind it; when the tongue releases, the reed starts to vibrate. The syllable “too” or “doo” describes the motion." },
+      { tr:"Dil yalnızca sesi başlatır. Sesi dille durdurmak da mümkündür, ama başlangıçta notanın sonunu havayı yumuşakça bırakarak bitir.",
+        en:"The tongue only starts the note. Stopping it with the tongue is possible too, but as a beginner end notes by easing the air." }
+    ],
+    tips:[
+      { tr:"Dil vururken çene ve dudak oynamasın; aynada bak.", en:"The jaw and lips shouldn't move when you tongue; check in a mirror." },
+      { tr:"Ses geç başlıyorsa hava, dil çekilmeden önce hazır değildir.", en:"If the note speaks late, the air wasn't ready before the tongue released." }
+    ],
+    steps:[
+      { type:"rhythm", pattern:"half", tempo:60, bars:4, min:55 },
+      { type:"rhythm", pattern:"quarter", tempo:60, bars:4, min:55 }
+    ] },
+
+  { id:"ilk-gecis", unit:"baslangic", notes:[67, 66, 64],
+    title:{ tr:"İlk nota geçişleri", en:"First note changes" },
+    text:[
+      { tr:"İki nota arasında geçerken parmaklar aynı anda hareket etmeli, hava kesilmemeli. Bu derste açık Sol ile sol el notaları arasında dilsiz (bağlı) geçeceksin.",
+        en:"When changing notes, the fingers should move together and the air shouldn't stop. In this lesson you slur (no tongue) between open G and the left-hand notes." },
+      { tr:"Geçişte bir ara ses duyuluyorsa parmaklar aynı anda inip kalkmıyordur. Yavaş çal, parmakları deliklerin yakınında tut.",
+        en:"If you hear an in-between note, the fingers aren't moving together. Go slowly and keep the fingers close to the holes." }
+    ],
+    tips:[
+      { tr:"Havayı tek bir akış gibi düşün: hava sürer, yalnızca parmaklar değişir.", en:"Think of the air as one stream: it keeps flowing, only the fingers change." }
+    ],
+    steps:[
+      { type:"listen", notes:[67, 66, 67, 64, 67] },
+      { type:"notes", notes:[67, 66, 67, 66, 67], maxMiss:2 },
+      { type:"notes", notes:[67, 64, 67, 66, 64, 66, 67], maxMiss:2 }
+    ] },
+
+  { id:"nefes-cumle", unit:"baslangic", notes:[67],
+    title:{ tr:"Nefes kontrolü ve müzikal cümleleme", en:"Breath control and phrasing" },
+    text:[
+      { tr:"Nefes alırken omuzlar kalkmasın: alt kaburgaların yanlara ve arkaya doğru genişlediğini, karnın gevşeyip öne geldiğini hisset. “Karından nefes al” sözü bu hissi anlatır; hava yine ciğerlere gider, diyafram aşağı indiği için karın öne gelir.",
+        en:"When you breathe in, don't lift the shoulders: feel the lower ribs widen to the sides and back and the belly relax forward. “Breathe from the belly” describes this feeling; the air still goes to the lungs, the belly moves because the diaphragm drops." },
+      { tr:"Nefesi zorlamadan, ağız köşelerinden hızlı ve sessizce al; ciğerleri sonuna kadar doldurmaya çalışmak gerginlik yaratır. Verirken karın ve kaburga kaslarıyla havayı sabit ve kontrollü gönder; boğaz ve omuzlar gevşek kalsın.",
+        en:"Breathe in quickly and quietly through the corners of the mouth without forcing; trying to fill up completely creates tension. Breathing out, keep the airflow steady and controlled with the belly and rib muscles; throat and shoulders stay relaxed." },
+      { tr:"Cümleleme: ezgi konuşma gibi cümlelere ayrılır. Nefesi cümle sonlarında al, cümlenin ortasında değil; cümlenin nereye gittiğini (yükselip alçalmasını) sesin gücüyle göster.",
+        en:"Phrasing: a melody divides into sentences like speech. Breathe at the ends of phrases, not in the middle, and show where the phrase goes (its rise and fall) with the volume." }
+    ],
+    tips:[
+      { tr:"Nefes nerede alınacak? Notada cümle sonlarına kurşun kalemle küçük bir virgül koy.", en:"Where to breathe? Pencil a small comma at the phrase ends in your music." }
+    ],
+    steps:[
+      { type:"hold", note:67, sec:10, min:50 },
+      { type:"dynamics", note:67, sec:5, shape:"cresc" },
+      { type:"dynamics", note:67, sec:5, shape:"dim" }
     ] },
 
   { id:"nota-okuma", unit:"baslangic", notes:[64, 65, 67, 69, 71, 72],
@@ -1321,7 +1456,10 @@ const OKUMA2 = [
     ] }
 ];
 
-// Yeni dersleri müfredattaki yerlerine yerleştir
+// Yeni dersleri müfredattaki yerlerine yerleştir. İlk ses Başlarken'e taşınır (kimliği aynı, ilerleme korunur):
+// parçalar → kamış → oturuş → eller → ağızlık → ilk ses → uzun ses → dil → geçiş → nefes, sonra nota ve ritim
+{ const ilk = LESSONS.splice(LESSONS.findIndex(l => l.id === "ilk-ses"), 1)[0]; ilk.unit = "baslangic";
+  BASLANGIC.splice(BASLANGIC.findIndex(l => l.id === "uzun-ses-ilk"), 0, ilk); }
 LESSONS.unshift(...BASLANGIC);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "vibrato") + 1, 0, ...TEKNIK2);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "huzzam") + 1, 0, ...MAKAM2);

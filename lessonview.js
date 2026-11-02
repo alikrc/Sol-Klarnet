@@ -116,7 +116,9 @@ TRAINERS.lessons = function(ctx){
       (r ? `<span class="lsres">${r.ok ? resText(st, r) : "en iyi: " + resText(st, r)}</span>` : "");
   }
   function stepButtons(st, i, r, running){
-    if(st.type === "listen") return `<button class="primary small" type="button" data-act="start" data-i="${i}">${running ? "Durdur" : "Dinle"}</button>`;
+    // Örnek sesler Iowa'nın Boehm Si♭ klarnet kaydından perde ayarlanarak çalınır (sampler.js): Sol klarnet tınısı değil
+    if(st.type === "listen") return `<button class="primary small" type="button" data-act="start" data-i="${i}">${running ? "Durdur" : "Dinle"}</button>` +
+      `<span class="muted small lssrc">${L("Örnek ses: Si♭ klarnet kaydı, perdesi ayarlı; Sol klarnetin tınısı değil.", "Sample: a B♭ clarinet recording, pitch-adjusted; not the sound of a G clarinet.")}</span>`;
     return (canHear(st) ? `<button class="stopbtn" type="button" data-act="hear" data-i="${i}">Örneği dinle</button>` : "") +
       `<button class="primary small" type="button" data-act="start" data-i="${i}">${running ? "Durdur" : r ? "Tekrar" : "Başla"}</button>`;
   }

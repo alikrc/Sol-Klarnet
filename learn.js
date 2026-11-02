@@ -107,6 +107,20 @@ const ICRA = {
   ussak:{ 17:-1.5 }, bayati:{ 17:-1.5 }, karcigar:{ 17:-1.5 }, huseyni:{ 17:-1.5 },
   huzzam:{ 36:1.5 }, saba:{ 27:2 }
 };
+// İcra değerleri tek sayı değildir: kaynakların verdiği aralık ve (varsa) çıkıp inerken fark. ICRA'daki sayı aralığın
+// ortasıdır ve ölçümde kullanılır; aralık ve yön bilgisi yalnızca gösterilir. Gürbüz 1983: Uşşak perdesi Dügâh'tan
+// çıkarken 159, inerken 133 sent (AEU 181) → çıkarken ≈ 1, inerken ≈ 2 koma pes.
+const SEGAH_USSAK = { range:[-2, -1], asc:-1, desc:-2, src:"Gürbüz 1983 ölçümü (Yarman 2008)" };
+const ICRA_INFO = {
+  ussak:{ 17:SEGAH_USSAK }, bayati:{ 17:SEGAH_USSAK }, karcigar:{ 17:SEGAH_USSAK }, huseyni:{ 17:SEGAH_USSAK },
+  huzzam:{ 36:{ range:[1, 1.5], src:"TDV Hüzzam: Hisar–Evç ≈ 10,5–11 koma, Hisar çok değişken" } },
+  saba:{ 27:{ range:[2, 2.5], src:"TDV Sabâ: Hicaz seyirde 2–2,5 koma dik" } }
+};
+// Kullanıcının kendi referansı ("Kendim" akordu): öğretmeninin ya da örnek aldığı icracının perdeleri, makam başına
+// { [makam]: { [koma mod 53]: düzeltme } }. Tarayıcıda app.js ayarlardan yükler; verilmemiş makamda icra değerleri geçer.
+let CUSTOM_ICRA = {};
+function setCustomIcra(map){ CUSTOM_ICRA = map || {}; }
+const offsetsFor = (mk, mode) => mode === "icra" ? mk.icra : mode === "ozel" ? (CUSTOM_ICRA[mk.id] || mk.icra) : {};
 MAKAMS.forEach(m => { m.seyirType = SEYIR_TYPE[m.id]; m.icra = ICRA[m.id] || {}; });
 const makamById = id => MAKAMS.find(m => m.id === id) || null;
 const seyirText = (mk, lang) => lang === "en" && mk.seyirEn ? mk.seyirEn : mk.seyir;
@@ -114,13 +128,13 @@ const seyirText = (mk, lang) => lang === "en" && mk.seyirEn ? mk.seyirEn : mk.se
 function tuningCtx(mk, mode){
   if(!mk) return null;
   const offsets = {};
-  if(mode === "icra") for(const [c, d] of Object.entries(mk.icra)) offsets[c] = d;
+  for(const [c, d] of Object.entries(offsetsFor(mk, mode))) offsets[c] = d;
   return { scale: [...new Set([...mk.asc, ...mk.desc])], offsets };
 }
 // Bir perdenin seçili akorttaki hedefi (koma)
 function perdeTarget(mk, c, mode){
-  if(!mk || mode !== "icra") return c;
-  return c + (mk.icra[((c % 53) + 53) % 53] || 0);
+  if(!mk || (mode !== "icra" && mode !== "ozel")) return c;
+  return c + (offsetsFor(mk, mode)[((c % 53) + 53) % 53] || 0);
 }
 
 // Koma değerinin AEU perde adı (tam eşleşme yoksa en yakını)
@@ -426,7 +440,7 @@ function streak(days, today = new Date()){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  MAKAMS, makamById, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, perdeName, commaToWritten, commaToMidi, judgePerde,
+  MAKAMS, makamById, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
   GB_ORDER, GB_START, GB_LEVELS, GB_FAST, gbState, gbNote, gbActive, gbMastered, gbPick, gbRecord,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,

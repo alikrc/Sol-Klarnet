@@ -96,7 +96,7 @@ function toneQuality(frames){
   const tips = [];
   if(clarity < 60) tips.push({ tr:"Ses havalı ya da cızırtılı: ağızlığı biraz daha az al, dudak köşelerini sar, kamışı kontrol et.",
                                en:"The tone is airy or buzzy: take a little less mouthpiece, seal the corners, check the reed." });
-  if(steadiness < 60) tips.push({ tr:"Ses gücü dalgalanıyor: karından sabit bir hava akışı ver, nefesin sonuna kadar desteği bırakma.",
+  if(steadiness < 60) tips.push({ tr:"Ses gücü dalgalanıyor: karın ve kaburga kaslarıyla sabit bir hava akışı ver, nefesin sonuna kadar desteği bırakma.",
                                   en:"The volume wavers: keep a steady air stream from the belly and support to the end of the breath." });
   return { clarity, steadiness, cv, meanClarity: cl, tips };
 }

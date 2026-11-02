@@ -69,7 +69,7 @@ const SQ = [
       L("Ağız: dudakları notadan önce kur, sonra dili bırak; hava başladıktan sonra ağzı değiştirme.", "Embouchure: set the lips before the note, then release the tongue; don't change the mouth once the air has started."),
       L("Kamış: ucunu ışığa tut; çatlak ya da dalgalıysa değiştir. Birkaç kamışı sırayla kullan.", "Reed: hold the tip to the light; if it's chipped or wavy, replace it. Rotate several reeds."),
       L("Gıcırtı hep aynı notadaysa o notanın yastığı ya da halkası kaçırıyor olabilir: bir ustaya kontrol ettir.", "If it's always the same note, that note's pad or ring may leak: have it checked.")],
-    links:[{ lesson:"durus-nefes" }, { tab:"gorbas" }, { long:67 }, { lesson:"klarneti-tani" }] },
+    links:[{ lesson:"agizlik" }, { tab:"gorbas" }, { long:67 }, { lesson:"kamis" }] },
 
   { id:"ton", cat:"ses", emo:"🎷", title:L("Ses ince, sert ya da havalı", "Thin, harsh or airy tone"),
     keys:L("ton ses kalitesi havalı boğuk sert ince dolgun", "tone quality airy stuffy harsh thin full"),
@@ -79,7 +79,7 @@ const SQ = [
       L("Kamış çok sert ya da ölmüş.", "The reed is too hard or worn out.")],
     fix:[L("Ayna karşısında çal: dudak köşeleri ağızlığı her yandan sarsın, yanaklar şişmesin.", "Play in front of a mirror: the corners of the mouth should hug the mouthpiece, cheeks flat."),
       L("Uzun ton: orta bölgede bir notayı 8–12 sn piano başlat, crescendo yap, yeniden hafiflet. Ses rengi bütün nüanslarda aynı kalsın.", "Long tones: start a middle note softly for 8–12 seconds, crescendo, then fade. Keep the colour the same at every dynamic."),
-      L("Havayı karından destekle: nefes verirken karın kasları yavaşça içeri çekilsin, göğüs ve omuzlar oynamasın.", "Support from the belly: as you blow, let the belly muscles draw in slowly; chest and shoulders stay still."),
+      L("Havayı destekle: nefes verirken karın ve alt kaburga kasları havayı sabit ve kontrollü itsin, boğaz ve omuzlar gevşek kalsın.", "Support the air: as you blow, the belly and lower rib muscles push the air steadily and under control; throat and shoulders stay relaxed."),
       L("Kayıt alıp dinle: çalarken duyduğun ses ile dışarıdan duyulan farklıdır.", "Record and listen: what you hear while playing differs from what the room hears.")],
     links:[{ lesson:"ses-kalitesi" }, { tab:"long" }, { tab:"rec" }, { lesson:"dinamik" }] },
 
@@ -134,11 +134,11 @@ const SQ = [
     why:[L("Nefes göğüsten, omuzlar kalkarak alınıyor; akciğerin alt kısmı dolmuyor.", "Breathing high in the chest with raised shoulders; the lower lungs don't fill."),
       L("Hava kaçıyor (dudak köşeleri) ya da gerekenden fazla hava harcanıyor.", "Air leaks at the corners or more air is used than needed."),
       L("Nefes yerleri önceden seçilmemiş.", "Breathing spots aren't planned.")],
-    fix:[L("Ağızdan, hızlı ve derin nefes al: önce karın ve bel genişlesin, omuzlar kalkmasın.", "Breathe in quickly and deeply through the mouth: belly and waist expand first, shoulders stay down."),
+    fix:[L("Ağızdan, hızlı ve zorlamadan nefes al: alt kaburgalar yanlara ve arkaya, karın öne doğru genişlesin, omuzlar kalkmasın.", "Breathe in quickly through the mouth without forcing: the lower ribs widen to the sides and back, the belly forward; shoulders stay down."),
       L("Nefes verme alıştırması: metronom 60'ta 4 vuruş nefes al, 8, 12, 16 vuruş boyunca ince ve eşit üfle.", "Exhale drill: at 60 bpm, breathe in for 4 beats, then blow a thin even stream for 8, 12, 16 beats."),
       L("Eserde nefes yerlerini nota üstüne işaretle: genellikle uzun notadan sonra ya da cümle sonunda. Nefes için son notadan biraz çal, ritmi bozma.", "Mark breathing spots in the music, usually after a long note or at the end of a phrase. Take the time from the last note, not from the beat."),
       L("Uzun ton süresini yavaş yavaş artır; nefes dayanıklılığı çalışarak gelir.", "Gradually lengthen your long tones; breath stamina comes with practice.")],
-    links:[{ lesson:"durus-nefes" }, { tab:"long" }, { tab:"rhythm" }] },
+    links:[{ lesson:"nefes-cumle" }, { tab:"long" }, { tab:"rhythm" }] },
 
   { id:"dudak", cat:"nefes", emo:"👄", title:L("Dudak çabuk yoruluyor, ağız ağrıyor", "My lip tires fast or hurts"),
     keys:L("dudak yorgunluk ağrı çene ısırmak diş yara ağızlık", "lip fatigue pain jaw biting teeth embouchure"),

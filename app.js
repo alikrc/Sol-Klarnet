@@ -177,7 +177,8 @@
   MAKAMS.forEach(m => tMakam.add(new Option("Makam: " + m.name, m.id)));
   let userCtx = { mk: store.get("tune.makam", ""), mode: store.get("tune.mode", "aeu") };
   if(!makamById(userCtx.mk)) userCtx.mk = "";
-  if(userCtx.mode !== "icra") userCtx.mode = "aeu";
+  if(userCtx.mode !== "icra" && userCtx.mode !== "ozel") userCtx.mode = "aeu";
+  setCustomIcra(store.get("tune.custom", {}));
   let tempCtx = null;
   // Geçici bağlam yalnızca çalışma görünümünde geçerli; akort ekranına dönünce kullanıcının seçimi geri gelir
   const tempOn = () => !!tempCtx && document.body.dataset.view === "practice";
@@ -187,14 +188,21 @@
     setTuningContext(tuningCtx(mk, c.mode));
     tMakam.value = c.mk || ""; tMakam.disabled = tempOn();
     markSeg(tuneBtns, "tune", c.mode);
-    $("perdelab").textContent = mk ? mk.name + " · " + (c.mode === "icra" ? L("icra", "practice") : "AEU") : L("Çalınan nota", "Your note");
+    $("perdelab").textContent = mk ? mk.name + " · " + (c.mode === "icra" ? L("icra", "practice") : c.mode === "ozel" ? L("kendi perdem", "my reference") : "AEU") : L("Çalınan nota", "Your note");
     if(mk){
-      const fix = Object.entries(mk.icra).map(([k, d]) => perdeNameAt(+k) + " " + fmtKoma(d));
+      // İcra: tek sayı yerine kaynağın aralığı ve varsa çıkış/iniş farkı (ICRA_INFO); sayı aralığın ortası, yaklaşık
+      const info = ICRA_INFO[mk.id] || {}, rng = r => L(fmtKoma(r[0]) + " ile " + fmtKoma(r[1]) + " arası", fmtKoma(r[0]) + " to " + fmtKoma(r[1]));
+      const fix = Object.entries(mk.icra).map(([k, d]) => { const f = info[k];
+        return perdeNameAt(+k) + " " + fmtKoma(d) + (f ? " (" + L("aralık ", "range ") + rng(f.range) +
+          (f.asc != null ? L("; çıkarken ≈ ", "; ascending ≈ ") + fmtKoma(f.asc) + L(", inerken ≈ ", ", descending ≈ ") + fmtKoma(f.desc) : "") + ")" : ""); });
+      const own = c.mode === "ozel" ? Object.entries(offsetsMine(mk)).filter(([, d]) => d).map(([k, d]) => perdeNameAt(+k) + " " + fmtKoma(d)) : [];
       ctxHint.textContent = L("Durak ", "Final ") + perdeName(mk.durak) + " · " + L("güçlü ", "dominant ") + perdeName(mk.guclu) +
-        (c.mode === "icra" ? (fix.length ? " · " + L("icra düzeltmesi: ", "practice tuning: ") + fix.join(", ") + L(" koma (yaklaşık)", " commas (approximate)") : " · " + L("bu makamda icra düzeltmesi yok", "no practice adjustment in this makam")) : "") +
+        (c.mode === "icra" ? (fix.length ? " · " + L("icra düzeltmesi: ", "practice tuning: ") + fix.join(", ") + L(" koma. Yaklaşık; icracıya ve ezgiye göre değişir.", " commas. Approximate; varies with the player and the melody.") : " · " + L("bu makam için kaynaklı icra düzeltmesi yok; AEU perdeleri kullanılır", "no sourced practice adjustment for this makam; AEU perdes are used")) : "") +
+        (c.mode === "ozel" ? " · " + L("kendi perden: ", "your reference: ") + (own.length ? own.join(", ") + L(" koma", " commas") : L("AEU ile aynı", "same as AEU")) : "") +
         (tempOn() ? " · " + L("çalışma bölümünden", "set by the practice section") : "");
       ctxHint.hidden = false;
     }else ctxHint.hidden = true;
+    paintOwn(c.mode === "ozel" ? mk : null);
     paintDroneBtn(mk);
     markRailScale(mk);
     relabelRail();
@@ -224,6 +232,30 @@
     if(mk && SK.drone && SK.drone.active()) SK.drone.on(mk.durak);
   });
   tuneBtns.forEach(b => b.addEventListener("click", () => { userCtx.mode = b.dataset.tune; store.set("tune.mode", userCtx.mode); applyCtx(); }));
+  // "Kendim" akordu: öğretmeninin ya da örnek aldığın icracının perdeleri, makam başına AEU'ya göre koma (−3…+3, 0,5 adım).
+  // İlk açılışta icra değerleri doldurulur; "Sıfırla" icra değerlerine döner. tune.custom = { makam: { komaMod53: d } }
+  const ownEl = $("tuneown");
+  const offsetsMine = mk => (store.get("tune.custom", {})[mk.id]) || mk.icra;
+  function paintOwn(mk){
+    ownEl.hidden = !mk;
+    if(!mk) return;
+    const cur = offsetsMine(mk), cs = [...new Set([...mk.asc, ...mk.desc].map(c => ((c % 53) + 53) % 53))].sort((a, b) => a - b);
+    ownEl.innerHTML = `<div class="muted small">${L("Öğretmeninin ya da örnek aldığın icracının perdelerini gir (AEU'ya göre koma, − pes, + tiz). Akort ve alıştırmalar bu perdelere göre ölçer.",
+      "Enter your teacher's or reference player's perdes (commas from AEU, − flat, + sharp). The tuner and drills measure against them.")}</div>
+      <div class="ownrow">${cs.map(c => `<label>${perdeNameAt(c)} <input type="number" step="0.5" min="-3" max="3" data-oc="${c}" value="${cur[c] || 0}"></label>`).join("")}</div>
+      <button type="button" class="chipbtn" id="tuneownreset">${L("İcra değerlerine dön", "Back to practice values")}</button>`;
+  }
+  ownEl.addEventListener("change", e => {
+    const inp = e.target.closest("[data-oc]"), mk = makamById(ctxNow().mk); if(!inp || !mk) return;
+    const all = store.get("tune.custom", {}), m = { ...(all[mk.id] || mk.icra) }, v = Math.max(-3, Math.min(3, Math.round(parseFloat(inp.value.replace(",", "."))*2)/2 || 0));
+    if(v) m[inp.dataset.oc] = v; else delete m[inp.dataset.oc];
+    all[mk.id] = m; store.set("tune.custom", all); setCustomIcra(all); applyCtx();
+  });
+  ownEl.addEventListener("click", e => {
+    if(!e.target.closest("#tuneownreset")) return;
+    const mk = makamById(ctxNow().mk); if(!mk) return;
+    const all = store.get("tune.custom", {}); delete all[mk.id]; store.set("tune.custom", all); setCustomIcra(all); applyCtx();
+  });
 
   // ---- Gösterge ölçeği ----
   // Koma modu: en yakın AEU perdesinden sapma (±2 koma). Sent modu: tampere notadan sapma (±50 sent).
