@@ -15,6 +15,16 @@ Yerelde bulunan örnekler (son ölçüm: okunan notaların beklenen `.txt` ile e
 
 Yeni örnek eklerken tabloya satır ekle. Beklenen `.txt` elle ve bağımsız denetlenmedi sayılır.
 
+## Çizgili bemol (2 Kasım 2026)
+
+Leland'ın çizgili bemolü (bakiye, −4) küçük ya da düşük çözünürlüklü sayfada düz bemol (küçük mücenneb, −5)
+okunuyordu. Sebep sınıflayıcı değil: işaret tek başına her boyutta doğru tanınıyor; çizik dizek çizgisine denk gelince
+çizgi silinirken çizik de siliniyor. Okuyucu artık düz bemol bulunca özgün resimde sapın solundaki şeride bakıyor:
+oradaki dikey koşu aynı satırlardaki yalın dizek çizgisinden kalınsa işaret bakiye bemolü sayılıyor (güven ×0,8).
+Bravura ve Leland'la çizilmiş sentetik sayfalarda (8 değiştirici × 10 nota, ölçek 1 / 0,7 / 0,55) Leland'da −4 → −5
+hatası 6'dan 0'a indi, düz bemolde yeni hata yok; Hicâz Longa sayfası hâlâ 1.000. Kalan bilinen karışıklık: düşük
+çözünürlükte büyük mücenneb bemolü (−8) bakiye bemolü (−4) okunabiliyor (sınıflayıcı; ölçek 0,55'te 10 notada 3).
+
 ## Simge kalıpları
 
 `npm run omr-templates` kalıpları (`omrtemplates.js`) Bravura ve Leland'dan yeniden üretir. Bu klasörde PNG/JPG sayfa

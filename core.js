@@ -457,7 +457,7 @@ function toneMag(buf, f, sampleRate){
 // NSDF onikili (ya da beşli) yukarıyı seçebilir. Seçilen periyottan uzun ve neredeyse aynı
 // ölçüde periyodik bir aday varsa ve o frekansta gerçekten enerji varsa (−26 dB'den güçlü)
 // asıl perde odur. Gerçek temel seste alt harmonik frekansında enerji olmadığı için yanılmaz.
-const SUB_MIN_RATIO = 0.025;
+const SUB_MIN_RATIO = 0.025, SUB_FLOOR = 3;
 function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008, opts={}){
   const n = buf.length;
   let sum=0; for(let i=0;i<n;i++) sum+=buf[i]*buf[i];
@@ -497,7 +497,10 @@ function detectPitch(buf, sampleRate, minHz=100, maxHz=2100, minRms=0.008, opts=
       // Aday frekansta gerçek bir spektral tepe olmalı: yarım kutu yanındaki frekanslardan güçlü
       // (önceki notanın yakındaki yankısı sızıntıyla eşiği geçemesin)
       const fc = sampleRate/tt, hb = 0.5*sampleRate/n, mc = toneMag(buf, fc, sampleRate);
-      if(mc >= SUB_MIN_RATIO*base && mc >= 0.8*toneMag(buf, fc-hb, sampleRate) && mc >= 0.8*toneMag(buf, fc+hb, sampleRate)){
+      // Gürültüde de gerçek tepe olmalı: Hann penceresinde sinüsün ±2 kutudaki (±4 yarım kutu) yanıtı sıfırdır, oda
+      // gürültüsünün değil. Aday orada ölçülen düzeyin 3 katı olmalı (Iowa kayıtları + benzetilmiş SNR 10–20 dB gürültü)
+      const floor = (toneMag(buf, fc - 4*hb, sampleRate) + toneMag(buf, fc + 4*hb, sampleRate))/2;
+      if(mc >= SUB_MIN_RATIO*base && mc >= SUB_FLOOR*floor && mc >= 0.8*toneMag(buf, fc-hb, sampleRate) && mc >= 0.8*toneMag(buf, fc+hb, sampleRate)){
         tau = tt; sub = true; break;
       }
     }

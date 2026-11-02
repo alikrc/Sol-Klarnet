@@ -126,6 +126,8 @@ const EXACT = {
   "Sol♯ yan mandalı (işaret parmağının iç yüzüyle)": "G♯ side key (with the inside of the index finger)",
   "Mi♭ ince mandalı (yüzük parmağıyla, 3. deliğin üstünde)": "E♭ sliver key (ring finger, above the 3rd hole)",
   "Si♭ ince mandalı (yüzük parmağıyla, 3. deliğin üstünde)": "B♭ sliver key (ring finger, above the 3rd hole)",
+  "Kendi klarnetinde denedin mi?": "Tried it on your clarinet?", "Çalışıyor": "Works", "Çalışmıyor": "Doesn't work",
+  "Ses:": "Tone:", "temiz": "clean", "idare eder": "usable", "zayıf": "weak",
   "delik kapalı": "hole closed", "delik açık": "hole open", "mandala bas": "press key", "dokunma": "don't touch",
   "Albert sistem (13 mandal, 2 halka) Türk Sol klarneti. Üst gövde sol el, alt gövde sağ el. Başparmak deliği ve register arkada olduğu için solda ayrıca çizildi. Sağ el orta ve yüzük deliklerindeki halkalar parmakla birlikte kapanır.":
     "Turkish G clarinet, Albert system (13 keys, 2 rings). Upper joint left hand, lower joint right hand. The thumb hole and register key are on the back, so they are drawn separately on the left. The rings on the right-hand middle and ring holes close together with the finger.",

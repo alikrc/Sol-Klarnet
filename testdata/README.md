@@ -9,6 +9,23 @@ Perde bulucuyu gerçek Sol klarnet sesiyle denetlemek için kayıtları bu klas�
 npm run audio-check
 ```
 
+## Koşul sınaması
+
+```bash
+npm run audio-check -- testdata/iowa --kosul
+```
+
+Kromatik dizi kayıtlarına (Iowa) çalma ortamı benzetilerek uygulanır: `telefon` (300 Hz altı ve 7 kHz üstü kesik),
+`gurultu20` / `gurultu10` (oda gürültüsü, SNR dB; eşik uygulamadaki ortam ölçümü gibi gürültünün 2,5 katı), `vibrato`
+(±30 sent, 5,5 Hz), `yanki` (RT60 0,6 sn), `sol` (3 yarım ses pes: Sol klarnetin pes bölgesi) ve bunların birleşimleri.
+Yalnız birini seçmek için `--kosul gurultu10,sol`. Kayıtlar gerçek klarnettir ama koşullar benzetimdir; sonuç gerçek
+Sol klarnet kaydıyla yapılmış sınamanın yerini tutmaz.
+
+Son ölçüm (2 Kasım 2026, 139 nota): temiz, gürültü 20 ve 10 dB, vibrato, yankı ve pesleştirmede 138/139; telefon
+süzgeciyle 134/139. Telefondaki 4 hata pp kaydın en pes notaları: süzgeçten sonra −68 dBFS'ye iniyor ve en yüksek
+hassasiyetin altında kalıyor (algılanan perde doğru, nota hiç gösterilmiyor). Telefonların otomatik kazancı bunu
+yükseltir; gerçek cihazda denenmeli. Kalan 1 hata kaydın kendisinde (Sol♯6 ≈ 50 sent pes çalınmış).
+
 ## Dosya adı
 
 `<yazılı nota>_<açıklama>.wav`. Örnekler:

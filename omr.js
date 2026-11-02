@@ -545,7 +545,10 @@ const OMR = (() => {
   const TARGET_SP = 14;                                 // ağır işler bu dizek aralığında yapılır
   const ACC_CLS = Object.keys(ACC_K);
   const WEST_K = { sharp:1, flat:-1, natural:0 };       // Batı notası: yarım ses
-  const FLAT_LIKE = new Set(["flat", "aeu_koma_flat", "aeu_bakiye_flat", "aeu_buyuk_flat"]);
+  const FLAT_LIKE = new Set(["flat", "flat_slash", "aeu_koma_flat", "aeu_bakiye_flat", "aeu_buyuk_flat"]);
+  // Değiştiricinin koma (Türk) ya da yarım ses (Batı) farkı; flat_slash: çiziği silinmiş çizgili bemol (readStaff)
+  const kOf = (cls, turkish) => cls === "flat_slash" ? (turkish ? ACC_K.aeu_bakiye_flat : -1)
+    : turkish ? ACC_K[cls] : (WEST_K[cls] !== undefined ? WEST_K[cls] : Math.sign(ACC_K[cls]));
   const REST_D = { rest_1:4, rest_2:2, rest_4:1, rest_8:0.5, rest_16:0.25 };
   const MARK_ORDER = { repEnd:0, sectionEnd:1, toSegno:2, segno:3, repStart:4 };
   const NAT_PC7 = [0, 2, 4, 5, 7, 9, 11], LETTER_TR = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
@@ -695,7 +698,26 @@ const OMR = (() => {
       }
     }
     // Değiştirici sınıfı: kalıptan ya da bağlamdan (değiştirici boyunda, değiştirici puanı ≥ 0,2)
+    // Çizgisi dizek çizgisine denk gelen çizgili bemol (Leland'da sık): çizgi silinirken çizik de silinir, düz bemol
+    // kalır. Özgün resimde sapın solundaki şeritte, sapın üst kısmında dikey koşu aynı satırlardaki yalın çizgiden
+    // kalınsa çizik oradadır. "flat_slash" Türk notasında bakiye bemol (−4), Batı notasında ♭ sayılır (finish)
+    const origAt = i => clean.bits[i] || (clean.removed && clean.removed[i]);
+    const maxRun = (x, y0, y1) => { let best = 0, run = 0;
+      for(let y = y0; y <= y1; y++){ if(x >= 0 && x < W && y >= 0 && y < H && origAt(y*W + x)){ run++; if(run > best) best = run; } else run = 0; }
+      return best; };
+    const hiddenSlash = s => {
+      const y0 = s.y, y1 = s.y + Math.round(0.6*s.h), near = [], ref = [];
+      // sapa bitişik sütun sayılmaz (sapın kenar yumuşaması ve kavisin birleşimi orada kalınlaşır)
+      for(let x = s.x - Math.round(0.5*sp); x < s.x - 1; x++) near.push(maxRun(x, y0, y1));
+      for(let x = s.x - Math.round(1.5*sp); x < s.x - Math.round(0.8*sp); x++) ref.push(maxRun(x, y0, y1));
+      if(!ref.length || !near.length) return false;
+      const base = [...ref].sort((a, b) => a - b)[Math.floor(ref.length/2)];
+      // yalın çizgi orada yoksa (base 0) ya da başka simge varsa (base kalın) karar verilmez
+      return base >= 1 && base <= 0.35*sp && near.filter(v => v >= base + 1).length >= Math.max(1, Math.round(0.12*sp)) &&
+        near.every(v => v <= base + 0.5*sp);
+    };
     const accAs = s => {
+      if(s.cls === "flat" && hiddenSlash(s)) return { cls:"flat_slash", sure:false };
       if(ACC_K[s.cls] !== undefined) return { cls:s.cls, sure:true };
       if(s.cls !== "other" || !s.scores || s.h < 1.6*sp || s.h > 3.8*sp || s.w < 0.4*sp || s.w > 1.6*sp) return null;
       let best = null, b = 0.2; for(const c of ACC_CLS) if((s.scores[c] || 0) > b){ b = s.scores[c]; best = c; }
@@ -966,7 +988,7 @@ const OMR = (() => {
   function finish(n, turkish){
     if(n.rest) return { w:null, c:null, d:n.d, rest:true, conf:+n.conf.toFixed(2), box:n.box };
     const R = rep(), nat = { w:n.natW, c:R.naturalOf({ w:n.natW }).c, d:n.d, rest:false };
-    const k = n.acc ? (turkish ? ACC_K[n.acc] : (WEST_K[n.acc] !== undefined ? WEST_K[n.acc] : Math.sign(ACC_K[n.acc]))) : 0;
+    const k = n.acc ? kOf(n.acc, turkish) : 0;
     const p = R.withAccidental(nat, { k, unit:turkish ? "koma" : "semitone" });
     return { w:p.w, c:p.c, d:n.d, rest:false, conf:+n.conf.toFixed(2), box:n.box };
   }
@@ -1017,7 +1039,7 @@ const OMR = (() => {
     const first = raws.find(r => r.keySig && r.keySig.length);
     const keySig = first ? first.keySig.map(k => {
       const nt = natOfStep(k.step), p = finish({ natW:nt.w, acc:k.cls, d:1, conf:1 }, turkish);
-      return { letter:LETTER_TR[nt.letter], step:k.step, cls:k.cls, k:turkish ? ACC_K[k.cls] : WEST_K[k.cls], w:p.w, c:p.c };
+      return { letter:LETTER_TR[nt.letter], step:k.step, cls:k.cls, k:kOf(k.cls, turkish), w:p.w, c:p.c };
     }) : [];
     return { notes, marks, bars:outBars, barStarts, meter, flags, nostaffPages, sp:+sp.toFixed(2), turkish, aeu, keySig };
   }

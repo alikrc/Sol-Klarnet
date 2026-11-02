@@ -13,6 +13,9 @@ let cvState = null, cvJobSeq = 0;
 const CV_SR = 22050, CV_MAX_SEC = 180, CV_CHUNK_SEC = 5, CV_OV_MS = 50, CV_MAX_MB = 60;
 const CV_METERS = [[2,4],[3,4],[4,4],[5,8],[6,8],[7,8],[9,8],[10,8],[12,8]];
 const CV_MAX_PX = 3000, CV_PREVIEW_PX = 2000, CV_MANUAL_CONF = 0.5;
+// Bir okumada en çok bu kadar sayfa: her sayfa gri olarak ~9 MB (A4, 2480 px); 15 sayfa telefonda ~130 MB bellek.
+// Sınırı aşan sayfalar okunmaz, düzeltme ekranında söylenir (pages.truncated)
+const CV_PAGE_LIMIT = 15;
 
 // Tuval → okuyucu sayfası: gri ton (Uint8, 1 kanal) ve küçültülmüş önizleme (objectURL). PDF de bunu kullanır.
 async function canvasToPage(cv){
@@ -30,6 +33,7 @@ async function imagesToPages(files, out = []){
   const first = out.length;
   try{
     for(const f of files){
+      if(out.length >= CV_PAGE_LIMIT){ out.truncated = true; break; }
       const src = URL.createObjectURL(f);
       try{
         const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(f.name)); im.src = src; });
@@ -67,6 +71,7 @@ async function pdfToPages(file, range, opts = {}){
     }
     for(let n=from; n<=to; n++){
       if(stale()) throw new Error("iptal");
+      if(out.length >= CV_PAGE_LIMIT){ out.truncated = true; break; }
       if(opts.onPage) opts.onPage(n - from + 1, to - from + 1);
       const pg = await pdf.getPage(n), v0 = pg.getViewport({ scale: 1 }), vp = pg.getViewport({ scale: CV_PDF_W/v0.width });
       const cv = document.createElement("canvas");
@@ -223,10 +228,21 @@ TRAINERS.convert = function(ctx){
         <button class="stopbtn" type="button" data-adur="2" aria-label="${L("Süreyi iki katına çıkar", "Double the duration")}">2×</button>
       </div>
       <div class="cvchips" id="cvchips" aria-label="${L("Okunan notalar", "Notes read")}"></div>
+      <div class="muted small" id="cvselinfo" aria-live="polite"></div>
       <div class="pbar cvtools" id="cvtools">
         <button class="stopbtn" type="button" data-op="up" aria-label="${L("Bir basamak yukarı", "One step up")}">▲</button>
         <button class="stopbtn" type="button" data-op="down" aria-label="${L("Bir basamak aşağı", "One step down")}">▼</button>
         <button class="stopbtn" type="button" data-op="acc" aria-label="${L("Değiştirici işaret", "Accidental")}">♯ ♭</button>
+        <select id="cvacc" aria-label="${L("Değiştirici işaret seç", "Choose the accidental")}"></select>
+        <select id="cvmarkadd" aria-label="${L("İşaret ekle", "Add a mark")}">
+          <option value="">${L("İşaret…", "Mark…")}</option>
+          <option value="segno">${L("𝄋 segno (bu notadan önce; D.C. için ilk notaya)", "𝄋 segno (before this note; for D.C. on the first note)")}</option>
+          <option value="toSegno">${L("D.S. / D.C.: bu notadan sonra 𝄋'ya dön", "D.S. / D.C.: back to 𝄋 after this note")}</option>
+          <option value="sectionEnd">${L("‖ Fine: dönüşte bu notadan sonra biter", "‖ Fine: ends after this note on the repeat")}</option>
+          <option value="repStart">${L("‖: tekrar başı (bu notadan önce)", "‖: repeat start (before this note)")}</option>
+          <option value="repEnd">${L(":‖ tekrar sonu (bu notadan sonra)", ":‖ repeat end (after this note)")}</option>
+          <option value="-">${L("Bu notadaki işaretleri kaldır", "Remove the marks at this note")}</option>
+        </select>
         <button class="stopbtn" type="button" data-op="half" aria-label="${L("Süreyi yarıya indir", "Halve the duration")}">½×</button>
         <button class="stopbtn" type="button" data-op="double" aria-label="${L("Süreyi iki katına çıkar", "Double the duration")}">2×</button>
         <button class="stopbtn" type="button" data-op="dot">${L("nokta", "dot")}</button>
@@ -371,14 +387,15 @@ TRAINERS.convert = function(ctx){
       const done = v => { box.hidden = true; box.innerHTML = ""; rangeAbort = null; res(v); };
       rangeAbort = () => done(null);
       prog(L("Bu PDF " + n + " sayfa. Hangi sayfaları okuyayım?", "This PDF has " + n + " pages. Which pages should I read?") +
-        (n > CV_RANGE_MAX ? L(" Çok sayfa uzun sürer ve bellek ister.", " Many pages take long and need memory.") : ""));
+        (n > CV_RANGE_MAX ? L(" Bir okumada en çok " + CV_PAGE_LIMIT + " sayfa; gerisini ayrı okut.", " At most " + CV_PAGE_LIMIT + " pages per reading; read the rest separately.") : ""));
       box.innerHTML = `<label class="tnum">${L("İlk sayfa", "From")} <input id="cvrfrom" type="number" min="1" max="${n}" value="1" aria-label="${L("İlk sayfa", "First page")}"></label>
         <label class="tnum">${L("Son sayfa", "To")} <input id="cvrto" type="number" min="1" max="${n}" value="${Math.min(n, CV_RANGE_MAX)}" aria-label="${L("Son sayfa", "Last page")}"></label>
         <button class="primary small" id="cvrok" type="button">${L("Oku", "Read")}</button>
         <button class="stopbtn" id="cvrno" type="button">${L("Vazgeç", "Cancel")}</button>`;
       box.hidden = false;
       const num = (id, d) => { const v = parseInt($(id).value, 10); return Number.isFinite(v) ? Math.max(1, Math.min(n, v)) : d; };
-      $("cvrok").addEventListener("click", () => { const a = num("cvrfrom", 1), b = num("cvrto", n); done([Math.min(a, b), Math.max(a, b)]); });
+      $("cvrok").addEventListener("click", () => { const a = num("cvrfrom", 1), b = num("cvrto", n), lo = Math.min(a, b);
+        done([lo, Math.min(Math.max(a, b), lo + CV_PAGE_LIMIT - 1)]); });
       $("cvrno").addEventListener("click", () => { prog(""); done(null); });
     });
   }
@@ -409,6 +426,11 @@ TRAINERS.convert = function(ctx){
     const conf = r.notes.length ? r.notes.reduce((a, n) => a + n.conf, 0)/r.notes.length : 0;
     const manual = r.flags.includes("nostaff") || conf < CV_MANUAL_CONF;
     const flags = r.flags.filter(f => f !== "nostaff" || manual);
+    if(pages.truncated) flags.push({ tr: "Bir okumada en çok " + CV_PAGE_LIMIT + " sayfa okunur; ilk " + CV_PAGE_LIMIT + " sayfa okundu.",
+      en: "At most " + CV_PAGE_LIMIT + " pages are read at once; the first " + CV_PAGE_LIMIT + " were read." });
+    // Yazıyla yazılan yön işaretleri okunmaz (yalnızca segno simgesi ve tekrar çizgileri): kullanıcı bilsin
+    if(!manual) flags.push({ tr: "Yazıyla yazılan işaretler (D.S., D.C., Fine) okunmaz; notada varsa seçili notaya “İşaret” listesinden ekle. Coda desteklenmiyor.",
+      en: "Written directions (D.S., D.C., Fine) aren't read; if the score has them, add them to the selected note from the “Mark” list. Coda isn't supported." });
     if(!manual && r.nostaffPages.length && pages.length > 1) flags.push({ tr: "Dizek bulunamayan sayfa atlandı: " + r.nostaffPages.map(p => p + 1).join(", ") + ".",
       en: "Skipped page(s) without staves: " + r.nostaffPages.map(p => p + 1).join(", ") + "." });
     // Gerçek ölçü çizgileri "bar" işaretleri olur: düzeltmede tekrar işaretleriyle birlikte kayar (shiftMarks).
@@ -716,6 +738,13 @@ TRAINERS.convert = function(ctx){
     if(st.cut) info.push(L("Uzun kayıt: ilk 3 dakika okundu.", "Long recording: the first 3 minutes were read."));
     if(st.manual) info.push(L("Okuyamadım, notaları resme bakarak ekle.", "I couldn't read it; add the notes by looking at the picture."));
     info.push(...st.flags.map(f => typeof f !== "string" ? pick(f, LANG) : FLAG_MSG[f] ? FLAG_MSG[f]() : f));
+    // Okuma güveni: okuyucunun nota başı/değiştirici eşleme puanı (0–1); elle düzeltilen nota 1 sayılır
+    const rated = st.notes.filter(n => n.conf != null);
+    if(rated.length){
+      const avg = Math.round(rated.reduce((a, n) => a + n.conf, 0)/rated.length*100), low = rated.filter(n => n.conf < 0.6).length;
+      info.unshift(L("Okuma güveni ortalama %" + avg + (low ? ", " + low + " nota %60'ın altında (sarı)." : "."),
+        "Average confidence " + avg + "%" + (low ? ", " + low + " notes below 60% (yellow)." : ".")));
+    }
     $("cvinfo").textContent = info.join(" ");
     // Çip şeridi: ölçü ayraçlı; sarı emin değil, turuncu ölçü tutmuyor, kırmızı aralık dışı (kaynaktaki kutular da aynı renkte).
     // Resimden okunan notada ölçüler gerçek ölçü çizgilerinden ("bar" işaretleri), seste süre toplamından (barCheck)
@@ -729,18 +758,59 @@ TRAINERS.convert = function(ctx){
     st.notes.forEach((n, i) => {
       if(i > 0 && barOf[i] !== barOf[i-1]) html += `<span class="cvbar" aria-hidden="true"></span>`;
       html += marksAt(i);
-      html += `<button type="button" class="cvchip ${tone(i)}" data-i="${i}" aria-pressed="${st.sel === i}">${esc(chipName(n))} <i>${durSym(n.d)}</i></button>`;
+      html += `<button type="button" class="cvchip ${tone(i)}" data-i="${i}" aria-pressed="${st.sel === i}"${n.conf != null ? ` title="${L("okuma güveni %", "confidence ")}${Math.round(n.conf*100)}${LANG === "en" ? "%" : ""}"` : ""}>${esc(chipName(n))} <i>${durSym(n.d)}</i></button>`;
     });
     html += marksAt(st.notes.length);
     $("cvchips").innerHTML = html || `<span class="muted small">${L("Nota yok.", "No notes.")}</span>`;
     $("cvadd").hidden = !st.manual;
     $("cvadd").querySelectorAll("[data-adur]").forEach(b => { b.disabled = st.sel === null; });
     renderSrc(st, tone);
-    $("cvtools").querySelectorAll("button").forEach(b => { b.disabled = st.sel === null; });
+    $("cvtools").querySelectorAll("button, select").forEach(b => { b.disabled = st.sel === null; });
+    renderSel(st);
     if(!fromText){ $("cvtext").value = scoreToText(st.notes); $("cvterr").textContent = ""; }
     if(st.notes.length) drawScore($("cvscore"), written(), { meter: st.meter, names:true }); else $("cvscore").replaceChildren();
     if(!bad.size) $("cvfix").hidden = true;
   }
+  // Seçili notanın bilgisi ve değiştirici listesi. Türk notasında AEU işaretleri (yalın ♯ bakiye +4, yalın ♭ küçük
+  // mücenneb −5, çizgili ♭ bakiye −4), konser notasında ♯/♭ yarım ses
+  const ACC_NAMES = { koma: { 0:["♮", "doğal", "natural"], 1:["koma ♯", "koma diyezi (+1)", "koma sharp (+1)"],
+      4:["♯", "bakiye diyezi (+4)", "bakiye sharp (+4)"], 5:["k. mücenneb ♯", "küçük mücenneb diyezi (+5)", "küçük mücenneb sharp (+5)"],
+      8:["b. mücenneb ♯", "büyük mücenneb diyezi (+8)", "büyük mücenneb sharp (+8)"], "-1":["koma ♭", "koma bemolü (−1)", "koma flat (−1)"],
+      "-4":["çizgili ♭", "bakiye bemolü (−4)", "bakiye flat (−4)"], "-5":["♭", "küçük mücenneb bemolü (−5)", "küçük mücenneb flat (−5)"],
+      "-8":["b. mücenneb ♭", "büyük mücenneb bemolü (−8)", "büyük mücenneb flat (−8)"] },
+    semitone: { 0:["♮", "doğal", "natural"], 1:["♯", "diyez", "sharp"], "-1":["♭", "bemol", "flat"] } };
+  const accUnit = st => st.turkish ? "koma" : "semitone";
+  function accOfNote(n, unit){
+    const nat = naturalOf(n);
+    return unit === "koma" ? (n.c != null ? n.c - nat.c : Math.round((n.w - nat.w)*53/12)) : n.w - nat.w;
+  }
+  function renderSel(st){
+    const sel = $("cvacc"), unit = accUnit(st), n = st.sel === null ? null : st.notes[st.sel];
+    sel.innerHTML = ACC_CYCLE[unit].map(k => `<option value="${k}">${ACC_NAMES[unit][k][0]} · ${ACC_NAMES[unit][k][LANG === "en" ? 2 : 1]}</option>`).join("");
+    if(!n){ $("cvselinfo").textContent = ""; return; }
+    const k = n.rest ? null : accOfNote(n, unit);
+    if(k !== null && ACC_NAMES[unit][k]) sel.value = String(k); else sel.selectedIndex = -1;
+    sel.disabled = n.rest;
+    $("cvselinfo").textContent = L("Seçili: ", "Selected: ") + chipName(n) + " " + durSym(n.d) +
+      (n.conf != null ? L(" · okuma güveni %", " · confidence ") + Math.round(n.conf*100) + (LANG === "en" ? "%" : "") : "") +
+      (k !== null && k !== 0 && ACC_NAMES[unit][k] ? " · " + ACC_NAMES[unit][k][LANG === "en" ? 2 : 1] : "");
+  }
+  $("cvacc").addEventListener("change", e => {
+    const st = S(); if(!st || st.sel === null) return;
+    const i = st.sel, n = st.notes[i]; if(n.rest) return;
+    const nat = naturalOf(n), x = withAccidental({ ...n, w: nat.w, c: nat.c }, { k: +e.target.value, unit: accUnit(st) });
+    accBase = null;
+    edit(st.notes.map((m, j) => j === i ? x : m), i, [i]);
+  });
+  // İşaret: segno ve tekrar başı notadan önce (i), D.S./Fine/tekrar sonu notadan sonra (i + 1)
+  $("cvmarkadd").addEventListener("change", e => {
+    const st = S(), kind = e.target.value; e.target.value = "";
+    if(!st || st.sel === null || !kind) return;
+    const i = st.sel, before = kind === "segno" || kind === "repStart";
+    if(kind === "-") st.marks = st.marks.filter(m => m.kind === "bar" || (m.i !== i && m.i !== i + 1));
+    else st.marks.push({ i: before ? i : i + 1, kind });
+    st.dirty = true; st.textMemo = null; render();
+  });
   function show(scroll){
     render();
     if(scroll) $("cvedit").scrollIntoView({ block:"nearest" });

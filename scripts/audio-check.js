@@ -70,21 +70,88 @@ function readAudio(file){
 }
 
 // ---- Uygulamadaki zincir ----
-function chain(x, sr, T){
+// minRms: gürültü eklenince uygulamadaki ortam ölçümü gibi gürültünün 2,5 katı. Oktav sıçrama koruması app.js tick'teki gibi.
+function chain(x, sr, T, minRms = 0.002){
   const hop = Math.round(0.04*sr), frames = [], hist = [], stab = new C.NoteStabilizer(3), pr = C.pitchRange(T);
-  let lastFreq = -1;
+  let lastFreq = -1, lastWritten = null;
   for(let end = 4096; end <= x.length; end += hop){
     const win = lastFreq > 250 ? x.subarray(end - 2048, end) : x.subarray(end - 4096, end);
-    const d = C.detectPitch(win, sr, pr.min, pr.max, 0.002);
+    const d = C.detectPitch(win, sr, pr.min, pr.max, minRms);
     lastFreq = d.freq;
     if(d.freq <= 0){ stab.reset(); hist.length = 0; continue; }
     hist.push(d.freq); if(hist.length > 5) hist.shift();
     const med = [...hist].sort((a,b) => a-b)[Math.floor(hist.length/2)];
     const r = C.analyze(med, T);
-    if(stab.push(C.noteKey(r))) frames.push({ t: end/sr, written: r.written, cents: r.cents, comma: r.comma });
+    const octJump = lastWritten !== null && stab.shown !== null && Math.abs(r.written - lastWritten) === 12;
+    if(stab.push(C.noteKey(r), octJump ? 5 : undefined)){
+      lastWritten = r.written;
+      frames.push({ t: end/sr, written: r.written, cents: r.cents, comma: r.comma });
+    }
   }
   return frames;
 }
+
+// ---- Koşul sınaması (--kosul): gerçek kayda benzetilmiş çalma ortamı ----
+// Kayıt gerçek klarnettir; telefon mikrofonu, gürültü, vibrato, yankı ve pesleştirme benzetimdir. Sonuçlar bu yüzden
+// "gerçek tını + benzetilmiş koşul" diye raporlanır, gerçek Sol klarnet kaydının yerini tutmaz.
+function rng(seed){ let s = seed >>> 0; return () => ((s = (s*1664525 + 1013904223) >>> 0) / 4294967296); }
+// İkinci dereceden süzgeç (RBJ): yüksek/alçak geçiren
+function biquad(x, sr, type, f0, q = 0.7071){
+  const w = 2*Math.PI*f0/sr, al = Math.sin(w)/(2*q), cw = Math.cos(w);
+  const b = type === "hp" ? [(1+cw)/2, -(1+cw), (1+cw)/2] : [(1-cw)/2, 1-cw, (1-cw)/2], a = [1+al, -2*cw, 1-al];
+  const y = new Float32Array(x.length);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for(let i=0;i<x.length;i++){
+    const v = (b[0]*x[i] + b[1]*x1 + b[2]*x2 - a[1]*y1 - a[2]*y2)/a[0];
+    x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v;
+  }
+  return y;
+}
+const rmsOf = x => { let s = 0; for(let i=0;i<x.length;i++) s += x[i]*x[i]; return Math.sqrt(s/x.length); };
+// Telefon mikrofonu: 300 Hz altı ve 7 kHz üstü kesik (4. derece), pes notaların temel frekansı zayıflar
+const phone = (x, sr) => biquad(biquad(biquad(biquad(x, sr, "hp", 300), sr, "hp", 300), sr, "lp", 7000), sr, "lp", 7000);
+// Pembeye yakın oda gürültüsü (beyaz gürültü 1. derece alçak geçiren), notanın RMS'ine göre SNR dB
+function noise(x, sr, snr, seed){
+  const r = rng(seed), y = new Float32Array(x.length), k = Math.exp(-2*Math.PI*800/sr);
+  let p = 0; for(let i=0;i<x.length;i++){ p = k*p + (1-k)*(r()*2 - 1); y[i] = p; }
+  const g = rmsOf(x)/(rmsOf(y)*Math.pow(10, snr/20));
+  for(let i=0;i<x.length;i++) y[i] = x[i] + g*y[i];
+  return { y, noiseRms: rmsOf(y.map((v, i) => v - x[i])) };
+}
+// Değişken hızlı okuma: perde oranı ratio(t) ile çarpılır (vibrato ve pesleştirme)
+function warp(x, sr, ratio){
+  const out = [];
+  for(let pos = 0, t = 0; pos < x.length - 1; t++){
+    const i = Math.floor(pos), f = pos - i; out.push(x[i]*(1-f) + x[i+1]*f);
+    pos += ratio(t/sr);
+  }
+  return Float32Array.from(out);
+}
+const vibrato = (x, sr) => warp(x, sr, t => Math.pow(2, 30/1200*Math.sin(2*Math.PI*5.5*t)));   // ±30 sent, 5,5 Hz
+const lower3 = (x, sr) => warp(x, sr, () => Math.pow(2, -3/12));                                  // Si♭ → Sol klarnet
+// Oda yankısı: üstel sönen gürültü (RT60 0,6 sn), %40 yankı
+function reverb(x, sr, seed){
+  const r = rng(seed), n = Math.round(0.6*sr), ir = new Float32Array(n);
+  for(let i=0;i<n;i++) ir[i] = (r()*2 - 1)*Math.exp(-6.9*i/n);
+  const step = 8, y = Float32Array.from(x);               // seyrek evrişim: her 8. örnek (yeterince yoğun yankı)
+  let e = 0; for(let i=0;i<n;i+=step) e += ir[i]*ir[i];
+  const g = 0.4/Math.sqrt(e);
+  for(let j=0;j<n;j+=step){ const h = g*ir[j]; for(let i=j;i<x.length;i++) y[i] += h*x[i-j]; }
+  return y;
+}
+// Her koşul: { name, shift (beklenen notaya eklenen yarım ses), apply(seg, sr, seed) → { y, minRms } }
+const CONDITIONS = {
+  temiz:      { shift:0,  apply:(x) => ({ y:x }) },
+  telefon:    { shift:0,  apply:(x, sr) => ({ y:phone(x, sr) }) },
+  gurultu20:  { shift:0,  apply:(x, sr, s) => { const n = noise(x, sr, 20, s); return { y:n.y, minRms:Math.max(0.002, 2.5*n.noiseRms) }; } },
+  gurultu10:  { shift:0,  apply:(x, sr, s) => { const n = noise(x, sr, 10, s); return { y:n.y, minRms:Math.max(0.002, 2.5*n.noiseRms) }; } },
+  vibrato:    { shift:0,  apply:(x, sr) => ({ y:vibrato(x, sr) }) },
+  yanki:      { shift:0,  apply:(x, sr, s) => ({ y:reverb(x, sr, s) }) },
+  sol:        { shift:-3, apply:(x, sr) => ({ y:lower3(x, sr) }) },
+  "sol+telefon+gurultu20": { shift:-3, apply:(x, sr, s) => {
+    const n = noise(phone(lower3(x, sr), sr), sr, 20, s); return { y:n.y, minRms:Math.max(0.002, 2.5*n.noiseRms) }; } },
+  "sol+telefon+vibrato": { shift:-3, apply:(x, sr) => ({ y:phone(vibrato(lower3(x, sr), sr), sr) }) }
+};
 
 // Sessizliklerle ayrılmış notalar: 10 ms'lik RMS zarfı, en güçlü yerin −40 dB'si ya da gürültünün 4 katı eşik
 function segments(x, sr){
@@ -152,7 +219,30 @@ function listFiles(dir){
     : /\.(wav|aiff?|aifc)$/i.test(e.name) ? [path.join(dir, e.name)] : []).sort();
 }
 
-module.exports = { readAudio, chain, segments, chromaticRange, checkFile, listFiles };
+// Kromatik dizi kayıtlarında her koşul için nota doğruluğu: { [koşul]: { ok, n, bad:[…], octave, frames, frOk } }
+function conditionReport(files, names){
+  const out = {};
+  for(const name of names){
+    const K = CONDITIONS[name], res = out[name] = { ok:0, n:0, bad:[], octave:0, frames:0, frOk:0 };
+    for(const f of files){
+      const base = path.basename(f), range = chromaticRange(base);
+      if(!range) continue;
+      const { x, sr } = readAudio(f), segs = segments(x, sr).slice(0, range[1] - range[0] + 1);
+      segs.forEach((seg, i) => {
+        const exp = range[0] + i + K.shift, c = K.apply(seg, sr, 1000 + i*7 + base.length), fr = chain(c.y, sr, 0, c.minRms);
+        const ok = fr.filter(q => q.written === exp).length, rate = fr.length ? ok/fr.length : 0;
+        res.n++; res.frames += fr.length; res.frOk += ok;
+        res.octave += fr.filter(q => q.written !== exp && (q.written - exp) % 12 === 0).length;
+        if(rate >= 0.9) res.ok++;
+        else res.bad.push(`${base} ${nameOf(exp)}: %${Math.round(rate*100)}` +
+          ([...new Set(fr.filter(q => q.written !== exp).map(q => q.written))].map(nameOf).join(", ").replace(/^(.+)$/, " ($1)")));
+      });
+    }
+  }
+  return out;
+}
+
+module.exports = { readAudio, chain, segments, chromaticRange, checkFile, listFiles, CONDITIONS, conditionReport };
 
 if(require.main === module){
   const args = process.argv.slice(2);
@@ -164,6 +254,16 @@ if(require.main === module){
   if(!fs.existsSync(dir)){ console.log(`Klasör yok: ${dir}`); process.exit(0); }
   const files = listFiles(dir);
   if(!files.length){ console.log(`${dir} içinde ses dosyası yok.`); process.exit(0); }
+  if(args.includes("--kosul")){
+    const want = opt("--kosul", ""), names = want && !want.startsWith("--") ? want.split(",") : Object.keys(CONDITIONS);
+    console.log("Koşul sınaması: kayıtlar gerçek klarnet, koşullar benzetim (gerçek Sol klarnet kaydı değildir).\n");
+    const rep = conditionReport(files, names.filter(n => CONDITIONS[n]));
+    for(const [name, r] of Object.entries(rep)){
+      console.log(`  ${name.padEnd(24)} ${r.ok}/${r.n} nota (%${(r.ok/r.n*100).toFixed(1)}) · ölçümlerin %${(r.frOk/r.frames*100).toFixed(1)}'i doğru · oktav yanılgısı ${r.octave} ölçüm`);
+      if(!quiet && r.bad.length) console.log("      " + r.bad.slice(0, 12).join("\n      ") + (r.bad.length > 12 ? `\n      … ${r.bad.length - 12} nota daha` : ""));
+    }
+    process.exit(0);
+  }
   let notesOk = 0, notesN = 0, frOk = 0, frN = 0;
   const bad = [];
   for(const f of files){

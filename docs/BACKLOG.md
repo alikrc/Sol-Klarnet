@@ -1,6 +1,6 @@
 # Sol Klarnet — Backlog
 
-## Uzman inceleme bulguları — bekliyor (2 Kasım 2026)
+## Uzman inceleme bulguları — sürüyor (2 Kasım 2026)
 
 Bir Türk musikisi ve Sol klarnet uzmanı gözüyle yazılmış inceleme listesi. Yeni özellikten önce mevcut içeriğin müzikal
 doğruluğu, gerçek Sol klarnete uygunluğu ve eğitim kalitesi. Çalışan özellikler bozulmayacak, mimari gereksiz yere
@@ -11,6 +11,68 @@ değişmeyecek, mobil uyum korunacak.
 değişen dosyalar, yapılanlar, yapılan denetimler (projede test yok, bkz. kullanıcı kararı; tarayıcıda deneme ve ölçüm
 betikleri) ve gerçek klarnetle denenmesi gerekenler ayrıca yazılacak. Emin olunmayan müzikal bilgi kesin gibi sunulmayacak;
 teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamış her şey açıkça işaretlenecek.
+
+### Kod incelemesi: mevcut durum ve çözüm
+
+| # | Madde | Mevcut durum (kodda doğrulandı) | Önerilen çözüm | Öncelik |
+|---|---|---|---|---|
+| 1.1 | Gerçek kayıtla ses analizi | `audio-check` Iowa'nın gerçek Si♭ klarnet kayıtlarında 138/139 nota doğru (pp/mf/ff). Gürültü, telefon mikrofonu, vibrato ve Sol klarnetin pes bölgesi (duyulan Si2–Re3) hiç denenmemiş; betiğin zinciri uygulamadaki oktav korumasını içermiyor. Türk Sol klarneti kaydı yok | Betiğe koşul sınaması: gerçek kayıtlara telefon mikrofonu süzgeci, gürültü (SNR 20/10 dB), vibrato, oda yankısı ve 3 yarım ses pesleştirme uygulanır; sonuç "gerçek tını + benzetilmiş koşul" diye ayrı raporlanır. Zincir uygulamayla eşitlenir. Çıkan hatalar perde bulucuda düzeltilir | P0 |
+| 1.2a | Koma işaretlerini ayırma, Leland çizgili bemol | 9 değiştirici sınıfı, kalıp eşlemesi (Jaccard). Leland'ın çizgili bemolü küçük boyutta düz bemol okunabiliyor (backlog'da bilinen) | Yazı tiplerinden çizilen işaretlerle karışıklık tablosu; çizgili/düz bemol için ayırıcı özellik (sapı kesen çizgi) | P0 |
+| 1.2b | Güven puanı | Notada `conf` var, arayüzde yalnızca <0,6 "sarı" | Seçili notada ve özet satırında güven yüzdesi; çipin açıklamasında yüzde | P0 |
+| 1.2c | Elle nota/koma düzeltme | Var: ▲▼, oktav, "♯ ♭" düğmesi 9 koma değerini sırayla dolaşıyor | Doğrudan seçim: değiştirici listesi (adı ve koma değeriyle) | P0 |
+| 1.2d | Uzun PDF sınırı | Sayfa aralığı soruluyor ama üst sınır yok; her sayfa 2480 px (A4'te ~35 MB tuval, sayfa sonrası boşaltılıyor) | Bir okumada en çok 20 sayfa, büyük dosyada (>40 MB) uyarı; aralık bu sınıra göre kısılır | P0 |
+| 1.2e | D.S. gibi yazılı işaretler | Segno simgesi ve "segno'ya dön" okunuyor; yazıyla D.S./D.C./Fine/Coda okunmuyor, kullanıcıya söylenmiyor | Sonuç ekranında uyarı ve düzeltme ekranında seçili notaya işaret ekleme (segno, D.S., tekrar) | P0 |
+| 1.3 | Çeyrek ses parmakları | 57 parmak WFG Oehler/Albert tablosundan; parmak kartında "¼ pes/tiz" düğmeleri alternatiflerle aynı sırada, doğrulanmamış uyarısı yok | Ayrı "Çeyrek ses (doğrulanmamış)" grubu; her parmakta kaynak, durum, bilinen not; ses kalitesi/geçiş/bağlam bilgisi yoksa "bilinmiyor" yazılır, uydurulmaz. Kullanıcı kendi çalgısında denediğini işaretleyebilir; Uzman kontrolünde kalite ve geçiş puanı toplanır | P0 |
+| 2.1 | İcra perdesi | `ICRA` 6 makamda tek değer (ör. Uşşak Segâh −1,5); kaynaklarda aralık var (1–2 koma, 2–2,5 koma). Yardım metni "İcra ustaların gerçekte çaldığı perdedir… Emin değilsen İcra'yı seç" diyor | Değer + aralık; metin "yaklaşık, icracıya göre değişir" diye düzeltilir; kullanıcı (öğretmeninin) perdesini makam başına ayarlayabilir; çıkış/inişte farklılık olabileceği yazılır (veri uydurulmaz) | P1 |
+| 2.2 | Makam eğitimi | 20 makam, durak/güçlü/yeden/seyir TDV'ye göre, kaynaklı. Karşılaştırma, çıkış/iniş ezgi örneği yok | Benzer makam karşılaştırması (aynı dizi farklı seyir: Uşşak/Bayâtî, Hicaz/Hümâyun/Uzzâl…) dizilerden üretilir; ezgi örnekleri kaynağı olan eserlerden (SymbTr) seçilir | P1 |
+| 2.3 | Usul ve ritim | Usul metinlerinde "vuruş" hem zaman hem darb anlamında (Sofyan "dört vuruş: düm iki vuruş sürer"). Halk ritimleri tek kalıp, yalnızca kodda "hocaya kontrol ettirilmeli" notu | Zaman/darb/düm/tek/çevrim açıklaması; her usulde "N zaman, M darb"; halk ritimlerinde "yaygın bir çalış, yöreye ve icracıya göre değişir" | P1 |
+| 3 | Başlangıç dersleri | "Başlarken" 4 ders (tanı ve kur, duruş-ağız-nefes, nota, ritim) + "İlk ses". Nefes "karından al", kamış "2–2½ numara" kesin kural gibi | 10 ders yapısına bölme; nefes (alt kaburgalar, rahat alış, kontrollü akış), dudak (gevşeklik/sızdırmazlık dengesi), kamış (bek açıklığı, marka, kişi) metinleri | P1 |
+| 4 | Ses ve video | Örnek sesler Iowa Si♭ klarnetinden perde ayarlı; arayüzde yalnızca Ayarlar'daki teşekkür satırında. Videolar tek kanal (Çorlu Klarnet Üstatları) | Örnek sesin yanında "Si♭ klarnet kaydı, perde ayarlı; Sol klarnet tınısı değil". Video kaynakları ve üslup ayrımı (klasik / Trakya-Roman / modern) etiketlenir; yeni kayıt ve video proje sahibine | P1 |
+| 5 | Öğrenme deneyimi | Karşılama akışı, yol haritası, aralıklı tekrar, ünite sınavları, kayıt karşılaştırma var. Taksim aşamaları ve ses kararlılığı takibi kısmen (uzun ton puanı) | Ders sonu değerlendirme özeti, ses kararlılığı ve ritim doğruluğu eğrileri, taksim aşamaları | P2 |
+| 6 | Lisans | SymbTr CC BY-NC-SA 4.0 arşivde belirtiliyor; ücretli/reklamlı dağıtımda NC sorunu yazılı değil. WFG ve neyzen izni "İnsan gerektiren işler"de | `docs/LISANSLAR.md`: her kaynak, lisansı, ticari kullanım durumu, yapılacak iş | P1 |
+
+### Aşamalar
+
+1. **P0 — ses analizi, OMR, çeyrek ses parmakları** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
+2. **P1 — icra perdesi, usul, başlangıç dersleri, ses etiketleri, lisans belgesi**
+3. **P1 — makam karşılaştırma ve örnekler, videolar**
+4. **P2 — öğrenme deneyimi**
+
+### Aşama 1 (P0) — tamamlandı (2 Kasım 2026)
+
+**Değişen dosyalar:** `core.js`, `scripts/audio-check.js`, `omr.js`, `convert.js`, `app.js`, `index.html`, `app.css`,
+`i18n.js`, `testdata/README.md`, `testdata/omr/README.md`.
+
+- **Perde bulucu gürültüde oktav/onikili yanılgısı** (`core.js` `detectPitch`, `SUB_FLOOR`): alt harmonik denetimi oda
+  gürültüsünün pes bölgedeki enerjisini temel ses sanıyordu; gerçek klarnet kayıtlarına benzetilmiş 10 dB SNR gürültüde
+  doğru nota %16,5'ti. Aday frekans artık Hann penceresinin ±2 kutudaki sıfırlarında ölçülen düzeyin 3 katı olmalı:
+  %99,3. Zayıf temel sesli (sert telefon süzgeci) durumdaki koruma aynı kaldı (66 notada 57, denetim kapalıyken 48)
+- **Koşul sınaması** (`npm run audio-check -- testdata/iowa --kosul`): Iowa'nın gerçek Si♭ klarnet kayıtlarına telefon
+  mikrofonu, gürültü, vibrato, yankı ve Sol klarnet pesliği benzetilir; çıktı "kayıtlar gerçek, koşullar benzetim" der.
+  Betiğin zinciri uygulamanın oktav korumasını da içeriyor. Sonuçlar `testdata/README.md`'de
+- **Çizgili bemol** (`omr.js` `hiddenSlash`, `flat_slash`): çizik dizek çizgisiyle birlikte siliniyordu; özgün resimde
+  sapın solundaki kalınlıkla bulunuyor. Batı notasında ♭ sayılır, Türk notası kararını değiştirmez. Ayrıntı
+  `testdata/omr/README.md`
+- **Düzeltme ekranı** (`convert.js`): bilgi satırında ortalama okuma güveni ve %60 altı nota sayısı; çipin üstünde ve
+  seçili nota satırında güven yüzdesi; değiştirici listesi (AEU adları ve koma değeriyle, konser notasında ♮ ♯ ♭);
+  "İşaret" listesi (segno, D.S./D.C., Fine, tekrar başı/sonu, kaldır). Yazıyla yazılan D.S./D.C./Fine'ın okunmadığı her
+  resim okumasında söylenir; Coda desteklenmiyor
+- **Uzun PDF** (`CV_PAGE_LIMIT` = 15): bir okumada en çok 15 sayfa (sayfa başı ~9 MB gri resim); aralık sorusu buna göre
+  kısılır, resim seçiminde de sayılır, aşılınca düzeltme ekranında yazar
+- **Çeyrek ses parmakları** (`app.js` `showFingerings`): parmak kartında ayrı "Çeyrek ses · doğrulanmamış" grubu; her
+  çeyrek seste kaynak (WFG, A. Wendl) ve "Türk Sol klarnetinde denenmedi; ses kalitesi, geçiş ve kullanım yeri
+  bilinmiyor". Bu bilgiler uydurulmadı. Kullanıcı kendi çalgısında "çalışıyor/çalışmıyor" ve ses (temiz / idare eder /
+  zayıf) işaretleyebilir (`sk.qt.mine`, yalnız cihazda; düğmede ✓/✗). Alternatif parmaklarda da "WFG'den, doğrulanmadı"
+- **Yapılan denetimler:** `audio-check` temiz ve 9 koşulda; sentetik sayfalarda değiştirici okuma (Bravura/Leland, üç
+  ölçek); Hicâz Longa gerçek sayfası (228/228, pdf.js ile çıkarılan resim); tarayıcıda parmak kartı (grup, uyarı, kişisel
+  işaret, kayıt) ve Çevir'de sentetik Leland sayfası (16/16 nota, güven, değiştirici listesi, D.S. ve segno ekleme),
+  telefon genişliğinde taşma yok, konsolda hata yok
+- **Gerçek klarnetle denenmeli:** gerçek Sol klarnet kayıtlarıyla `audio-check` (hâlâ hiç yok); telefonda gürültülü
+  odada akort göstergesi (yeni gürültü denetimi pes notalarda oktav korumasını zayıflatıyor mu); pp pes notaların
+  telefonda görünüp görünmediği; 57 çeyrek ses parmağı (uzman); gerçek Leland/Bravura basılı nota fotoğraflarında
+  çizgili bemol
+
+### Maddeler (gelen liste)
 
 ### P0 — kritik
 

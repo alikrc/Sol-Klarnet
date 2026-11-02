@@ -338,7 +338,7 @@
   let fingerRec = null;
   function showFingerings(list, written, rec = null){
     const qt = written == null || !list.length ? [] : [[written-1, -1], [written, 1]].flatMap(([k, dir]) =>
-      quarterFingeringsFor(k).map((f, j, a) => ({ ...f, qt: dir, rec: k === rec,
+      quarterFingeringsFor(k).map((f, j, a) => ({ ...f, qt: dir, rec: k === rec, qkey: k + ":" + j,
         label: (dir < 0 ? L("¼ pes", "¼ flat") : L("¼ tiz", "¼ sharp")) + (a.length > 1 ? " " + (j+1) : "") })));
     fingerList = [...list, ...qt]; fingerWritten = written; fingerIdx = 0; fingerRec = qt.some(f => f.rec) ? rec : null;
     altCountEl.textContent = [list.length > 1 ? "· " + (list.length-1) + " alternatif" : "",
@@ -346,9 +346,15 @@
     manualMsg.textContent = MANUAL_HINT;
     altsEl.innerHTML = "";
     if(fingerList.length > 1) fingerList.forEach((f, i) => {
+      // Çeyrek ses parmakları ayrı grup: kaynak tablodan, Türk Sol klarnetinde doğrulanmadı
+      if(f.qt && !fingerList[i-1].qt){
+        const g = document.createElement("span");
+        g.className = "altgrp"; g.textContent = L("Çeyrek ses · doğrulanmamış", "Quarter tones · unverified");
+        altsEl.appendChild(g);
+      }
       const b = document.createElement("button");
       b.type = "button"; b.setAttribute("role", "radio");
-      b.textContent = f.qt ? f.label : i===0 ? "Temel" : "Alt. " + i;
+      b.textContent = (f.qt ? f.label : i===0 ? "Temel" : "Alt. " + i) + (f.qt ? qtMark(f.qkey) : "");
       if(f.qt) b.classList.add("qt");
       if(f.rec) b.classList.add("rec");
       b.addEventListener("click", () => selectFingering(i));
@@ -356,21 +362,55 @@
     });
     selectFingering(0);
   }
+  // Kullanıcının kendi çalgısında denediği çeyrek ses parmakları: { "<yazılı>:<sıra>": { ok: true|false, q: 1|2|3 } }
+  // (q: ses temiz / idare eder / zayıf). Yalnızca bu cihazda tutulur; uzman doğrulamasının yerini tutmaz.
+  const qtMine = () => store.get("qt.mine", {});
+  const qtMark = key => { const m = qtMine()[key]; return !m || m.ok == null ? "" : m.ok ? " ✓" : " ✗"; };
+  const QT_Q = { 1: L("temiz", "clean"), 2: L("idare eder", "usable"), 3: L("zayıf", "weak") };
+  const qtMineEl = $("qtmine");
+  function paintQtMine(f){
+    qtMineEl.hidden = !(f && f.qt);
+    if(qtMineEl.hidden) return;
+    const m = qtMine()[f.qkey] || {};
+    qtMineEl.querySelectorAll("[data-qok]").forEach(b => b.setAttribute("aria-pressed", String(m.ok === (b.dataset.qok === "1"))));
+    qtMineEl.querySelectorAll("[data-qq]").forEach(b => b.setAttribute("aria-pressed", String(m.q === +b.dataset.qq)));
+  }
+  qtMineEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-qok],[data-qq]"), f = fingerList[fingerIdx];
+    if(!b || !f || !f.qt) return;
+    const all = qtMine(), m = all[f.qkey] || {};
+    if(b.dataset.qok) m.ok = m.ok === (b.dataset.qok === "1") ? null : b.dataset.qok === "1";
+    else m.q = m.q === +b.dataset.qq ? null : +b.dataset.qq;
+    if(m.ok == null && m.q == null) delete all[f.qkey]; else all[f.qkey] = m;
+    store.set("qt.mine", all);
+    altsEl.querySelectorAll("button")[fingerIdx].textContent = f.label + qtMark(f.qkey);
+    paintQtMine(f); selectFingering(fingerIdx);
+  });
   function selectFingering(i){
     fingerIdx = i;
-    [...altsEl.children].forEach((b, k) => {
+    altsEl.querySelectorAll("button").forEach((b, k) => {
       b.setAttribute("aria-checked", k===i ? "true" : "false");
       b.tabIndex = k===i ? 0 : -1;
     });
     const f = fingerList[i];
     let note = f ? f.note : "";
-    if(f && f.qt) note = (f.qt < 0 ? L("Çeyrek ses pes: yazılı notadan ≈ 50 sent pes.", "Quarter tone flat: ≈ 50 cents below the written note.")
-                                   : L("Çeyrek ses tiz: yazılı notadan ≈ 50 sent tiz.", "Quarter tone sharp: ≈ 50 cents above the written note.")) +
-                         (f.note ? " " + f.note + "." : "") + L(" Kulakla ve akortla ayarla.", " Fine-tune by ear and with the tuner.");
+    if(f && f.qt){
+      const m = qtMine()[f.qkey] || {};
+      note = (f.qt < 0 ? L("Çeyrek ses pes: yazılı notadan ≈ 50 sent pes.", "Quarter tone flat: ≈ 50 cents below the written note.")
+                       : L("Çeyrek ses tiz: yazılı notadan ≈ 50 sent tiz.", "Quarter tone sharp: ≈ 50 cents above the written note.")) +
+             (f.note ? " " + f.note + "." : "") + L(" Kulakla ve akortla ayarla.", " Fine-tune by ear and with the tuner.") + " " +
+             L("Doğrulanmadı: WFG'nin Oehler/Albert çeyrek ses tablosundan (A. Wendl), Türk Sol klarnetinde denenmedi. Ses kalitesi, geçiş kolaylığı ve hangi ezgide kullanıldığı bilinmiyor; hocana danış.",
+               "Unverified: from WFG's Oehler/Albert quarter-tone chart (A. Wendl), not tried on a Turkish G clarinet. Tone quality, ease of transition and where it's used are unknown; ask your teacher.") +
+             (m.ok != null || m.q ? " " + L("Senin notun: ", "Your note: ") + [m.ok == null ? "" : m.ok ? L("çalışıyor", "works") : L("çalışmıyor", "doesn't work"),
+               m.q ? L("ses ", "tone ") + QT_Q[m.q] : ""].filter(Boolean).join(", ") + "." : "");
+    }
+    else if(f && i > 0) note = (note ? note + ". " : "") + L("Alternatif parmak: WFG'nin Oehler/Albert tablosundan; Türk Sol klarnetinde doğrulanmadı.",
+      "Alternative fingering: from WFG's Oehler/Albert chart; not verified on a Turkish G clarinet.");
     else if(f && fingerRec != null)
       note = (note ? note + ". " : "") + L("Bu perdenin hedefi çeyrek sese yakın: “" + (fingerRec < fingerWritten ? "¼ pes" : "¼ tiz") + "” parmağını dene.",
                                           "This perde's target is close to a quarter tone: try the “" + (fingerRec < fingerWritten ? "¼ flat" : "¼ sharp") + "” fingering.");
     altNoteEl.textContent = note;
+    paintQtMine(f);
     drawFingering(f ? f.code : null, fingerWritten, f && f.qt);
   }
   // Ok tuşlarıyla seçenekler arasında gezin (radyo grubu davranışı)
@@ -379,7 +419,7 @@
     if(!step || n < 2) return;
     e.preventDefault(); e.stopPropagation();
     selectFingering((fingerIdx + step + n) % n);
-    altsEl.children[fingerIdx].focus();
+    altsEl.querySelectorAll("button")[fingerIdx].focus();
   });
 
   // ---- Dizek: yazılı notanın sol anahtarlı porte üzerindeki yeri ----
