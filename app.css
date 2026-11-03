@@ -486,6 +486,10 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 /* Telefonda liste ve ders ayrı sayfa (ders alt sayfa olarak açılır) */
 @media(max-width:700px){.lsgrid:not(.open) .lsbody{display:none}.lsgrid.open .lsside,#pp-lessons.lsopen > .pdesc,#pp-lessons.lsopen > .pmore{display:none}}
 .lsunit{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600;padding:10px 8px 4px}
+.lsfold > summary.lsunit{cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.lsfold > summary.lsunit::-webkit-details-marker{display:none}
+.lsfold > summary.lsunit small{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted);font-size:11.5px}
+.lsfold:not(.done) > summary.lsunit{color:var(--muted)}
 .lsitem{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:0;background:transparent;
   color:var(--ink);font:500 13px/1.3 var(--ui);padding:7px 8px;border-radius:7px}
 .lsitem small{font:500 11px var(--mono);color:var(--muted);flex:0 0 auto}

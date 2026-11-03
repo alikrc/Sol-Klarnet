@@ -35,7 +35,8 @@ Aşamalar:
   önceden ders bitirmiş kullanıcıda kapı yok. Karşılamada atlanan/sınamayla geçilen ünitelerin sınavı da geçilmiş sayılır.
   `nextLesson` ders kalmadıysa açık sınavı döndürür (önceden "bütün dersleri bitirdin" diyordu). Uzman görmeli: kapı
   sırası (ör. makamın Register sınavına bağlı olması, İleri'nin Makam sınavına); kilometre taşları henüz kapı değil,
-  yalnız kartta öneri
+  yalnız kartta öneri. Rehberli modda ders listesi de odaklanır: bitmiş üniteler ("✓ 12 ders") ve henüz açılmamış
+  üniteler ("🔒 Temeller sınavından sonra") katlanır, yalnız üzerinde çalışılanlar açık
 - **D. Zayıf beceriye dönüş** — yapıldı (3 Kasım), `roadmap.js` `weakSkill`: uzun ton puanı, ses kararlılığı
   (yayılım), ritim ve taksim puanında son 4 haftanın ortalaması önceki 4 haftaya göre eşikten (8 puan; yayılımda 0,15
   koma) fazla kötüleştiyse ve o beceri bugün çalışılmadıysa, kart ısınmadan sonra "önce bunu toparlayalım" deyip

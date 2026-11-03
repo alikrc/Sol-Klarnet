@@ -43,19 +43,32 @@ TRAINERS.lessons = function(ctx){
     const dl = dailyLesson(), dp = lessonProgress(dl, progFor(dl));
     let html = `<button type="button" class="lsitem daily${cur && cur.daily ? " cur" : ""}" data-id="daily">
       <span><i class="lsemo" aria-hidden="true">☀️</i>${esc(tx(dl.title))}</span><small>${dp.done === dp.total ? "✓" : dp.done + "/" + dp.total}</small></button>`;
+    // Rehberli ilerlemede yalnız üzerinde çalışılan üniteler açık durur: bitmiş (dersleri ve sınavı) ve henüz hiç dersi
+    // açılmamış üniteler katlanır, başlıkta durumu yazar (açık ders içindeyse katlanmaz)
+    const fold = store.get("lesson.guided", true) && !allOpen;
     for(const u of UNITS){
-      html += `<div class="lsunit"><i class="lsemo" aria-hidden="true">${ART.UNIT_EMOJI[u.id] || ""}</i>${esc(tx(u.name))}</div>`;
-      for(const l of LESSONS.filter(x => x.unit === u.id)){
+      const ls = LESSONS.filter(x => x.unit === u.id), ex = examFor(u.id);
+      let items = "";
+      for(const l of ls){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
-        html += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
+        items += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
           <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
-      const ex = examFor(u.id);
       if(ex){
         const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
-        html += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
+        items += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
           <span><i class="lsemo" aria-hidden="true">🏅</i>${L("Ünite sınavı", "Unit test")}${done ? " · " + esc(tx(u.badge)) : ""}</span><small>${!open ? L("dersler bitince", "after the lessons") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
+      const head = `<i class="lsemo" aria-hidden="true">${ART.UNIT_EMOJI[u.id] || ""}</i>${esc(tx(u.name))}`;
+      const finished = ls.every(l => lessonDone(l, prog)) && (!ex || lessonDone(ex, prog));
+      const closed = !ls.some(l => unlocked(l, prog, allOpen));
+      const here = cur && cur.unit === u.id && !cur.daily;
+      if(fold && !here && (finished || closed)){
+        const gate = gateFor(u.id, prog), why = finished ? "✓ " + ls.length + L(" ders", " lessons")
+          : gate.length ? "🔒 " + gate.map(e => tx(UNITS.find(x => x.id === e.unit).name)).join(", ") + L(" sınavından sonra", " test first") : "🔒 " + L("önceki dersler bitince", "after the earlier lessons");
+        html += `<details class="lsfold${finished ? " done" : ""}"><summary class="lsunit">${head}<small>${esc(why)}</small></summary>${items}</details>`;
+      }
+      else html += `<div class="lsunit">${head}</div>${items}`;
     }
     $("lslist").innerHTML = html;
     renderCoach();
