@@ -21,8 +21,9 @@ Aşamalar:
 - **A. Seviye belirleme** — yapıldı (3 Kasım). Karşılamada isteğe bağlı çalma sınaması: 12 nota dört grupta (pes/orta,
   boğaz, register geçişi, klarino); geçilen grupların Temeller ve Register dersleri bitmiş sayılır, ilk notalarda
   zorlanana Başlarken önerilir. Yalnızca notanın çıktığı ölçülüyor (ses kalitesi ve akort değil). Dersler listesinin
-  altındaki "Seviyemi yeniden ölç" sınamayı karşılama dışında açar. Eksik: ritim/okuma sınaması (nota okuyabiliyor mu),
-  makam çalanlar için makam sınaması (ör. iki makamın dizisi ve bir seyir)
+  altındaki "Seviyemi yeniden ölç" sınamayı karşılama dışında açar. Sınama önce nota okumayı yoklar (dizekte 4 nota,
+  adı seçilir; mikrofonsuz): 3'ten azı doğruysa Başlarken'in "Nota okuma" dersi bitmiş sayılmaz ve kart onu önerir.
+  Eksik: ritim sınaması, makam çalanlar için makam sınaması (ör. iki makamın dizisi ve bir seyir)
 - **B. "Hocan diyor ki" kartı** — yapıldı (3 Kasım). Dersler'in en üstünde tek bir sıradaki adım ve nedeni
   (`roadmap.js` `coachNext`): yarım kalan ders/sınav → bugünün çalışması (ısınma ve vadesi gelen tekrarlar; yalnız
   gerçekten çalınmış ders varsa) → dersleri bitmiş ünitenin sınavı (hangi üniteleri açacağıyla) → kademenin dersleri

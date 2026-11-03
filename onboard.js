@@ -25,10 +25,22 @@
   const CHECK_NOTES = CHECK.flatMap((g, gi) => g.notes.map(w => ({ w, gi })));
   const HOLD_MS = 1200;
   // state: intro | run | done; k: sıradaki nota; held: tutulan süre (ms); passed: geçilen grup sayısı
-  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null };
-  const chkReset = () => Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null });
+  // Önce nota okuma: dizekte 4 nota, adı seçilir (mikrofonsuz). 3'ten azı doğruysa Başlarken'in "Nota okuma" dersi
+  // bitmiş sayılmaz (kulaktan çalan ama okuyamayan biri o dersi atlamasın)
+  const READ = [64, 69, 72, 77], SYL = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"], READ_OK = 3;
+  const sylOf = w => noteName(w).tr.replace(/[♯♭\d]/g, "");
+  const readChoices = (w, k) => { const c = sylOf(w), o = SYL.filter(x => x !== c); return [c, o[(k*2) % 6], o[(k*2 + 3) % 6], o[(k*2 + 5) % 6]].sort((a, b) => ((a.length*7 + k) % 5) - ((b.length*7 + k) % 5) || a.localeCompare(b)); };
+  // state: intro | read | run | done; rq/rok: okuma sorusu ve doğru sayısı
+  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0 };
+  const chkReset = () => Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, micErr: false });
+  const readOk = () => chk.rq < READ.length || chk.rok >= READ_OK;   // okuma bölümü bitmediyse karar yok
   const nm = w => LANG === "en" ? noteName(w).en : noteName(w).tr;
   const instT = () => (INSTRUMENTS.find(x => x.id === pickd.inst) || { t: SK.T }).t;
+  async function runMic(){
+    if(!SK.isListening()) await SK.startMic();
+    chk.micErr = !SK.isListening();
+    render();
+  }
   function chkAdvance(ok){
     const cur = CHECK_NOTES[chk.k];
     if(!ok){ chk.state = "done"; render(); return; }
@@ -54,22 +66,30 @@
   function checkBody(){
     if(chk.state === "intro") return `<div class="obemo" aria-hidden="true">🎶</div>
       <h2 class="obtitle">${L("Kısa çalma sınaması", "A short playing check")}</h2>
-      <p>${L("Sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: sınama orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
-        "We'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the check stops there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
+      <p>${L("Önce dizekte 4 notanın adını soracağız. Sonra sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: sınama orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
+        "First we'll ask the names of 4 notes on the staff. Then we'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the check stops there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
       <p class="muted">${L("Yalnızca notanın çıkıp çıkmadığına bakılır; ses kalitesi ve akort burada ölçülmez, derslerde ölçülür. İstemezsen geçebilirsin.", "This only checks whether the note sounds; tone and tuning aren't measured here but in the lessons. You can skip it.")}</p>
-      <div class="pbar"><button class="primary small" type="button" data-ob="chkstart">${L("Sınamayı başlat", "Start the check")}</button></div>
-      <div class="muted" id="obcal"></div>`;
+      <div class="pbar"><button class="primary small" type="button" data-ob="chkstart">${L("Sınamayı başlat", "Start the check")}</button></div>`;
+    if(chk.state === "read"){
+      const w = READ[chk.rq];
+      return `<div class="eyebrow">${L("Nota okuma", "Reading")} · ${chk.rq + 1}/${READ.length}</div>
+        <h2 class="obtitle">${L("Bu nota hangisi?", "Which note is this?")}</h2>
+        <div class="obstaff"></div>
+        <div class="seg obread" role="group" aria-label="${L("Nota adı", "Note name")}">${readChoices(w, chk.rq).map(c => `<button type="button" data-read="${c}">${c}</button>`).join("")}</div>`;
+    }
     if(chk.state === "run"){
       const cur = CHECK_NOTES[chk.k], g = CHECK[cur.gi];
       return `<div class="eyebrow">${g.name()} · ${chk.k + 1}/${CHECK_NOTES.length}</div>
         <h2 class="obtitle">${L("Bu notayı tut: ", "Hold this note: ")}${nm(cur.w)}</h2>
         <div class="obstaff"></div>
         <div class="obholdbar" aria-hidden="true"><i id="obhold" style="width:${Math.min(100, chk.held/HOLD_MS*100)}%"></i></div>
-        <div class="muted" id="obheard" aria-live="polite">${chk.heard != null ? L("Duyulan: ", "Heard: ") + nm(chk.heard) : L("Dinliyor…", "Listening…")}</div>
+        <div class="muted" id="obheard" aria-live="polite">${chk.micErr ? L("Mikrofon açılamadı. İzin verip yeniden dene ya da sınamayı geç.", "Couldn't open the microphone. Allow it and try again, or skip the check.") + ` <button class="stopbtn small" type="button" data-ob="chkmic">${L("Yeniden dene", "Try again")}</button>`
+          : chk.heard != null ? L("Duyulan: ", "Heard: ") + nm(chk.heard) : L("Dinliyor…", "Listening…")}</div>
         <div class="pbar"><button class="stopbtn" type="button" data-ob="chkplay">${L("Dinle", "Listen")}</button>
           <button class="stopbtn" type="button" data-ob="chkfail">${L("Çalamıyorum", "I can't play it")}</button></div>`;
     }
-    const res = CHECK.map((g, gi) => `<li>${gi < chk.passed ? "✓" : "–"} ${g.name()}</li>`).join("");
+    const res = (chk.rq >= READ.length ? `<li>${readOk() ? "✓" : "–"} ${L("Nota okuma", "Reading")} (${chk.rok}/${READ.length})</li>` : "") +
+      CHECK.map((g, gi) => `<li>${gi < chk.passed ? "✓" : "–"} ${g.name()}</li>`).join("");
     let advice;
     if(chk.passed === CHECK.length) advice = L("Temeller ve klarino derslerini bitmiş saydık. Teknik ve üslup ile makam dersleri açık; yol haritası seni oradan götürür.", "We've marked the basics and clarion lessons as done. Technique and style and the makam lessons are open; the roadmap takes you on from there.");
     else if(chk.passed > 0) advice = L("Geçtiğin grupların derslerini bitmiş saydık. \"" + CHECK[chk.passed].name() + "\" dersinden başlayacaksın.", "We've marked the lessons for the groups you passed as done. You'll start with \"" + CHECK[chk.passed].name() + "\".");
@@ -79,8 +99,9 @@
       <h2 class="obtitle">${L("Sınama bitti", "Check finished")}</h2>
       <ul class="obres">${res}</ul>
       <p>${advice}</p>
+      ${!readOk() ? `<p>${L("Nota okumada zorlandın: Başlarken'deki \"Nota okuma\" dersini açık bıraktık, önce onu çalış.", "Reading was hard: we left the \"Reading music\" lesson in Getting started open; work on it first.")}</p>` : ""}
       ${chk.passed === 0 && chk.k <= 1 ? `<div class="pbar"><button class="stopbtn" type="button" data-ob="chknew">${L("Başlarken'den başla", "Start from Getting started")}</button></div>` : ""}
-      <p class="muted">${L("Sınamayı Ayarlar'daki \"Karşılamayı yeniden aç\" ile tekrarlayabilirsin.", "You can redo the check from Settings by reopening the welcome.")}</p>`;
+      <p class="muted">${L("Sınamayı Dersler listesinin altındaki \"Seviyemi yeniden ölç\" ile tekrarlayabilirsin.", "You can redo the check with \"Measure my level again\" below the lesson list.")}</p>`;
   }
 
   function open(){ i = 0; chkReset(); root.hidden = false; document.body.classList.add("modal"); render(); root.querySelector("button").focus(); }
@@ -134,7 +155,7 @@
     if(st){
       const sv = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       sv.setAttribute("viewBox", "0 0 150 108"); sv.setAttribute("class", "staff"); sv.setAttribute("role", "img");
-      SK.drawStaffInto(sv, CHECK_NOTES[chk.k].w); st.appendChild(sv);
+      SK.drawStaffInto(sv, chk.state === "read" ? READ[chk.rq] : CHECK_NOTES[chk.k].w); st.appendChild(sv);
     }
   }
 
@@ -146,10 +167,14 @@
     if(b.dataset.goal){ pickd.goal = +b.dataset.goal; render(); return; }
     const act = b.dataset.ob;
     if(act === "back"){ if(steps[i] === "check") chkReset(); i = Math.max(0, i - 1); render(); return; }
-    if(act === "chkstart"){
-      if(!SK.isListening()) await SK.startMic();
-      if(!SK.isListening()){ root.querySelector("#obcal").textContent = L("Mikrofon açılamadı. İzin verip yeniden dene ya da sınamayı geç.", "Couldn't open the microphone. Allow it and try again, or skip the check."); return; }
-      chk.state = "run"; render(); return;
+    if(act === "chkstart"){ chk.state = "read"; render(); return; }
+    // Çalma bölümü: mikrofon gerekir (açılamazsa uyarı ve yeniden dene)
+    if(act === "chkmic"){ await runMic(); return; }
+    if(b.dataset.read){
+      if(b.dataset.read === sylOf(READ[chk.rq])) chk.rok++;
+      chk.rq++;
+      if(chk.rq >= READ.length){ chk.state = "run"; render(); await runMic(); return; }
+      render(); return;
     }
     if(act === "chkplay"){ SK.play(CHECK_NOTES[chk.k].w); return; }
     if(act === "chkfail"){ chkAdvance(false); return; }
@@ -190,6 +215,7 @@
     const prog = store.get("lesson.prog", {});
     if(pickd.level === "some" || pickd.level === "makam"){
       for(const l of LESSONS.filter(x => x.unit === "baslangic")){
+        if(l.id === "nota-okuma" && !readOk()) continue;
         markDone(prog, l, true);
       }
       // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri
@@ -198,7 +224,7 @@
       for(const u of UNITS){ const ex = examFor(u.id);
         if(ex && LESSONS.filter(l => l.unit === u.id).every(l => lessonDone(l, prog))) markDone(prog, ex, true); }
       store.set("lesson.prog", prog);
-      if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, d: dayKey(new Date()) });
+      if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, d: dayKey(new Date()) });
     }
     if(pickd.level === "makam") store.set("lesson.all", true);
     store.set("lesson.cur", "");
