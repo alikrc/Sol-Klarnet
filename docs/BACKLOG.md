@@ -41,8 +41,9 @@ Aşamalar:
 - **D. Zayıf beceriye dönüş** — yapıldı (3 Kasım), `roadmap.js` `weakSkill`: uzun ton puanı, ses kararlılığı
   (yayılım), ritim ve taksim puanında son 4 haftanın ortalaması önceki 4 haftaya göre eşikten (8 puan; yayılımda 0,15
   koma) fazla kötüleştiyse ve o beceri bugün çalışılmadıysa, kart ısınmadan sonra "önce bunu toparlayalım" deyip
-  alıştırmayı açar. Her pencerede en az 3 kayıt ister. Eksik: ders özetindeki "en az farkla geçilen adım" henüz karta
-  gelmiyor; eşikler gerçek kullanımla gözden geçirilmeli
+  alıştırmayı açar. Her pencerede en az 3 kayıt ister. Ders özetindeki "en az farkla geçilen adım" da aralıklı
+  tekrara bağlandı (`reviewStep`, `stepMargin`): gerçekten çalınmış derste üç tekrardan ikisinde o adım gelir. Eşikler
+  gerçek kullanımla gözden geçirilmeli
 - **E. Kademe raporu** — yapıldı (3 Kasım). Yol haritasındaki bir aşama (dersleri ve kilometre taşları) bitince hoca
   kartı bir kez rapor gösterir: kaç günde tamamlandığı (gerçekten çalınmış derslerin ilk ve son bitiş günü), ölçülen
   kilometre taşları ve sıradaki kademenin hedefi; "Sıradaki adım" ile kapanır (`rm.reported`). Eksik: önceki kademeye

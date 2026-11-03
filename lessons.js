@@ -1552,8 +1552,8 @@ function makeExam(u){
     .map(st => ({ st, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.st);
   return { id:"sinav-" + u.id, unit:u.id, exam:true, notes:[],
     title:{ tr:"Ünite sınavı: " + u.name.tr, en:"Unit test: " + u.name.en },
-    text:[{ tr:"Ünitenin derslerinden karışık adımlar. Hepsini geçersen “" + u.badge.tr + "” rozetini kazanırsın. Sınav sonraki dersleri kilitlemez; istediğin zaman dön.",
-            en:"Mixed steps from the unit's lessons. Pass them all to earn the “" + u.badge.en + "” badge. The test doesn't lock later lessons; come back whenever you like." }],
+    text:[{ tr:"Ünitenin derslerinden karışık adımlar. Hepsini geçersen “" + u.badge.tr + "” rozetini kazanırsın. Rehberli ilerlemede sonraki ünite bu sınavla açılır; rehberli ilerleme kapalıysa sınav hiçbir dersi kilitlemez.",
+            en:"Mixed steps from the unit's lessons. Pass them all to earn the “" + u.badge.en + "” badge. With guided progress the next unit opens after this test; with it off the test locks nothing." }],
     tips:[{ tr:"Takıldığın adımın dersine dönüp orayı tekrar çalış.", en:"If a step stops you, go back to its lesson and practise it there." }],
     steps };
 }
@@ -1588,9 +1588,26 @@ function srsDue(srs, day, max = SRS_PER_DAY){
     .sort((a, b) => a[1].due < b[1].due ? -1 : a[1].due > b[1].due ? 1 : a[1].lv - b[1].lv).slice(0, max).map(([id]) => id);
 }
 // Tekrar adımı: dersin geçme koşullu adımlarından biri (gün ve dersten türeyen seçim), rev alanında dersin kimliği
-function reviewStep(lesson, day){
-  const g = lesson.steps.filter(gatedStep);
-  return { ...stepFrom(lesson, g[Math.floor(seeded(day + lesson.id)()*g.length)]), rev: lesson.id };
+// Adımın kayıtlı sonucunun geçme koşulunu ne kadar aştığı (oran; 0: tam sınırda). Hata sayısında azı iyidir.
+// Koşulu sayıyla olmayan adımlarda null
+function stepMargin(st, v){
+  if(v == null) return null;
+  const low = st.type === "notes" || (st.type === "piece" && st.mode === "free");
+  const goal = { notes:st.maxMiss, mimic:st.len, vibrato:st.sec, glide:st.n, tech:st.target, ornament: st.kind === "tril" ? st.rate : st.n }[st.type] ?? st.min;
+  if(goal == null || typeof v !== "number") return null;
+  return low ? (goal - v)/Math.max(1, goal) : (v - goal)/Math.max(st.type === "scale" ? 0.01 : 1, goal);
+}
+// Tekrar adımı: dersin ölçülen adımlarından biri. Kayıtlı sonuçlar varsa (dersi gerçekten çalmışsa) üç tekrardan ikisinde
+// geçme koşulunu en az farkla geçtiği adım gelir: hoca zayıf kalan yeri yoklar
+function reviewStep(lesson, day, prog){
+  const g = lesson.steps.filter(gatedStep), rng = seeded(day + lesson.id), pick = g[Math.floor(rng()*g.length)];
+  const p = prog && prog[lesson.id];
+  let st = pick;
+  if(p && !p.placed && rng() < 0.67){
+    const m = g.map(x => ({ x, m: stepMargin(x, p.s[lesson.steps.indexOf(x)] && p.s[lesson.steps.indexOf(x)].v) })).filter(y => y.m != null);
+    if(m.length) st = m.reduce((a, b) => b.m < a.m ? b : a).x;
+  }
+  return { ...stepFrom(lesson, st), rev: lesson.id };
 }
 function srsUpdate(srs, id, ok, day){
   const e = srs[id] || (srs[id] = { lv:0, due:day });
@@ -1856,7 +1873,7 @@ function dailyPlan(ctx){
     steps.push({ type:"quiz", notes: hard.sort((a,b) => a-b), mode: rng() < 0.5 ? "play" : "find", n:8, min:6 });
   }
   // Tekrar: vadesi gelen bitmiş derslerden birer adım (ctx.srs); ısınma ve testle birlikte süre sınırında hep kalır
-  const reviews = ctx.srs ? srsDue(ctx.srs, ctx.day).map(id => reviewStep(lessonById(id), ctx.day)) : [];
+  const reviews = ctx.srs ? srsDue(ctx.srs, ctx.day).map(id => reviewStep(lessonById(id), ctx.day, ctx.prog)) : [];
   steps.push(...reviews);
   const nFix = steps.length;
   // 3–4. Makam: bitirilen makam derslerinden biri; hiç yoksa bilinen notalarla çıkış-iniş ve taklit
@@ -1912,6 +1929,6 @@ function dailyPlan(ctx){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
+  UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
   unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, setGuided, gateFor, examPassed
 };
