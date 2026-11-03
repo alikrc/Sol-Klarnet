@@ -5,10 +5,12 @@ TRAINERS.lessons = function(ctx){
   const { SK, $, store, nn, num, sgn, esc, sleep, needMic, holder, perdeOf, tgt, mkFreq, markScale, droneOn, staffSvg, miniChart, paintMini, toneKv, toneTips, days, intStats, makamState: ms } = ctx;
   const P = $("pp-lessons");
   P.innerHTML = `
-    <p class="pdesc">Adım adım ilerleyen dersler: her derste kısa bir anlatım ve mikrofonla değerlendirilen alıştırmalar var. Bir dersin bütün adımlarını geçince sonraki ders açılır. Bugünün çalışması, bitirdiğin derslerden her gün yeniden kurulur.</p>
+    <p class="pdesc">Adım adım ilerleyen dersler: her derste kısa bir anlatım ve mikrofonla değerlendirilen alıştırmalar var. Bir dersin bütün adımlarını geçince sonraki ders açılır; rehberli ilerlemede yeni ünite, öncekinin sınavı geçilince açılır. En üstteki kart her gün sıradaki adımı ve nedenini söyler. Bugünün çalışması, bitirdiğin derslerden her gün yeniden kurulur.</p>
     <div class="lsgrid">
       <div class="lsside">
+        <section class="lscoach" id="lscoach" aria-live="polite"></section>
         <nav class="lslist" id="lslist" aria-label="Dersler"></nav>
+        <label class="chk small"><input type="checkbox" id="lsguided"> ${L("rehberli ilerleme (yeni ünite, öncekinin sınavı geçilince açılır)", "guided progress (a new unit opens after the previous unit's test)")}</label>
         <label class="chk small"><input type="checkbox" id="lsall"> tüm dersleri aç</label>
       </div>
       <div class="lsbody" id="lsbody"></div>
@@ -55,7 +57,47 @@ TRAINERS.lessons = function(ctx){
       }
     }
     $("lslist").innerHTML = html;
+    renderCoach();
   }
+  // ---- Hoca kartı: bugün sıradaki tek adım ve nedeni (roadmap.js coachNext) ----
+  let coach = null;
+  function renderCoach(){
+    const day = dayKey(new Date());
+    coach = coachNext({ ...roadmapStats((k, d) => store.get(k, d)), prog }, { style: store.get("goal.style", "both"), all: allOpen,
+      guided: store.get("lesson.guided", true), dailyDone: store.get("lesson.dailyDone", []).includes(day),
+      due: srsDue(store.get("lesson.srs", {}), day).length });
+    const c = coach, names = xs => xs.map(tx).join(", ");
+    let head, why, btn;
+    switch(c.why){
+      case "resume": head = tx(c.title); btn = L("Devam et", "Continue");
+        why = L(`Yarım kaldı: ${c.done}/${c.total} adım. Yeni konuya geçmeden önce bunu bitir.`, `Unfinished: ${c.done}/${c.total} steps. Finish it before moving on.`); break;
+      case "daily": head = L("Bugünün çalışması", "Today's practice"); btn = L("Isınmaya başla", "Start warming up");
+        why = c.due ? L(`Önce ısın ve tekrar et: ${c.due} dersin tekrarı geldi. Bugünün çalışması bunlardan ve zorlandığın notalardan kuruldu.`, `Warm up and review first: ${c.due} lessons are due. Today's practice is built from them and the notes you find hard.`)
+                    : L("Önce ısın: bugünün çalışması bildiğin notalardan ve zorlandığın yerlerden kuruldu.", "Warm up first: today's practice is built from the notes you know and the places you find hard."); break;
+      case "exam": head = tx(c.title); btn = L("Sınava gir", "Take the test");
+        why = c.gates.length ? L(`${tx(c.unit)} ünitesini bitirdin. Sınavı geçince ${names(c.gates)} açılır: sonraki kademeye geçmeden bildiklerini yoklayalım.`, `You've finished ${tx(c.unit)}. Passing the test opens ${names(c.gates)}: let's check what you know before the next stage.`)
+                             : L(`${tx(c.unit)} ünitesini bitirdin; sınavla pekiştir.`, `You've finished ${tx(c.unit)}; consolidate it with the test.`); break;
+      case "mile": head = tx(c.title); btn = L("Alıştırmaya git", "Go to the exercise");
+        why = L(`"${tx(c.stage)}" kademesinin dersleri bitti. Kademeyi tamamlamak için bu ölçüm hedefe ulaşmalı: `, `The lessons of "${tx(c.stage)}" are done. To complete the stage this measurement must reach its goal: `) +
+          (c.v == null ? L("henüz ölçülmedi", "not measured yet") : L("şu an ", "now ") + num(c.v, Number.isInteger(c.v) ? 0 : 1) + tx(c.unit)) + ", " + L("hedef ", "goal ") + (c.lower ? "≤ " : "") + c.target + tx(c.unit) + "."; break;
+      case "newUnit": head = tx(c.title); btn = L("Derse başla", "Start the lesson");
+        why = L(`Yeni ünite: ${tx(c.unit)}. Buradan adım adım gideceğiz.`, `New unit: ${tx(c.unit)}. We'll go step by step from here.`); break;
+      case "next": head = tx(c.title); btn = L("Derse başla", "Start the lesson");
+        why = L(`Sıradaki ders (${tx(c.unit)}).`, `Next lesson (${tx(c.unit)}).`); break;
+      default: head = L("Hepsi tamam", "All done"); btn = L("Nota arşivine git", "Open the score archive");
+        why = L("Bütün dersler ve kademeler tamam. Artık eserler, eşlik ve taksimle serbest çalış.", "Every lesson and stage is done. Now play freely: pieces, the band and taksim.");
+    }
+    $("lscoach").innerHTML = `<div class="eyebrow">${L("Hocan diyor ki", "Your teacher says")}</div>
+      <strong class="lscoachh">${esc(head)}</strong><p>${esc(why)}</p>
+      <button class="primary small" type="button" data-coach="go">${esc(btn)} →</button>`;
+  }
+  $("lscoach").addEventListener("click", e => {
+    if(!e.target.closest("[data-coach]") || !coach) return;
+    if(coach.kind === "lesson") openSub(lessonById(coach.id));
+    else if(coach.kind === "daily") openSub(dailyLesson());
+    else if(coach.kind === "mile") ctx.selectTab(coach.tab);
+    else ctx.selectTab("archive");
+  });
   $("lslist").addEventListener("click", e => {
     const b = e.target.closest("[data-id]"); if(!b) return;
     if(b.hasAttribute("data-locked")){ lockedNote(lessonById(b.dataset.id)); return; }
@@ -63,8 +105,10 @@ TRAINERS.lessons = function(ctx){
   });
   // Kilitli derse dokununca neden kilitli olduğu ve sıradaki ders
   function lockedNote(l){
-    const nx = nextLesson(prog, allOpen);
+    const gate = l && !l.exam ? gateFor(l.unit, prog) : [];
+    const nx = gate.length && unlocked(gate[0], prog, allOpen) ? gate[0] : nextLesson(prog, allOpen);
     const msg = l && l.exam ? L("Ünite sınavı, ünitenin bütün dersleri bitince açılır.", "The unit test opens once every lesson in the unit is finished.")
+              : gate.length ? L("Rehberli ilerleme: bu ünite, ", "Guided progress: this unit opens after ") + gate.map(e => tx(e.title)).join(", ") + L(" geçilince açılır.", " is passed.")
                             : L("Bu ders, önceki dersler bitince açılır.", "This lesson opens once the earlier lessons are finished.");
     SK.notice(msg + " " + L("Hepsini hemen açmak için listenin altındaki “tüm dersleri aç” kutusunu işaretle.",
                             "To open them all now, tick “unlock all lessons” below the list."),
@@ -86,6 +130,8 @@ TRAINERS.lessons = function(ctx){
     ctx.selectTab("lessons");
     if(SK.lessonOpen(id)) openSub(lessonById(id));
   };
+  $("lsguided").checked = store.get("lesson.guided", true);
+  $("lsguided").addEventListener("change", () => { store.set("lesson.guided", $("lsguided").checked); setGuided($("lsguided").checked); renderList(); renderNext(); });
   $("lsall").checked = allOpen;
   $("lsall").addEventListener("change", () => { allOpen = $("lsall").checked; store.set("lesson.all", allOpen); renderList(); renderNext(); });
 

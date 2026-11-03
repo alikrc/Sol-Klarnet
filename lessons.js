@@ -1734,12 +1734,27 @@ function lessonProgress(lesson, prog){
   const gated = lesson.steps.map((st, i) => i).filter(i => lesson.steps[i].type !== "listen");
   return { done: gated.filter(i => p.s[i] && p.s[i].ok).length, total: gated.length };
 }
+// Rehberli ilerleme (kademe kapısı): bir ünitenin dersleri, önkoşul ünitelerin sınavı geçilmeden açılmaz; hoca
+// ünite bitince sınavla pekiştirip öyle geçirir. Kapı, kullanıcı o üniteden daha önce ders bitirdiyse uygulanmaz
+// (eski ilerleme bozulmasın). Tarayıcıda practice.js açar (Ayarlar: lesson.guided), Node'da kapalı.
+const GATE_AFTER = { temel:["baslangic"], klarino:["temel"], teknik:["klarino"], hiz:["klarino"], susleme:["klarino"],
+  makam:["klarino"], trakya:["klarino"], ileri:["makam"] };
+let GUIDED = false;
+function setGuided(on){ GUIDED = !!on; }
+const examPassed = (unitId, prog) => { const e = examFor(unitId); return !e || lessonDone(e, prog); };
+// Ünitenin dersleri için geçilmemiş önkoşul sınavları (rehberli değilse ya da ünite başlanmışsa boş)
+function gateFor(unitId, prog){
+  if(!GUIDED || !GATE_AFTER[unitId]) return [];
+  if(LESSONS.some(l => l.unit === unitId && lessonDone(l, prog))) return [];
+  return GATE_AFTER[unitId].filter(u => !examPassed(u, prog)).map(examFor);
+}
 // Temeller ve klarino dersleri sırayla açılır. Bunlar bitince teknik derslerinin hepsi ve ilk makam dersi açılır;
 // makam dersleri kendi içinde sırayla gider (teknik ünitesini bitirmek gerekmez).
 function unlocked(lesson, prog, all = false){
   if(all) return true;
   if(lessonDone(lesson, prog)) return true;          // bitmiş ders hep açık (yeni dersler araya eklense de)
   if(lesson.exam) return LESSONS.filter(l => l.unit === lesson.unit).every(l => lessonDone(l, prog));
+  if(gateFor(lesson.unit, prog).length) return false;
   const i = LESSONS.indexOf(lesson);
   if(i <= 0) return true;
   const base = () => LESSONS.filter(l => l.unit === "temel" || l.unit === "klarino").every(l => lessonDone(l, prog));
@@ -1766,8 +1781,10 @@ function unlocked(lesson, prog, all = false){
   return lessonDone(LESSONS[i-1], prog);
 }
 // Kaldığın yer: açık ve bitmemiş ilk ders
+// Ders kalmadıysa (ya da sıradakiler kademe kapısında bekliyorsa) açık ve geçilmemiş ilk ünite sınavı
 function nextLesson(prog, all = false){
-  return LESSONS.find(l => unlocked(l, prog, all) && !lessonDone(l, prog)) || null;
+  return LESSONS.find(l => unlocked(l, prog, all) && !lessonDone(l, prog)) ||
+    EXAMS.find(e => unlocked(e, prog, all) && !lessonDone(e, prog)) || null;
 }
 // Bitirilen derslerde öğrenilen notalar (hiç ders bitmediyse açık Sol)
 function knownNotes(prog){
@@ -1896,5 +1913,5 @@ function dailyPlan(ctx){
 
 if(typeof module !== "undefined") module.exports = {
   UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
-  unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan
+  unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, setGuided, gateFor, examPassed
 };

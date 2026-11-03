@@ -476,6 +476,11 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 .lsgrid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
 @media(max-width:700px){.lsgrid{grid-template-columns:1fr}}
 .lsside{display:flex;flex-direction:column;gap:8px}
+.lscoach{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
+  background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.lscoach p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.lscoachh{font-size:16px}
+.lscoach button{align-self:flex-start}
 .lslist{display:flex;flex-direction:column;gap:2px;background:var(--sunk);border-radius:10px;padding:6px}
 /* Telefonda liste ve ders ayrı sayfa (ders alt sayfa olarak açılır) */
 @media(max-width:700px){.lsgrid:not(.open) .lsbody{display:none}.lsgrid.open .lsside,#pp-lessons.lsopen > .pdesc,#pp-lessons.lsopen > .pmore{display:none}}

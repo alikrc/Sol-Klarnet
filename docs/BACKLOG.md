@@ -22,13 +22,19 @@ Aşamalar:
   boğaz, register geçişi, klarino); geçilen grupların Temeller ve Register dersleri bitmiş sayılır, ilk notalarda
   zorlanana Başlarken önerilir. Yalnızca notanın çıktığı ölçülüyor (ses kalitesi ve akort değil). Eksik: ritim/okuma
   sınaması (nota okuyabiliyor mu), makam çalanlar için makam sınaması; sınamayı karşılama dışında yeniden yapma
-- **B. "Hocan diyor ki" kartı** — Dersler'in en üstünde tek bir sıradaki adım ve nedeni: yarım kalan ders → bugünün
-  çalışması (ısınma ve vadesi gelen tekrarlar) → kademe için eksik kilometre taşı → ünite sınavı → yeni ders. Liste
-  altında kalır ("başka bir şey çalış")
-- **C. Kademe kapısı (rehberli mod)** — üniteler arası geçiş, önceki ünitenin sınavı geçilince açılır; kilitli derste
-  hangi sınavın/ölçümün eksik olduğu ve oraya giden düğme. Bitmiş dersler ve "tüm dersleri aç" eskisi gibi; daha önce
-  sonraki üniteden ders bitirmiş kullanıcıda kapı uygulanmaz (eski ilerleme bozulmasın). Seviye sınamasıyla geçilen
-  ünitelerin sınavı da geçilmiş sayılır
+- **B. "Hocan diyor ki" kartı** — yapıldı (3 Kasım). Dersler'in en üstünde tek bir sıradaki adım ve nedeni
+  (`roadmap.js` `coachNext`): yarım kalan ders/sınav → bugünün çalışması (ısınma ve vadesi gelen tekrarlar; yalnız
+  gerçekten çalınmış ders varsa) → dersleri bitmiş ünitenin sınavı (hangi üniteleri açacağıyla) → kademenin dersleri
+  bittiyse eksik kilometre taşı (şu anki değer ve hedef, alıştırmaya git) → yeni ders/yeni ünite → kalan kilometre
+  taşları. Liste kartın altında duruyor
+- **C. Kademe kapısı (rehberli mod)** — yapıldı (3 Kasım). `lessons.js` `GATE_AFTER`/`gateFor`: Temeller ←
+  Başlarken sınavı, Register ← Temeller sınavı; teknik, hız, süsleme, makam ve Trakya ← Register sınavı; İleri ← Makam
+  sınavı. Kilitli derse dokununca hangi sınavın eksik olduğu ve sınava giden düğme. Dersler listesinin altında "rehberli
+  ilerleme" kutusu (varsayılan açık, `lesson.guided`); "tüm dersleri aç" ve bitmiş dersler eskisi gibi. O üniteden
+  önceden ders bitirmiş kullanıcıda kapı yok. Karşılamada atlanan/sınamayla geçilen ünitelerin sınavı da geçilmiş sayılır.
+  `nextLesson` ders kalmadıysa açık sınavı döndürür (önceden "bütün dersleri bitirdin" diyordu). Uzman görmeli: kapı
+  sırası (ör. makamın Register sınavına bağlı olması, İleri'nin Makam sınavına); kilometre taşları henüz kapı değil,
+  yalnız kartta öneri
 - **D. Zayıf beceriye dönüş** — ders özetinde en az farkla geçilen adımlar ve İlerleme'deki haftalık düşüşler (ses
   kararlılığı, ritim) hoca kartına "önce şunu toparla" diye gelir
 - **E. Kademe raporu** — aşama bitince kısa değerlendirme: ölçülen beceriler, bir önceki aşamaya göre fark, sıradaki

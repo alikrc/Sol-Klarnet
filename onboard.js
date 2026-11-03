@@ -175,7 +175,7 @@
   });
 
   // Dersin bütün adımlarını geçilmiş say (okuma adımları 1, ölçülenler geçme eşiğiyle). Okuma dışındaki adımlar da
-  // geçilmiş sayılır: bilen biri bunlarda takılmasın. placed: çalma sınamasıyla geçildi
+  // geçilmiş sayılır: bilen biri bunlarda takılmasın. placed: çalınmadan geçildi (karşılamada atlandı ya da sınamayla)
   function markDone(prog, l, placed){
     const p = prog[l.id] || (prog[l.id] = { s:{} });
     l.steps.forEach((st, k) => { if(!(p.s[k] && p.s[k].ok)) p.s[k] = { v: st.type === "read" ? 1 : st.type === "notes" ? 0 : (st.min || st.n || 1), ok:true }; });
@@ -190,10 +190,13 @@
     const prog = store.get("lesson.prog", {});
     if(pickd.level === "some" || pickd.level === "makam"){
       for(const l of LESSONS.filter(x => x.unit === "baslangic")){
-        markDone(prog, l);
+        markDone(prog, l, true);
       }
       // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri
       CHECK.slice(0, chk.passed).forEach(g => g.lessons.forEach(id => { const l = lessonById(id); if(l) markDone(prog, l, true); }));
+      // Dersleri bütünüyle geçilen ünitenin sınavı da geçilmiş sayılır (rehberli ilerlemede sonraki ünite açılsın)
+      for(const u of UNITS){ const ex = examFor(u.id);
+        if(ex && LESSONS.filter(l => l.unit === u.id).every(l => lessonDone(l, prog))) markDone(prog, ex, true); }
       store.set("lesson.prog", prog);
       if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, d: dayKey(new Date()) });
     }

@@ -3,7 +3,7 @@
 // hızından kalan sürenin tahmini ve haftalık görünüm. Hedef tarz seçilirse (oyun havaları / klasik) aşamaların sırası değişir.
 // Mantık tarayıcıda ve Node'da (require("./roadmap.js")); sekme dosyanın sonunda.
 
-const RMLESSONS = typeof module !== "undefined" ? require("./lessons.js") : { LESSONS, UNITS, lessonDone, nextLesson, examFor };
+const RMLESSONS = typeof module !== "undefined" ? require("./lessons.js") : { LESSONS, UNITS, EXAMS, lessonDone, lessonProgress, unlocked, nextLesson, examFor, gateFor };
 const RMLEARN = typeof module !== "undefined" ? require("./learn.js") : { dayKey, unlockedLevels };
 
 // Kilometre taşı: { id, title, tab (açılacak alıştırma), get(st) → ölçülen değer (null: henüz yok), target, lower (küçük iyi) }
@@ -169,7 +169,37 @@ function weekSummary(st, today = new Date()){
   return { cur: span(d0, n), prev: span(prev, 7), days: n };
 }
 
-if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary };
+// Hoca kartı: bugün sıradaki tek adım ve nedeni (metni lessonview.js yazar). Sıra, hocanın derse başlatması gibi:
+// 1. yarım kalan ders ya da sınav, 2. bugünün çalışması (ısınma ve vadesi gelen tekrarlar; en az bir ders bittiyse ve
+// bugün yapılmadıysa), 3. dersleri bitmiş ünitenin sınavı (rehberli modda ya da yeni ders kalmadıysa), 4. kademenin
+// dersleri bittiyse eksik kilometre taşı, 5. yeni ders, 6. kalan kilometre taşları.
+// o: { style, all, guided, dailyDone (bugün yapıldı mı), due (vadesi gelen tekrar sayısı) }
+// Dönen: { kind: "lesson"|"daily"|"mile"|"done", why, id?, tab?, title?, ... }
+function coachNext(st, o = {}){
+  const R = RMLESSONS, prog = st.prog, open = l => R.unlocked(l, prog, !!o.all), done = l => R.lessonDone(l, prog);
+  const partial = [...R.LESSONS, ...R.EXAMS].find(l => open(l) && !done(l) && R.lessonProgress(l, prog).done > 0);
+  if(partial){ const p = R.lessonProgress(partial, prog); return { kind:"lesson", why:"resume", id:partial.id, title:partial.title, done:p.done, total:p.total }; }
+  // ısınma, gerçekten çalınmış (karşılamada atlanmamış) bir ders varsa
+  if(R.LESSONS.some(l => done(l) && !prog[l.id].placed) && !o.dailyDone) return { kind:"daily", why:"daily", due:o.due || 0 };
+  const nx = R.LESSONS.find(l => open(l) && !done(l));
+  const exam = R.EXAMS.find(e => open(e) && !done(e));
+  if(exam && (o.guided || !nx)){
+    const unit = R.UNITS.find(u => u.id === exam.unit);
+    const gates = R.UNITS.filter(u => R.gateFor(u.id, prog).includes(exam)).map(u => u.name);
+    return { kind:"lesson", why:"exam", id:exam.id, title:exam.title, unit:unit && unit.name, gates };
+  }
+  const status = roadmapStatus(st, o.style), cur = status.find(s => s.current);
+  const mile = s => { const x = s.miles.find(y => !y.ok); return x && { kind:"mile", why:"mile", tab:x.m.tab, title:x.m.title, stage:s.stage.title, v:x.v, target:x.m.target, unit:x.m.unit, lower:!!x.m.lower }; };
+  if(cur && cur.lessons.done === cur.lessons.total && mile(cur)) return mile(cur);
+  if(nx){
+    const i = R.LESSONS.indexOf(nx), first = i === 0 || R.LESSONS[i - 1].unit !== nx.unit, unit = R.UNITS.find(u => u.id === nx.unit);
+    return { kind:"lesson", why: first ? "newUnit" : "next", id:nx.id, title:nx.title, unit:unit && unit.name };
+  }
+  for(const s of status){ const m = mile(s); if(m) return m; }
+  return { kind:"done", why:"done" };
+}
+
+if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, coachNext };
 
 // ======== Sekme ========
 if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){

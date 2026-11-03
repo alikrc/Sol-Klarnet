@@ -845,6 +845,7 @@
     setPlaybackMute: v => { playbackMute = v; },
     setBandFreqs,
     markResetting: () => { resetting = true; } };
+  setGuided(store.get("lesson.guided", true));            // kademe kapısı (lessons.js), sekmeler kurulmadan önce
   TABS.forEach(([id]) => { modules[id] = TRAINERS[id](ctx); });
   // Akort ekranı makamın durağında dron açabilsin (perde dron aralığına -22…62 oktavla taşınır)
   SK.drone = {
