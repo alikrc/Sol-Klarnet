@@ -80,6 +80,10 @@ TRAINERS.lessons = function(ctx){
       case "mile": head = tx(c.title); btn = L("Alıştırmaya git", "Go to the exercise");
         why = L(`"${tx(c.stage)}" kademesinin dersleri bitti. Kademeyi tamamlamak için bu ölçüm hedefe ulaşmalı: `, `The lessons of "${tx(c.stage)}" are done. To complete the stage this measurement must reach its goal: `) +
           (c.v == null ? L("henüz ölçülmedi", "not measured yet") : L("şu an ", "now ") + num(c.v, Number.isInteger(c.v) ? 0 : 1) + tx(c.unit)) + ", " + L("hedef ", "goal ") + (c.lower ? "≤ " : "") + c.target + tx(c.unit) + "."; break;
+      case "weak": head = tx(c.title); btn = L("Alıştırmaya git", "Go to the exercise");
+        { const f = v => num(v, c.low ? 2 : 0) + tx(c.unit);
+          why = L(`Önce bunu toparlayalım: önceki 4 haftada ortalama ${f(c.before)} iken son 4 haftada ${f(c.recent)}. Yeni konudan önce kısa bir tur iyi gelir.`,
+                  `Let's fix this first: it averaged ${f(c.before)} in the previous 4 weeks and ${f(c.recent)} in the last 4. A short round before new material will help.`); } break;
       case "newUnit": head = tx(c.title); btn = L("Derse başla", "Start the lesson");
         why = L(`Yeni ünite: ${tx(c.unit)}. Buradan adım adım gideceğiz.`, `New unit: ${tx(c.unit)}. We'll go step by step from here.`); break;
       case "next": head = tx(c.title); btn = L("Derse başla", "Start the lesson");

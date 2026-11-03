@@ -35,8 +35,11 @@ Aşamalar:
   `nextLesson` ders kalmadıysa açık sınavı döndürür (önceden "bütün dersleri bitirdin" diyordu). Uzman görmeli: kapı
   sırası (ör. makamın Register sınavına bağlı olması, İleri'nin Makam sınavına); kilometre taşları henüz kapı değil,
   yalnız kartta öneri
-- **D. Zayıf beceriye dönüş** — ders özetinde en az farkla geçilen adımlar ve İlerleme'deki haftalık düşüşler (ses
-  kararlılığı, ritim) hoca kartına "önce şunu toparla" diye gelir
+- **D. Zayıf beceriye dönüş** — yapıldı (3 Kasım), `roadmap.js` `weakSkill`: uzun ton puanı, ses kararlılığı
+  (yayılım), ritim ve taksim puanında son 4 haftanın ortalaması önceki 4 haftaya göre eşikten (8 puan; yayılımda 0,15
+  koma) fazla kötüleştiyse ve o beceri bugün çalışılmadıysa, kart ısınmadan sonra "önce bunu toparlayalım" deyip
+  alıştırmayı açar. Her pencerede en az 3 kayıt ister. Eksik: ders özetindeki "en az farkla geçilen adım" henüz karta
+  gelmiyor; eşikler gerçek kullanımla gözden geçirilmeli
 - **E. Kademe raporu** — aşama bitince kısa değerlendirme: ölçülen beceriler, bir önceki aşamaya göre fark, sıradaki
   aşamada ne beklendiği
 

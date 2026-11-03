@@ -76,7 +76,8 @@ function roadmapStats(get){
     sightBest: get("sight.best", {}), dictBest: get("dict.best", {}),
     techBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
     seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length,
-    pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null
+    pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,
+    hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []) }
   };
 }
 // Aşamaların durumu: { stage, lessons:{done,total}, miles:[{m, v, ok}], done, pct }; ilk bitmemiş aşama current
@@ -169,9 +170,34 @@ function weekSummary(st, today = new Date()){
   return { cur: span(d0, n), prev: span(prev, 7), days: n };
 }
 
+// Gerileyen beceri: son 4 haftanın ortalaması önceki 4 haftaya göre belirgin kötüleştiyse (her pencerede en az 3 kayıt)
+// ve bugün o beceri hiç çalışılmadıysa. Eşikler: puanlarda 8 puan, ses kararlılığında (yayılım) 0,15 koma. En büyük
+// gerileme (eşiğe oranla) döner: { id, tab, title, recent, before, low, unit } ya da null
+const WEAK_SKILLS = [
+  { id:"long", hist:"long", tab:"long", val: x => x.score, eps:8, title:{ tr:"Uzun ton puanı", en:"Long tone score" }, unit:{ tr:" puan", en:" pts" } },
+  { id:"stab", hist:"long", tab:"long", val: x => x.sd, eps:0.15, low:true, title:{ tr:"Ses kararlılığı (yayılım)", en:"Tone stability (spread)" }, unit:{ tr:" koma", en:" commas" } },
+  { id:"rhythm", hist:"rhythm", tab:"rhythm", val: x => x.score, eps:8, title:{ tr:"Ritim puanı", en:"Rhythm score" }, unit:{ tr:" puan", en:" pts" } },
+  { id:"seyir", hist:"seyir", tab:"seyir", val: x => x.score, eps:8, title:{ tr:"Taksim (seyir) puanı", en:"Taksim (seyir) score" }, unit:{ tr:" puan", en:" pts" } }
+];
+function weakSkill(st, today = new Date()){
+  const t0 = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12).getTime(), todayKey = RMLEARN.dayKey(today);
+  const wk = d => Math.floor((t0 - new Date(d + "T12:00:00").getTime())/(7*864e5));
+  let best = null;
+  for(const s of WEAK_SKILLS){
+    const h = (st.hist && st.hist[s.hist]) || [];
+    if(h.some(x => x.d === todayKey)) continue;
+    const vals = k => h.filter(x => { const w = wk(x.d); return w >= k && w < k + 4 && s.val(x) != null; }).map(s.val);
+    const a = vals(0), b = vals(4);
+    if(a.length < 3 || b.length < 3) continue;
+    const recent = a.reduce((x, y) => x + y, 0)/a.length, before = b.reduce((x, y) => x + y, 0)/b.length;
+    const drop = (s.low ? recent - before : before - recent)/s.eps;
+    if(drop >= 1 && (!best || drop > best.drop)) best = { id:s.id, tab:s.tab, title:s.title, unit:s.unit, low:!!s.low, recent, before, drop };
+  }
+  return best;
+}
 // Hoca kartı: bugün sıradaki tek adım ve nedeni (metni lessonview.js yazar). Sıra, hocanın derse başlatması gibi:
 // 1. yarım kalan ders ya da sınav, 2. bugünün çalışması (ısınma ve vadesi gelen tekrarlar; en az bir ders bittiyse ve
-// bugün yapılmadıysa), 3. dersleri bitmiş ünitenin sınavı (rehberli modda ya da yeni ders kalmadıysa), 4. kademenin
+// bugün yapılmadıysa), 2b. son haftalarda gerileyen beceri (weakSkill), 3. dersleri bitmiş ünitenin sınavı (rehberli modda ya da yeni ders kalmadıysa), 4. kademenin
 // dersleri bittiyse eksik kilometre taşı, 5. yeni ders, 6. kalan kilometre taşları.
 // o: { style, all, guided, dailyDone (bugün yapıldı mı), due (vadesi gelen tekrar sayısı) }
 // Dönen: { kind: "lesson"|"daily"|"mile"|"done", why, id?, tab?, title?, ... }
@@ -181,6 +207,8 @@ function coachNext(st, o = {}){
   if(partial){ const p = R.lessonProgress(partial, prog); return { kind:"lesson", why:"resume", id:partial.id, title:partial.title, done:p.done, total:p.total }; }
   // ısınma, gerçekten çalınmış (karşılamada atlanmamış) bir ders varsa
   if(R.LESSONS.some(l => done(l) && !prog[l.id].placed) && !o.dailyDone) return { kind:"daily", why:"daily", due:o.due || 0 };
+  const weak = weakSkill(st, o.today);
+  if(weak) return { kind:"mile", why:"weak", ...weak };
   const nx = R.LESSONS.find(l => open(l) && !done(l));
   const exam = R.EXAMS.find(e => open(e) && !done(e));
   if(exam && (o.guided || !nx)){
@@ -199,7 +227,7 @@ function coachNext(st, o = {}){
   return { kind:"done", why:"done" };
 }
 
-if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, coachNext };
+if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, weakSkill, coachNext };
 
 // ======== Sekme ========
 if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
