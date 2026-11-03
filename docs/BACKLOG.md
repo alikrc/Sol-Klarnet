@@ -28,7 +28,17 @@ Aşamalar:
   onu önerir; tur geçilebilir ve yeniden denenebilir (`SK.rhythmTry`, `onboard.check.rhythm`). Yeniden ölçmede okuma
   ya da ritim tutmazsa önceki sınamanın bitmiş saydığı (çalınmamış) ders yeniden açılır. Ritim yalnızca Başlarken'deki
   dersi etkiliyor; Teknik'teki dil vuruşu ve usul dersleri sınamaya bağlı değil. Gerçek cihazda (hoparlör gecikmesi,
-  kulaklıksız metronom) denenmeli. Eksik: makam çalanlar için makam sınaması (ör. iki makamın dizisi ve bir seyir)
+  kulaklıksız metronom) denenmeli. Makam sınaması (4 Kasım): "Makam çalışıyorum" seçene (yeniden ölçmede de,
+  `onboard.level`; bu kayıttan önce seçenlerde "bütün dersler açık" ayarına bakılır) ritimden sonra üç tur: Rast dizisi,
+  Uşşak dizisi, en çok 40 sn'lik Hicaz seyri. Notaların hiçbiri çıkmadıysa sorulmaz. Adımlar derslerin kendi
+  değerlendiricileridir (`SK.stepTry`, dizi eşiği dersten; seyir eşiği Taksim 2'nin Hicaz adımı gibi 60). Kural: turlar
+  sırayla, tutmayan tur bölümü bitirir, baştan geçilen turların dersleri bitmiş sayılır (Rast: `rast-giris`, `rast`;
+  Uşşak: `ussak`; Hicaz seyri: `huseyni`, `hicaz`). Geçilmeyen tur karar vermez; ölçülüp tutmayan turun önceki sınamadan
+  kalan kaydı silinir (ders yeniden açılınca ünite sınavının placed kaydı da). Yeniden ölçme `lesson.all`'ı değiştirmez.
+  Makamlar ünitesinin 21 dersinin yalnız 5'i sayıldığı için Makam sınavı geçilmiş sayılmaz: İleri'nin kapısı rehberli
+  ilerlemede kapalı kalır; Makam ünitesinin kapısı ise bir makam dersi bitmiş sayılınca açılır (`gateFor`). Sonuç
+  `onboard.check.makam`. **Uzman görmeli:** bu makam ve ders eşlemesi (özellikle ölçülmeyen Hüseynî'nin sayılması, Hicaz
+  seyrinin temel makamların yeterli göstergesi olup olmadığı), üç turun seçimi, eşikler. Gerçek klarnetle denenmeli
 - **B. "Hocan diyor ki" kartı** — yapıldı (3 Kasım). Dersler'in en üstünde tek bir sıradaki adım ve nedeni
   (`roadmap.js` `coachNext`): yarım kalan ders/sınav → bugünün çalışması (ısınma ve vadesi gelen tekrarlar; yalnız
   gerçekten çalınmış ders varsa) → dersleri bitmiş ünitenin sınavı (hangi üniteleri açacağıyla) → kademenin dersleri

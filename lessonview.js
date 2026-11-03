@@ -571,12 +571,12 @@ TRAINERS.lessons = function(ctx){
       markScale(mk);
       stage.innerHTML = `<div class="chiprow">${s.map(c => `<span class="pchip${c===mk.durak ? " durak" : ""}${c===mk.guclu ? " guclu" : ""}">
           <b>${perdeName(c)}</b><small>${nn(commaToWritten(c))}</small><i></i></span>`).join("")}</div>
-        <div class="label">Sıradaki perde</div><div class="qname lsn"></div><div class="fb lsf" aria-live="polite"></div>`;
+        <div class="label">${L("Sıradaki perde", "Next perde")}</div><div class="qname lsn"></div><div class="fb lsf" aria-live="polite"></div>`;
       const chips = stage.querySelectorAll(".pchip"), fb = q(stage, ".lsf");
       function next(){
         hold.reset(); frames = [];
         chips.forEach((c, k) => c.classList.toggle("cur", k === i));
-        q(stage, ".lsn").innerHTML = perdeName(s[i]) + ` <em>yazılı ${nn(commaToWritten(s[i]))} · ${i < mk.asc.length ? "çıkış" : "iniş"}</em>`;
+        q(stage, ".lsn").innerHTML = perdeName(s[i]) + ` <em>${L("yazılı", "written")} ${nn(commaToWritten(s[i]))} · ${i < mk.asc.length ? L("çıkış", "going up") : L("iniş", "coming down")}</em>`;
       }
       function judge(){
         const c = s[i], j = judgePerde(mean(frames), tgt(mk, c), all);
@@ -584,14 +584,14 @@ TRAINERS.lessons = function(ctx){
         chips[i].classList.remove("cur"); chips[i].classList.add(j.ok ? "good" : "off");
         chips[i].querySelector("i").textContent = sgn(j.dev);
         fb.className = "fb lsf " + (j.ok ? "good" : "bad");
-        fb.textContent = perdeName(c) + ": " + sgn(j.dev) + " koma" + (j.ok ? " — temiz" : j.dev > 0 ? " — tiz" : " — pes") +
-          (j.other ? ". " + j.other + " perdesine daha yakın çaldın." : "");
+        fb.textContent = perdeName(c) + ": " + sgn(j.dev) + L(" koma", " commas") + (j.ok ? L(" — temiz", " — clean") : j.dev > 0 ? L(" — tiz", " — sharp") : L(" — pes", " — flat")) +
+          (j.other ? ". " + L(j.other + " perdesine daha yakın çaldın.", "That was closer to " + j.other + ".") : "");
         i++;
         if(i < s.length) return next();
         const avg = mean(res.map(r => Math.abs(r.dev))), clean = res.filter(r => r.ok).length;
         const d = ms.done[mk.id] || { n:0, best:99 };
         d.n++; d.best = Math.min(d.best, avg); ms.done[mk.id] = d; store.set("makam.done", ms.done);
-        q(stage, ".lsn").innerHTML = `${clean}/${res.length} <em>perde temiz (±1 koma) · ortalama sapma ${num(avg)} koma</em>`;
+        q(stage, ".lsn").innerHTML = `${clean}/${res.length} <em>${L("perde temiz (±1 koma) · ortalama sapma " + num(avg) + " koma", "perdes clean (±1 comma) · average deviation " + num(avg) + " commas")}</em>`;
         done({ v: clean / res.length });
       }
       next();
@@ -605,7 +605,7 @@ TRAINERS.lessons = function(ctx){
           }else if(!h.fired && h.ms >= 700){
             hold.fire();
             fb.className = "fb lsf bad";
-            fb.textContent = nn(r.written) + " çalıyorsun; beklenen " + perdeName(s[i]) + " (yazılı " + nn(want) + ").";
+            fb.textContent = L(nn(r.written) + " çalıyorsun; beklenen " + perdeName(s[i]) + " (yazılı " + nn(want) + ").", "You're playing " + nn(r.written) + "; expected " + perdeName(s[i]) + " (written " + nn(want) + ").");
           }
         },
         silence(){ hold.reset(); frames = []; }
@@ -726,6 +726,21 @@ TRAINERS.lessons = function(ctx){
         silence(){ anchor = null; path = []; }
       };
     }
+  };
+
+  // Seviye sınamasının makam turları (onboard.js): bir ders adımını ders ilerlemesine yazmadan çalıştırır. Notaları çağıran
+  // iletir (note, silence). Adım bitince ya da stop() ile akort bağlamı açık dersinkine döner; stop() onDone çağırmaz.
+  SK.stepTry = (st, stage, onDone) => {
+    let h = null, over = false;
+    const end = () => {
+      if(over) return; over = true;
+      if(h && h.stop) h.stop();
+      const mk = cur && cur.makam || null;
+      SK.setTempContext(mk); markScale(mk ? makamById(mk) : null);
+    };
+    if(st.makam) SK.setTempContext(st.makam);
+    h = RUN[st.type](st, stage, res => { if(over) return; end(); onDone(res); });
+    return { note(r, t){ if(!over && h.note) h.note(r, t); }, silence(t){ if(!over && h.silence) h.silence(t); }, stop: end };
   };
 
   // Bağlantıdaki ders (?ders=<id>) kayıtlı dersten önce gelir; kilitliyse sıradaki ders açılır

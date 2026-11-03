@@ -1,5 +1,5 @@
 // İlk açılış: karşılama, dil, çalgı, seviye (nereden başlanacağı), mikrofon ve ortam gürültüsü, çalma sınaması
-// (biraz çalabilenler için, isteğe bağlı), günlük hedef.
+// (biraz çalabilenler için, isteğe bağlı; makam çalışana sonunda makam turları), günlük hedef.
 // Bitince seçimler kaydedilir ve sayfa yeniden yüklenir (dersler ve ayarlar yeni değerlerle açılır).
 // Ayarlar'daki "Karşılamayı yeniden aç" ile tekrar gösterilebilir.
 (function(){
@@ -10,7 +10,7 @@
   // Çalma sınaması yalnızca başlangıcı geçenlere (biraz çalabiliyorum / makam çalışıyorum) sorulur
   const stepList = () => pickd.level && pickd.level !== "new" ? ["hello", "inst", "level", "mic", "check", "goal"] : ["hello", "inst", "level", "mic", "goal"];
   const pickd = { lang: LANG, inst: store.get("inst", "sol"), level: null, goal: store.get("goal.min", 15), sens: null };
-  let i = 0, steps = stepList();
+  let i = 0, steps = stepList(), remeasure = false;      // remeasure: "Seviyemi yeniden ölç" ile açıldı
 
   // ---- Çalma sınaması ----
   // Notalar gruplar hâlinde sırayla gösterilir; her biri toplam 1,2 sn tutulunca geçilir. "Çalamıyorum" sınamayı
@@ -33,13 +33,32 @@
   // Notalardan sonra ritim: metronomla iki kısa tur, Başlarken'in "Ritim" dersinin ilk ve son adımıyla aynı tempo ve
   // geçme eşiği. Ölçülen bir tur eşiğin altındaysa o ders bitmiş sayılmaz (kart onu önerir); geçilmeyen tur karar vermez
   const RT = [{ pattern: "quarter", tempo: 60, bars: 4, min: 55 }, { pattern: "eighth", tempo: 60, bars: 4, min: 50 }];
-  // state: intro | read | run | rhythm | rtrun | done; rq/rok: okuma sorusu ve doğru sayısı; rts: ritim turlarının
-  // puanı; rtFresh: sıradaki turun giriş ekranı gösterilsin (önceki turun puanı yerine)
-  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtRun: null, rtFresh: false };
+  // Ritimden sonra makam, yalnız "Makam çalışıyorum" diyene ve notaları hiç çıkmamış olmayana: iki dizi ve kısa bir seyir.
+  // Adımlar derslerin kendi değerlendiricileridir (SK.stepTry); dizi eşiği dersten gelir, seyir eşiği Taksim 2'nin Hicaz
+  // adımıyla aynı, süresi kısa. Kural (Uzman görmeli, docs/BACKLOG.md 1.A): turlar sırayla gider, eşiğin altında kalan tur
+  // bölümü bitirir, baştan geçilen turların dersleri bitmiş sayılır. Rast dizisi: Rast beşlisi ve Rast. Uşşak dizisi: Uşşak.
+  // Hicaz seyri (iki dizi de geçildiyse): Hicaz ve zincirde ondan önceki Hüseynî; Hüseynî ayrıca ölçülmüyor, dizisi Uşşak'a
+  // yakın diye sayılıyor. Geçilmeyen tur karar vermez; ölçülüp tutmayan turun önceki sınamadan kalan (placed) kaydı silinir.
+  // Bu dersler Makamlar ünitesinin tamamı değil: ünite sınavı geçilmiş sayılmaz, İleri'nin kapısı (Makam sınavı) açılmaz
+  const scaleOf = id => lessonById(id).steps.find(s => s.type === "scale");
+  const MK = [
+    { name: () => L("Rast dizisi", "Rast scale"), step: () => scaleOf("rast"), lessons: ["rast-giris", "rast"] },
+    { name: () => L("Uşşak dizisi", "Uşşak scale"), step: () => scaleOf("ussak"), lessons: ["ussak"] },
+    { name: () => L("Hicaz seyri", "Hicaz seyir"), step: () => ({ type: "seyir", makam: "hicaz", sec: 40, min: 60 }), lessons: ["huseyni", "hicaz"] }
+  ];
+  // state: intro | read | run | rhythm | rtrun | makam | mkrun | done; rq/rok: okuma sorusu ve doğru sayısı; rts: ritim
+  // turlarının puanı; rtFresh: sıradaki turun giriş ekranı gösterilsin (önceki turun puanı yerine); mks: makam turlarının
+  // sonucu (dizide 0–1, seyirde 0–100); mkStage: adımın ekranı, render'lar arasında korunur (sonuç ve öneriler orada kalır)
+  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtRun: null, rtFresh: false, mks: [], mkRun: null, mkFresh: false, mkStage: null };
   const rtStop = () => { if(chk.rtRun){ chk.rtRun.stop(); chk.rtRun = null; } };
-  const chkReset = () => { rtStop(); Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtFresh: false, micErr: false }); };
+  const mkStop = () => { if(chk.mkRun){ chk.mkRun.stop(); chk.mkRun = null; } };
+  const chkReset = () => { rtStop(); mkStop(); Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtFresh: false, micErr: false, mks: [], mkFresh: false, mkStage: null }); };
   const readOk = () => chk.rq < READ.length || chk.rok >= READ_OK;   // okuma bölümü bitmediyse karar yok
   const rhythmOk = () => chk.rts.every((v, k) => v >= RT[k].min);   // çalınmayan tur karar vermez
+  const mkWanted = () => pickd.level === "makam" && chk.passed > 0;
+  const mkOk = k => chk.mks[k] >= MK[k].step().min;
+  const mkPassed = () => { let n = 0; while(n < chk.mks.length && mkOk(n)) n++; return n; };
+  const mkShow = k => MK[k].step().type === "scale" ? "%" + Math.round(chk.mks[k]*100) : chk.mks[k];
   const nm = w => LANG === "en" ? noteName(w).en : noteName(w).tr;
   const instT = () => (INSTRUMENTS.find(x => x.id === pickd.inst) || { t: SK.T }).t;
   async function runMic(){
@@ -58,6 +77,7 @@
   }
   // Kararlı nota olayları (app.js): yazılı nota seçilen klarnete göre yeniden hesaplanır (çalgı henüz kaydedilmedi)
   SK.on("note", ({ t, r }) => {
+    if(chk.mkRun){ const d = instT() - SK.T; chk.mkRun.note(d ? { ...r, written: r.written + d, comma: r.comma + d*53/12 } : r, t); return; }
     if(root.hidden || steps[i] !== "check" || chk.state !== "run") return;
     const w = r.written - SK.T + instT(), want = CHECK_NOTES[chk.k].w;
     chk.heard = w;
@@ -68,13 +88,14 @@
     if(heard) heard.textContent = L("Duyulan: ", "Heard: ") + nm(w) + (w === want ? " ✓" : "");
     if(chk.held >= HOLD_MS) chkAdvance(true);
   });
-  SK.on("silence", () => { chk.lastT = 0; });
+  SK.on("silence", ({ t }) => { chk.lastT = 0; if(chk.mkRun) chk.mkRun.silence(t); });
   function checkBody(){
     if(chk.state === "intro") return `<div class="obemo" aria-hidden="true">🎶</div>
       <h2 class="obtitle">${L("Kısa çalma sınaması", "A short playing check")}</h2>
       <p>${L("Önce dizekte 4 notanın adını soracağız. Sonra sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: notalar orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
         "First we'll ask the names of 4 notes on the staff. Then we'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the notes stop there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
       <p>${L("En sonda metronomla iki kısa ritim turu çalacaksın (yaklaşık 20'şer saniye).", "Finally you'll play two short rhythm rounds with the metronome (about 20 seconds each).")}</p>
+      ${pickd.level === "makam" ? `<p>${L("Makam çalıştığın için sonunda Rast ve Uşşak dizilerini ve kısa bir Hicaz seyrini de soracağız.", "Since you play makams, at the end we'll also ask for the Rast and Uşşak scales and a short Hicaz seyir.")}</p>` : ""}
       <p class="muted">${L("Yalnızca notanın çıkıp çıkmadığına bakılır; ses kalitesi ve akort burada ölçülmez, derslerde ölçülür. İstemezsen geçebilirsin.", "This only checks whether the note sounds; tone and tuning aren't measured here but in the lessons. You can skip it.")}</p>
       <div class="pbar"><button class="primary small" type="button" data-ob="chkstart">${L("Sınamayı başlat", "Start the check")}</button></div>`;
     if(chk.state === "read"){
@@ -115,12 +136,38 @@
       const last = chk.rts[n - 1], min = RT[n - 1].min, more = n < RT.length;
       return head + `<h2 class="obtitle">${L("Puan: ", "Score: ")}${last}</h2>
         <p>${last >= min ? L("Güzel, bu tur tamam.", "Good, this round is done.") : L("Geçme puanı " + min + ". İstersen bir kez daha dene.", "The pass mark is " + min + ". Try once more if you like.")}</p>
-        <div class="pbar"><button class="primary small" type="button" data-ob="${more ? "rtnext" : "rtend"}">${more ? L("Sonraki tur", "Next round") : L("Sonucu gör", "See the result")}</button>
+        <div class="pbar"><button class="primary small" type="button" data-ob="${more ? "rtnext" : "rtend"}">${more ? L("Sonraki tur", "Next round") : mkWanted() ? L("Makama geç", "On to makam") : L("Sonucu gör", "See the result")}</button>
           <button class="stopbtn" type="button" data-ob="rtagain">${L("Yeniden dene", "Try again")}</button></div>`;
+    }
+    if(chk.state === "makam" || chk.state === "mkrun"){
+      const n = chk.mks.length, fresh = !n || chk.mkFresh, run = chk.state === "mkrun";
+      const head = `<div class="eyebrow">${L("Makam", "Makam")} · ${Math.min(n + (run || fresh ? 1 : 0), MK.length)}/${MK.length}</div>`;
+      if(run) return head + `<h2 class="obtitle">${MK[n].name()}</h2>
+        <div class="obmkslot"></div>
+        <div class="pbar"><button class="stopbtn" type="button" data-ob="mkfail">${L("Çalamıyorum", "I can't play it")}</button></div>`;
+      if(fresh){
+        const st = MK[n].step();
+        return head + `<h2 class="obtitle">${MK[n].name()}</h2>
+          <p>${st.type === "scale" ? L("Diziyi çık ve in: ekranda sıradaki perdeyi yarım saniye kadar tut, sonra diğerine geç. ±1 koma içindeki perdeler sayılır, geçme oranı %" + Math.round(st.min*100) + ".", "Play the scale up and down: hold the next perde on screen for about half a second, then move on. Perdes within ±1 comma count; the pass rate is " + Math.round(st.min*100) + "%.")
+            : L("Hicaz makamında en çok " + st.sec + " saniyelik kısa bir seyir çal ve durakta bitir; erken bitirdiysen \"Bitir\"e bas. Geçme puanı " + st.min + ".", "Play a short seyir in makam Hicaz of up to " + st.sec + " seconds and end on the final; tap \"Finish\" if you end early. The pass mark is " + st.min + ".")}</p>
+          <p class="muted">${st.type === "scale" ? L("Perdeler Akort ekranında seçili akorda (AEU ya da icra) göre ölçülür.", "Perdes are measured against the tuning set on the Tuner (AEU or practice tuning).")
+            : L("Yalnızca dizide kalmaya, güçlüye, açılışa ve durakta bitişe bakılır; ezginin güzelliği ölçülmez.", "Only staying in the scale, the dominant, the opening and ending on the final are checked, not how beautiful the melody is.")}</p>
+          ${chk.micErr ? `<p class="muted">${L("Mikrofon açılamadı. İzin verip yeniden dene ya da makamı geç.", "Couldn't open the microphone. Allow it and try again, or skip the makam part.")}</p>` : ""}
+          <div class="pbar"><button class="primary small" type="button" data-ob="mkgo">${L("Başlat", "Start")}</button>
+            <button class="stopbtn" type="button" data-ob="mkskip">${L("Makamı geç", "Skip the makam part")}</button></div>`;
+      }
+      const ok = mkOk(n - 1), more = ok && n < MK.length;
+      return head + `<h2 class="obtitle">${L("Puan: ", "Score: ")}${mkShow(n - 1)}</h2>
+        <div class="obmkslot"></div>
+        <p>${ok ? L("Güzel, bu tur tamam.", "Good, this round is done.") : L("Bu tur tutmadı; istersen bir kez daha dene.", "This round didn't pass; try once more if you like.")}</p>
+        <div class="pbar"><button class="primary small" type="button" data-ob="${more ? "mknext" : "mkend"}">${more ? L("Sonraki tur", "Next round") : L("Sonucu gör", "See the result")}</button>
+          <button class="stopbtn" type="button" data-ob="mkagain">${L("Yeniden dene", "Try again")}</button></div>`;
     }
     const res = (chk.rq >= READ.length ? `<li>${readOk() ? "✓" : "–"} ${L("Nota okuma", "Reading")} (${chk.rok}/${READ.length})</li>` : "") +
       CHECK.map((g, gi) => `<li>${gi < chk.passed ? "✓" : "–"} ${g.name()}</li>`).join("") +
-      (chk.rts.length ? `<li>${rhythmOk() ? "✓" : "–"} ${L("Ritim", "Rhythm")} (${chk.rts.join(", ")})</li>` : "");
+      (chk.rts.length ? `<li>${rhythmOk() ? "✓" : "–"} ${L("Ritim", "Rhythm")} (${chk.rts.join(", ")})</li>` : "") +
+      chk.mks.map((_, k) => `<li>${k < mkPassed() ? "✓" : "–"} ${MK[k].name()} (${mkShow(k)})</li>`).join("");
+    const mp = mkPassed(), mkDone = MK.slice(0, mp).flatMap(m => m.lessons).map(id => pick(lessonById(id).title, LANG)).join(", ");
     let advice;
     if(chk.passed === CHECK.length) advice = L("Temeller ve klarino derslerini bitmiş saydık. Teknik ve üslup ile makam dersleri açık; yol haritası seni oradan götürür.", "We've marked the basics and clarion lessons as done. Technique and style and the makam lessons are open; the roadmap takes you on from there.");
     else if(chk.passed > 0) advice = L("Geçtiğin grupların derslerini bitmiş saydık. \"" + CHECK[chk.passed].name() + "\" dersinden başlayacaksın.", "We've marked the lessons for the groups you passed as done. You'll start with \"" + CHECK[chk.passed].name() + "\".");
@@ -132,12 +179,14 @@
       <p>${advice}</p>
       ${!readOk() ? `<p>${L("Nota okumada zorlandın: Başlarken'deki \"Nota okuma\" dersini açık bıraktık, önce onu çalış.", "Reading was hard: we left the \"Reading music\" lesson in Getting started open; work on it first.")}</p>` : ""}
       ${!rhythmOk() ? `<p>${L("Ritimde zorlandın: Başlarken'deki \"Ritim: vuruş ve nota değerleri\" dersini açık bıraktık.", "Rhythm was hard: we left the \"Rhythm: the beat and note values\" lesson in Getting started open.")}</p>` : ""}
+      ${mp ? `<p>${L("Bitmiş saydığımız makam dersleri: " + mkDone + ". Sınama yalnızca dizi perdelerini ve seyrin ana çizgisini yokladı; makam bilgini bütünüyle ölçmedi.", "Makam lessons we've marked as done: " + mkDone + ". The check only tried the scale perdes and the outline of a seyir; it doesn't measure your makam knowledge as a whole.")}</p>` : ""}
+      ${mp < chk.mks.length ? `<p>${L("\"" + MK[mp].name() + "\" tutmadı: o turun derslerini açık bıraktık.", "\"" + MK[mp].name() + "\" didn't pass: we left that round's lessons open.")}</p>` : ""}
       ${chk.passed === 0 && chk.k <= 1 ? `<div class="pbar"><button class="stopbtn" type="button" data-ob="chknew">${L("Başlarken'den başla", "Start from Getting started")}</button></div>` : ""}
       <p class="muted">${L("Sınamayı Dersler listesinin altındaki \"Seviyemi yeniden ölç\" ile tekrarlayabilirsin.", "You can redo the check with \"Measure my level again\" below the lesson list.")}</p>`;
   }
 
-  function open(){ i = 0; chkReset(); root.hidden = false; document.body.classList.add("modal"); render(); root.querySelector("button").focus(); }
-  function close(){ root.hidden = true; document.body.classList.remove("modal"); }
+  function open(){ i = 0; remeasure = false; chkReset(); root.hidden = false; document.body.classList.add("modal"); render(); root.querySelector("button").focus(); }
+  function close(){ rtStop(); mkStop(); root.hidden = true; document.body.classList.remove("modal"); }
 
   const dots = () => `<div class="obdots" aria-hidden="true">${steps.map((_, k) => `<i class="${k === i ? "on" : k < i ? "done" : ""}"></i>`).join("")}</div>`;
   // later: ileri düğmesi "Şimdilik geç" olarak ikincil görünür (mikrofon ölçülmeden geçilirken)
@@ -183,6 +232,8 @@
     if(s === "check") body = checkBody();
     const later = (s === "mic" && !pickd.sens) || (s === "check" && chk.state !== "done");
     root.querySelector(".obcard").innerHTML = dots() + body + nav(i === steps.length - 1 ? L("Başla", "Start") : L("Devam", "Next"), later);
+    const slot = root.querySelector(".obmkslot");
+    if(slot && chk.mkStage) slot.appendChild(chk.mkStage);
     const st = root.querySelector(".obstaff");
     if(st){
       const sv = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -213,7 +264,7 @@
     // Ritim turları: rtgo turu başlatır (yeni tur ya da yeniden deneme), rtskip/rtend sonuca geçer
     if(act === "rtnext"){ chk.rtFresh = true; render(); return; }
     if(act === "rtagain"){ chk.rts.pop(); chk.rtFresh = true; render(); return; }
-    if(act === "rtskip" || act === "rtend"){ rtStop(); chk.state = "done"; render(); return; }
+    if(act === "rtskip" || act === "rtend"){ rtStop(); chk.state = mkWanted() ? "makam" : "done"; render(); return; }
     if(act === "rtgo"){
       await runMic(); if(chk.micErr) return;
       const r = RT[chk.rts.length], beats = RHYTHM_PATTERNS.find(p => p.id === r.pattern).beats;
@@ -224,6 +275,24 @@
       }, (k, counting) => {
         chk.rtBeat = (counting ? L("Sayım ", "Count ") : "") + (k % beats + 1);
         const el = root.querySelector(".obbeat"); if(el) el.textContent = chk.rtBeat;
+      });
+      return;
+    }
+    // Makam turları: mkgo turu başlatır, mkfail "Çalamıyorum"la turu 0 sayar, mkskip/mkend sonuca geçer
+    if(act === "mknext"){ chk.mkFresh = true; chk.mkStage = null; render(); return; }
+    if(act === "mkagain"){ chk.mks.pop(); chk.mkFresh = true; chk.mkStage = null; render(); return; }
+    if(act === "mkskip" || act === "mkend"){ chk.state = "done"; render(); return; }
+    if(act === "mkfail"){ mkStop(); chk.mks.push(0); chk.state = "makam"; render(); return; }
+    if(act === "mkgo"){
+      await runMic(); if(chk.micErr) return;
+      const st = MK[chk.mks.length].step();
+      chk.mkStage = Object.assign(document.createElement("div"), { className: "stage lsstage" });
+      chk.state = "mkrun"; chk.mkFresh = false; render();
+      chk.mkRun = SK.stepTry(st, chk.mkStage, res => {
+        chk.mkRun = null; if(chk.state !== "mkrun") return;
+        const fin = chk.mkStage.querySelector("[data-fin]");    // seyir adımının "Bitir"i sonuç ekranında kalmasın
+        if(fin) fin.parentNode.remove();
+        chk.mks.push(res.v); chk.state = "makam"; render();
       });
       return;
     }
@@ -243,7 +312,7 @@
       return;
     }
     if(act === "next"){
-      if(steps[i] === "check") rtStop();
+      if(steps[i] === "check"){ rtStop(); mkStop(); }
       if(i < steps.length - 1){ i++; render(); return; }
       finish();
     }
@@ -275,13 +344,27 @@
       }
       // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri
       CHECK.slice(0, chk.passed).forEach(g => g.lessons.forEach(id => { const l = lessonById(id); if(l) markDone(prog, l, true); }));
-      // Dersleri bütünüyle geçilen ünitenin sınavı da geçilmiş sayılır (rehberli ilerlemede sonraki ünite açılsın)
+      // Makam turları: baştan geçilenlerin dersleri bitmiş sayılır, ölçülüp tutmayan turun placed kaydı silinir (kural: MK)
+      const mp = mkPassed();
+      MK.forEach((m, k) => m.lessons.forEach(id => {
+        const l = lessonById(id);
+        if(l && k < mp) markDone(prog, l, true);
+        else if(k < chk.mks.length && prog[id] && prog[id].placed) delete prog[id];
+      }));
+      // Dersleri bütünüyle geçilen ünitenin sınavı da geçilmiş sayılır (rehberli ilerlemede sonraki ünite açılsın); ders
+      // yeniden açıldıysa sınavın placed kaydı da kalkar
       for(const u of UNITS){ const ex = examFor(u.id);
-        if(ex && LESSONS.filter(l => l.unit === u.id).every(l => lessonDone(l, prog))) markDone(prog, ex, true); }
+        if(!ex) continue;
+        if(LESSONS.filter(l => l.unit === u.id).every(l => lessonDone(l, prog))) markDone(prog, ex, true);
+        else if(prog[ex.id] && prog[ex.id].placed) delete prog[ex.id]; }
       store.set("lesson.prog", prog);
-      if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, rhythm: chk.rts.length ? chk.rts : null, d: dayKey(new Date()) });
+      if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, rhythm: chk.rts.length ? chk.rts : null, makam: chk.mks.length ? chk.mks.map(v => Math.round(v*100)/100) : null, d: dayKey(new Date()) });
     }
-    if(pickd.level === "makam") store.set("lesson.all", true);
+    // Yeniden ölçme seviyeyi ve "bütün dersler açık" ayarını değiştirmez
+    if(!remeasure){
+      store.set("onboard.level", pickd.level);
+      if(pickd.level === "makam") store.set("lesson.all", true);
+    }
     store.set("lesson.cur", "");
     store.set("nav.sec", "lessons");
     store.set("nav.lroot", "lessons");
@@ -291,8 +374,13 @@
     location.reload();
   }
 
-  // Dersler'den seviyeyi yeniden ölçme: karşılama doğrudan çalma sınamasında açılır (biraz çalabiliyorum seçili)
-  SK.levelCheck = () => { open(); pickd.level = "some"; steps = stepList(); i = steps.indexOf("check"); render(); };
+  // Dersler'den seviyeyi yeniden ölçme: karşılama doğrudan çalma sınamasında açılır. Karşılamada makam seçildiyse makam
+  // turları da gelir (bu kayıttan önce seçenlerde onboard.level yok: onlarda "bütün dersler açık" ayarına bakılır)
+  SK.levelCheck = () => {
+    open(); remeasure = true;
+    pickd.level = store.get("onboard.level", store.get("lesson.all", false) ? "makam" : "some") === "makam" ? "makam" : "some";
+    steps = stepList(); i = steps.indexOf("check"); render();
+  };
   // Ayarlar'dan yeniden açma
   const again = document.getElementById("obagain");
   if(again) again.addEventListener("click", () => { store.set("onboard.done", false); open(); });
