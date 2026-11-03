@@ -49,7 +49,9 @@ Aşamalar:
   kilometre taşları ve sıradaki kademenin hedefi; "Sıradaki adım" ile kapanır (`rm.reported`). Eksik: önceki kademeye
   göre beceri farkı (ör. uzun ton puanının kademe başı ve sonu)
 
-### 2. Freemium — öneri, proje sahibinin kararı bekleniyor
+### 2. Freemium — ertelendi (proje sahibi: "ileride bakarız", 3 Kasım 2026)
+
+Şimdilik öncelik değil; `premium.js` kapalı kalıyor. Aşağıdaki öneri ve sorular, konu yeniden açılınca başlangıç noktası.
 
 **Önce lisans engelleri** (`docs/LISANSLAR.md`): ücretli ya da uygulama içi satışlı sürümde SymbTr nota arşivi (CC
 BY-NC-SA, ticari kullanım yok) ve WFG parmak tabloları (açık lisans yok) izin alınmadan kullanılamaz; neyzen.com ve
