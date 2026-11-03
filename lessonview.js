@@ -12,6 +12,7 @@ TRAINERS.lessons = function(ctx){
         <nav class="lslist" id="lslist" aria-label="Dersler"></nav>
         <label class="chk small"><input type="checkbox" id="lsguided"> ${L("rehberli ilerleme (yeni ünite, öncekinin sınavı geçilince açılır)", "guided progress (a new unit opens after the previous unit's test)")}</label>
         <label class="chk small"><input type="checkbox" id="lsall"> tüm dersleri aç</label>
+        <button class="stopbtn small" type="button" id="lslevel">${L("Seviyemi yeniden ölç", "Measure my level again")}</button>
       </div>
       <div class="lsbody" id="lsbody"></div>
     </div>`;
@@ -140,6 +141,7 @@ TRAINERS.lessons = function(ctx){
     ctx.selectTab("lessons");
     if(SK.lessonOpen(id)) openSub(lessonById(id));
   };
+  $("lslevel").addEventListener("click", () => SK.levelCheck && SK.levelCheck());
   $("lsguided").checked = store.get("lesson.guided", true);
   $("lsguided").addEventListener("change", () => { store.set("lesson.guided", $("lsguided").checked); setGuided($("lsguided").checked); renderList(); renderNext(); });
   $("lsall").checked = allOpen;

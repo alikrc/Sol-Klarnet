@@ -210,6 +210,8 @@
     location.reload();
   }
 
+  // Dersler'den seviyeyi yeniden ölçme: karşılama doğrudan çalma sınamasında açılır (biraz çalabiliyorum seçili)
+  SK.levelCheck = () => { open(); pickd.level = "some"; steps = stepList(); i = steps.indexOf("check"); render(); };
   // Ayarlar'dan yeniden açma
   const again = document.getElementById("obagain");
   if(again) again.addEventListener("click", () => { store.set("onboard.done", false); open(); });
