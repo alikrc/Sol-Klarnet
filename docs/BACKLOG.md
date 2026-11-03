@@ -1,5 +1,64 @@
 # Sol Klarnet — Backlog
 
+## ÖNCELİKLİ — proje sahibinin istekleri (3 Kasım 2026)
+
+Proje sahibi: "Uygulama seviye belirletip ona göre adım adım ilerletmeli; bir hoca gibi elinden tutup içerik arasında
+kademe kademe götürmeli. Uygulama freemium olabilir, bazı yerler premium satılabilir." Bu iki madde diğer işlerin önünde.
+
+### 1. Kademeli hoca akışı — sürüyor
+
+**Bugünkü durum:** 87 ders düz bir listede, dersler bitirilince açılıyor ("tüm dersleri aç" kutusu her şeyi açıyor).
+"Bugünün çalışması" ısınma, tekrar ve bilinen konulardan her gün kuruluyor. Yol haritasında altı aşama ve ölçülen
+kilometre taşları var ama bunlar yalnızca gösterge: hiçbir dersi kilitlemiyor. Ünite sınavı yalnızca rozet veriyor.
+Kullanıcıya "şimdi şunu çalış, çünkü…" diyen tek bir yönlendirici yok; ne yapacağını listeden kendisi seçiyor.
+
+**Hedef:** Uygulama seviyeyi ölçsün, kullanıcıyı her gün tek bir sıradaki adımla, nedenini söyleyerek götürsün;
+bir kademeyi ancak o kademenin becerileri ölçülerek tuttuğunda (sınav ve kilometre taşları) sonrakine geçirsin.
+Hocanın yaptığı gibi: önce ısınma ve tekrar, sonra yarım kalan iş, sonra yeni konu; zayıf kalan beceriye geri dönme.
+
+Aşamalar:
+
+- **A. Seviye belirleme** — yapıldı (3 Kasım). Karşılamada isteğe bağlı çalma sınaması: 12 nota dört grupta (pes/orta,
+  boğaz, register geçişi, klarino); geçilen grupların Temeller ve Register dersleri bitmiş sayılır, ilk notalarda
+  zorlanana Başlarken önerilir. Yalnızca notanın çıktığı ölçülüyor (ses kalitesi ve akort değil). Eksik: ritim/okuma
+  sınaması (nota okuyabiliyor mu), makam çalanlar için makam sınaması; sınamayı karşılama dışında yeniden yapma
+- **B. "Hocan diyor ki" kartı** — Dersler'in en üstünde tek bir sıradaki adım ve nedeni: yarım kalan ders → bugünün
+  çalışması (ısınma ve vadesi gelen tekrarlar) → kademe için eksik kilometre taşı → ünite sınavı → yeni ders. Liste
+  altında kalır ("başka bir şey çalış")
+- **C. Kademe kapısı (rehberli mod)** — üniteler arası geçiş, önceki ünitenin sınavı geçilince açılır; kilitli derste
+  hangi sınavın/ölçümün eksik olduğu ve oraya giden düğme. Bitmiş dersler ve "tüm dersleri aç" eskisi gibi; daha önce
+  sonraki üniteden ders bitirmiş kullanıcıda kapı uygulanmaz (eski ilerleme bozulmasın). Seviye sınamasıyla geçilen
+  ünitelerin sınavı da geçilmiş sayılır
+- **D. Zayıf beceriye dönüş** — ders özetinde en az farkla geçilen adımlar ve İlerleme'deki haftalık düşüşler (ses
+  kararlılığı, ritim) hoca kartına "önce şunu toparla" diye gelir
+- **E. Kademe raporu** — aşama bitince kısa değerlendirme: ölçülen beceriler, bir önceki aşamaya göre fark, sıradaki
+  aşamada ne beklendiği
+
+### 2. Freemium — öneri, proje sahibinin kararı bekleniyor
+
+**Önce lisans engelleri** (`docs/LISANSLAR.md`): ücretli ya da uygulama içi satışlı sürümde SymbTr nota arşivi (CC
+BY-NC-SA, ticari kullanım yok) ve WFG parmak tabloları (açık lisans yok) izin alınmadan kullanılamaz; neyzen.com ve
+projetsm.com için de izin gerekir. Bu izinler çıkmadan ücretli sürüm yayımlanmamalı. Seçenekler: MTG ve WFG'den yazılı
+izin; ya da bu içerikleri yalnız ücretsiz katmanda tutmak da yetmez (NC şartı uygulamanın tamamının ticari olmasına
+bakar, hukuki görüş alınmalı).
+
+**Önerilen ayrım (karar proje sahibinin):**
+
+- Ücretsiz: akort (AEU/icra, makam bağlamı), parmak şeması ve tablosu, Başlarken ve Temeller üniteleri, seviye
+  sınaması ve hoca kartı (ilk kademe), metronom ve dron, günlük çalışma (ilk kademe içeriğiyle)
+- Premium: Register'dan sonraki üniteler (teknik, hız, süsleme, makam, Trakya, ileri) ve sınavları, eşlik grubu,
+  kulaktan çıkar, Çevir (nota okuyucu), kayıt karşılaştırma ve haftalık gelişim, taksim değerlendirmesi
+- Teknik: ödeme Google Play Billing / App Store uygulama içi satın alma ile (Capacitor eklentisi, ör. RevenueCat ya da
+  cordova-plugin-purchase); sunucu yok, satın alma cihazda mağazadan doğrulanır. Web sürümü (PWA) ücretsiz kalabilir ya
+  da yalnız tanıtım olur. Kodda tek bir `entitlement` katmanı (premium mu) ve özellik başına kapı; kapıda "neden
+  premium, ne kazanırsın" ekranı
+
+**Proje sahibine sorular:** (1) Abonelik mi (aylık/yıllık) tek seferlik satın alma mı, fiyat? (2) Hangi bölümler
+premium (yukarıdaki öneri uygun mu)? (3) Reklam olacak mı (öneri: yok)? (4) SymbTr ve WFG için izin istenecek mi,
+yoksa ticari sürümde arşiv ve WFG tabloları çıkarılıp yerine kendi içerik mi konacak? (5) Play Console ve App Store
+geliştirici hesapları hazır mı? Bu cevaplar gelmeden ödeme kodu yazılmayacak; kademe akışı (madde 1) premium ayrımına
+uygun kurulacak (kademe = satış sınırı olabilir).
+
 ## Uzman inceleme bulguları — sürüyor (2 Kasım 2026)
 
 Bir Türk musikisi ve Sol klarnet uzmanı gözüyle yazılmış inceleme listesi. Yeni özellikten önce mevcut içeriğin müzikal
@@ -204,8 +263,8 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 
 Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınmış, P0 kalanları aşama 5'te. Açıkta kalanlar:
 
-- **Kişisel öğrenme akışı / seviye belirleme** (P2): aşama 4'te değiştirilmedi. Karşılama akışı yalnızca Başlarken'i
-  geçmeyi soruyor; seviyeye (ör. kısa çalma sınaması) göre başlangıç ünitesi önerisi gözden geçirilmeli
+- **Kişisel öğrenme akışı / seviye belirleme**: en üstteki öncelikli "Kademeli hoca akışı" maddesine taşındı (çalma
+  sınaması 3 Kasım'da yapıldı)
 - **Makam çeşnileri ayrıntısı** (P1): seyir metinlerinde çeşniler adıyla geçiyor, ayrı ayrı anlatılmıyor (ör. Uşşak'taki
   Segâh'ın rengi, Hicaz'ın artık ikilisi). Yalnızca kaynaklı bilgiyle (`docs/KAYNAKLAR.md`) yazılmalı; kaynak yoksa yazılmaz
 - **OMR düşük çözünürlük** (P1): 9 px bulanık sayfada ♯ büyük mücenneb ♯ okunuyor (12 notada 7 ve 4); Leland 11 px
