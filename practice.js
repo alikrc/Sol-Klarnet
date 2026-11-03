@@ -501,12 +501,14 @@
   function showPanel(id){
     $("phub").hidden = true; $("pex").hidden = false;
     TABS.forEach(([t]) => { $("pp-"+t).hidden = t!==id; });
+    premiumWall(id);
     fitDescs();
   }
   // Alt menüyle başka bölüme geçilince orada duran sayfa gösterilir ama açık modül kapatılmaz (sesi sürer);
   // yeni sayfaya dokunulunca devralır. Modülün enter()'ı dokunuşun tıklaması işlendikten sonra çağrılır.
   function takeOver(){
     const id = waiting; waiting = null;
+    if(premiumTab(id)) return;                           // premium sekme: modül başlatılmaz
     if(active && !parked && modules[active].leave) modules[active].leave();
     parked = false; active = id;
     if(SK.nav.secOf(id) === "practice") store.set("ptab.prac", id);
@@ -515,6 +517,15 @@
   }
   root.addEventListener("pointerdown", e => { if(waiting && e.target.closest("#pp-" + waiting)) takeOver(); }, true);
   root.addEventListener("focusin", e => { if(waiting && e.target.closest("#pp-" + waiting)) takeOver(); });
+  // Premium sekme (premium.js): sayfa açılır ama içeriği yerine bilgi durur, modül başlatılmaz
+  function premiumWall(id){
+    const pp = $("pp-" + id); let w = pp.querySelector(":scope > .premwall");
+    if(!premiumTab(id)){ pp.classList.remove("premlock"); return false; }
+    if(!w){ w = document.createElement("div"); w.className = "premwall"; pp.prepend(w); }
+    w.innerHTML = `<strong>★ Premium</strong><p>${L("Bu bölüm premium. Akort, parmak şeması, ilk üç ünite ve günlük çalışma ücretsiz. Satın alma yakında.", "This section is Premium. The tuner, fingering chart, the first three units and daily practice are free. Purchase is coming soon.")}</p>`;
+    pp.classList.add("premlock");
+    return true;
+  }
   function selectTab(id, why){
     // Aynı modüle dönülüyorsa (başka bölümden ya da alt menüden) baştan kurulmaz
     const keep = active === id && !parked;
@@ -525,6 +536,7 @@
     active = id; shown = id;
     if(SK.nav.secOf(id) === "practice") store.set("ptab.prac", id);
     showPanel(id);
+    if(premiumWall(id)) return;
     if(!keep){
       closeTools();
       if(modules[id].enter) modules[id].enter();

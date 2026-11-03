@@ -235,6 +235,9 @@ function coachNext(st, o = {}){
     const i = R.LESSONS.indexOf(nx), first = i === 0 || R.LESSONS[i - 1].unit !== nx.unit, unit = R.UNITS.find(u => u.id === nx.unit);
     return { kind:"lesson", why: first ? "newUnit" : "next", id:nx.id, title:nx.title, unit:unit && unit.name };
   }
+  // kalan dersler premium ünitedeyse (premium.js) satın alma bilgisi
+  const prem = R.LESSONS.find(l => !done(l) && !open(l) && (typeof module !== "undefined" ? require("./premium.js").premiumUnit : premiumUnit)(l.unit));
+  if(prem){ const unit = R.UNITS.find(u => u.id === prem.unit); return { kind:"premium", why:"premium", unit:unit && unit.name }; }
   for(const s of status){ const m = mile(s); if(m) return m; }
   return { kind:"done", why:"done" };
 }

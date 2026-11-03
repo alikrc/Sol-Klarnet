@@ -68,6 +68,13 @@ bakar, hukuki görüş alınmalı).
   da yalnız tanıtım olur. Kodda tek bir `entitlement` katmanı (premium mu) ve özellik başına kapı; kapıda "neden
   premium, ne kazanırsın" ekranı
 
+**Hazırlık yapıldı (3 Kasım), kapalı:** `premium.js` (`FREEMIUM.enabled = false`): premium üniteler (`units`) ve
+sekmeler (`tabs`) yukarıdaki öneriye göre listelendi. Açılınca premium ünitelerin bitmemiş dersleri "tüm dersleri aç"
+ile bile açılmaz (bitmiş dersler açık kalır), listede "★ Premium" diye katlanır, hoca kartı ücretsiz bölüm bitince
+"Premium hakkında" der; premium sekmede içerik yerine bilgi kutusu durur ve modül başlatılmaz. Satın alma yok:
+`setPremiumOwned(true)` ileride mağazanın doğruladığı hakla çağrılacak. Kararlar gelince yalnız bu dosyadaki listeler
+ve ödeme eklentisi değişir. Tarayıcı konsolunda `FREEMIUM.enabled = true` ile denenebilir.
+
 **Proje sahibine sorular:** (1) Abonelik mi (aylık/yıllık) tek seferlik satın alma mı, fiyat? (2) Hangi bölümler
 premium (yukarıdaki öneri uygun mu)? (3) Reklam olacak mı (öneri: yok)? (4) SymbTr ve WFG için izin istenecek mi,
 yoksa ticari sürümde arşiv ve WFG tabloları çıkarılıp yerine kendi içerik mi konacak? (5) Play Console ve App Store

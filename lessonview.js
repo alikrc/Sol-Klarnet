@@ -65,7 +65,7 @@ TRAINERS.lessons = function(ctx){
       const here = cur && cur.unit === u.id && !cur.daily;
       if(fold && !here && (finished || closed)){
         const gate = gateFor(u.id, prog), why = finished ? "✓ " + ls.length + L(" ders", " lessons")
-          : gate.length ? "🔒 " + gate.map(e => tx(UNITS.find(x => x.id === e.unit).name)).join(", ") + L(" sınavından sonra", " test first") : "🔒 " + L("önceki dersler bitince", "after the earlier lessons");
+          : premiumUnit(u.id) ? "★ Premium" : gate.length ? "🔒 " + gate.map(e => tx(UNITS.find(x => x.id === e.unit).name)).join(", ") + L(" sınavından sonra", " test first") : "🔒 " + L("önceki dersler bitince", "after the earlier lessons");
         html += `<details class="lsfold${finished ? " done" : ""}"><summary class="lsunit">${head}<small>${esc(why)}</small></summary>${items}</details>`;
       }
       else html += `<div class="lsunit">${head}</div>${items}`;
@@ -98,6 +98,9 @@ TRAINERS.lessons = function(ctx){
         { const f = v => num(v, c.low ? 2 : 0) + tx(c.unit);
           why = L(`Önce bunu toparlayalım: önceki 4 haftada ortalama ${f(c.before)} iken son 4 haftada ${f(c.recent)}. Yeni konudan önce kısa bir tur iyi gelir.`,
                   `Let's fix this first: it averaged ${f(c.before)} in the previous 4 weeks and ${f(c.recent)} in the last 4. A short round before new material will help.`); } break;
+      case "premium": head = L("Ücretsiz bölüm tamam", "The free part is done"); btn = L("Premium hakkında", "About Premium");
+        why = L(`Sıradaki ünite (${tx(c.unit)}) ve sonrası premium. Başlarken, Temeller ve Register ücretsiz; akort, parmak şeması ve günlük çalışma her zaman açık.`,
+                `The next unit (${tx(c.unit)}) and beyond are Premium. Getting started, Basics and Register are free; the tuner, fingering chart and daily practice stay open.`); break;
       case "report": head = L("Kademe tamam: ", "Stage complete: ") + tx(c.stage.title); btn = L("Sıradaki adım", "Next step");
         { const f = m => (m.v == null ? "—" : num(m.v, Number.isInteger(m.v) ? 0 : 1)) + tx(m.unit);
           why = (c.days ? L(`${c.days} günde tamamladın. `, `You completed it in ${c.days} days. `) : "") +
@@ -120,6 +123,7 @@ TRAINERS.lessons = function(ctx){
     if(coach.kind === "lesson") openSub(lessonById(coach.id));
     else if(coach.kind === "daily") openSub(dailyLesson());
     else if(coach.kind === "mile") ctx.selectTab(coach.tab);
+    else if(coach.kind === "premium") premiumNote();
     else ctx.selectTab("archive");
   });
   $("lslist").addEventListener("click", e => {
@@ -128,7 +132,13 @@ TRAINERS.lessons = function(ctx){
     openSub(b.dataset.id === "daily" ? dailyLesson() : lessonById(b.dataset.id));
   });
   // Kilitli derse dokununca neden kilitli olduğu ve sıradaki ders
+  // Premium (premium.js): satın alma henüz yok, yalnız bilgi
+  function premiumNote(){
+    SK.notice(L("Premium ünitelerde teknik, hız, süsleme, makam, Trakya ve ileri dersler; eşlik, kulaktan çıkarma, nota çevirme, kayıt karşılaştırma ve taksim değerlendirmesi var. Satın alma yakında.",
+                "Premium covers the technique, speed, ornament, makam, Thracian and advanced lessons, plus the band, learn-by-ear, score conversion, recording comparison and taksim assessment. Purchase is coming soon."));
+  }
   function lockedNote(l){
+    if(l && premiumUnit(l.unit)){ premiumNote(); return; }
     const gate = l && !l.exam ? gateFor(l.unit, prog) : [];
     const nx = gate.length && unlocked(gate[0], prog, allOpen) ? gate[0] : nextLesson(prog, allOpen);
     const msg = l && l.exam ? L("Ünite sınavı, ünitenin bütün dersleri bitince açılır.", "The unit test opens once every lesson in the unit is finished.")

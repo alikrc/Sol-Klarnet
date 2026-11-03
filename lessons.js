@@ -24,6 +24,7 @@ const LCORE = typeof module !== "undefined" ? require("./core.js") : { noteName,
 // Etütler repertoire.js'te; Node'da gerektiğinde yüklenir (tarayıcıda repertoire.js lessons.js'ten sonra gelir)
 const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : { etudeById };
 const LSK = () => typeof module !== "undefined" ? require("./skills.js") : { techPattern, patternKey };
+const LPREM = () => typeof module !== "undefined" ? require("./premium.js") : { premiumUnit };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
   : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS };
 
@@ -1768,8 +1769,9 @@ function gateFor(unitId, prog){
 // Temeller ve klarino dersleri sırayla açılır. Bunlar bitince teknik derslerinin hepsi ve ilk makam dersi açılır;
 // makam dersleri kendi içinde sırayla gider (teknik ünitesini bitirmek gerekmez).
 function unlocked(lesson, prog, all = false){
-  if(all) return true;
   if(lessonDone(lesson, prog)) return true;          // bitmiş ders hep açık (yeni dersler araya eklense de)
+  if(LPREM().premiumUnit(lesson.unit)) return false; // premium ünite (premium.js; satış açık değilse hiçbir şey kilitlenmez)
+  if(all) return true;
   if(lesson.exam) return LESSONS.filter(l => l.unit === lesson.unit).every(l => lessonDone(l, prog));
   if(gateFor(lesson.unit, prog).length) return false;
   const i = LESSONS.indexOf(lesson);
