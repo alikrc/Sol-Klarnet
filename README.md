@@ -2,7 +2,7 @@
 
 Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için akort, parmak pozisyonu, makam, ritim ve kulak eğitimi
 uygulaması. Klarneti ilk kez eline alan birini taksim yapabilecek, Trakya ve Roman oyun havalarını eşlikle çalabilecek
-seviyeye kadar götüren 77 derslik bir müfredatı, ünite sınavları ve rozetler, aralıklı tekrar ve altı aşamalı bir yol haritası var.
+seviyeye kadar götüren 87 derslik bir müfredatı, ünite sınavları ve rozetler, aralıklı tekrar ve altı aşamalı bir yol haritası var.
 Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işlenir. İnternete yalnızca **Nota bul** çıkar
 (yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir); başka hiçbir özellik internet istemez.
 
@@ -34,7 +34,7 @@ telefonun geri tuşu hep aynı şeyi yapar: bir sayfa geri; bölümün başında
 
 | Sekme | İçerik |
 |---|---|
-| Dersler | 9 ünitede 77 ders: Başlarken (klarneti tanı, duruş/nefes, nota okuma, ritim), Temeller, Register ve klarino, Teknik ve üslup (uzun ton, register geçişi, dil vuruşu, dinamik, ses kalitesi, glissando, vibrato, usuller, kulak), Hız ve teknik (metronomla dizi, bağlı ve dille, parmak çevikliği, arpejler ve üçlüler, on altılıklar, makam dizileri hızda, hızlı etüt), Süsleme (çarpma, çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş, süslemeli etütler, grupetto, makamda süsleme), 20 makam dersi (19 makam) ve **bir eserin makamını bulma** (durak, çeşni, güçlü, seyir; kulakla makam tanı), **Trakya ve Roman** (kasap havası, karşılama, Roman havası, Nikriz, çiftetelli, Rumeli 7/8, Trakya üslubu, sirto ve köçekçe, zeybek 9/4, Ağır Roman ve çarpmalı tekrar, oyun havası öncesi taksim), okuma ve kulak (deşifre, dikte, aralıklar), İleri seviye (taksim, ileri kulak, iç tempo, makam perdeli deşifre ve dikte). **Bugünün çalışması** her gün bitirilen derslerden yeniden kurulur; bitirilen derslerin adımları artan aralıklarla (1, 3, 7, 21, 60 gün) **tekrar** olarak geri gelir, başarısız tekrar aralığı kısaltır. Her ünitenin sonunda karışık adımlı **ünite sınavı**; geçince ünite rozeti |
+| Dersler | 9 ünitede 87 ders: Başlarken (parçalar, kamış, oturuş ve tutuş, eller, ağızlık, ilk ses, uzun ses, dil, ilk geçişler, nefes, nota okuma, ritim), Temeller, Register ve klarino, Teknik ve üslup (uzun ton, register geçişi, dil vuruşu, dinamik, ses kalitesi, glissando, vibrato, usuller, kulak), Hız ve teknik (metronomla dizi, bağlı ve dille, parmak çevikliği, arpejler ve üçlüler, on altılıklar, makam dizileri hızda, hızlı etüt), Süsleme (çarpma, çarpmalı tekrar, mordan, tril, kayarak giriş ve düşüş, süslemeli etütler, grupetto, makamda süsleme), 20 makam dersi (19 makam) ve **bir eserin makamını bulma** (durak, çeşni, güçlü, seyir; kulakla makam tanı), **Trakya ve Roman** (kasap havası, karşılama, Roman havası, Nikriz, çiftetelli, Rumeli 7/8, Trakya üslubu, sirto ve köçekçe, zeybek 9/4, Ağır Roman ve çarpmalı tekrar, oyun havası öncesi taksim), okuma ve kulak (deşifre, dikte, aralıklar), İleri seviye (taksim aşamaları: cümle, seyir, çeşni, karar, inici makamlar; ileri kulak, iç tempo, makam perdeli deşifre ve dikte). **Bugünün çalışması** her gün bitirilen derslerden yeniden kurulur; bitirilen derslerin adımları artan aralıklarla (1, 3, 7, 21, 60 gün) **tekrar** olarak geri gelir, başarısız tekrar aralığı kısaltır. Her ünitenin sonunda karışık adımlı **ünite sınavı**; geçince ünite rozeti |
 | Teori | Sol klarnetçi için Türk müziği teorisi, sekiz konu: dizek ve sol anahtarı, nota değerleri ve ölçü, aralıklar ve koma (AEU 53 koma; düz ♯ +4, düz ♭ −5, slaşlı ♭ −4), perdeler ve isimleri, çeşniler (dörtlü ve beşliler, aralık harfleri), makam yapısı (durak, güçlü, yeden, seyir; makam seçici), usul ve ölçü (düm-tek ızgaraları), Sol klarnet transpozisyonu (Bolahenk). Nota örnekleri ve dinle düğmeleri, ilgili ders ve alıştırmalara kartlar, her konunun sonunda üç soruluk sınav (en iyi sonuç saklanır) |
 | Yol haritası | Altı aşama (Başlangıç, Temel çalgıcı, Orta, Makamlar, Oyun havaları, İleri); her aşamada dersler ve ölçülen kilometre taşları (uzun ton, ritim, kulak eşiği, deşifre, dikte, hız, tril, çarpma, seyir, etütler, eşlikle usule oturma). **Haftalık özet** (bu hafta / geçen hafta) ve **rozetler** (ünite sınavları, seri, günlük çalışma, toplam süre). Hedef tarz (oyun havaları / fasıl / ikisi) sırayı değiştirir; bu haftanın günleri ve odağı; son 4 haftanın hızından kalan süre tahmini |
 | Deşifre | Her turda yeni üretilen ezgiyi inceleme süresinden sonra sayımla tempoda çal; 4 seviye (Batı notaları → makam perdeleri ve 9/8, 7/8); doğru nota oranı |
@@ -93,8 +93,23 @@ Mağaza görselleri ve metinleri `store/` klasöründe; ekran görüntüleri ve 
 ## Ses denetimi
 
 ```bash
-npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla perde bulucu denetimi
+npm run audio-check                          # testdata/ içindeki kayıtlarla perde bulucu denetimi
+npm run audio-check -- testdata/iowa --kosul # aynı kayıtlara telefon, gürültü, vibrato, nefes… benzetilerek
 ```
+
+Depodaki kayıtlar gerçek bir klarnetin sesidir ama **Si♭ klarnet** (University of Iowa), Türk Sol klarneti değil.
+Sol klarnetin pes bölgesi bu kayıtlar 3 yarım ses pesleştirilerek, telefon mikrofonu ve oda koşulları da benzetilerek
+sınanıyor; gerçek Sol klarnet kaydıyla yapılmış bir sınama henüz yok. Uygulamadaki örnek klarnet sesleri de aynı Si♭
+kayıtlarından, perdesi ayarlanarak çalınır. Ayrıntı ve son ölçüm: [testdata/README.md](testdata/README.md).
+
+## Nota okuyucu denetimi
+
+```bash
+npm run omr-acc-check -- --bulanik   # 9 değiştiricinin karışıklık tablosu (Bravura/Leland'dan çizilen sentetik sayfalar)
+```
+
+Sentetik sayfalar okuyucunun kalıplarıyla aynı yazı tiplerinden çizilir; gerçek basılı nota ve telefon fotoğrafı
+sınamasının yerini tutmaz. Ayrıntı: [testdata/omr/README.md](testdata/omr/README.md).
 
 ## Dosyalar
 
@@ -127,7 +142,7 @@ npm run audio-check     # testdata/ içindeki gerçek klarnet kayıtlarıyla per
 | `review.js`, `onboard.js` | Uzman kontrolü, karşılama akışı |
 | `i18n.js` | Tema ve dil; yeni metinler `L("Türkçe", "English")` ile, eskiler sözlükte |
 | `fonts/` | Uygulamanın içindeki fontlar (`npm run fonts`) |
-| `testdata/` | Gerçek klarnet kayıtları (`npm run audio-check`), nota okuyucunun yazı tipleri ve örnek listesi (örneklerin kendisi depoya girmez) |
+| `testdata/` | Si♭ klarnet kayıtları (Iowa, `npm run audio-check`; Sol klarnet kaydı henüz yok), nota okuyucunun yazı tipleri ve örnek listesi (örneklerin kendisi depoya girmez) |
 
 ## Kaynaklar
 

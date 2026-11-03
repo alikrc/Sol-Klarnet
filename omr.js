@@ -469,7 +469,10 @@ const OMR = (() => {
     const comps = components(bin).filter(c => c.area >= Math.max(2, 0.03*sp*sp));
     const solve = c => {
       const r = classify(c, bin, sp, near(c)), rc = r.cls === "other" ? 0 : r.conf;
-      if(c.h >= 2.5*sp){
+      // bemol boyunda değiştirici bölünmez: bulanık ve küçük sayfada bemolün kavisi dolup sapın ucunda nota başına
+      // benzer; gerçek nota sapla birlikte en az ~3 sp'dir
+      const accLike = ACC_K[r.cls] !== undefined && c.h < 3*sp && c.w <= 1.4*sp;
+      if(c.h >= 2.5*sp && !accLike){
         const sp_ = splitStems(c, bin, sp);
         if(sp_.stems.length){
           const parts = [];
@@ -705,19 +708,49 @@ const OMR = (() => {
     const maxRun = (x, y0, y1) => { let best = 0, run = 0;
       for(let y = y0; y <= y1; y++){ if(x >= 0 && x < W && y >= 0 && y < H && origAt(y*W + x)){ run++; if(run > best) best = run; } else run = 0; }
       return best; };
+    // Yalın dizek çizgisinin kalınlığı: x0'ın 0,8–1,5 sp solundaki sütunlarda en uzun koşuların ortancası
+    const lineBase = (x0, y0, y1) => {
+      const ref = [];
+      for(let x = x0 - Math.round(1.5*sp); x < x0 - Math.round(0.8*sp); x++) ref.push(maxRun(x, y0, y1));
+      return ref.length ? [...ref].sort((a, b) => a - b)[Math.floor(ref.length/2)] : 0;
+    };
     const hiddenSlash = s => {
-      const y0 = s.y, y1 = s.y + Math.round(0.6*s.h), near = [], ref = [];
+      const y0 = s.y, y1 = s.y + Math.round(0.6*s.h), near = [], base = lineBase(s.x, y0, y1);
       // sapa bitişik sütun sayılmaz (sapın kenar yumuşaması ve kavisin birleşimi orada kalınlaşır)
       for(let x = s.x - Math.round(0.5*sp); x < s.x - 1; x++) near.push(maxRun(x, y0, y1));
-      for(let x = s.x - Math.round(1.5*sp); x < s.x - Math.round(0.8*sp); x++) ref.push(maxRun(x, y0, y1));
-      if(!ref.length || !near.length) return false;
-      const base = [...ref].sort((a, b) => a - b)[Math.floor(ref.length/2)];
+      if(!near.length) return false;
       // yalın çizgi orada yoksa (base 0) ya da başka simge varsa (base kalın) karar verilmez
       return base >= 1 && base <= 0.35*sp && near.filter(v => v >= base + 1).length >= Math.max(1, Math.round(0.12*sp)) &&
         near.every(v => v <= base + 0.5*sp);
     };
+    // Büyük mücenneb bemolün iki çiziğinden biri çizgiye denk gelince çizgiyle silinir, tek çizikli bakiye bemol kalır.
+    // Sapın hemen solundaki sütunlarda çizikler sayılır: silinmemiş piksel içeren koşu görünen çiziktir, yalın
+    // çizgiden kalın çizgi koşusu gizli çiziktir. Yeterince sütunda iki çizik varsa işaret büyük mücennebdir
+    const stemLeft = s => {
+      let bx = s.x, br = 0;
+      for(let x = s.x; x < s.x + s.w/2; x++){ let run = 0, best = 0;
+        for(let y = s.y; y < s.y + s.h; y++){ if(clean.bits[y*W + x]){ run++; if(run > best) best = run; } else run = 0; }
+        if(best > br + 1){ br = best; bx = x; } }
+      return bx; };
+    const twoSlashes = s => {
+      const x0 = stemLeft(s), y0 = s.y, y1 = s.y + Math.round(0.6*s.h), base = lineBase(x0, y0, y1);
+      if(!(base >= 1 && base <= 0.35*sp)) return false;
+      let cols = 0;
+      for(let x = x0 - Math.round(0.4*sp); x < x0 - 1; x++){
+        let n = 0, run = 0, vis = false;
+        for(let y = y0; y <= y1 + 1; y++){
+          const i = y*W + x;
+          if(y <= y1 && x >= 0 && origAt(i)){ run++; if(clean.bits[i]) vis = true; continue; }
+          if(run && (vis || run >= base + 1)) n++;
+          run = 0; vis = false;
+        }
+        if(n >= 2) cols++;
+      }
+      return cols >= Math.max(1, Math.round(0.12*sp));
+    };
     const accAs = s => {
       if(s.cls === "flat" && hiddenSlash(s)) return { cls:"flat_slash", sure:false };
+      if(s.cls === "aeu_bakiye_flat" && twoSlashes(s)) return { cls:"aeu_buyuk_flat", sure:false };
       if(ACC_K[s.cls] !== undefined) return { cls:s.cls, sure:true };
       if(s.cls !== "other" || !s.scores || s.h < 1.6*sp || s.h > 3.8*sp || s.w < 0.4*sp || s.w > 1.6*sp) return null;
       let best = null, b = 0.2; for(const c of ACC_CLS) if((s.scores[c] || 0) > b){ b = s.scores[c]; best = c; }
@@ -954,7 +987,9 @@ const OMR = (() => {
     const st = { notes:[], marks:[], bars:[], cur:{ from:0, sum:0, carry:0 }, flags:[], keySig:null, sp:sp/P.scale, page, line:S0.line,
       lastBar:c.lastBar, lastSum:c.lastSum, prevKey:c.prevKey, tieOut:c.tieOut, prevNote:c.prevNote, sums:(c.sums || []).slice(), carry:c };
     if(!S0.staves.length || !(sp > 0)){ st.flags.push("nostaff"); return st; }
-    if(sp/P.scale < 8) st.flags.push("lowres");
+    // dizek aralığı 10 pikselden azsa (≈ 150 dpi altı) bulanık resimde koma işaretleri karışmaya başlar
+    // (scripts/omr-acc-check.js: sp 9 bulanıkta ♯ büyük mücenneb diyez okunuyor)
+    if(sp/P.scale < 10) st.flags.push("lowres");
     const clean = removeStaffLines(bin, S0.staves, S0), syms = symbols(clean, sp, S0.staves);
     // Sistemler: bağlı dizeklerden yalnızca en üstteki okunur
     const staves = S0.staves, read = [];

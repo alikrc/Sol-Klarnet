@@ -17,6 +17,7 @@
     "ios:open": "npx cap open ios",
     "audio-check": "node scripts/audio-check.js",
     "omr-templates": "node scripts/omr-templates.js",
+    "omr-acc-check": "node scripts/omr-acc-check.js",
     "release": "node scripts/release.js",
     "store-shots": "node scripts/store-shots.js"
   },

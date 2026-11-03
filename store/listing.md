@@ -9,7 +9,7 @@ Görseller: `store/play-icon-512.png` (simge), `store/feature-graphic.png` (1024
 **Uygulama adı:** Sol Klarnet — Akort, Parmak, Makam
 
 **Kısa açıklama (≤ 80):**
-Sol klarnet: koma akordu, parmak şeması, makam, oyun havaları ve 77 ders
+Sol klarnet: koma akordu, parmak şeması, makam, oyun havaları ve 87 ders
 
 **Uzun açıklama:**
 
@@ -17,12 +17,12 @@ Sol Klarnet, Türk Sol klarnetini (Albert sistem) sıfırdan öğrenmek ve ilerl
 
 AKORT VE PARMAK
 • AEU perdeleri (53 koma) ve kaç koma saptığın; makam seçince yalnızca o makamın perdeleri
-• İcra akordu: Uşşak Segâh'ı, Saba Çargâh'ı gibi yaygın düzeltmeler
+• İcra akordu: Uşşak'ta Segâh, Saba'da Hicaz gibi yaklaşık düzeltmeler (aralığıyla); istersen öğretmeninin perdelerini gir
 • 48 notada 124 parmak pozisyonu (temel ve alternatif), şemaya dokununca nota çalar
 • Sol, Si♭, La, Do ve Mi♭ klarnet
 
 DERSLER VE YOL HARİTASI
-• Dokuz ünitede 77 ders: ilk sesten taksime, Trakya ve Roman havalarına
+• Dokuz ünitede 87 ders: ilk sesten taksime, Trakya ve Roman havalarına
 • Bugünün çalışması: zorlandığın notalar ve aralıklı tekrar (1, 3, 7, 21 gün) her gün yeniden kurulur
 • Ünite sınavları ve rozetler, seri ve haftalık özet
 • Altı aşamalı yol haritası, ölçülen kilometre taşları ve kalan süre tahmini
@@ -46,6 +46,8 @@ NOTA ARŞİVİ VE KAYIT
 • SymbTr'den 2200 eser: koma işaretli nota, eşlik, tempo, A–B döngü, mikrofonla takip
 • Kayıtlarını tarihle sakla, bir ay önceki kaydınla karşılaştır: perde eğrileri üst üste, farklar sayıyla
 
+Bilmen gerekenler: örnek klarnet sesleri Si♭ klarnet kaydıdır, perdesi Sol klarnete ayarlanır; Sol klarnet tınısı değildir. Perde bulucu Si♭ klarnet kayıtlarıyla ve benzetilmiş telefon ve oda koşullarıyla sınandı; Türk Sol klarnetiyle sınama sürüyor. Çeyrek ses parmakları kaynaktan alındı, Sol klarnette doğrulanmadı ve uygulamada öyle işaretli.
+
 Gizlilik: ses ve ilerleme yalnızca cihazında kalır, hiçbir yere gönderilmez.
 
 ## English
@@ -53,7 +55,7 @@ Gizlilik: ses ve ilerleme yalnızca cihazında kalır, hiçbir yere gönderilmez
 **App name:** Sol Klarnet — Tuner, Fingerings, Makam
 
 **Short description (≤ 80):**
-Turkish G clarinet: comma tuner, fingerings, makams, dance tunes and 77 lessons
+Turkish G clarinet: comma tuner, fingerings, makams, dance tunes and 87 lessons
 
 **Full description:**
 
@@ -61,12 +63,12 @@ Sol Klarnet is for anyone learning the Turkish G clarinet (Albert system), from 
 
 TUNER AND FINGERINGS
 • AEU perdes (53 commas) and how many commas you are off; pick a makam to judge against its perdes only
-• Practice tuning: common adjustments such as Uşşak's Segâh and Saba's Çargâh
+• Practice tuning: approximate adjustments such as Segâh in Uşşak and Hicaz in Saba (with their range); or enter your teacher's perdes
 • 124 fingerings on 48 notes (basic and alternative); tap the chart to hear the note
 • G, B♭, A, C and E♭ clarinets
 
 LESSONS AND ROADMAP
-• 77 lessons in nine units: from the first sound to taksim and Thracian and Romani dance tunes
+• 87 lessons in nine units: from the first sound to taksim and Thracian and Romani dance tunes
 • Today's practice: your weak notes plus spaced review (1, 3, 7, 21 days), rebuilt every day
 • Unit tests and badges, streaks and a weekly summary
 • A six-stage roadmap with measured milestones and a time estimate
@@ -89,5 +91,7 @@ TECHNIQUE AND ORNAMENTS
 SCORE LIBRARY AND RECORDINGS
 • 2200 pieces from SymbTr: comma-accurate notation, band accompaniment, tempo, A–B loop, mic follow
 • Keep your recordings by date and compare with one from a month ago: pitch curves overlaid, differences in numbers
+
+Good to know: the sample clarinet sounds are B♭ clarinet recordings pitched to the G clarinet, not the G clarinet's own timbre. The pitch detector was tested on B♭ clarinet recordings and on simulated phone and room conditions; testing with Turkish G clarinets is ongoing. Quarter-tone fingerings come from a published chart, are not yet verified on the G clarinet and are marked as such in the app.
 
 Privacy: sound and progress stay on your device and are never sent anywhere.

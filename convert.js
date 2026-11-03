@@ -711,7 +711,7 @@ TRAINERS.convert = function(ctx){
   // Okuyucu uyarıları (omr.js flags)
   const FLAG_MSG = {
     nostaff: () => L("Dizek bulunamadı.", "No staves were found."),
-    lowres: () => L("Resim küçük, okuma zayıf olabilir.", "The picture is small; the reading may be poor."),
+    lowres: () => L("Resim küçük, okuma zayıf olabilir; koma işaretlerini (özellikle diyezleri ve çizikli bemolleri) gözden geçir.", "The picture is small; the reading may be poor. Check the comma accidentals, especially sharps and slashed flats."),
     sparse: () => L("Sayfada çok az nota okundu; el yazısı ya da silik olabilir.", "Very few notes were read on this page; it may be handwritten or faint."),
     pianoLowerSkipped: () => L("Piyano notası: yalnızca üst dizek okundu.", "Piano score: only the upper staff was read."),
     mrepEmpty: () => L("Ölçü tekrarı (%) kopyalayacak ölçü bulamadı; yerine sus kondu, düzelt.", "A bar repeat (%) had no bar to copy; a rest stands in for it, fix it."),

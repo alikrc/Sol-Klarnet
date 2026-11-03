@@ -1,7 +1,9 @@
-# Gerçek klarnet kayıtları
+# Klarnet kayıtları
 
 `iowa/` klasöründe Iowa Üniversitesi'nin serbest Si♭ klarnet kayıtları var (139 nota, pp/mf/ff); `npm run audio-check`
-bunları da denetler. Ayrıntı: [iowa/README.md](iowa/README.md). Türk Sol klarneti kayıtları hâlâ gerekli.
+bunları da denetler. Ayrıntı: [iowa/README.md](iowa/README.md). Bunlar gerçek bir klarnetin sesidir ama Si♭ klarnet ve
+Batı (Boehm) tavrı; **Türk Sol klarneti kaydı henüz hiç yok**. Aşağıdaki bütün sonuçlar bu Si♭ kayıtlarıyla, gerekiyorsa
+benzetilmiş koşullarla alındı; "gerçek Sol klarnetle sınandı" diye sunulmamalı.
 
 Perde bulucuyu gerçek Sol klarnet sesiyle denetlemek için kayıtları bu klasöre koy, sonra:
 
@@ -17,7 +19,10 @@ npm run audio-check -- testdata/iowa --kosul
 
 Kromatik dizi kayıtlarına (Iowa) çalma ortamı benzetilerek uygulanır: `telefon` (300 Hz altı ve 7 kHz üstü kesik),
 `gurultu20` / `gurultu10` (oda gürültüsü, SNR dB; eşik uygulamadaki ortam ölçümü gibi gürültünün 2,5 katı), `vibrato`
-(±30 sent, 5,5 Hz), `yanki` (RT60 0,6 sn), `sol` (3 yarım ses pes: Sol klarnetin pes bölgesi) ve bunların birleşimleri.
+(±30 sent, 5,5 Hz), `yanki` (RT60 0,6 sn), `sol` (3 yarım ses pes: Sol klarnetin pes bölgesi), `glissando` (nota 2
+yarım ses pesten 200 ms'de kayarak gelir), `atak` (ilk 25 ms'de notanın 4 katı güçte geniş bantlı patlama: sert dil ya
+da kamış çarpması), `nefes` (genlik ±%45 oynar, notanın 30 dB altında nefes hışırtısı), `sonus` (notanın son yarısı
+40 dB sönerek biter) ve bunların birleşimleri.
 Yalnız birini seçmek için `--kosul gurultu10,sol`. Kayıtlar gerçek klarnettir ama koşullar benzetimdir; sonuç gerçek
 Sol klarnet kaydıyla yapılmış sınamanın yerini tutmaz.
 
@@ -25,6 +30,12 @@ Son ölçüm (2 Kasım 2026, 139 nota): temiz, gürültü 20 ve 10 dB, vibrato, 
 süzgeciyle 134/139. Telefondaki 4 hata pp kaydın en pes notaları: süzgeçten sonra −68 dBFS'ye iniyor ve en yüksek
 hassasiyetin altında kalıyor (algılanan perde doğru, nota hiç gösterilmiyor). Telefonların otomatik kazancı bunu
 yükseltir; gerçek cihazda denenmeli. Kalan 1 hata kaydın kendisinde (Sol♯6 ≈ 50 sent pes çalınmış).
+
+3 Kasım 2026'da eklenen koşullar: glissando, atak, nefes ve sönüşte 138/139 (temizle aynı nota; oktav yanılgısı yok).
+Glissandoda kayış sırasındaki ara notalar da ölçüm sayıldığından doğru ölçüm oranı %99,5'ten %98,8'e iner; bu yanılgı
+değil, çalınan perdedir. `sol+telefon+nefes+sonus` birleşiminde 134/139: yine telefon süzgecinin pp pes notaları (Si2–Re3)
+duyulmaz kılması ve yukarıdaki Sol♯6'nın pesleştirilmiş hâli. Benzetimler gerçek çalışın yerini tutmaz: Türk tavrındaki
+geniş glissando, dil vuruşu ve nefes gerçek Sol klarnet kayıtlarıyla ayrıca denenmeli.
 
 ## Dosya adı
 

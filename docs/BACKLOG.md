@@ -37,6 +37,7 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 2. **P1 — icra perdesi, usul, başlangıç dersleri, ses etiketleri, lisans belgesi** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 3. **P1 — makam karşılaştırma ve örnekler, videolar** — tamamlandı (2 Kasım 2026), ayrıntı aşağıda
 4. **P2 — öğrenme deneyimi** — tamamlandı (3 Kasım 2026), ayrıntı aşağıda
+5. **Kalanlardan P0 — koşul sınaması, belgelerde Si♭ dili, OMR karışıklık tablosu** — tamamlandı (3 Kasım 2026), ayrıntı aşağıda
 
 ### Aşama 1 (P0) — tamamlandı (2 Kasım 2026)
 
@@ -174,21 +175,41 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
 - **Gerçek klarnetle denenmeli:** cümle bölme eşiği (350 ms sessizlik) gerçek nefes aralarında doğru mu; ses kararlılığı
   eğrisinin hafta hafta anlamlı değişip değişmediği
 
+### Aşama 5 (kalanlardan P0) — tamamlandı (3 Kasım 2026)
+
+- **Değişen dosyalar:** `scripts/audio-check.js`, `omr.js`, `convert.js`, `README.md`, `testdata/README.md`,
+  `testdata/omr/README.md`, `store/listing.md`, `package.json`, `sw.js` (önbellek v65); yeni `scripts/omr-acc-check.js`
+- **Koşul sınamasına dört koşul** (`CONDITIONS`): `glissando` (2 yarım ses pesten 200 ms'de kayarak giriş), `atak`
+  (ilk 25 ms'de notanın 4 katı güçte geniş bantlı patlama), `nefes` (genlik ±%45 oynar, 30 dB altında nefes hışırtısı),
+  `sonus` (son yarı 40 dB sönerek biter) ve `sol+telefon+nefes+sonus`. Dördünde de 138/139 (temizle aynı; oktav
+  yanılgısı yok); birleşimde 134/139 (bilinen telefon/pp pes notalar). Perde bulucuda düzeltme gerekmedi
+- **Belgelerde Si♭ dili:** README, `testdata/README.md` ve betik başlığı "gerçek klarnet kayıtları" yerine "Si♭ klarnet
+  (Iowa), Sol klarnet kaydı henüz yok; koşullar benzetim" diyor. Mağaza metnine (TR/EN) "Bilmen gerekenler" paragrafı:
+  örnek sesler Si♭ kaydı, perde bulucu Si♭ kayıtları ve benzetimle sınandı, çeyrek ses parmakları doğrulanmadı. Aynı
+  metinde ders sayısı 77 → 87, icra akordu "yaklaşık, aralığıyla; öğretmeninin perdeleri" ve Saba'da Çargâh yerine
+  Hicaz (koddaki değer) düzeltildi
+- **OMR değiştirici karışıklık tablosu** (`npm run omr-acc-check -- --bulanik`): 9 değiştirici × 12 nota, Bravura ve
+  Leland, 20/14/11/9 px, temiz ve bulanık+JPEG. Bulunan iki hata düzeltildi: bulanık küçük sayfada düz bemolün sap +
+  baş diye bölünmesi (bemol boyundaki değiştirici artık bölünmüyor) ve büyük mücenneb bemolün çiziklerinden biri dizek
+  çizgisiyle silinince bakiye okunması (sapın solunda çizik sayımı). "Resim küçük" uyarısı 8 yerine 10 px altında ve
+  koma işaretlerini gözden geçirmeyi söylüyor. Tablo ve kalan karışıklıklar `testdata/omr/README.md`'de
+- **Yapılan denetimler:** `audio-check --kosul` yeni koşullarla; `omr-acc-check` (192 nota/işaret) değişiklikten önce ve
+  sonra; Hicâz Longa gerçek sayfası (pdf.js ile Node'da çıkarılan resim) her değişiklikten sonra 228/228; tarayıcıda
+  Çevir'e 9 px bulanık sentetik sayfa verildi: yeni uyarı görünüyor, konsolda hata yok
+- **Gerçek klarnetle / gerçek notayla denenmeli:** yeni koşulların hiçbiri gerçek Türk tavrı değil (geniş glissando,
+  sert dil, nefes); gerçek Sol klarnet kaydı gerekiyor. Karışıklık tablosu sentetik: gerçek Leland/Bravura basılı nota
+  fotoğraflarında (özellikle 150 dpi altı) ♯ ile büyük mücenneb ♯ ve iki bemol çizikli işaretler
+
 ### Kalanlar (liste 3 Kasım'da yeniden geldi, aşamalarla karşılaştırıldı)
 
-Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınmış. Açıkta kalanlar:
+Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınmış, P0 kalanları aşama 5'te. Açıkta kalanlar:
 
-- **Koşul sınamasında eksik koşullar** (P0, `scripts/audio-check.js` `CONDITIONS`): glissando (iki nota arası kayış),
-  sert atak (nota başındaki geçici ses), nefes dalgalanması (genlik oynaması) ve uzun tonun sonundaki sönüş yok; yalnızca
-  telefon, gürültü, vibrato, yankı, pesleştirme var. Sınamaya eklenip perde bulucu ve oktav koruması bunlarla denenmeli
-- **Sentetik/gerçek dili belgelerde** (P0): README'de `testdata/` "gerçek klarnet kayıtları" diye geçiyor; kayıtlar
-  gerçek ama Si♭ klarnet (Iowa), Sol klarnet değil. README ve mağaza metninde bu açıkça yazılmalı
 - **Kişisel öğrenme akışı / seviye belirleme** (P2): aşama 4'te değiştirilmedi. Karşılama akışı yalnızca Başlarken'i
   geçmeyi soruyor; seviyeye (ör. kısa çalma sınaması) göre başlangıç ünitesi önerisi gözden geçirilmeli
 - **Makam çeşnileri ayrıntısı** (P1): seyir metinlerinde çeşniler adıyla geçiyor, ayrı ayrı anlatılmıyor (ör. Uşşak'taki
   Segâh'ın rengi, Hicaz'ın artık ikilisi). Yalnızca kaynaklı bilgiyle (`docs/KAYNAKLAR.md`) yazılmalı; kaynak yoksa yazılmaz
-- **OMR değiştirici karışıklık tablosu** (P0): çizgili bemol çözüldü; 9 değiştiricinin hepsi için yazı tiplerinden
-  (Bravura, Leland) çizilip birbirine karışma oranı ölçülmedi, yalnızca örnek sayfalarda denendi
+- **OMR düşük çözünürlük** (P1): 9 px bulanık sayfada ♯ büyük mücenneb ♯ okunuyor (12 notada 7 ve 4); Leland 11 px
+  bulanıkta büyük mücenneb ♭ bakiye okunuyor (3). Ayırmak için gerçek düşük çözünürlüklü fotoğraf örnekleri gerekli
 - **Lisans tablosu** (P1): `lisans-besteciler.csv` ölüm yılı ve telif durumu sütunları hâlâ boş (502 besteci, 363 güfte
   yazarı); ticari sürümden önce doldurulmalı
 - **Proje sahibine / uzmana bağlı** (kod değil): gerçek Albert Sol klarnet kayıtları (her notada pp/mf/ff) ve

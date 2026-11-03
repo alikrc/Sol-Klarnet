@@ -1,4 +1,4 @@
-// Gerçek klarnet kayıtlarıyla perde bulucu denetimi.
+// Klarnet kayıtlarıyla perde bulucu denetimi (depodakiler Iowa'nın Si♭ klarnet kayıtları; Sol klarnet kaydı henüz yok).
 // Her kayıt uygulamadaki zincirle (40 ms adım, tizde 2048 / peste 4096 örneklik pencere, 5 ölçümlük medyan,
 // 3 ölçümlük kararlılaştırıcı) analiz edilir ve beklenen notayla karşılaştırılır. WAV ve AIFF okunur, alt klasörler taranır.
 //
@@ -92,8 +92,8 @@ function chain(x, sr, T, minRms = 0.002){
 }
 
 // ---- Koşul sınaması (--kosul): gerçek kayda benzetilmiş çalma ortamı ----
-// Kayıt gerçek klarnettir; telefon mikrofonu, gürültü, vibrato, yankı ve pesleştirme benzetimdir. Sonuçlar bu yüzden
-// "gerçek tını + benzetilmiş koşul" diye raporlanır, gerçek Sol klarnet kaydının yerini tutmaz.
+// Kayıt gerçek klarnettir; telefon mikrofonu, gürültü, vibrato, yankı, pesleştirme, glissando, atak, nefes ve sönüş
+// benzetimdir. Sonuçlar bu yüzden "gerçek tını + benzetilmiş koşul" diye raporlanır, gerçek Sol klarnet kaydının yerini tutmaz.
 function rng(seed){ let s = seed >>> 0; return () => ((s = (s*1664525 + 1013904223) >>> 0) / 4294967296); }
 // İkinci dereceden süzgeç (RBJ): yüksek/alçak geçiren
 function biquad(x, sr, type, f0, q = 0.7071){
@@ -139,6 +139,26 @@ function reverb(x, sr, seed){
   for(let j=0;j<n;j+=step){ const h = g*ir[j]; for(let i=j;i<x.length;i++) y[i] += h*x[i-j]; }
   return y;
 }
+// Glissando: nota 2 yarım ses pesten 200 ms'de kayarak gelir (kayarak giriş, iki nota arası kayış)
+const glissando = (x, sr) => warp(x, sr, t => Math.pow(2, -2/12*Math.max(0, 1 - t/0.2)));
+// Sert atak: ilk 25 ms'de notanın 4 katı güçte sönen geniş bantlı patlama (dil vuruşu, kamış çarpması)
+function attack(x, sr, seed){
+  const r = rng(seed), y = Float32Array.from(x), n = Math.round(0.025*sr), g = 4*rmsOf(x);
+  for(let i=0;i<n && i<y.length;i++) y[i] += g*(r()*2 - 1)*Math.exp(-5*i/n);
+  return y;
+}
+// Nefes dalgalanması: genlik ±%45 oynar (0,7 ve 3,1 Hz'lik iki dalga) ve notanın 30 dB altında nefes hışırtısı (2 kHz üstü)
+function breath(x, sr, seed){
+  const r = rng(seed), h = new Float32Array(x.length);
+  for(let i=0;i<x.length;i++) h[i] = r()*2 - 1;
+  const hiss = biquad(biquad(h, sr, "hp", 2000), sr, "hp", 2000), gh = rmsOf(x)/(rmsOf(hiss)*Math.pow(10, 30/20));
+  return x.map((v, i) => { const t = i/sr; return v*(1 + 0.3*Math.sin(2*Math.PI*0.7*t) + 0.15*Math.sin(2*Math.PI*3.1*t + 1)) + gh*hiss[i]; });
+}
+// Sönüş: notanın son yarısı üstel olarak 40 dB kısılır (uzun tonun sonunda nefesin bitmesi)
+function decay(x){
+  const a = Math.floor(x.length/2), n = x.length - a;
+  return x.map((v, i) => i < a ? v : v*Math.pow(10, -2*(i - a)/n));
+}
 // Her koşul: { name, shift (beklenen notaya eklenen yarım ses), apply(seg, sr, seed) → { y, minRms } }
 const CONDITIONS = {
   temiz:      { shift:0,  apply:(x) => ({ y:x }) },
@@ -148,6 +168,11 @@ const CONDITIONS = {
   vibrato:    { shift:0,  apply:(x, sr) => ({ y:vibrato(x, sr) }) },
   yanki:      { shift:0,  apply:(x, sr, s) => ({ y:reverb(x, sr, s) }) },
   sol:        { shift:-3, apply:(x, sr) => ({ y:lower3(x, sr) }) },
+  glissando:  { shift:0,  apply:(x, sr) => ({ y:glissando(x, sr) }) },
+  atak:       { shift:0,  apply:(x, sr, s) => ({ y:attack(x, sr, s) }) },
+  nefes:      { shift:0,  apply:(x, sr, s) => ({ y:breath(x, sr, s) }) },
+  sonus:      { shift:0,  apply:(x) => ({ y:decay(x) }) },
+  "sol+telefon+nefes+sonus": { shift:-3, apply:(x, sr, s) => ({ y:decay(phone(breath(lower3(x, sr), sr, s), sr)) }) },
   "sol+telefon+gurultu20": { shift:-3, apply:(x, sr, s) => {
     const n = noise(phone(lower3(x, sr), sr), sr, 20, s); return { y:n.y, minRms:Math.max(0.002, 2.5*n.noiseRms) }; } },
   "sol+telefon+vibrato": { shift:-3, apply:(x, sr) => ({ y:phone(vibrato(lower3(x, sr), sr), sr) }) }
