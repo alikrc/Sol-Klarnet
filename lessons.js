@@ -1323,7 +1323,7 @@ const TRAKYA = [
       { tr:"Nim Hicaz (yazılı Do♯5) çoğu klarnette biraz pes çıkar; Nevâ'ya giderken yerini kulakla kontrol et.", en:"Nim Hicaz (written C♯5) comes out a little flat on most clarinets; check it by ear on the way to Nevâ." }
     ],
     steps:[
-      { type:"listen", commas:[0, 9, 13, 26, 31, 26, 13, 9, 0] },
+      { type:"listen", commas:[0, 9, 14, 26, 31, 26, 14, 9, 0] },
       { type:"scale", makam:"nikriz", min:0.55 },
       { type:"mimic", makam:"nikriz", len:5 },
       { type:"piece", id:"e-nikriz", mode:"tempo", min:65 }
