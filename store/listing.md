@@ -23,6 +23,8 @@ AKORT VE PARMAK
 
 DERSLER VE YOL HARİTASI
 • Dokuz ünitede 87 ders: ilk sesten taksime, Trakya ve Roman havalarına
+• Seviye sınaması: nota okuma ve pesten tize 12 nota; bildiğin dersleri geçersin
+• Hoca kartı her gün tek bir sıradaki adımı ve nedenini söyler; yeni ünite öncekinin sınavıyla açılır
 • Bugünün çalışması: zorlandığın notalar ve aralıklı tekrar (1, 3, 7, 21 gün) her gün yeniden kurulur
 • Ünite sınavları ve rozetler, seri ve haftalık özet
 • Altı aşamalı yol haritası, ölçülen kilometre taşları ve kalan süre tahmini
@@ -69,6 +71,8 @@ TUNER AND FINGERINGS
 
 LESSONS AND ROADMAP
 • 87 lessons in nine units: from the first sound to taksim and Thracian and Romani dance tunes
+• Level check: note reading and 12 notes from low to high; skip the lessons you already know
+• A teacher card tells you the one next step each day and why; a new unit opens after the previous unit's test
 • Today's practice: your weak notes plus spaced review (1, 3, 7, 21 days), rebuilt every day
 • Unit tests and badges, streaks and a weekly summary
 • A six-stage roadmap with measured milestones and a time estimate

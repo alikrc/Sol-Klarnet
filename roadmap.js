@@ -222,9 +222,10 @@ function coachNext(st, o = {}){
   if(weak) return { kind:"mile", why:"weak", ...weak };
   const nx = R.LESSONS.find(l => open(l) && !done(l));
   const exam = R.EXAMS.find(e => open(e) && !done(e));
-  if(exam && (o.guided || !nx)){
+  const guided = o.guided && !o.all;                     // her şey açıksa sınav hiçbir şeyi açmaz
+  if(exam && (guided || !nx)){
     const unit = R.UNITS.find(u => u.id === exam.unit);
-    const gates = R.UNITS.filter(u => R.gateFor(u.id, prog).includes(exam)).map(u => u.name);
+    const gates = guided ? R.UNITS.filter(u => R.gateFor(u.id, prog).includes(exam)).map(u => u.name) : [];
     return { kind:"lesson", why:"exam", id:exam.id, title:exam.title, unit:unit && unit.name, gates };
   }
   const cur = status.find(s => s.current);
