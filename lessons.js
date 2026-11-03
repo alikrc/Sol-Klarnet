@@ -1314,8 +1314,8 @@ const TRAKYA = [
   { id:"nikriz", unit:"trakya", notes:[], makam:"nikriz",
     title:{ tr:"Nikriz makamı", en:"Makam Nikriz" },
     text:[
-      { tr:"Nikriz, Rast'ta Nikriz beşlisi (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) ile Nevâ'da Rast ve Bûselik dörtlülerinden kurulur: çıkarken Evç, inerken Acem. Kürdî ile Nim Hicaz arasındaki artık ikili Nikriz'e kendine özgü rengini verir; Trakya karşılamalarında da duyulur.",
-        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Kürdî, Nim Hicaz, Nevâ) with Rast and Bûselik tetrachords on Nevâ: Evç going up, Acem coming down. The augmented second between Kürdî and Nim Hicaz gives Nikriz its own colour; it is also heard in Thracian karşılamas." },
+      { tr:"Nikriz, Rast'ta Nikriz beşlisi (Rast, Dügâh, Dik Kürdî, Nim Hicaz, Nevâ) ile Nevâ'da Rast ve Bûselik dörtlülerinden kurulur: çıkarken Evç, inerken Acem. Dik Kürdî ile Nim Hicaz arasındaki artık ikili Nikriz'e kendine özgü rengini verir; Trakya karşılamalarında da duyulur.",
+        en:"Nikriz is a Nikriz pentachord on Rast (Rast, Dügâh, Dik Kürdî, Nim Hicaz, Nevâ) with Rast and Bûselik tetrachords on Nevâ: Evç going up, Acem coming down. The augmented second between Dik Kürdî and Nim Hicaz gives Nikriz its own colour; it is also heard in Thracian karşılamas." },
       { tr:"Güçlü Nevâ'dır; Nevâ'da yarım karar, Rast'ta tam karar verilir. Rast'a çoğunlukla Irak üzerinden (yeden) gelinir.",
         en:"The dominant is Nevâ; half cadence on Nevâ, final on Rast. Rast is usually approached through Irak (the leading note)." }
     ],

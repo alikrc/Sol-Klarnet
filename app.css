@@ -1243,6 +1243,10 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .thtable td{padding:5px 10px 5px 0;border-bottom:1px solid var(--line)}
 .thtable .thplay{padding:6px 10px;min-height:0}
 .thcesni,.thusul{margin:0 0 12px}
+.thcesni{margin-bottom:22px}
+.thnote{max-width:70ch;line-height:1.55;margin:8px 0}
+.thwhere{max-width:70ch;font-size:13px;line-height:1.5;color:var(--muted)}
+.thwhere b{font-weight:600}
 .thch{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
 .thch small{color:var(--muted);font-size:12px}
 .thch .thplay{margin-left:auto}

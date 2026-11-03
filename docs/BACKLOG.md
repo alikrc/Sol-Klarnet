@@ -296,8 +296,12 @@ Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınm
 
 - **Kişisel öğrenme akışı / seviye belirleme**: en üstteki öncelikli "Kademeli hoca akışı" maddesine taşındı (çalma
   sınaması 3 Kasım'da yapıldı)
-- **Makam çeşnileri ayrıntısı** (P1): seyir metinlerinde çeşniler adıyla geçiyor, ayrı ayrı anlatılmıyor (ör. Uşşak'taki
-  Segâh'ın rengi, Hicaz'ın artık ikilisi). Yalnızca kaynaklı bilgiyle (`docs/KAYNAKLAR.md`) yazılmalı; kaynak yoksa yazılmaz
+- **Makam çeşnileri ayrıntısı** (P1): tamamlandı (4 Kasım 2026). Teori'nin çeşni konusunda 11 çeşni (Rast, Uşşak, Hüseynî,
+  Bûselik, Kürdî, Hicaz, Çargâh, Segâh, Hüzzam, Saba, Nikriz) ayırt edici aralık ve perdesiyle anlatılıyor; geçtiği makamlar
+  dizilerden hesaplanıyor (`cesniYerleri`). Kaynaklar `docs/KAYNAKLAR.md` §2a. Bu sırada Nikriz'in Kürdî perdesi TDV'ye göre
+  Dik Kürdî yapıldı. **Uzman/hoca görmeli:** Saba'da Hüseynî mi Dik Hisar mı (kaynaklar ayrışıyor, veri değişmedi);
+  Nihâvend'in Nevâ'daki Hicaz dörtlüsünün B A S biçimi; icra akordunda Uşşak Segâh'ının çıkarken de pes sayılması (TDV yalnız
+  inerken der, Gürbüz ölçümü ikisini de verir)
 - **OMR düşük çözünürlük** (P1): 9 px bulanık sayfada ♯ büyük mücenneb ♯ okunuyor (12 notada 7 ve 4); Leland 11 px
   bulanıkta büyük mücenneb ♭ bakiye okunuyor (3). Ayırmak için gerçek düşük çözünürlüklü fotoğraf örnekleri gerekli
 - **Lisans tablosu** (P1): `lisans-besteciler.csv` ölüm yılı ve telif durumu sütunları hâlâ boş (502 besteci, 363 güfte
@@ -336,7 +340,7 @@ Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınm
    - Kullanıcı öğretmeninin ya da örnek aldığı icracının referansını ayarlayabilmeli
    - Gerektiğinde tek değer yerine önerilen aralık
 5. **Makam eğitimi** (19/20 makam)
-   - Durak, güçlü, yeden ve seyir açıklamaları kontrol edilmeli; karakteristik çeşniler ayrıntılı anlatılmalı
+   - Durak, güçlü, yeden ve seyir açıklamaları kontrol edilmeli; karakteristik çeşniler ayrıntılı anlatılmalı (çeşniler 4 Kasım'da yazıldı, bkz. Kalanlar)
    - Çıkıcı ve inici seyir örnekleri, karakteristik ezgileri dinleten örnekler
    - Benzer makamların karşılaştırması (ör. Uşşak/Bayâtî, Hicaz/Uzzal/Zirgüleli Hicaz, Kürdî/Kürdîli Hicazkâr)
    - Taksim örnekleri makam çözümlemesiyle ilişkilendirilmeli

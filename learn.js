@@ -90,9 +90,9 @@ const MAKAMS = [
     seyirEn:"Descending. It moves like the Acem makam and ends on Acem Aşîran with a Çargâh tetrachord; its dominants are Acem, Çargâh and Dügâh, in that order. Scale: Çargâh pentachord on Acem Aşîran + Çargâh tetrachord on Çargâh (with the Kürdî perde)." },
   // ---- Trakya oyun havalarında da kullanılan makam ----
   { id:"nikriz", name:"Nikriz", durak:0, guclu:31, yeden:-5,
-    asc:[0,9,13,26,31,40,48,53], desc:[0,9,13,26,31,40,44,53],
-    seyir:"Çıkıcı (ya da inici-çıkıcı). Rast'ta Nikriz beşlisi (Kürdî, Nim Hicaz) + Nevâ'da Rast ve Bûselik dörtlüleri: çıkarken Rast (Evç), inerken Bûselik (Acem). Nevâ'da yarım, Rast'ta yedenli tam karar; Trakya karşılamalarında da kullanılır.",
-    seyirEn:"Ascending (or descending-ascending). Nikriz pentachord on Rast (Kürdî, Nim Hicaz) + Rast and Bûselik tetrachords on Nevâ: Rast (Evç) going up, Bûselik (Acem) coming down. Half cadence on Nevâ, final on Rast with the leading tone; also heard in Thracian karşılamas." }
+    asc:[0,9,14,26,31,40,48,53], desc:[0,9,14,26,31,40,44,53],
+    seyir:"Çıkıcı (ya da inici-çıkıcı). Rast'ta Nikriz beşlisi (Dik Kürdî, Nim Hicaz) + Nevâ'da Rast ve Bûselik dörtlüleri: çıkarken Rast (Evç), inerken Bûselik (Acem). Nevâ'da yarım, Rast'ta yedenli tam karar; Trakya karşılamalarında da kullanılır.",
+    seyirEn:"Ascending (or descending-ascending). Nikriz pentachord on Rast (Dik Kürdî, Nim Hicaz) + Rast and Bûselik tetrachords on Nevâ: Rast (Evç) going up, Bûselik (Acem) coming down. Half cadence on Nevâ, final on Rast with the leading tone; also heard in Thracian karşılamas." }
 ];
 // Seyir türü: ezginin dizide nereden başlayıp nasıl gezindiği (seyir analizinde kullanılır)
 const SEYIR_TYPE = { rast:"cikici", ussak:"cikici", huseyni:"inici-cikici", hicaz:"inici-cikici", huzzam:"inici-cikici",

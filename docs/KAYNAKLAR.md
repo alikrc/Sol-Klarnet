@@ -51,10 +51,40 @@ Her makam için durak, güçlü, yeden, dizi (asc/desc) ve seyir türü TDV madd
 | Kürdîli Hicazkâr | [Kürdili-Hicazkâr](https://islamansiklopedisi.org.tr/kurdili-hicazkar) (Özkan, 2002, c. 26 s. 565-567) | 🔧 **güçlü Çargâh → Gerdâniye**; “Çargâh’ta yarım karar” → “Gerdâniye’de yarım karar”. İnici ✅, yeden Acem Aşîran ✅, dizi ✅ |
 | Mâhur | [Mâhur](https://islamansiklopedisi.org.tr/mahur) (Özkan, 2003, c. 27 s. 394-395) | 🔧 **güçlü Nevâ → Gerdâniye** (TDV: “inici bir makam olması münasebetiyle güçlüsü tiz durak gerdâniye”). İnici ✅, yeden Geveşt ✅, dizi ✅ |
 | Acemaşîran | [Acem-Aşiran](https://islamansiklopedisi.org.tr/acem-asiran) (Tanrıkorur, 1988, c. 1 s. 322-323) | 🔧 **güçlü Çargâh → Acem** (TDV: “güçlüleri sırasıyla acem, çârgâh ve dügâh”); seyir metni TDV’nin tarifine göre yazıldı. İnici ✅, durak ✅. ⚠️ Yeden Hüseynî Aşîran TDV maddesinde geçmiyor; dizi Çargâh dizisinin göçürülmüşü olduğundan Çargâh’ın yedeni Bûselik’e (4 koma alttaki perde) karşılık gelen perdedir — aynı mantıkla TDV Mâhur’un yedenini Geveşt verir |
-| Nikriz | [Nikriz](https://islamansiklopedisi.org.tr/nikriz) (Özkan, 2007, c. 33 s. 118-119) | 🔧 Nevâ’da **Rast ve Bûselik** dörtlüleri: çıkarken Evç, inerken Acem (eskiden yalnız Bûselik vardı); seyir türüne “inici-çıkıcı” eklendi. 🔧 “Roman havalarında çok sevilir” kaynaksızdı, kaldırıldı; yerine kaynaklı olan “Trakya karşılamalarında da kullanılır” yazıldı (bkz. §6) |
+| Nikriz | [Nikriz](https://islamansiklopedisi.org.tr/nikriz) (Özkan, 2007, c. 33 s. 118-119) | 🔧 Nevâ’da **Rast ve Bûselik** dörtlüleri: çıkarken Evç, inerken Acem (eskiden yalnız Bûselik vardı); seyir türüne “inici-çıkıcı” eklendi. 🔧 “Roman havalarında çok sevilir” kaynaksızdı, kaldırıldı; yerine kaynaklı olan “Trakya karşılamalarında da kullanılır” yazıldı (bkz. §6). 🔧 **Kürdî → Dik Kürdî** (2026-11-04): beşli T B A S değil **T S A S**. TDV: donanımda “si için bakiye bemolü”, Dügâh’ta Hicaz dörtlüsü, “nîm-hicaz ve dik-kürdî perdeleri”; Uzzâl maddesi de Nikriz beşlisini Hicaz dörtlüsünün bir tanini altına koyar. SymbTr’deki 25 Nikriz eserinde süreye göre Dik Kürdî %9,3, Kürdî %0,4. Eski değer de 26 komalık artık dörtlüyü verdiği için önceki karşılaştırmada fark edilmemişti. `learn.js`, `lessons.js`, `repertoire.js` (Nikriz etüdü, Çiftetelli) düzeltildi |
 
 Dersler (`lessons.js`) aynı makam bilgilerini tekrar ettiği için birlikte düzeltildi: Zirgüleli Hicaz, Sûzinak,
 Hicazkâr, Kürdîli Hicazkâr, Acemaşîran ve Nikriz metinleri; Trakya ünitesindeki makam listesi (Kürdî → Karcığar, §6).
+
+### 2a. Çeşniler (`teori.js` TH_CESNI, “Çeşni: dörtlü ve beşliler” konusu)
+
+Metinler 2026-11-04’te TDV maddelerinden yazıldı. “Makamlarda” listeleri elle yazılmadı: `cesniYerleri` çeşninin
+aralıklarını makamın `asc` ve `desc` dizilerinde arar. Bulduğu yerlerin önemli kısmı TDV’deki asma kararlarla örtüşür
+(ör. Nikriz Çargâh’ta: Karcığar, Sûzinak, Hicazkâr; Hüzzam Segâh’ta: aynı üç makam; Çargâh, Kürdî’de: Nihâvend), ama
+liste “dizide geçer” der, “ana yapıdadır” demez; ekranda da böyle yazılı. Çeşninin “rengi” için TDV’nin söylemediği
+duygu sözleri yazılmadı. Aralık ve perde karşılaştırmaları (ör. Segâh ile Bûselik arası 1 koma) §1’deki perde komalarından
+hesaptır.
+
+| Çeşni | Metindeki bilgi | Kaynak | Durum |
+|---|---|---|---|
+| Genel | Dörtlü ve beşli tanımı; asma kararın bitiş hissi tam karardan zayıf | TDV [Makam](https://islamansiklopedisi.org.tr/makam--musiki) (“Dörtlü ve Beşliler”, “Kararlar”) | ✅ |
+| Genel | “Çoğunlukla” 22/31 koma ve “çoğunlukla” dörtlü + tanini: Saba 18 koma, Nikriz S ile tamamlanır | TDV [Sabâ](https://islamansiklopedisi.org.tr/saba), [Nikriz](https://islamansiklopedisi.org.tr/nikriz) | 🔧 giriş metni kesin söylüyordu, yumuşatıldı |
+| Rast | Dügâh’ta Uşşak dörtlüsü ve Uşşak çeşnili asma karar; Segâh’ta segâhlı ya da ferahnâkli asma kararlar karakteristik | TDV [Rast](https://islamansiklopedisi.org.tr/rast) | ✅ |
+| Uşşak | İnici seyirde Segâh 1–2 koma pes, asma kararda değil; Dügâh–Segâh 6–7 koma (“eksik büyük mücennep”); notada işareti yok; Uşşak çeşnisinin bulunduğu bütün makamlarda; Segâh en önemli asma karar perdesi | TDV [Uşşak](https://islamansiklopedisi.org.tr/ussak) | ✅ |
+| Hüseynî | Dizi (Hüseynî beşlisi + Hüseynî’de Uşşak), Uşşak çeşnili yarım karar, Dügâh’ta tam karar, Çargâh en karakteristik asma karar | TDV [Hüseynî](https://islamansiklopedisi.org.tr/huseyni) | ✅ K S T T aralık harfleri maddede metin olarak yok (şekilde); perdelerden çıkar |
+| Bûselik | Bûselik makamı la minöre çok yakın; Bûselik dizileri minör; Nihâvend Bûselik dizisinin Rast’a göçürülmüşü; Uşşak, Kürdî, Hümâyun Nevâ’da Bûselik çeşnisiyle yarım karar | TDV [Bûselik](https://islamansiklopedisi.org.tr/buselik), [Mâhur](https://islamansiklopedisi.org.tr/mahur), [Nihâvend](https://islamansiklopedisi.org.tr/nihavend--musiki), [Uşşak](https://islamansiklopedisi.org.tr/ussak), [Kürdî](https://islamansiklopedisi.org.tr/kurdi), [Hümâyun](https://islamansiklopedisi.org.tr/humayun--musiki) | ✅ |
+| Kürdî | Dügâh’taki Kürdî makamı az, Rast’taki şeddi Kürdîli Hicazkâr çok kullanılır; Hüseynî’de Acem’le Uşşak’ın yerine Kürdî dörtlüsü; Nihâvend yarım kararı çoğunlukla Kürdî | TDV [Kürdî](https://islamansiklopedisi.org.tr/kurdi), [Hüseynî](https://islamansiklopedisi.org.tr/huseyni), [Nihâvend](https://islamansiklopedisi.org.tr/nihavend--musiki) | ✅ |
+| Hicaz | Dik Kürdî–Nim Hicaz artık ikilisi “hicaz çeşnisinin karakteristiği”; Hicaz perdesi değil Nim Hicaz; dört makamlık aile, ortak temel Dügâh’taki Hicaz, değişen güçlüler; B A13 S biçimi | TDV [Hümâyun](https://islamansiklopedisi.org.tr/humayun--musiki), [Hicaz](https://islamansiklopedisi.org.tr/hicaz--musiki), [Zirgüleli Hicaz](https://islamansiklopedisi.org.tr/zirguleli-hicaz) | ✅ B A13 S’yi TDV Hüseynî’deki Hicaz için söyler; listede Nihâvend’in Nevâ’daki dörtlüsü de bu aralıklarla “(B A S)” diye görünür. ⚠️ TDV bu dörtlüyü Hicaz der, biçimini söylemez |
+| Çargâh | Yalnız tanini ve bakiye; işaretsiz; AEU’da ana dizi, az kullanılır; Çargâh dizileri majör, Mâhur Batı bakımından sol majör; Hüseynî’de Çargâh çeşnili asma karar çok önemli | TDV [Çârgâh](https://islamansiklopedisi.org.tr/cargah), [Mâhur](https://islamansiklopedisi.org.tr/mahur), [Hüseynî](https://islamansiklopedisi.org.tr/huseyni) | ✅ |
+| Segâh | S T K T; eksik beşli S T K S; Ferahnâk S T T K ve S T T B; tam karar tam ya da eksik beşliyle, Kürdî yeden; Uşşak’ta Segâh çeşnisi için Hüseynî’ye koma bemolü | TDV [Segâh](https://islamansiklopedisi.org.tr/segah), [Uşşak](https://islamansiklopedisi.org.tr/ussak) | ✅ |
+| Hüzzam | Tam beşli; Hisar 1–1,5 koma dik, çok değişken; Hisar–Evç 10,5–11 koma; tam karar muhakkak bu beşliyle, genellikle yedenli; Karcığar, Sûzinak, Hicazkâr’da Segâh’ta hüzzamlı asma karar | TDV [Hüzzam](https://islamansiklopedisi.org.tr/huzzam), [Karcığar](https://islamansiklopedisi.org.tr/karcigar), [Sûzinak](https://islamansiklopedisi.org.tr/suzinak), [Hicazkâr](https://islamansiklopedisi.org.tr/hicazkar) | ✅ S T S A harfleri maddede metin olarak yok; perdelerden ve “4. aralığı artık ikili” tarifinden çıkar |
+| Saba | K S S, 18 komalık eksik dörtlü; Hicaz 2–2,5 koma dik; tam karar bu çeşniyle; Çargâh eksen, Zirgüleli Hicaz çeşnili yarım karar | TDV [Sabâ](https://islamansiklopedisi.org.tr/saba) | ✅ |
+| Nikriz | 26 komalık artık dörtlü, S eklenerek beşli; Dügâh’ta Hicaz dörtlüsü ve Hicaz ailesine yakınlık; ailede Rast’a düşülünce nikrizli asma karar | TDV [Nikriz](https://islamansiklopedisi.org.tr/nikriz), [Hümâyun](https://islamansiklopedisi.org.tr/humayun--musiki), [Uzzâl](https://islamansiklopedisi.org.tr/uzzal), [Zirgüleli Hicaz](https://islamansiklopedisi.org.tr/zirguleli-hicaz) | ✅ |
+
+**Kaynaklar ayrışıyor, veri değiştirilmedi:** ⚠️ Saba dizisinde uygulama Hüseynî (40) kullanıyor. TDV [Sabâ](https://islamansiklopedisi.org.tr/saba)
+perde listesinde ve Zirgüleli Hicaz tarifinde Dik Hisar (39, koma bemollü mi) der, ama aynı maddenin donanımında mi için
+işaret yoktur. SymbTr’deki 66 Saba eserinde bu perde süreye göre %9,9 oranıyla 40’tır, 39 neredeyse hiç yoktur. Hoca
+görmeli; bu yüzden Saba’nın Çargâh’taki Hicazı listede çıkmıyor, metinde yazılı.
 
 ## 3. İcra akordu (`learn.js` ICRA)
 
@@ -159,4 +189,5 @@ Kaynak listesi: [SORUNLAR-KAYNAKLAR.md](SORUNLAR-KAYNAKLAR.md). Bütün bağlant
 - Curcuna’nın vuruş dizisi tek bir eğitim sitesinden; TDV Aksak Semâî maddesi vuruş sayısını (6) doğruluyor ama
   şeması indirilemedi.
 - Acemaşîran’ın yedeni (Hüseynî Aşîran) çıkarımdır, TDV maddesinde geçmez.
+- Saba dizisindeki Hüseynî / Dik Hisar ayrımı (§2a): TDV’nin perde listesi ile donanımı ve SymbTr notaları ayrışıyor.
 - İcra akordundaki sayılar yaklaşık; ölçüm çalışmaları icracıya göre değişen değerler verir.
