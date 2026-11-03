@@ -923,6 +923,11 @@
   });
 
   // Uygulama geneli arama (search.js): alıştırmalar ve doğrudan açma
+  // Karşılamadaki ritim sınaması (onboard.js): bir metronom turu ve gecikme düzeltmeli puan. onDone({ score, m })
+  SK.rhythmTry = (patternId, tempo, bars, onDone, onTick) => {
+    const pattern = RHYTHM_PATTERNS.find(p => p.id === patternId), beatMs = 60000/tempo;
+    return rhythmRun(ctx, { beatMs, pattern, bars }, run => onDone(rhythmEval(ctx, run, beatMs, pattern)), onTick);
+  };
   SK.practiceTabs = () => TABS.map(([id, name]) => ({ id, name, blurb: BLURB[id] || "", group: groupOf(id)[1] }));
   SK.openTab = id => SK.nav.open(id);
   $("tbopen").addEventListener("click", () => SK.openTab("tablo"));

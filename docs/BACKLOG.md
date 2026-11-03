@@ -23,7 +23,12 @@ Aşamalar:
   zorlanana Başlarken önerilir. Yalnızca notanın çıktığı ölçülüyor (ses kalitesi ve akort değil). Dersler listesinin
   altındaki "Seviyemi yeniden ölç" sınamayı karşılama dışında açar. Sınama önce nota okumayı yoklar (dizekte 4 nota,
   adı seçilir; mikrofonsuz): 3'ten azı doğruysa Başlarken'in "Nota okuma" dersi bitmiş sayılmaz ve kart onu önerir.
-  Eksik: ritim sınaması, makam çalanlar için makam sınaması (ör. iki makamın dizisi ve bir seyir)
+  Notalardan sonra ritim sınaması: metronomla iki kısa tur (dörtlük ve sekizlik, 60 vuruş/dk, 4 ölçü; Başlarken'in
+  "Ritim" dersinin adımlarıyla aynı eşik, 55 ve 50). Ölçülen bir tur eşiğin altındaysa o ders bitmiş sayılmaz ve kart
+  onu önerir; tur geçilebilir ve yeniden denenebilir (`SK.rhythmTry`, `onboard.check.rhythm`). Yeniden ölçmede okuma
+  ya da ritim tutmazsa önceki sınamanın bitmiş saydığı (çalınmamış) ders yeniden açılır. Ritim yalnızca Başlarken'deki
+  dersi etkiliyor; Teknik'teki dil vuruşu ve usul dersleri sınamaya bağlı değil. Gerçek cihazda (hoparlör gecikmesi,
+  kulaklıksız metronom) denenmeli. Eksik: makam çalanlar için makam sınaması (ör. iki makamın dizisi ve bir seyir)
 - **B. "Hocan diyor ki" kartı** — yapıldı (3 Kasım). Dersler'in en üstünde tek bir sıradaki adım ve nedeni
   (`roadmap.js` `coachNext`): yarım kalan ders/sınav → bugünün çalışması (ısınma ve vadesi gelen tekrarlar; yalnız
   gerçekten çalınmış ders varsa) → dersleri bitmiş ünitenin sınavı (hangi üniteleri açacağıyla) → kademenin dersleri

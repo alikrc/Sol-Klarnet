@@ -30,10 +30,16 @@
   const READ = [64, 69, 72, 77], SYL = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"], READ_OK = 3;
   const sylOf = w => noteName(w).tr.replace(/[♯♭\d]/g, "");
   const readChoices = (w, k) => { const c = sylOf(w), o = SYL.filter(x => x !== c); return [c, o[(k*2) % 6], o[(k*2 + 3) % 6], o[(k*2 + 5) % 6]].sort((a, b) => ((a.length*7 + k) % 5) - ((b.length*7 + k) % 5) || a.localeCompare(b)); };
-  // state: intro | read | run | done; rq/rok: okuma sorusu ve doğru sayısı
-  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0 };
-  const chkReset = () => Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, micErr: false });
+  // Notalardan sonra ritim: metronomla iki kısa tur, Başlarken'in "Ritim" dersinin ilk ve son adımıyla aynı tempo ve
+  // geçme eşiği. Ölçülen bir tur eşiğin altındaysa o ders bitmiş sayılmaz (kart onu önerir); geçilmeyen tur karar vermez
+  const RT = [{ pattern: "quarter", tempo: 60, bars: 4, min: 55 }, { pattern: "eighth", tempo: 60, bars: 4, min: 50 }];
+  // state: intro | read | run | rhythm | rtrun | done; rq/rok: okuma sorusu ve doğru sayısı; rts: ritim turlarının
+  // puanı; rtFresh: sıradaki turun giriş ekranı gösterilsin (önceki turun puanı yerine)
+  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtRun: null, rtFresh: false };
+  const rtStop = () => { if(chk.rtRun){ chk.rtRun.stop(); chk.rtRun = null; } };
+  const chkReset = () => { rtStop(); Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtFresh: false, micErr: false }); };
   const readOk = () => chk.rq < READ.length || chk.rok >= READ_OK;   // okuma bölümü bitmediyse karar yok
+  const rhythmOk = () => chk.rts.every((v, k) => v >= RT[k].min);   // çalınmayan tur karar vermez
   const nm = w => LANG === "en" ? noteName(w).en : noteName(w).tr;
   const instT = () => (INSTRUMENTS.find(x => x.id === pickd.inst) || { t: SK.T }).t;
   async function runMic(){
@@ -43,11 +49,11 @@
   }
   function chkAdvance(ok){
     const cur = CHECK_NOTES[chk.k];
-    if(!ok){ chk.state = "done"; render(); return; }
+    if(!ok){ chk.state = "rhythm"; render(); return; }
     chk.k++; chk.held = 0; chk.lastT = 0; chk.heard = null;
     const next = CHECK_NOTES[chk.k];
     if(!next || next.gi !== cur.gi) chk.passed = cur.gi + 1;
-    if(!next) chk.state = "done";
+    if(!next) chk.state = "rhythm";
     render();
   }
   // Kararlı nota olayları (app.js): yazılı nota seçilen klarnete göre yeniden hesaplanır (çalgı henüz kaydedilmedi)
@@ -66,8 +72,9 @@
   function checkBody(){
     if(chk.state === "intro") return `<div class="obemo" aria-hidden="true">🎶</div>
       <h2 class="obtitle">${L("Kısa çalma sınaması", "A short playing check")}</h2>
-      <p>${L("Önce dizekte 4 notanın adını soracağız. Sonra sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: sınama orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
-        "First we'll ask the names of 4 notes on the staff. Then we'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the check stops there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
+      <p>${L("Önce dizekte 4 notanın adını soracağız. Sonra sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: notalar orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
+        "First we'll ask the names of 4 notes on the staff. Then we'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the notes stop there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
+      <p>${L("En sonda metronomla iki kısa ritim turu çalacaksın (yaklaşık 20'şer saniye).", "Finally you'll play two short rhythm rounds with the metronome (about 20 seconds each).")}</p>
       <p class="muted">${L("Yalnızca notanın çıkıp çıkmadığına bakılır; ses kalitesi ve akort burada ölçülmez, derslerde ölçülür. İstemezsen geçebilirsin.", "This only checks whether the note sounds; tone and tuning aren't measured here but in the lessons. You can skip it.")}</p>
       <div class="pbar"><button class="primary small" type="button" data-ob="chkstart">${L("Sınamayı başlat", "Start the check")}</button></div>`;
     if(chk.state === "read"){
@@ -88,8 +95,32 @@
         <div class="pbar"><button class="stopbtn" type="button" data-ob="chkplay">${L("Dinle", "Listen")}</button>
           <button class="stopbtn" type="button" data-ob="chkfail">${L("Çalamıyorum", "I can't play it")}</button></div>`;
     }
+    if(chk.state === "rhythm" || chk.state === "rtrun"){
+      const n = chk.rts.length, head = `<div class="eyebrow">${L("Ritim", "Rhythm")} · ${Math.min(n + (chk.state === "rtrun" || !n || chk.rtFresh ? 1 : 0), RT.length)}/${RT.length}</div>`;
+      if(chk.state === "rtrun"){
+        const pat = RHYTHM_PATTERNS.find(p => p.id === RT[n].pattern);
+        return head + `<h2 class="obtitle">${pick(pat.name, LANG)}</h2>
+          <div class="qname obbeat">${chk.rtBeat == null ? "…" : chk.rtBeat}</div>
+          <p class="muted">${L("İlk ölçü sayım: dinle, ikinci ölçüde çalmaya başla.", "The first bar is a count-in: listen, start playing on the second bar.")}</p>`;
+      }
+      if(!n || chk.rtFresh){
+        const r = RT[n], pat = RHYTHM_PATTERNS.find(p => p.id === r.pattern);
+        return head + `<h2 class="obtitle">${L("Metronomla çal", "Play with the metronome")}</h2>
+          <p>${L("Açık Sol'u (ya da rahat bir notayı) metronomla birlikte kısa kısa çal: ", "Play open G (or any comfortable note) in short notes with the metronome: ")}<strong>${pick(pat.name, LANG)}</strong>, ${r.tempo} ${L("vuruş/dk", "bpm")}, ${r.bars} ${L("ölçü", "bars")}. ${L("İlk ölçü sayımdır.", "The first bar is a count-in.")}</p>
+          <p class="muted">${L("Mümkünse kulaklık tak: hoparlördeki metronom sesi nota sanılabilir.", "Use headphones if you can: the metronome from the speaker can be mistaken for your notes.")}</p>
+          ${chk.micErr ? `<p class="muted">${L("Mikrofon açılamadı. İzin verip yeniden dene ya da ritmi geç.", "Couldn't open the microphone. Allow it and try again, or skip the rhythm.")}</p>` : ""}
+          <div class="pbar"><button class="primary small" type="button" data-ob="rtgo">${L("Başlat", "Start")}</button>
+            <button class="stopbtn" type="button" data-ob="rtskip">${L("Ritmi geç", "Skip the rhythm")}</button></div>`;
+      }
+      const last = chk.rts[n - 1], min = RT[n - 1].min, more = n < RT.length;
+      return head + `<h2 class="obtitle">${L("Puan: ", "Score: ")}${last}</h2>
+        <p>${last >= min ? L("Güzel, bu tur tamam.", "Good, this round is done.") : L("Geçme puanı " + min + ". İstersen bir kez daha dene.", "The pass mark is " + min + ". Try once more if you like.")}</p>
+        <div class="pbar"><button class="primary small" type="button" data-ob="${more ? "rtnext" : "rtend"}">${more ? L("Sonraki tur", "Next round") : L("Sonucu gör", "See the result")}</button>
+          <button class="stopbtn" type="button" data-ob="rtagain">${L("Yeniden dene", "Try again")}</button></div>`;
+    }
     const res = (chk.rq >= READ.length ? `<li>${readOk() ? "✓" : "–"} ${L("Nota okuma", "Reading")} (${chk.rok}/${READ.length})</li>` : "") +
-      CHECK.map((g, gi) => `<li>${gi < chk.passed ? "✓" : "–"} ${g.name()}</li>`).join("");
+      CHECK.map((g, gi) => `<li>${gi < chk.passed ? "✓" : "–"} ${g.name()}</li>`).join("") +
+      (chk.rts.length ? `<li>${rhythmOk() ? "✓" : "–"} ${L("Ritim", "Rhythm")} (${chk.rts.join(", ")})</li>` : "");
     let advice;
     if(chk.passed === CHECK.length) advice = L("Temeller ve klarino derslerini bitmiş saydık. Teknik ve üslup ile makam dersleri açık; yol haritası seni oradan götürür.", "We've marked the basics and clarion lessons as done. Technique and style and the makam lessons are open; the roadmap takes you on from there.");
     else if(chk.passed > 0) advice = L("Geçtiğin grupların derslerini bitmiş saydık. \"" + CHECK[chk.passed].name() + "\" dersinden başlayacaksın.", "We've marked the lessons for the groups you passed as done. You'll start with \"" + CHECK[chk.passed].name() + "\".");
@@ -100,6 +131,7 @@
       <ul class="obres">${res}</ul>
       <p>${advice}</p>
       ${!readOk() ? `<p>${L("Nota okumada zorlandın: Başlarken'deki \"Nota okuma\" dersini açık bıraktık, önce onu çalış.", "Reading was hard: we left the \"Reading music\" lesson in Getting started open; work on it first.")}</p>` : ""}
+      ${!rhythmOk() ? `<p>${L("Ritimde zorlandın: Başlarken'deki \"Ritim: vuruş ve nota değerleri\" dersini açık bıraktık.", "Rhythm was hard: we left the \"Rhythm: the beat and note values\" lesson in Getting started open.")}</p>` : ""}
       ${chk.passed === 0 && chk.k <= 1 ? `<div class="pbar"><button class="stopbtn" type="button" data-ob="chknew">${L("Başlarken'den başla", "Start from Getting started")}</button></div>` : ""}
       <p class="muted">${L("Sınamayı Dersler listesinin altındaki \"Seviyemi yeniden ölç\" ile tekrarlayabilirsin.", "You can redo the check with \"Measure my level again\" below the lesson list.")}</p>`;
   }
@@ -178,6 +210,23 @@
     }
     if(act === "chkplay"){ SK.play(CHECK_NOTES[chk.k].w); return; }
     if(act === "chkfail"){ chkAdvance(false); return; }
+    // Ritim turları: rtgo turu başlatır (yeni tur ya da yeniden deneme), rtskip/rtend sonuca geçer
+    if(act === "rtnext"){ chk.rtFresh = true; render(); return; }
+    if(act === "rtagain"){ chk.rts.pop(); chk.rtFresh = true; render(); return; }
+    if(act === "rtskip" || act === "rtend"){ rtStop(); chk.state = "done"; render(); return; }
+    if(act === "rtgo"){
+      await runMic(); if(chk.micErr) return;
+      const r = RT[chk.rts.length], beats = RHYTHM_PATTERNS.find(p => p.id === r.pattern).beats;
+      chk.state = "rtrun"; chk.rtBeat = null; chk.rtFresh = false; render();
+      chk.rtRun = SK.rhythmTry(r.pattern, r.tempo, r.bars, res => {
+        chk.rtRun = null; if(chk.state !== "rtrun") return;
+        chk.rts.push(res.score); chk.state = "rhythm"; render();
+      }, (k, counting) => {
+        chk.rtBeat = (counting ? L("Sayım ", "Count ") : "") + (k % beats + 1);
+        const el = root.querySelector(".obbeat"); if(el) el.textContent = chk.rtBeat;
+      });
+      return;
+    }
     if(act === "chknew"){ pickd.level = "new"; chkReset(); steps = stepList(); i = steps.indexOf("goal"); render(); return; }
     if(act === "calib"){
       const msg = root.querySelector("#obcal");
@@ -194,6 +243,7 @@
       return;
     }
     if(act === "next"){
+      if(steps[i] === "check") rtStop();
       if(i < steps.length - 1){ i++; render(); return; }
       finish();
     }
@@ -215,7 +265,12 @@
     const prog = store.get("lesson.prog", {});
     if(pickd.level === "some" || pickd.level === "makam"){
       for(const l of LESSONS.filter(x => x.unit === "baslangic")){
-        if(l.id === "nota-okuma" && !readOk()) continue;
+        // Okumada ya da ritimde zorlanana o ders açık kalır; önceki bir sınamanın bitmiş saydığı (placed) kayıt da
+        // silinir (yeniden ölçmede). Gerçekten çalınmış ders bitmiş kalır
+        if(l.id === "nota-okuma" && !readOk() || l.id === "ritim-temel" && !rhythmOk()){
+          if(prog[l.id] && prog[l.id].placed) delete prog[l.id];
+          continue;
+        }
         markDone(prog, l, true);
       }
       // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri
@@ -224,7 +279,7 @@
       for(const u of UNITS){ const ex = examFor(u.id);
         if(ex && LESSONS.filter(l => l.unit === u.id).every(l => lessonDone(l, prog))) markDone(prog, ex, true); }
       store.set("lesson.prog", prog);
-      if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, d: dayKey(new Date()) });
+      if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, rhythm: chk.rts.length ? chk.rts : null, d: dayKey(new Date()) });
     }
     if(pickd.level === "makam") store.set("lesson.all", true);
     store.set("lesson.cur", "");
