@@ -65,7 +65,7 @@ TRAINERS.lessons = function(ctx){
     const day = dayKey(new Date());
     coach = coachNext({ ...roadmapStats((k, d) => store.get(k, d)), prog }, { style: store.get("goal.style", "both"), all: allOpen,
       guided: store.get("lesson.guided", true), dailyDone: store.get("lesson.dailyDone", []).includes(day),
-      due: srsDue(store.get("lesson.srs", {}), day).length });
+      due: srsDue(store.get("lesson.srs", {}), day).length, reported: store.get("rm.reported", []) });
     const c = coach, names = xs => xs.map(tx).join(", ");
     let head, why, btn;
     switch(c.why){
@@ -84,6 +84,11 @@ TRAINERS.lessons = function(ctx){
         { const f = v => num(v, c.low ? 2 : 0) + tx(c.unit);
           why = L(`Önce bunu toparlayalım: önceki 4 haftada ortalama ${f(c.before)} iken son 4 haftada ${f(c.recent)}. Yeni konudan önce kısa bir tur iyi gelir.`,
                   `Let's fix this first: it averaged ${f(c.before)} in the previous 4 weeks and ${f(c.recent)} in the last 4. A short round before new material will help.`); } break;
+      case "report": head = L("Kademe tamam: ", "Stage complete: ") + tx(c.stage.title); btn = L("Sıradaki adım", "Next step");
+        { const f = m => (m.v == null ? "—" : num(m.v, Number.isInteger(m.v) ? 0 : 1)) + tx(m.unit);
+          why = (c.days ? L(`${c.days} günde tamamladın. `, `You completed it in ${c.days} days. `) : "") +
+            L("Ölçülenler: ", "Measured: ") + c.miles.map(m => tx(m.title) + " " + f(m)).join(" · ") + ". " +
+            (c.next ? L("Sıradaki kademe, ", "Next stage, ") + tx(c.next.title) + ": " + tx(c.next.goal) : L("Bütün kademeleri bitirdin.", "You've finished every stage.")); } break;
       case "newUnit": head = tx(c.title); btn = L("Derse başla", "Start the lesson");
         why = L(`Yeni ünite: ${tx(c.unit)}. Buradan adım adım gideceğiz.`, `New unit: ${tx(c.unit)}. We'll go step by step from here.`); break;
       case "next": head = tx(c.title); btn = L("Derse başla", "Start the lesson");
@@ -97,6 +102,7 @@ TRAINERS.lessons = function(ctx){
   }
   $("lscoach").addEventListener("click", e => {
     if(!e.target.closest("[data-coach]") || !coach) return;
+    if(coach.kind === "report"){ store.set("rm.reported", coach.all); renderCoach(); return; }
     if(coach.kind === "lesson") openSub(lessonById(coach.id));
     else if(coach.kind === "daily") openSub(dailyLesson());
     else if(coach.kind === "mile") ctx.selectTab(coach.tab);

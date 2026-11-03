@@ -40,8 +40,10 @@ Aşamalar:
   koma) fazla kötüleştiyse ve o beceri bugün çalışılmadıysa, kart ısınmadan sonra "önce bunu toparlayalım" deyip
   alıştırmayı açar. Her pencerede en az 3 kayıt ister. Eksik: ders özetindeki "en az farkla geçilen adım" henüz karta
   gelmiyor; eşikler gerçek kullanımla gözden geçirilmeli
-- **E. Kademe raporu** — aşama bitince kısa değerlendirme: ölçülen beceriler, bir önceki aşamaya göre fark, sıradaki
-  aşamada ne beklendiği
+- **E. Kademe raporu** — yapıldı (3 Kasım). Yol haritasındaki bir aşama (dersleri ve kilometre taşları) bitince hoca
+  kartı bir kez rapor gösterir: kaç günde tamamlandığı (gerçekten çalınmış derslerin ilk ve son bitiş günü), ölçülen
+  kilometre taşları ve sıradaki kademenin hedefi; "Sıradaki adım" ile kapanır (`rm.reported`). Eksik: önceki kademeye
+  göre beceri farkı (ör. uzun ton puanının kademe başı ve sonu)
 
 ### 2. Freemium — öneri, proje sahibinin kararı bekleniyor
 
