@@ -105,6 +105,8 @@ TRAINERS.lessons = function(ctx){
         { const f = m => (m.v == null ? "—" : num(m.v, Number.isInteger(m.v) ? 0 : 1)) + tx(m.unit);
           why = (c.days ? L(`${c.days} günde tamamladın. `, `You completed it in ${c.days} days. `) : "") +
             L("Ölçülenler: ", "Measured: ") + c.miles.map(m => tx(m.title) + " " + f(m)).join(" · ") + ". " +
+            (c.growth && c.growth.length ? L("Kademe başından sonuna: ", "From the start of the stage to its end: ") +
+              c.growth.map(g => tx(g.title) + " " + num(g.from, g.low ? 2 : 0) + " → " + num(g.to, g.low ? 2 : 0) + tx(g.unit)).join(" · ") + ". " : "") +
             (c.next ? L("Sıradaki kademe, ", "Next stage, ") + tx(c.next.title) + ": " + tx(c.next.goal) : L("Bütün kademeleri bitirdin.", "You've finished every stage.")); } break;
       case "newUnit": head = tx(c.title); btn = L("Derse başla", "Start the lesson");
         why = L(`Yeni ünite: ${tx(c.unit)}. Buradan adım adım gideceğiz.`, `New unit: ${tx(c.unit)}. We'll go step by step from here.`); break;

@@ -195,11 +195,26 @@ function weakSkill(st, today = new Date()){
   }
   return best;
 }
+// Kademe raporunda beceri farkı: kademenin [from, to] günleri arasındaki kayıtlarda ilk 3 ve son 3 kaydın ortalaması
+// (WEAK_SKILLS'teki beceriler). Bir beceri için pencerede en az 4 kayıt gerekir (ilk ve son kümeler çakışmasın diye
+// küme boyu kayıt sayısının yarısına kısılır). Dönen: [{ id, title, unit, low, from, to }]
+function stageGrowth(st, from, to){
+  const out = [];
+  if(!from || !to) return out;
+  for(const s of WEAK_SKILLS){
+    const h = ((st.hist && st.hist[s.hist]) || []).filter(x => x.d >= from && x.d <= to && s.val(x) != null).map(s.val);
+    if(h.length < 4) continue;
+    const n = Math.min(3, Math.floor(h.length/2)), avg = a => a.reduce((x, y) => x + y, 0)/a.length;
+    out.push({ id:s.id, title:s.title, unit:s.unit, low:!!s.low, from: avg(h.slice(0, n)), to: avg(h.slice(-n)) });
+  }
+  return out;
+}
 // Hoca kartı: bugün sıradaki tek adım ve nedeni (metni lessonview.js yazar). Sıra, hocanın derse başlatması gibi:
 // 1. yarım kalan ders ya da sınav, 2. bugünün çalışması (ısınma ve vadesi gelen tekrarlar; en az bir ders bittiyse ve
 // bugün yapılmadıysa), 2b. son haftalarda gerileyen beceri (weakSkill), 3. dersleri bitmiş ünitenin sınavı (rehberli modda ya da yeni ders kalmadıysa), 4. kademenin
 // dersleri bittiyse eksik kilometre taşı, 5. yeni ders, 6. kalan kilometre taşları.
-// 0. Bitmiş ama raporu gösterilmemiş son kademe varsa önce kısa kademe raporu (bir kez; o.reported: gösterilenler).
+// 0. Bitmiş ama raporu gösterilmemiş son kademe varsa önce kısa kademe raporu (bir kez; o.reported: gösterilenler;
+// growth: kademe başı ve sonu arasında beceri farkı, stageGrowth).
 // o: { style, all, guided, dailyDone (bugün yapıldı mı), due (vadesi gelen tekrar sayısı), reported: [aşama id] }
 // Dönen: { kind: "lesson"|"daily"|"mile"|"done", why, id?, tab?, title?, ... }
 function coachNext(st, o = {}){
@@ -211,7 +226,8 @@ function coachNext(st, o = {}){
     // kaç günde: aşamanın gerçekten çalınmış derslerinin ilk ve son bitiş günü arası
     const ds = R.LESSONS.filter(l => fresh.stage.units.includes(l.unit) && done(l) && !prog[l.id].placed && prog[l.id].d).map(l => prog[l.id].d).sort();
     const days = ds.length >= 2 ? Math.round((new Date(ds[ds.length - 1] + "T12:00:00") - new Date(ds[0] + "T12:00:00"))/864e5) + 1 : null;
-    return { kind:"report", why:"report", stage:fresh.stage, all:status.filter(s => s.done).map(s => s.stage.id), days,
+    const growth = ds.length >= 2 ? stageGrowth(st, ds[0], ds[ds.length - 1]) : [];
+    return { kind:"report", why:"report", stage:fresh.stage, all:status.filter(s => s.done).map(s => s.stage.id), days, growth,
       miles: fresh.miles.map(x => ({ title:x.m.title, v:x.v, target:x.m.target, unit:x.m.unit, lower:!!x.m.lower })), next: next && next.stage };
   }
   const partial = [...R.LESSONS, ...R.EXAMS].find(l => open(l) && !done(l) && R.lessonProgress(l, prog).done > 0);
@@ -242,7 +258,7 @@ function coachNext(st, o = {}){
   return { kind:"done", why:"done" };
 }
 
-if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, weakSkill, coachNext };
+if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, weakSkill, stageGrowth, coachNext };
 
 // ======== Sekme ========
 if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){

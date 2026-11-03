@@ -46,8 +46,10 @@ Aşamalar:
   gerçek kullanımla gözden geçirilmeli
 - **E. Kademe raporu** — yapıldı (3 Kasım). Yol haritasındaki bir aşama (dersleri ve kilometre taşları) bitince hoca
   kartı bir kez rapor gösterir: kaç günde tamamlandığı (gerçekten çalınmış derslerin ilk ve son bitiş günü), ölçülen
-  kilometre taşları ve sıradaki kademenin hedefi; "Sıradaki adım" ile kapanır (`rm.reported`). Eksik: önceki kademeye
-  göre beceri farkı (ör. uzun ton puanının kademe başı ve sonu)
+  kilometre taşları ve sıradaki kademenin hedefi; "Sıradaki adım" ile kapanır (`rm.reported`). Raporda kademe başından
+  sonuna beceri farkı da var (`stageGrowth`): kademenin ilk ve son ders günü arasındaki uzun ton puanı, ses kararlılığı,
+  ritim ve taksim kayıtlarının ilk 3 ve son 3 ortalaması (en az 4 kayıt olan beceriler). Kayıt geçmişi 100 kayıtla
+  sınırlı olduğu için uzun kademelerde başlangıç kayıtları düşmüş olabilir
 
 ### 2. Freemium — ertelendi (proje sahibi: "ileride bakarız", 3 Kasım 2026)
 
