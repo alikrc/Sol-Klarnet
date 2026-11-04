@@ -11,7 +11,7 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 | Kaynak | Nerede | Lisans | Ücretsiz dağıtım | Ticari kullanım | Yapılacak |
 |---|---|---|---|---|---|
 | SymbTr nota koleksiyonu | `notalar/` (2200 eser), Nota arşivi | CC BY-NC-SA 4.0 | Atıfla olur; türetilen veri de BY-NC-SA kalmalı | **Olmaz** (NC) | Ticari sürümde arşiv çıkarılmalı ya da MTG'den yazılı izin alınmalı; ayrıca eser telifleri (aşağıda) |
-| Eserlerin besteci ve güfte telifleri | `notalar/` | Eserine göre | Tabloya göre eser eser bakılmalı | Telifli eserler izinsiz olmaz | `lisans-besteciler.csv` ve `lisans-guftekarlar.csv` dolduruldu (4 Kasım 2026); telifli eserler için dışlama listesi kurulmalı, bilinmeyenler araştırılmalı |
+| Eserlerin besteci ve güfte telifleri | `notalar/` | Eserine göre | Tabloya göre eser eser bakılmalı | Telifli eserler izinsiz olmaz | `lisans-besteciler.csv` ve `lisans-guftekarlar.csv` dolduruldu, `lisans-disla.csv` dışlama listesi çıkarıldı (4 Kasım 2026); telifli eserler arşivden henüz çıkarılmadı, bilinmeyenler araştırılmalı |
 | Woodwind Fingering Guide | `core.js` parmak tabloları, çeyrek ses parmakları | Açık lisans yok | Atıfla veriliyor | İzin gerekir | Sahibinden (WFG) yazılı izin |
 | University of Iowa EMS kayıtları | `sounds/klarnet.wav`, `testdata/iowa/` | Site: ücretsiz, "herhangi bir projede kısıtlamasız" | Olur | Olur (sitenin beyanına göre) | Beyanın ekran görüntüsü/arşiv bağlantısı saklanmalı |
 | VCSL darbuka | `sounds/darbuka.wav` | CC0 | Olur | Olur | — |
@@ -90,8 +90,34 @@ Telif sınırına takılan önemli adlar: Şefik Gürmeriç (ö. 1967, 74 seyir)
 Münir Nurettin Selçuk (ö. 1981, 25); güftede Vecdi Bingöl (ö. 1973, 24), Yahya Kemal Beyatlı (ö. 1958, 13). Sınır yılında:
 Şerif İçli, Nuri Halil Poyraz, Cahit Sıtkı Tarancı, Semih Mümtaz (ö. 1956, 1 Ocak 2027'den kamu malı).
 
-- Telifli olduğu anlaşılan eserler `scripts/symbtr.js` çıktısından süzülmeli (bir dışlama listesiyle); bu iş yapılmadı.
 - Kamu malı olmak yalnız besteciyi ve güfte yazarını ilgilendirir; SymbTr'nin NC şartı (yukarıda) ayrıca geçerlidir.
+
+### Dışlama listesi
+
+`node scripts/lisans-disla.js [yıl]` iki tabloyu `notalar/index.json` ile eser eser eşleştirir ve iki dosya yazar. Yıl
+verilmezse bugünün yılı alınır. **Arşive dokunmaz:** `scripts/symbtr.js` bu listeyi okumuyor, telifli eserler `notalar/`
+içinde durmaktadır. Liste hukuki görüş değildir; tablolardaki zayıf kayıtlar buraya da geçer.
+
+- [lisans-disla.csv](lisans-disla.csv): en az bir hak sahibi telifli olan **690 eser**. `engel` sütunu: besteci 408, güfte
+  51, ikisi 231. `kamu_mali_yili`, eserin 1 Ocak'ta serbest kalacağı yıldır; hak sahiplerinden biri bilinmiyorsa ya da ölüm
+  yılı yoksa boştur (516 eserde dolu). `zayif_kaynak` = `evet` olan 233 eserde telifli sayılmanın dayanağı yalnız "tek
+  kaynak" ya da "ad eşleşmesi" kaydıdır; bunların 74'ü Şefik Gürmeriç'in seyirleridir (ölüm yılı Wikidata ad eşleşmesi).
+- [lisans-belirsiz.csv](lisans-belirsiz.csv): telifli hak sahibi görünmeyen, ama en az biri bilinmeyen **483 eser**. `eksik`
+  sütunu: besteci 326, güfte 95, ikisi 62. Bunlar dışlanmış sayılmadı, kamu malı da sayılmamalı.
+
+Dikkat edilecekler:
+
+- **Sözü gösterilmeyen 4 eser:** Vecdi Bingöl'ün güfteleri olan `Bende Oldum`, `Dilbera Sazın`, `Gül Mevsimi` ve `Şeb-i
+  Vuslat`ta besteci kamu malı, engel yalnız güftedir ve arşiv sözü göstermiyor. Listede kaldılar; yalnız ezgiyle tutulup
+  tutulamayacakları avukata sorulmalı.
+- **Listeye girmeyen boşluk:** kamu malı sayılan 896 eserin 354'ünde söz gösteriliyor ama güfte yazarı kayıtlı değil;
+  bunların 141'inde besteci 1900'den sonra ölmüş. Eski eserlerde sorun çıkması beklenmez, ama güftenin hakkına bakılmış
+  değildir. Bu eserler sınıflandırmada kamu malı kalmıştır.
+- **Seyir örnekleri:** makam ekranındaki örnekler arşivden gelir (`drills.js`). 169 seyirin 74'ü telifli (Şefik Gürmeriç),
+  66'sı belirsizdir (Erol Bingöl). Telifliler çıkarılırsa 78 makamın 16'sında, belirsizler de çıkarılırsa 49'unda seyir
+  örneği kalmaz.
+- **Her yıl yeniden çalıştırılmalı:** örneğin 2027 için liste 670 telifli, 490 belirsiz, 909 kamu malı verir. Ölüm yılı
+  belli satırlarda durum yıldan hesaplanır, tablodaki `telif_durumu` değil; tablo yine de elle güncellenmelidir.
 
 ## Woodwind Fingering Guide
 
