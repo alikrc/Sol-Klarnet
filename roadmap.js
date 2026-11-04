@@ -215,14 +215,16 @@ function stageGrowth(st, from, to){
 // dersleri bittiyse eksik kilometre taşı, 5. yeni ders, 6. kalan kilometre taşları.
 // 0. Bitmiş ama raporu gösterilmemiş son kademe varsa önce kısa kademe raporu (bir kez; o.reported: gösterilenler;
 // growth: kademe başı ve sonu arasında beceri farkı, stageGrowth).
-// o: { style, all, guided, dailyDone (bugün yapıldı mı), due (vadesi gelen tekrar sayısı), reported: [aşama id] }
+// o: { style, all, guided, dailyDone (bugün yapıldı mı), due (vadesi gelen tekrar sayısı), reported: [aşama id],
+// lessonOnly (yalnız ders ve sınav: gerileyen beceri ve kilometre taşı atlanır) }
 // Dönen: { kind: "lesson"|"daily"|"mile"|"done", why, id?, tab?, title?, ... }
 function coachNext(st, o = {}){
   const R = RMLESSONS, prog = st.prog, open = l => R.unlocked(l, prog, !!o.all), done = l => R.lessonDone(l, prog);
   const status = roadmapStatus(st, o.style), seen = o.reported || [];
   const fresh = status.filter(s => s.done && !seen.includes(s.stage.id)).pop();
   if(fresh){
-    const i = status.indexOf(fresh), next = status.slice(i + 1).find(s => !s.done);
+    // sıradaki kademe: sonrakiler bittiyse geride kalan bitmemiş kademe (taşlar her sırada geçilebilir)
+    const i = status.indexOf(fresh), next = status.slice(i + 1).find(s => !s.done) || status.find(s => !s.done);
     // kaç günde: aşamanın gerçekten çalınmış derslerinin ilk ve son bitiş günü arası
     const ds = R.LESSONS.filter(l => fresh.stage.units.includes(l.unit) && done(l) && !prog[l.id].placed && prog[l.id].d).map(l => prog[l.id].d).sort();
     const days = ds.length >= 2 ? Math.round((new Date(ds[ds.length - 1] + "T12:00:00") - new Date(ds[0] + "T12:00:00"))/864e5) + 1 : null;
@@ -234,19 +236,22 @@ function coachNext(st, o = {}){
   if(partial){ const p = R.lessonProgress(partial, prog); return { kind:"lesson", why:"resume", id:partial.id, title:partial.title, done:p.done, total:p.total }; }
   // ısınma, gerçekten çalınmış (karşılamada atlanmamış) bir ders varsa
   if(R.LESSONS.some(l => done(l) && !prog[l.id].placed) && !o.dailyDone) return { kind:"daily", why:"daily", due:o.due || 0 };
-  const weak = weakSkill(st, o.today);
+  const weak = o.lessonOnly ? null : weakSkill(st, o.today);
   if(weak) return { kind:"mile", why:"weak", ...weak };
-  const nx = R.LESSONS.find(l => open(l) && !done(l));
+  // Yeni ders kademe sırasıyla seçilir: hedef tarz oyun havalarıysa Trakya, Makamlar'dan önce gelir
+  const nx = status.flatMap(s => R.LESSONS.filter(l => s.stage.units.includes(l.unit))).find(l => open(l) && !done(l));
   const exam = R.EXAMS.find(e => open(e) && !done(e));
   const guided = o.guided && !o.all;                     // her şey açıksa sınav hiçbir şeyi açmaz
   if(exam && (guided || !nx)){
     const unit = R.UNITS.find(u => u.id === exam.unit);
-    const gates = guided ? R.UNITS.filter(u => R.gateFor(u.id, prog).includes(exam)).map(u => u.name) : [];
+    // Sınavı geçince gerçekten açılacak üniteler: kapısı kalksa da başka ders bekleyen ünite sayılmaz (Hız: dil vuruşu)
+    const after = { ...prog, [exam.id]: { s: Object.fromEntries(exam.steps.map((_, k) => [k, { ok:true }])) } };
+    const gates = guided ? R.UNITS.filter(u => R.gateFor(u.id, prog).includes(exam) && R.LESSONS.some(l => l.unit === u.id && R.unlocked(l, after))).map(u => u.name) : [];
     return { kind:"lesson", why:"exam", id:exam.id, title:exam.title, unit:unit && unit.name, gates };
   }
   const cur = status.find(s => s.current);
   const mile = s => { const x = s.miles.find(y => !y.ok); return x && { kind:"mile", why:"mile", tab:x.m.tab, title:x.m.title, stage:s.stage.title, v:x.v, target:x.m.target, unit:x.m.unit, lower:!!x.m.lower }; };
-  if(cur && cur.lessons.done === cur.lessons.total && mile(cur)) return mile(cur);
+  if(!o.lessonOnly && cur && cur.lessons.done === cur.lessons.total && mile(cur)) return mile(cur);
   if(nx){
     const i = R.LESSONS.indexOf(nx), first = i === 0 || R.LESSONS[i - 1].unit !== nx.unit, unit = R.UNITS.find(u => u.id === nx.unit);
     return { kind:"lesson", why: first ? "newUnit" : "next", id:nx.id, title:nx.title, unit:unit && unit.name };
@@ -258,7 +263,14 @@ function coachNext(st, o = {}){
   return { kind:"done", why:"done" };
 }
 
-if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, weakSkill, stageGrowth, coachNext };
+// Kartın sıradaki dersi ya da sınavı, ısınma, kademe raporu ve kilometre taşları araya girmeden: ders sonu düğmesi ve yol
+// haritasının odağı kartla aynı sırayı söylesin. Ders kalmadıysa null
+function coachLesson(st, o = {}){
+  const c = coachNext(st, { ...o, dailyDone:true, reported:RM_STAGES.map(s => s.id), lessonOnly:true });
+  return c.kind === "lesson" ? c.id : null;
+}
+
+if(typeof module !== "undefined") module.exports = { RM_STAGES, stageOrder, milestoneMet, roadmapStats, roadmapStatus, roadmapPace, weekView, bestStreak, badgeList, weekSummary, weakSkill, stageGrowth, coachNext, coachLesson };
 
 // ======== Sekme ========
 if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
@@ -292,7 +304,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
     const style = store.get("goal.style", "both");
     const st = roadmapStats((k, d) => store.get(k, d)), status = roadmapStatus(st, style), pace = roadmapPace(st, status);
     const wk = weekView(days, st.goalMin), wkGoal = wk.filter(d => d.state === "goal").length, cur = status.find(s => s.current);
-    const nx = nextLesson(st.prog, store.get("lesson.all", false));
+    const all = store.get("lesson.all", false), cl = coachLesson(st, { style, all, guided: store.get("lesson.guided", true) });
+    const nx = cl ? lessonById(cl) : nextLesson(st.prog, all);
     const miss = cur ? cur.miles.find(x => !x.ok) : null;
     const wks = w => w < 1 ? L("1 haftadan az", "under a week") : Math.round(w) + L(" hafta", " weeks");
     const months = w => w < 6 ? wks(w) : num(w/4.3, 0) + L(" ay", " months");

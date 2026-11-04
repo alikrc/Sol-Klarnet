@@ -75,10 +75,13 @@ TRAINERS.lessons = function(ctx){
   }
   // ---- Hoca kartı: bugün sıradaki tek adım ve nedeni (roadmap.js coachNext) ----
   let coach = null;
+  const coachSt = () => ({ ...roadmapStats((k, d) => store.get(k, d)), prog });
+  const coachOpts = () => ({ style: store.get("goal.style", "both"), all: allOpen, guided: store.get("lesson.guided", true) });
+  // Sıradaki ders: kartın dersi ya da sınavı (ders sonu düğmesi, kilitli ders notu ve ilk açılış kartla aynı şeyi göstersin)
+  const nextUp = () => { const id = coachLesson(coachSt(), coachOpts()); return id ? lessonById(id) : nextLesson(prog, allOpen); };
   function renderCoach(){
     const day = dayKey(new Date());
-    coach = coachNext({ ...roadmapStats((k, d) => store.get(k, d)), prog }, { style: store.get("goal.style", "both"), all: allOpen,
-      guided: store.get("lesson.guided", true), dailyDone: store.get("lesson.dailyDone", []).includes(day),
+    coach = coachNext(coachSt(), { ...coachOpts(), dailyDone: store.get("lesson.dailyDone", []).includes(day),
       due: srsDue(store.get("lesson.srs", {}), day).length, reported: store.get("rm.reported", []) });
     const c = coach, names = xs => xs.map(tx).join(", ");
     let head, why, btn;
@@ -121,7 +124,8 @@ TRAINERS.lessons = function(ctx){
   }
   $("lscoach").addEventListener("click", e => {
     if(!e.target.closest("[data-coach]") || !coach) return;
-    if(coach.kind === "report"){ store.set("rm.reported", coach.all); renderCoach(); return; }
+    // Eski kayıtlar korunur: yeniden ölçmede geri açılıp tekrar biten kademenin raporu ikinci kez gelmesin
+    if(coach.kind === "report"){ store.set("rm.reported", [...new Set([...store.get("rm.reported", []), ...coach.all])]); renderCoach(); return; }
     if(coach.kind === "lesson") openSub(lessonById(coach.id));
     else if(coach.kind === "daily") openSub(dailyLesson());
     else if(coach.kind === "mile") ctx.selectTab(coach.tab);
@@ -142,7 +146,7 @@ TRAINERS.lessons = function(ctx){
   function lockedNote(l){
     if(l && premiumUnit(l.unit)){ premiumNote(); return; }
     const gate = l && !l.exam ? gateFor(l.unit, prog) : [];
-    const nx = gate.length && unlocked(gate[0], prog, allOpen) ? gate[0] : nextLesson(prog, allOpen);
+    const nx = gate.length && unlocked(gate[0], prog, allOpen) ? gate[0] : nextUp();
     const msg = l && l.exam ? L("Ünite sınavı, ünitenin bütün dersleri bitince açılır.", "The unit test opens once every lesson in the unit is finished.")
               : gate.length ? L("Rehberli ilerleme: bu ünite, ", "Guided progress: this unit opens after ") + gate.map(e => tx(e.title)).join(", ") + L(" geçilince açılır.", " is passed.")
                             : L("Bu ders, önceki dersler bitince açılır.", "This lesson opens once the earlier lessons are finished.");
@@ -245,7 +249,7 @@ TRAINERS.lessons = function(ctx){
       el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🏆</i>${L("Sınavı geçtin!", "Test passed!")}</strong> ${L("Rozet", "Badge")}: ★ ${esc(tx(u.badge))} <button class="stopbtn small" type="button" data-act="tab" data-tab="roadmap">${L("Rozetlerim", "My badges")}</button></div>`;
       return;
     }
-    const nx = nextLesson(prog, allOpen);
+    const nx = nextUp();
     el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>` + summaryHtml(cur);
   }
   // Ders sonu özeti: her ölçülen adımın en iyi sonucu ve geçme koşulu. Koşulu en az farkla geçilen adım tekrar için
@@ -745,7 +749,7 @@ TRAINERS.lessons = function(ctx){
 
   // Bağlantıdaki ders (?ders=<id>) kayıtlı dersten önce gelir; kilitliyse sıradaki ders açılır
   const saved = new URLSearchParams(location.search).get("ders") || store.get("lesson.cur", ""), savedL = lessonById(saved);
-  open(saved === "daily" ? dailyLesson() : savedL && unlocked(savedL, prog, allOpen) ? savedL : (nextLesson(prog, allOpen) || LESSONS[0]));
+  open(saved === "daily" ? dailyLesson() : savedL && unlocked(savedL, prog, allOpen) ? savedL : (nextUp() || LESSONS[0]));
   return {
     enter(){ renderList(); if(cur){ SK.setTempContext(cur.makam || null); markScale(cur.makam ? makamById(cur.makam) : null); } },
     nowTitle: () => cur ? tx(cur.title) : "",

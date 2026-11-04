@@ -67,6 +67,19 @@ Aşamalar:
   sonuna beceri farkı da var (`stageGrowth`): kademenin ilk ve son ders günü arasındaki uzun ton puanı, ses kararlılığı,
   ritim ve taksim kayıtlarının ilk 3 ve son 3 ortalaması (en az 4 kayıt olan beceriler). Kayıt geçmişi 100 kayıtla
   sınırlı olduğu için uzun kademelerde başlangıç kayıtları düşmüş olabilir
+- **Uçtan uca denetim** — yapıldı (4 Kasım). Geçici benzetimle (depoda değil) sıfırdan, okuması ya da ritmi tutmayan,
+  notaları geçen, makam turlarını geçen, "tüm dersleri aç", rehberli kapalı, eski kullanıcı ve oyun havası hedefi son derse
+  kadar yürütüldü; rastgele durumlarda ve yolun ortasında yeniden ölçmede de çıkmaz çıkmadı. Düzeltilenler: yeniden ölçme
+  gerçekten çalınmış dersi `placed` yapıyordu (sonraki ölçme onu silebiliyordu; eski kayıtlarda ayırt edilemez), dersleri
+  gerçekten bitmiş ünitenin sınavını geçilmiş sayıyordu, ölçmeden geçince Başlarken'i, okuma ve ritim dersini bitmiş
+  sayıyordu; yeniden ölçmede "Başlarken'den başla" etkisizdi, tutmayan nota grubunun kaydı kalıyordu. Kart, sınavla
+  açılmayan üniteleri "açılır" diye sayıyordu; ders sonu düğmesi kartla aynı sırayı söylemiyordu; oyun havası hedefinde kart
+  Makam'ı Trakya'dan önce götürüyordu; rapor "bütün kademeler bitti" diyebiliyordu. Gerçek klarnetle denenmedi.
+  **Uzman görmeli:** İleri'nin ilk dersi zincirle Trakya'nın son dersine bağlı (`unlocked` son satırı): Makam sınavı tek
+  başına İleri'yi açmıyor, kapı listesinde böyle yazmıyor. Kart kademenin kilometre taşında bekler: taş tutmazsa (ör. tril 6
+  dönüş/sn) dersler açık olsa da hep onu söyler; bugünün çalışmasının tutmayan adımı da kartı o gün orada tutar. Yeniden
+  ölçmede tutmayan turdan sonraki turların kaydı kalır (Boğaz tutmazsa Register, Uşşak tutmazsa Hicaz). Silinen dersin
+  aralıklı tekrar kaydı (`lesson.srs`) kalıyor
 
 ### 2. Freemium — ertelendi (proje sahibi: "ileride bakarız", 3 Kasım 2026)
 

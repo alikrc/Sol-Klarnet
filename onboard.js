@@ -180,6 +180,7 @@
       ${!readOk() ? `<p>${L("Nota okumada zorlandın: Başlarken'deki \"Nota okuma\" dersini açık bıraktık, önce onu çalış.", "Reading was hard: we left the \"Reading music\" lesson in Getting started open; work on it first.")}</p>` : ""}
       ${!rhythmOk() ? `<p>${L("Ritimde zorlandın: Başlarken'deki \"Ritim: vuruş ve nota değerleri\" dersini açık bıraktık.", "Rhythm was hard: we left the \"Rhythm: the beat and note values\" lesson in Getting started open.")}</p>` : ""}
       ${mp ? `<p>${L("Bitmiş saydığımız makam dersleri: " + mkDone + ". Sınama yalnızca dizi perdelerini ve seyrin ana çizgisini yokladı; makam bilgini bütünüyle ölçmedi.", "Makam lessons we've marked as done: " + mkDone + ". The check only tried the scale perdes and the outline of a seyir; it doesn't measure your makam knowledge as a whole.")}</p>` : ""}
+      ${mp && remeasure && store.get("lesson.guided", true) && !store.get("lesson.all", false) ? `<p>${L("İleri ünitesi için Makamlar sınavı gerekir; sınav, ünitenin bütün dersleri bitince gelir ve hoca kartı seni oraya götürür.", "The Advanced unit needs the Makams test; the test comes once every lesson in the unit is finished, and the teacher card takes you there.")}</p>` : ""}
       ${mp < chk.mks.length ? `<p>${L("\"" + MK[mp].name() + "\" tutmadı: o turun derslerini açık bıraktık.", "\"" + MK[mp].name() + "\" didn't pass: we left that round's lessons open.")}</p>` : ""}
       ${chk.passed === 0 && chk.k <= 1 ? `<div class="pbar"><button class="stopbtn" type="button" data-ob="chknew">${L("Başlarken'den başla", "Start from Getting started")}</button></div>` : ""}
       <p class="muted">${L("Sınamayı Dersler listesinin altındaki \"Seviyemi yeniden ölç\" ile tekrarlayabilirsin.", "You can redo the check with \"Measure my level again\" below the lesson list.")}</p>`;
@@ -319,12 +320,22 @@
   });
 
   // Dersin bütün adımlarını geçilmiş say (okuma adımları 1, ölçülenler geçme eşiğiyle). Okuma dışındaki adımlar da
-  // geçilmiş sayılır: bilen biri bunlarda takılmasın. placed: çalınmadan geçildi (karşılamada atlandı ya da sınamayla)
+  // geçilmiş sayılır: bilen biri bunlarda takılmasın. placed: çalınmadan geçildi (karşılamada atlandı ya da sınamayla);
+  // gerçekten çalınıp bitmiş ders placed olmaz (yoksa sonraki ölçme onu silebilir, kart çalınmamış sanır)
   function markDone(prog, l, placed){
-    const p = prog[l.id] || (prog[l.id] = { s:{} });
+    const was = lessonDone(l, prog), p = prog[l.id] || (prog[l.id] = { s:{} });
     l.steps.forEach((st, k) => { if(!(p.s[k] && p.s[k].ok)) p.s[k] = { v: st.type === "read" ? 1 : st.type === "notes" ? 0 : (st.min || st.n || 1), ok:true }; });
     p.d = p.d || dayKey(new Date());
-    if(placed) p.placed = true;
+    if(placed && !was) p.placed = true;
+  }
+  // Sınamanın kapsadığı ünitenin dersleri bütünüyle bitmişse sınavı da geçilmiş sayılır (rehberli ilerlemede sonraki ünite
+  // açılsın); ders yeniden açıldıysa sınavın placed kaydı da kalkar. Dersleri hep gerçekten çalınmış ünitenin sınavı atlanmaz.
+  // Makamlar sınamayla bütünüyle ölçülmediği için sınavı hiç atlanmaz (kural: MK)
+  function syncExams(prog){
+    for(const u of UNITS){ const ex = examFor(u.id), ls = LESSONS.filter(l => l.unit === u.id);
+      if(!ex) continue;
+      if(ls.every(l => lessonDone(l, prog))){ if(u.id !== "makam" && ls.some(l => prog[l.id].placed)) markDone(prog, ex, true); }
+      else if(prog[ex.id] && prog[ex.id].placed) delete prog[ex.id]; }
   }
   // Seviyeye göre ders ilerlemesini kur: başlangıç ünitesi (ve isteğe göre her şey) açılır
   function finish(){
@@ -340,10 +351,19 @@
           if(prog[l.id] && prog[l.id].placed) delete prog[l.id];
           continue;
         }
+        // Yeniden ölçmede ölçülmeyen bölüm karar vermez: geçilen okuma ya da ritim, ilk notaları çıkmamış Başlarken dersi
+        // bitmiş sayılmaz (karşılamada "biraz çalabiliyorum" Başlarken'i baştan geçer)
+        if(remeasure && !(l.id === "nota-okuma" ? chk.rq >= READ.length : l.id === "ritim-temel" ? chk.rts.length > 0 : chk.k > 1)) continue;
         markDone(prog, l, true);
       }
-      // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri
-      CHECK.slice(0, chk.passed).forEach(g => g.lessons.forEach(id => { const l = lessonById(id); if(l) markDone(prog, l, true); }));
+      // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri. Notalar "Çalamıyorum"la bittiyse tutmayan grubun önceki
+      // sınamadan kalan (placed) kaydı silinir; sonraki gruplar çalınmadığı için karar vermez (makam turlarıyla aynı kural)
+      const noteEnd = !["intro", "read", "run"].includes(chk.state);
+      CHECK.forEach((g, gi) => g.lessons.forEach(id => {
+        const l = lessonById(id);
+        if(l && gi < chk.passed) markDone(prog, l, true);
+        else if(gi === chk.passed && noteEnd && prog[id] && prog[id].placed) delete prog[id];
+      }));
       // Makam turları: baştan geçilenlerin dersleri bitmiş sayılır, ölçülüp tutmayan turun placed kaydı silinir (kural: MK)
       const mp = mkPassed();
       MK.forEach((m, k) => m.lessons.forEach(id => {
@@ -351,14 +371,15 @@
         if(l && k < mp) markDone(prog, l, true);
         else if(k < chk.mks.length && prog[id] && prog[id].placed) delete prog[id];
       }));
-      // Dersleri bütünüyle geçilen ünitenin sınavı da geçilmiş sayılır (rehberli ilerlemede sonraki ünite açılsın); ders
-      // yeniden açıldıysa sınavın placed kaydı da kalkar
-      for(const u of UNITS){ const ex = examFor(u.id);
-        if(!ex) continue;
-        if(LESSONS.filter(l => l.unit === u.id).every(l => lessonDone(l, prog))) markDone(prog, ex, true);
-        else if(prog[ex.id] && prog[ex.id].placed) delete prog[ex.id]; }
+      syncExams(prog);
       store.set("lesson.prog", prog);
       if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, rhythm: chk.rts.length ? chk.rts : null, makam: chk.mks.length ? chk.mks.map(v => Math.round(v*100)/100) : null, d: dayKey(new Date()) });
+    }
+    // Yeniden ölçmede "Başlarken'den başla": çalınmadan bitmiş sayılan bütün dersler yeniden açılır
+    else if(remeasure){
+      for(const l of LESSONS) if(prog[l.id] && prog[l.id].placed) delete prog[l.id];
+      syncExams(prog);
+      store.set("lesson.prog", prog);
     }
     // Yeniden ölçme seviyeyi ve "bütün dersler açık" ayarını değiştirmez
     if(!remeasure){
