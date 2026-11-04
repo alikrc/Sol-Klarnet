@@ -201,7 +201,7 @@ teori, icra pratiği ve öğretmen tavsiyesi ayrı gösterilecek; doğrulanmamı
   tınısı değil"
 - **Lisanslar** ([LISANSLAR.md](LISANSLAR.md)): her kaynak, lisansı, ücretsiz/ticari durumu ve yapılacak iş. SymbTr NC
   şartı ticari sürümle çelişir; eser telifleri SymbTr lisansından ayrı. [lisans-besteciler.csv](lisans-besteciler.csv):
-  502 besteci, eser sayıları ve formlar; ölüm yılı ve telif durumu sütunları doldurulmalı (363 güfte yazarı ayrıca)
+  502 besteci, eser sayıları ve formlar; ölüm yılı ve telif durumu 4 Kasım'da dolduruldu (363 güfte yazarı `lisans-guftekarlar.csv`)
 - **Yapılan denetimler:** tarayıcıda akort ekranı (icra aralığı metni, Kendim düzenleyicisi, kayıt), usul sayfası
   (Sofyan, Karşılama, kavramlar), yeni derslerin sırası ve içeriği, "Dinle" etiketi; konsolda hata yok. Node'da
   `tuningCtx`/`perdeTarget` Kendim modu ve ders sırası
@@ -314,8 +314,11 @@ Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınm
   inerken der, Gürbüz ölçümü ikisini de verir)
 - **OMR düşük çözünürlük** (P1): 9 px bulanık sayfada ♯ büyük mücenneb ♯ okunuyor (12 notada 7 ve 4); Leland 11 px
   bulanıkta büyük mücenneb ♭ bakiye okunuyor (3). Ayırmak için gerçek düşük çözünürlüklü fotoğraf örnekleri gerekli
-- **Lisans tablosu** (P1): `lisans-besteciler.csv` ölüm yılı ve telif durumu sütunları hâlâ boş (502 besteci, 363 güfte
-  yazarı); ticari sürümden önce doldurulmalı
+- **Lisans tablosu** (P1): 4 Kasım 2026'da dolduruldu; `lisans-besteciler.csv` 502 satır (309 ölüm yılı dolu; 184 kamu
+  malı, 163 telifli, 1 anonim, 154 bilinmiyor), yeni `lisans-guftekarlar.csv` 363 satır (203 yıl dolu; 105 kamu malı, 122
+  telifli, 136 bilinmiyor). Sınır 2026 için ölüm yılı ≤ 1955 (FSEK m. 26-27). Kalan: `bilinmiyor` satırları için basılı
+  kaynak (Erol Bingöl, Ömer Sami Güpgüp, Ömer Dilek önce), "tek kaynak" notlu satırların doğrulanması ve telifli eserler
+  için dışlama listesi; ayrıntı `LISANSLAR.md`
 - **Proje sahibine / uzmana bağlı** (kod değil): gerçek Albert Sol klarnet kayıtları (her notada pp/mf/ff) ve
   `audio-check` ile sınama; 57 çeyrek ses parmağında ses kalitesi ve geçiş bilgisi; konuya özel kısa başlangıç videoları
   (eller, nefes, kamış takma); farklı icracı ve üsluplardan izinli örnekler; aşamalardaki "Uzman/hoca görmeli" maddeleri

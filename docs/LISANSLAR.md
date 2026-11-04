@@ -11,7 +11,7 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 | Kaynak | Nerede | Lisans | Ücretsiz dağıtım | Ticari kullanım | Yapılacak |
 |---|---|---|---|---|---|
 | SymbTr nota koleksiyonu | `notalar/` (2200 eser), Nota arşivi | CC BY-NC-SA 4.0 | Atıfla olur; türetilen veri de BY-NC-SA kalmalı | **Olmaz** (NC) | Ticari sürümde arşiv çıkarılmalı ya da MTG'den yazılı izin alınmalı; ayrıca eser telifleri (aşağıda) |
-| Eserlerin besteci ve güfte telifleri | `notalar/` | Eserine göre | Kontrol edilmedi | Kontrol edilmedi | `lisans-besteciler.csv` doldurulmalı |
+| Eserlerin besteci ve güfte telifleri | `notalar/` | Eserine göre | Tabloya göre eser eser bakılmalı | Telifli eserler izinsiz olmaz | `lisans-besteciler.csv` ve `lisans-guftekarlar.csv` dolduruldu (4 Kasım 2026); telifli eserler için dışlama listesi kurulmalı, bilinmeyenler araştırılmalı |
 | Woodwind Fingering Guide | `core.js` parmak tabloları, çeyrek ses parmakları | Açık lisans yok | Atıfla veriliyor | İzin gerekir | Sahibinden (WFG) yazılı izin |
 | University of Iowa EMS kayıtları | `sounds/klarnet.wav`, `testdata/iowa/` | Site: ücretsiz, "herhangi bir projede kısıtlamasız" | Olur | Olur (sitenin beyanına göre) | Beyanın ekran görüntüsü/arşiv bağlantısı saklanmalı |
 | VCSL darbuka | `sounds/darbuka.wav` | CC0 | Olur | Olur | — |
@@ -41,17 +41,57 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 
 ## Eserlerin telif durumu
 
-Arşivde 502 besteci (136 "Anonim", 118 boş), 363 güfte yazarı ve sözüyle birlikte gösterilen 1558 eser var. Türkiye'de
-(FSEK) eser sahibinin ölümünden sonra 70 yıl koruma sürer; besteci ve güfte yazarı için ayrı ayrı bakılır. Arşivde
-yakın zamanda ölmüş ve hâlâ yaşayan bestecilerin eserleri de var (ör. 20. yüzyıl şarkı ve saz eseri bestecileri,
-seyir örneklerini yazan çağdaş müzisyenler).
+Arşivde 502 besteci satırı (136 eser "Anonim", 118 boş), 363 güfte yazarı satırı ve sözüyle birlikte gösterilen 1558
+eser var. **Aşağıdaki tablolar çalışma tablosudur, hukuki görüş değildir.** Besteci ve güfte yazarının hakları ayrıdır:
+bir eserin kullanılabilmesi için ikisine de ayrı ayrı bakılır.
 
-- [lisans-besteciler.csv](lisans-besteciler.csv): bestecilere göre eser sayısı ve formlar; ölüm yılı ve telif durumu
-  sütunları boş. Her satır doldurulmalı: ölüm yılı + 70 yıl geçmişse "kamu malı", değilse "telifli — izin ya da çıkar".
-- Güfte yazarları ayrıca denetlenmeli (sözler eser ekranında gösteriliyor).
-- Türküler ve "Anonim" eserler: ezgi anonim olsa da derleyenin, notaya alanın ya da düzenleyenin hakları olabilir;
-  TRT repertuvarı kaynaklıysa ayrıca bakılmalı.
-- Telifli olduğu anlaşılan eserler `scripts/symbtr.js` çıktısından süzülmeli (bir dışlama listesiyle).
+- [lisans-besteciler.csv](lisans-besteciler.csv): bestecilere göre eser sayısı, formlar, ölüm yılı, telif durumu, kaynak.
+- [lisans-guftekarlar.csv](lisans-guftekarlar.csv): güfte yazarları için aynı düzen.
+
+**Süre kuralı (FSEK m. 26-27):** koruma, eser sahibinin hayatı boyunca ve ölümünden sonra 70 yıl sürer; süre ölüm yılını
+izleyen yılın 1 Ocak'ında başlar. Yani ölüm yılı Y ise koruma 31 Aralık Y+70'te biter. 2026 için sınır **ölüm yılı ≤ 1955**:
+1955'te ölenler 1 Ocak 2026'dan beri kamu malıdır, 1956'da ölenler 31 Aralık 2026'ya kadar korunur. Tablolar her yıl
+yeniden hesaplanmalıdır. Birden çok eser sahibi varsa süre son sağ kalanın ölümünden başlar; aslı ile işlenmesinin süreleri
+birbirinden bağımsızdır (m. 26).
+
+`telif_durumu` değerleri:
+
+| Değer | Anlamı |
+|---|---|
+| `kamu malı (ölüm + 70 doldu)` | Ölüm yılı ≤ 1955. `olum_yili` boşsa yıl kesin değildir ama kaynaktaki yüzyıl, yıl aralığı ya da doğum yılı (≤ 1855) sınırın çok öncesidir; `not` sütununda yazar |
+| `telifli` | Ölüm yılı ≥ 1956; ya da ölüm kaydı yok ve kişi 1955'ten sonra yaşamış (doğum ≥ 1937 ya da belgeli etkinlik) |
+| `bilinmiyor` | Ölüm yılı doğrulanamadı ya da kim olduğu belli değil. **Kamu malı sayılmamalı** |
+| `anonim` | Ölüm + 70 uygulanmaz; adsız eserde süre alenileşmeden başlar (m. 27). Ezgi anonim olsa da derleyenin, notaya alanın ya da düzenleyenin hakları olabilir; TRT repertuvarı kaynaklıysa ayrıca bakılmalı |
+
+**Kaynak sırası:** önce TDV İslâm Ansiklopedisi, sonra Wikidata, MusicBrainz, Vikipedi ve salihbora.com. Kaynak `not`
+sütununda yazar. "tek kaynak" ve "ad eşleşmesi" yazan satırlar daha zayıftır, ticari karardan önce yeniden bakılmalı.
+Kaynaklar farklıysa `not`ta belirtildi. Veri tabanı bağlantıları ada karşı denetlendi; yanlış bulunanlar kullanılmadı
+(ör. MusicBrainz İsmet Ağa'nın eserini Neşet Ertaş'a bağlıyor).
+
+**Durum (4 Kasım 2026):**
+
+| Tablo | Satır | Ölüm yılı dolu | Kamu malı | Telifli | Anonim | Bilinmiyor |
+|---|---:|---:|---:|---:|---:|---:|
+| Besteciler | 502 | 309 | 184 | 163 | 1 | 154 |
+| Güfte yazarları | 363 | 203 | 105 | 122 | 0 | 136 |
+
+Besteciye göre 2200 eserin 1015'i kamu malı, 639'u telifli, 410'u bilinmiyor, 136'sı anonim. Besteci ve güfte birlikte
+sayılınca: 896 eserde ikisi de kamu malı, 690 eserde en az biri telifli, 131 eser anonim ve güftesi engel değil, 483 eser
+belirsiz.
+
+**Nerede durdu:** bütün satırlara bakıldı, "kontrol edilmedi" kalmadı. Kalan iş, `bilinmiyor` satırlarıdır: 154 besteci
+ve 136 güfte yazarı aranan kaynaklarda bulunamadı, adaşlarından ayrılamadı ya da yalnızca doğum yılı biliniyor. Bunların
+71 besteci ve 6 güfte yazarı satırında MusicBrainz eseri geleneksel gösteriyor; bu adlar derleyen ya da kaynak kişi
+olabilir. Öncelik: Erol Bingöl (66 seyir), Ömer Sami Güpgüp (21), Ömer Dilek (13), boş besteci satırları (118 + 7 eser)
+ve "-" güfte satırı (64 eser). Bunlar için Öztuna'nın *Türk Mûsikîsi Ansiklopedisi* gibi basılı kaynak ya da TRT repertuvar
+kayıtları gerekir.
+
+Telif sınırına takılan önemli adlar: Şefik Gürmeriç (ö. 1967, 74 seyir), Sadettin Kaynak (ö. 1961, 44), Rûhî Ayangil (28),
+Münir Nurettin Selçuk (ö. 1981, 25); güftede Vecdi Bingöl (ö. 1973, 24), Yahya Kemal Beyatlı (ö. 1958, 13). Sınır yılında:
+Şerif İçli, Nuri Halil Poyraz, Cahit Sıtkı Tarancı, Semih Mümtaz (ö. 1956, 1 Ocak 2027'den kamu malı).
+
+- Telifli olduğu anlaşılan eserler `scripts/symbtr.js` çıktısından süzülmeli (bir dışlama listesiyle); bu iş yapılmadı.
+- Kamu malı olmak yalnız besteciyi ve güfte yazarını ilgilendirir; SymbTr'nin NC şartı (yukarıda) ayrıca geçerlidir.
 
 ## Woodwind Fingering Guide
 
