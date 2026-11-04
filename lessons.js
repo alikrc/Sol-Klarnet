@@ -1573,8 +1573,11 @@ function shiftDay(day, n){
   return t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate());
 }
 // Kaydı olmayan bitmiş dersleri sıraya ekler. Bu özellikten önce bitmiş çok ders varsa hepsi aynı gün gelmesin:
-// k. ders en erken bugün + k/SRS_PER_DAY günde.
+// k. ders en erken bugün + k/SRS_PER_DAY günde. Dersi müfredattan kalkmış ya da ilerlemesi silinmiş (yeniden ölçme çalınmamış
+// dersi açar) kayıt atılır. Yalnız bu ikisi: adım eklendiği için bitmiş sayılmayan eski dersin (yedekten dönen veri) kaydı ve
+// aralığı kalır
 function srsSync(srs, prog, day){
+  for(const id of Object.keys(srs)) if(!lessonById(id) || !prog[id]) delete srs[id];
   let k = 0;
   for(const l of LESSONS){
     if(srs[l.id] || !lessonDone(l, prog) || !l.steps.some(gatedStep)) continue;
@@ -1930,7 +1933,13 @@ function dailyPlan(ctx){
            tips:[], steps };
 }
 
+// Bugünün çalışması denenip bırakıldı mı: bütün adımların sonucu var (geçti ya da tutmadı). Tutmayan adım hoca kartını o gün
+// bekletmesin; günlük çalışma yine bitmiş sayılmaz (lesson.dailyDone, rozet ve seri ayrı). daily: lesson.daily kaydı
+function dailySettled(daily, day){
+  return !!daily && daily.day === day && daily.plan.every((st, i) => st.type === "listen" || daily.p.s[i]);
+}
+
 if(typeof module !== "undefined") module.exports = {
   UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
-  unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, setGuided, gateFor, examPassed
+  unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed
 };

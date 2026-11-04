@@ -44,8 +44,8 @@ Aşamalar:
 - **B. "Hocan diyor ki" kartı** — yapıldı (3 Kasım). Dersler'in en üstünde tek bir sıradaki adım ve nedeni
   (`roadmap.js` `coachNext`): yarım kalan ders/sınav → bugünün çalışması (ısınma ve vadesi gelen tekrarlar; yalnız
   gerçekten çalınmış ders varsa) → dersleri bitmiş ünitenin sınavı (hangi üniteleri açacağıyla) → kademenin dersleri
-  bittiyse eksik kilometre taşı (şu anki değer ve hedef, alıştırmaya git) → yeni ders/yeni ünite → kalan kilometre
-  taşları. Liste kartın altında duruyor
+  bittiyse eksik kilometre taşı (şu anki değer ve hedef, alıştırmaya git; takılan taş kartı tutmaz, aşağıda) → yeni
+  ders/yeni ünite → kalan kilometre taşları. Liste kartın altında duruyor
 - **C. Kademe kapısı (rehberli mod)** — yapıldı (3 Kasım). `lessons.js` `GATE_AFTER`/`gateFor`: Temeller ←
   Başlarken sınavı, Register ← Temeller sınavı; teknik, hız, süsleme, makam ve Trakya ← Register sınavı; İleri ← Makam
   sınavı. Kilitli derse dokununca hangi sınavın eksik olduğu ve sınava giden düğme. Dersler listesinin altında "rehberli
@@ -76,10 +76,36 @@ Aşamalar:
   açılmayan üniteleri "açılır" diye sayıyordu; ders sonu düğmesi kartla aynı sırayı söylemiyordu; oyun havası hedefinde kart
   Makam'ı Trakya'dan önce götürüyordu; rapor "bütün kademeler bitti" diyebiliyordu. Gerçek klarnetle denenmedi.
   **Uzman görmeli:** İleri'nin ilk dersi zincirle Trakya'nın son dersine bağlı (`unlocked` son satırı): Makam sınavı tek
-  başına İleri'yi açmıyor, kapı listesinde böyle yazmıyor. Kart kademenin kilometre taşında bekler: taş tutmazsa (ör. tril 6
-  dönüş/sn) dersler açık olsa da hep onu söyler; bugünün çalışmasının tutmayan adımı da kartı o gün orada tutar. Yeniden
-  ölçmede tutmayan turdan sonraki turların kaydı kalır (Boğaz tutmazsa Register, Uşşak tutmazsa Hicaz). Silinen dersin
-  aralıklı tekrar kaydı (`lesson.srs`) kalıyor
+  başına İleri'yi açmıyor, kapı listesinde böyle yazmıyor. Denetimin bulduğu takılmalar aşağıdaki maddede
+- **Takılmaların giderilmesi** — yapıldı (4 Kasım). Kapılar (`gateFor`, `GATE_AFTER`) ve eşikler değişmedi; taşların kapı
+  olması `kapi-taslar` hoca sorusunda.
+  **Kilometre taşı:** kart tutmayan taşta sonsuza kadar beklemiyor. Ölçüt `roadmap.js` `MILE_STUCK` (`triedDays:2`,
+  `waitDays:3`), hesap `mileStuck`. Sayaç kademenin son dersinin bitiş gününden sonra başlar. Taş iki ayrı günde denenip
+  tutmadıysa ya da üç çalışılan günde (en az 60 sn, seriyle aynı) tutmadıysa takılmış sayılır; kademede bekleyen n. taşa 3×n
+  gün tanınır (`roadmapPace` de taş başına bir derslik çalışma, ders başına ≈ 3 gün sayar). Aynı günün denemeleri bir gün
+  sayılır: "bugün olmadı, yarın yine dene". Çalışılmayan gün saymaz: uzun aradan dönene kart taşı yine söyler. Kart sıradaki
+  takılmamış taşa (dersleri bitmiş sonraki kademeninkiler dahil), o da yoksa sıradaki derse geçer; takılan ilk taş ders ve
+  sınav kartında "Yan öneri" olarak kalır (`side`, alıştırma düğmesiyle), taş tutunca kalkar. Ders kalmadıysa kart yine
+  taşı söyler. Deneme günleri var olan kayıtlardan: `long.hist`, `rhythm.hist` (yalnız alıştırma; ders denemesi bu taşları
+  yükseltmez), `quiz.rounds`, `sight.hist`, `dict.hist`, `tech.best` (yalnız temiz çalışlar yazılır), `orn.hist`,
+  `seyir.hist`, `band.hist`. Kulak eşiği, makam tanıma ve iki etüt taşının deneme kaydı yok: bunlar yalnız günle bırakılır.
+  Değerler gerçek kullanımla gözden geçirilmeli.
+  **Bugünün çalışması:** `lessons.js` `dailySettled`: bütün adımların sonucu varsa (geçti ya da tutmadı) kart günü bırakır,
+  sıradaki adıma geçer. Bir adımın bir kez denenmesi yeter, çünkü plan ertesi gün yeniden kurulur. Günlük çalışma yine bitmiş
+  sayılmaz: `lesson.dailyDone`, rozet değişmez, listede 6/8 gibi görünür. Sonuç vermeyen adım (nota tutulamayan uzun ton,
+  "Durdur") denenmiş sayılmaz; kart o gün günlükte kalır, liste altta açıktır.
+  **Aralıklı tekrar:** `srsSync` dersi müfredattan kalkmış ya da ilerlemesi silinmiş (yeniden ölçmenin açtığı ders) kaydı
+  atar; yeniden ölçme sonunda da çalışır. Yedek bütün anahtarları birlikte getirdiği için ilerlemesi olan kayıt korunur: adım
+  eklendiği için bitmemiş sayılan eski dersin aralığı kalır.
+  **Yeniden ölçmede sonraki turlar: kayıt silinmiyor, davranış değişmedi.** Boğaz tutmazsa Register ve Klarino, Rast ya da
+  Uşşak tutmazsa sonraki turların `placed` kaydı kalır. Neden: (1) bu turlar çalınmadı, yani yeni ölçüm yok; kayıt önceki
+  sınamanın gerçek ölçümünden geliyor ve `onboard.js`'in okuma, ritim, nota ve makam bölümlerindeki kural aynı ("geçilmeyen
+  tur karar vermez"); (2) silmek geri alınamaz, kötü bir günde tek tur birkaç dersi siler; (3) benzetimde kalan kayıt çıkmaz
+  yapmıyor: kart önce tutmayan turun dersine götürüyor ve yol sonuna varıyor; sonuç ekranı da "o turun derslerini açık
+  bıraktık" diyor. Pedagojik yanı (bir grubu çalamayan sonrakini de çalamaz mı) `sinama-sonraki` hoca sorusunda.
+  Doğrulama: geçici benzetimle (depoda değil; gerçek `onboard.js` `finish` ile) takılan taşlar, günlük, eski veri, yeniden
+  ölçme, beş ayarda baştan sona yürüyüş ve 3000 rastgele durum; tarayıcıda kart, yan öneri ve telefon genişliği. Gerçek
+  klarnetle denenmedi
 
 ### 2. Freemium — ertelendi (proje sahibi: "ileride bakarız", 3 Kasım 2026)
 

@@ -357,7 +357,7 @@
         markDone(prog, l, true);
       }
       // Çalma sınamasında baştan eksiksiz geçilen grupların dersleri. Notalar "Çalamıyorum"la bittiyse tutmayan grubun önceki
-      // sınamadan kalan (placed) kaydı silinir; sonraki gruplar çalınmadığı için karar vermez (makam turlarıyla aynı kural)
+      // sınamadan kalan (placed) kaydı silinir; sonraki gruplar çalınmadığı için karar vermez, eski ölçümleri durur (makam turlarıyla aynı kural, gerekçe docs/BACKLOG.md)
       const noteEnd = !["intro", "read", "run"].includes(chk.state);
       CHECK.forEach((g, gi) => g.lessons.forEach(id => {
         const l = lessonById(id);
@@ -381,6 +381,8 @@
       syncExams(prog);
       store.set("lesson.prog", prog);
     }
+    // Yeniden açılan derslerin aralıklı tekrar kaydı kalmasın (hoca kartının tekrar sayısı da)
+    store.set("lesson.srs", srsSync(store.get("lesson.srs", {}), prog, dayKey(new Date())));
     // Yeniden ölçme seviyeyi ve "bütün dersler açık" ayarını değiştirmez
     if(!remeasure){
       store.set("onboard.level", pickd.level);

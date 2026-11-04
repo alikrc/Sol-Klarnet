@@ -6,50 +6,52 @@
 const RMLESSONS = typeof module !== "undefined" ? require("./lessons.js") : { LESSONS, UNITS, EXAMS, lessonDone, lessonProgress, unlocked, nextLesson, examFor, gateFor };
 const RMLEARN = typeof module !== "undefined" ? require("./learn.js") : { dayKey, unlockedLevels };
 
-// Kilometre taşı: { id, title, tab (açılacak alıştırma), get(st) → ölçülen değer (null: henüz yok), target, lower (küçük iyi) }
-// st: roadmapStats'ın topladığı değerler
+// Kilometre taşı: { id, title, tab (açılacak alıştırma), get(st) → ölçülen değer (null: henüz yok), target, lower (küçük iyi),
+// tried(st) → taşın denendiği günler (mileStuck; denemesi kayıtlı olmayan taşta yok: kulak ve makam tanıma, etüt) }
+// st: roadmapStats'ın topladığı değerler. long ve rhythm taşı yalnız alıştırmadan ölçülür, ders ve günlük plan denemesi (src) sayılmaz
+const histDays = (key, ok = () => true) => st => st.hist[key].filter(ok).map(x => x.d);
 const RM_STAGES = [
   { id:"baslangic", units:["baslangic","temel"], title:{ tr:"Başlangıç: ilk sesler", en:"Beginner: first sounds" },
     goal:{ tr:"Klarneti kurar, nefesle temiz ses çıkarır, iki elle Mi3–Sol4 arasını çalarsın.", en:"You assemble the clarinet, make a clean sound and play E3–G4 with both hands." },
     miles:[
-      { id:"long67", tab:"long", title:{ tr:"Açık Sol'da uzun ton", en:"Long tone on open G" }, unit:{ tr:" puan", en:" pts" }, target:60, get: st => st.longBest[67] || null },
-      { id:"quiz1", tab:"quiz", title:{ tr:"Parmak testi: klarino bölgesi açıldı", en:"Fingering quiz: clarion region unlocked" }, unit:{ tr:" bölge", en:" regions" }, target:2, get: st => st.quizRegions }
+      { id:"long67", tab:"long", title:{ tr:"Açık Sol'da uzun ton", en:"Long tone on open G" }, unit:{ tr:" puan", en:" pts" }, target:60, get: st => st.longBest[67] || null, tried: histDays("long", x => x.w === 67 && !x.src) },
+      { id:"quiz1", tab:"quiz", title:{ tr:"Parmak testi: klarino bölgesi açıldı", en:"Fingering quiz: clarion region unlocked" }, unit:{ tr:" bölge", en:" regions" }, target:2, get: st => st.quizRegions, tried: histDays("quiz") }
     ] },
   { id:"temel", units:["klarino","teknik"], title:{ tr:"Temel çalgıcı: register, ritim, okuma", en:"Core player: register, rhythm, reading" },
     goal:{ tr:"Klarino bölgesi, dil vuruşu, dinamik, usuller; notayı ilk görüşte okur ve koma farkını duyarsın.", en:"The clarion register, tonguing, dynamics, usuls; you sight-read and hear comma differences." },
     miles:[
-      { id:"rhythm", tab:"rhythm", title:{ tr:"Ritim puanı", en:"Rhythm score" }, unit:{ tr:" puan", en:" pts" }, target:75, get: st => st.rhythmBest || null },
+      { id:"rhythm", tab:"rhythm", title:{ tr:"Ritim puanı", en:"Rhythm score" }, unit:{ tr:" puan", en:" pts" }, target:75, get: st => st.rhythmBest || null, tried: histDays("rhythm", x => !x.src) },
       { id:"ear", tab:"ear", title:{ tr:"Kulak eşiği (tiz mi pes mi)", en:"Ear threshold (higher or lower)" }, unit:{ tr:" koma", en:" commas" }, target:2, lower:true, get: st => st.earPitch },
-      { id:"sight2", tab:"desifre", title:{ tr:"Deşifre seviye 2", en:"Sight-reading level 2" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[2] || null },
-      { id:"dictr", tab:"dikte", title:{ tr:"Ritim diktesi seviye 2 (10 soruda)", en:"Rhythm dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:7, get: st => st.dictBest.rhythm2 || null }
+      { id:"sight2", tab:"desifre", title:{ tr:"Deşifre seviye 2", en:"Sight-reading level 2" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[2] || null, tried: histDays("sight", x => +x.lv === 2) },
+      { id:"dictr", tab:"dikte", title:{ tr:"Ritim diktesi seviye 2 (10 soruda)", en:"Rhythm dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:7, get: st => st.dictBest.rhythm2 || null, tried: histDays("dict", x => x.m === "rhythm" && +x.lv === 2) }
     ] },
   { id:"orta", units:["hiz","susleme"], title:{ tr:"Orta: hız ve süsleme", en:"Intermediate: speed and ornaments" },
     goal:{ tr:"Gam ve arpejleri metronomla hızlanarak, çarpma, mordan, tril ve kayışları ölçülü çalarsın.", en:"Scales and arpeggios speeding up with the metronome; grace notes, mordents, trills and slides, measured." },
     miles:[
-      { id:"tech", tab:"hiz", title:{ tr:"Hız: en iyi temiz tempo", en:"Speed: best clean tempo" }, unit:{ tr:" ♩", en:" ♩" }, target:100, get: st => st.techBest || null },
-      { id:"tril", tab:"susleme", title:{ tr:"Tril hızı", en:"Trill speed" }, unit:{ tr:" dönüş/sn", en:" turns/s" }, target:6, get: st => st.trilBest || null },
-      { id:"carpma", tab:"susleme", title:{ tr:"Çarpma başarısı (son 20)", en:"Grace notes (last 20)" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.carpmaRate }
+      { id:"tech", tab:"hiz", title:{ tr:"Hız: en iyi temiz tempo", en:"Speed: best clean tempo" }, unit:{ tr:" ♩", en:" ♩" }, target:100, get: st => st.techBest || null, tried: histDays("tech") },
+      { id:"tril", tab:"susleme", title:{ tr:"Tril hızı", en:"Trill speed" }, unit:{ tr:" dönüş/sn", en:" turns/s" }, target:6, get: st => st.trilBest || null, tried: histDays("orn", x => x.kind === "tril") },
+      { id:"carpma", tab:"susleme", title:{ tr:"Çarpma başarısı (son 20)", en:"Grace notes (last 20)" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.carpmaRate, tried: histDays("orn", x => x.kind === "carpma") }
     ] },
   { id:"makam", units:["makam"], title:{ tr:"Makamlar", en:"Makams" },
     goal:{ tr:"Dokuz temel ve on genişletilmiş makamın dizisini, seyrini ve icra akordunu oturtursun.", en:"You settle the scale, seyir and practice tuning of nine basic and ten extended makams." },
     miles:[
-      { id:"seyir", tab:"seyir", title:{ tr:"Seyir puanı", en:"Seyir score" }, unit:{ tr:" puan", en:" pts" }, target:65, get: st => st.seyirBest || null },
+      { id:"seyir", tab:"seyir", title:{ tr:"Seyir puanı", en:"Seyir score" }, unit:{ tr:" puan", en:" pts" }, target:65, get: st => st.seyirBest || null, tried: histDays("seyir") },
       { id:"makamid", tab:"ear", title:{ tr:"Makam tanıma rekoru", en:"Makam ID record" }, unit:{ tr:" art arda", en:" in a row" }, target:5, get: st => st.earMakam || null },
-      { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null }
+      { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null, tried: histDays("dict", x => x.m === "melody" && +x.lv === 2) }
     ] },
   { id:"trakya", units:["trakya"], title:{ tr:"Oyun havaları: Trakya ve Roman", en:"Dance tunes: Thracian and Romani" },
     goal:{ tr:"Kasap, karşılama, Roman havası, çiftetelli ve Rumeli havalarını usule oturarak, üslubuyla ve eşlikle çalarsın.", en:"You play kasap, karşılama, Roman havası, çiftetelli and Rumeli tunes in the groove, in style and with a band." },
     miles:[
       { id:"roman", tab:"piece", title:{ tr:"Roman havası etüdü (tempolu)", en:"Roman havası étude (in tempo)" }, unit:{ tr:"%", en:"%" }, target:80, get: st => st.pieceBest["e-roman"] || null },
       { id:"karsilama", tab:"piece", title:{ tr:"Karşılama etüdü (tempolu)", en:"Karşılama étude (in tempo)" }, unit:{ tr:"%", en:"%" }, target:80, get: st => st.pieceBest["e-karsilama"] || null },
-      { id:"groove", tab:"band", title:{ tr:"Eşlikle çalarken usule oturma", en:"In the groove with the band" }, unit:{ tr:"%", en:"%" }, target:75, get: st => st.bandGrid }
+      { id:"groove", tab:"band", title:{ tr:"Eşlikle çalarken usule oturma", en:"In the groove with the band" }, unit:{ tr:"%", en:"%" }, target:75, get: st => st.bandGrid, tried: histDays("band") }
     ] },
   { id:"ileri", units:["ileri"], title:{ tr:"İleri: taksim ve ustalık", en:"Advanced: taksim and mastery" },
     goal:{ tr:"Taksim yapar, bir komayı duyar, metronomsuz tempoyu korur, makam perdeli notayı ilk görüşte okursun.", en:"You play a taksim, hear a single comma, keep tempo without a click and sight-read makam scores." },
     miles:[
       { id:"ear1", tab:"ear", title:{ tr:"Kulak eşiği 1 koma", en:"Ear threshold 1 comma" }, unit:{ tr:" koma", en:" commas" }, target:1, lower:true, get: st => st.earPitch },
-      { id:"seyir3", tab:"seyir", title:{ tr:"Üç makamda seyir puanı 75", en:"Seyir 75 in three makams" }, unit:{ tr:" makam", en:" makams" }, target:3, get: st => st.seyirMakams75 },
-      { id:"sight4", tab:"desifre", title:{ tr:"Deşifre seviye 4", en:"Sight-reading level 4" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[4] || null }
+      { id:"seyir3", tab:"seyir", title:{ tr:"Üç makamda seyir puanı 75", en:"Seyir 75 in three makams" }, unit:{ tr:" makam", en:" makams" }, target:3, get: st => st.seyirMakams75, tried: histDays("seyir") },
+      { id:"sight4", tab:"desifre", title:{ tr:"Deşifre seviye 4", en:"Sight-reading level 4" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[4] || null, tried: histDays("sight", x => +x.lv === 4) }
     ] }
 ];
 // Hedef tarz: "dance" oyun havalarını makam aşamasından önceye alır
@@ -77,7 +79,9 @@ function roadmapStats(get){
     techBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
     seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length,
     pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,
-    hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []) }
+    hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []), quiz: get("quiz.rounds", []),
+      sight: get("sight.hist", []), dict: get("dict.hist", []), band, tech: Object.values(tb).flat().map(x => ({ d: x.day })),
+      orn: get("orn.hist", []).map(h => ({ kind: h.kind, d: RMLEARN.dayKey(new Date(h.t)) })) }
   };
 }
 // Aşamaların durumu: { stage, lessons:{done,total}, miles:[{m, v, ok}], done, pct }; ilk bitmemiş aşama current
@@ -209,15 +213,28 @@ function stageGrowth(st, from, to){
   }
   return out;
 }
+// Kartın beklediği taş ne zaman bırakılır: tutmayan taş (ör. tril 6 dönüş/sn) dersler açıkken kartı sonsuza kadar tutmasın.
+// Sayaç kademenin son dersinin bitiş gününden sonra başlar (o gün sayılmaz). Taş, triedDays ayrı günde denenip tutmadıysa ya da
+// waitDays çalışılan günde (en az 60 sn, seri ile aynı) tutmadıysa takılmış sayılır; kademede bekleyen n. taşa n katı süre tanınır:
+// roadmapPace de taş başına bir derslik çalışma, ders başına ≈ 3 gün sayar. Tek deneme ya da aynı günün denemeleri yetmez
+const MILE_STUCK = { triedDays:2, waitDays:3 };
+function mileStuck(st, s, x){
+  const from = RMLESSONS.LESSONS.filter(l => s.stage.units.includes(l.unit)).reduce((a, l) => { const d = st.prog[l.id] && st.prog[l.id].d; return d > a ? d : a; }, "");
+  const count = ds => new Set(ds.filter(d => d > from)).size;
+  const turn = s.miles.filter(y => !y.ok).indexOf(x) + 1;
+  return (x.m.tried ? count(x.m.tried(st)) : 0) >= MILE_STUCK.triedDays ||
+    count(Object.keys(st.days).filter(d => st.days[d] >= 60)) >= MILE_STUCK.waitDays*turn;
+}
 // Hoca kartı: bugün sıradaki tek adım ve nedeni (metni lessonview.js yazar). Sıra, hocanın derse başlatması gibi:
 // 1. yarım kalan ders ya da sınav, 2. bugünün çalışması (ısınma ve vadesi gelen tekrarlar; en az bir ders bittiyse ve
 // bugün yapılmadıysa), 2b. son haftalarda gerileyen beceri (weakSkill), 3. dersleri bitmiş ünitenin sınavı (rehberli modda ya da yeni ders kalmadıysa), 4. kademenin
-// dersleri bittiyse eksik kilometre taşı, 5. yeni ders, 6. kalan kilometre taşları.
+// dersleri bittiyse eksik kilometre taşı (takılan taş hariç, mileStuck), 5. yeni ders, 6. kalan kilometre taşları.
+// Takılan taş 3 ve 5'te side alanıyla yan öneri olur: kart ilerler, taş kapı değildir.
 // 0. Bitmiş ama raporu gösterilmemiş son kademe varsa önce kısa kademe raporu (bir kez; o.reported: gösterilenler;
 // growth: kademe başı ve sonu arasında beceri farkı, stageGrowth).
-// o: { style, all, guided, dailyDone (bugün yapıldı mı), due (vadesi gelen tekrar sayısı), reported: [aşama id],
+// o: { style, all, guided, dailyDone (bugün yapıldı ya da denenip bırakıldı mı, dailySettled), due (vadesi gelen tekrar sayısı), reported: [aşama id],
 // lessonOnly (yalnız ders ve sınav: gerileyen beceri ve kilometre taşı atlanır) }
-// Dönen: { kind: "lesson"|"daily"|"mile"|"done", why, id?, tab?, title?, ... }
+// Dönen: { kind: "lesson"|"daily"|"mile"|"done", why, id?, tab?, title?, side?, ... }
 function coachNext(st, o = {}){
   const R = RMLESSONS, prog = st.prog, open = l => R.unlocked(l, prog, !!o.all), done = l => R.lessonDone(l, prog);
   const status = roadmapStatus(st, o.style), seen = o.reported || [];
@@ -242,19 +259,28 @@ function coachNext(st, o = {}){
   const nx = status.flatMap(s => R.LESSONS.filter(l => s.stage.units.includes(l.unit))).find(l => open(l) && !done(l));
   const exam = R.EXAMS.find(e => open(e) && !done(e));
   const guided = o.guided && !o.all;                     // her şey açıksa sınav hiçbir şeyi açmaz
+  const cur = status.find(s => s.current);
+  const mile = (s, x = s.miles.find(y => !y.ok)) => x && { kind:"mile", why:"mile", tab:x.m.tab, title:x.m.title, stage:s.stage.title, v:x.v, target:x.m.target, unit:x.m.unit, lower:!!x.m.lower };
+  // Bekleyen taşlar: geçerli kademeden başlayıp dersleri bitmiş kademeler boyunca. İlk takılmayan kartın adımı, ilk takılan yan öneri
+  let wait = null, side;
+  if(!o.lessonOnly && cur) for(const s of status.slice(status.indexOf(cur))){
+    if(wait || s.lessons.done < s.lessons.total) break;
+    for(const x of s.miles.filter(y => !y.ok)){
+      if(!mileStuck(st, s, x)){ wait = mile(s, x); break; }
+      side = side || mile(s, x);
+    }
+  }
   if(exam && (guided || !nx)){
     const unit = R.UNITS.find(u => u.id === exam.unit);
     // Sınavı geçince gerçekten açılacak üniteler: kapısı kalksa da başka ders bekleyen ünite sayılmaz (Hız: dil vuruşu)
     const after = { ...prog, [exam.id]: { s: Object.fromEntries(exam.steps.map((_, k) => [k, { ok:true }])) } };
     const gates = guided ? R.UNITS.filter(u => R.gateFor(u.id, prog).includes(exam) && R.LESSONS.some(l => l.unit === u.id && R.unlocked(l, after))).map(u => u.name) : [];
-    return { kind:"lesson", why:"exam", id:exam.id, title:exam.title, unit:unit && unit.name, gates };
+    return { kind:"lesson", why:"exam", id:exam.id, title:exam.title, unit:unit && unit.name, gates, side };
   }
-  const cur = status.find(s => s.current);
-  const mile = s => { const x = s.miles.find(y => !y.ok); return x && { kind:"mile", why:"mile", tab:x.m.tab, title:x.m.title, stage:s.stage.title, v:x.v, target:x.m.target, unit:x.m.unit, lower:!!x.m.lower }; };
-  if(!o.lessonOnly && cur && cur.lessons.done === cur.lessons.total && mile(cur)) return mile(cur);
+  if(wait) return wait;
   if(nx){
     const i = R.LESSONS.indexOf(nx), first = i === 0 || R.LESSONS[i - 1].unit !== nx.unit, unit = R.UNITS.find(u => u.id === nx.unit);
-    return { kind:"lesson", why: first ? "newUnit" : "next", id:nx.id, title:nx.title, unit:unit && unit.name };
+    return { kind:"lesson", why: first ? "newUnit" : "next", id:nx.id, title:nx.title, unit:unit && unit.name, side };
   }
   // kalan dersler premium ünitedeyse (premium.js) satın alma bilgisi
   const prem = R.LESSONS.find(l => !done(l) && !open(l) && (typeof module !== "undefined" ? require("./premium.js").premiumUnit : premiumUnit)(l.unit));

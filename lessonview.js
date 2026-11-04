@@ -81,9 +81,10 @@ TRAINERS.lessons = function(ctx){
   const nextUp = () => { const id = coachLesson(coachSt(), coachOpts()); return id ? lessonById(id) : nextLesson(prog, allOpen); };
   function renderCoach(){
     const day = dayKey(new Date());
-    coach = coachNext(coachSt(), { ...coachOpts(), dailyDone: store.get("lesson.dailyDone", []).includes(day),
+    coach = coachNext(coachSt(), { ...coachOpts(), dailyDone: store.get("lesson.dailyDone", []).includes(day) || dailySettled(daily, day),
       due: srsDue(store.get("lesson.srs", {}), day).length, reported: store.get("rm.reported", []) });
     const c = coach, names = xs => xs.map(tx).join(", ");
+    const mileNow = m => (m.v == null ? L("henüz ölçülmedi", "not measured yet") : L("şu an ", "now ") + num(m.v, Number.isInteger(m.v) ? 0 : 1) + tx(m.unit)) + ", " + L("hedef ", "goal ") + (m.lower ? "≤ " : "") + m.target + tx(m.unit);
     let head, why, btn;
     switch(c.why){
       case "resume": head = tx(c.title); btn = L("Devam et", "Continue");
@@ -96,7 +97,7 @@ TRAINERS.lessons = function(ctx){
                              : L(`${tx(c.unit)} ünitesini bitirdin; sınavla pekiştir.`, `You've finished ${tx(c.unit)}; consolidate it with the test.`); break;
       case "mile": head = tx(c.title); btn = L("Alıştırmaya git", "Go to the exercise");
         why = L(`"${tx(c.stage)}" kademesinin dersleri bitti. Kademeyi tamamlamak için bu ölçüm hedefe ulaşmalı: `, `The lessons of "${tx(c.stage)}" are done. To complete the stage this measurement must reach its goal: `) +
-          (c.v == null ? L("henüz ölçülmedi", "not measured yet") : L("şu an ", "now ") + num(c.v, Number.isInteger(c.v) ? 0 : 1) + tx(c.unit)) + ", " + L("hedef ", "goal ") + (c.lower ? "≤ " : "") + c.target + tx(c.unit) + "."; break;
+          mileNow(c) + "."; break;
       case "weak": head = tx(c.title); btn = L("Alıştırmaya git", "Go to the exercise");
         { const f = v => num(v, c.low ? 2 : 0) + tx(c.unit);
           why = L(`Önce bunu toparlayalım: önceki 4 haftada ortalama ${f(c.before)} iken son 4 haftada ${f(c.recent)}. Yeni konudan önce kısa bir tur iyi gelir.`,
@@ -120,10 +121,13 @@ TRAINERS.lessons = function(ctx){
     }
     $("lscoach").innerHTML = `<div class="eyebrow">${L("Hocan diyor ki", "Your teacher says")}</div>
       <strong class="lscoachh">${esc(head)}</strong><p>${esc(why)}</p>
-      <button class="primary small" type="button" data-coach="go">${esc(btn)} →</button>`;
+      <button class="primary small" type="button" data-coach="go">${esc(btn)} →</button>
+      ${c.side ? `<p>${esc(L("Yan öneri: ", "On the side: ") + tx(c.side.title) + " (" + mileNow(c.side) + "). " + L("Bu ölçüm henüz tutmadı; dersler onu beklemez, araya kısa turlar koy.", "This measurement hasn't reached its goal yet; the lessons won't wait for it, so fit in short rounds."))}</p>
+      <button class="stopbtn small" type="button" data-coach="side">${esc(L("Alıştırmaya git", "Go to the exercise"))}</button>` : ""}`;
   }
   $("lscoach").addEventListener("click", e => {
-    if(!e.target.closest("[data-coach]") || !coach) return;
+    const b = e.target.closest("[data-coach]"); if(!b || !coach) return;
+    if(b.dataset.coach === "side"){ ctx.selectTab(coach.side.tab); return; }
     // Eski kayıtlar korunur: yeniden ölçmede geri açılıp tekrar biten kademenin raporu ikinci kez gelmesin
     if(coach.kind === "report"){ store.set("rm.reported", [...new Set([...store.get("rm.reported", []), ...coach.all])]); renderCoach(); return; }
     if(coach.kind === "lesson") openSub(lessonById(coach.id));

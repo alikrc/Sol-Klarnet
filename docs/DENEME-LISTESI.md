@@ -6,7 +6,7 @@ Kodda çözülmüş olanlar çıkarıldı; hangileri çıkarıldığı en sondak
 
 **Koddan sayılan güncel değerler (4 Kasım 2026):** 9 ünitede 87 ders ve 9 ünite sınavı; 48 notada 124 parmak (48 temel,
 76 alternatif); 44 çeyrek seste 57 parmak; 20 makam; 28 etüt (11'i Trakya/Roman); 15 usul (7'si oyun havası); nota
-arşivinde 2200 eser. Uzman kontrolünde 11 süsleme maddesi (9 süsleme, 2 etüt) ve 21 hoca sorusu var. BACKLOG'un eski
+arşivinde 2200 eser. Uzman kontrolünde 11 süsleme maddesi (9 süsleme, 2 etüt) ve 22 hoca sorusu var. BACKLOG'un eski
 bölümlerindeki sayılar (72 ders, 24 etüt gibi) o günün sayılarıdır.
 
 **Bu listede ölçülen şey:** Bugüne kadarki bütün ses sınamaları Si♭ klarnet kayıtları ve benzetimle yapıldı. Türk Sol
@@ -235,7 +235,7 @@ Klarnet gerektirmeyen dinleme ile sonraya kalabilecek işler.
 
 ## 2. Hocaya sorulacaklar
 
-**Nasıl sorulur:** Ayarlar → Uzman kontrolü → Sorular sekmesinde aşağıdaki 21 sorunun hepsi seçenek ve not kutusuyla var;
+**Nasıl sorulur:** Ayarlar → Uzman kontrolü → Sorular sekmesinde aşağıdaki 22 sorunun hepsi seçenek ve not kutusuyla var;
 cevaplar "Raporu paylaş" ile gelen rapora girer. Her sorunun kimliği (`saba-perde` gibi) raporda da yazar.
 
 **Sekmelerde ayrıca işaretlenecekler:** Parmaklar (124 parmak ve "+ ¼" satırlarında 57 çeyrek ses parmağı), Makamlar (20
@@ -296,6 +296,12 @@ kesin hüküm değildir; **Hocaya soru** öğretmen görüşünü almak içindir
 - Hocaya soru: Turlar ve eşikler uygun mu?
 - Cevap değiştirir: `onboard.js` `MK`, `lessons.js` dizi adımları
 
+**`sinama-sonraki` — Tutmayan turdan sonraki turların eski kaydı kalsın mı?**
+- Uygulamada: yeniden ölçmede tutmayan turun önceki sınamadan kalan kaydı silinir; sonraki turlar çalınmadığı için kayıtları
+  kalır (Boğaz tutmazsa Register ve Klarino, Uşşak tutmazsa Hüseynî ve Hicaz). Önceki sınamanın ölçümü geçerli sayılıyor
+- Hocaya soru: Bir grubu çalamayan sonrakini de çalamaz mı sayılmalı, yoksa eski ölçüm dursun mu?
+- Cevap değiştirir: `onboard.js` `finish`
+
 ### Kapı sırası
 
 **`kapi-makam` — Makam dersleri Register sınavından sonra mı?**
@@ -310,8 +316,10 @@ kesin hüküm değildir; **Hocaya soru** öğretmen görüşünü almak içindir
 - Cevap değiştirir: `lessons.js` `GATE_AFTER`, `unlocked` son satırı
 
 **`kapi-taslar` — Kilometre taşları ilerlemeyi durdursun mu?**
-- Uygulamada: kapılar yalnız ünite sınavı; yol haritasındaki ölçülen kilometre taşlarını hoca kartı yalnız öneriyor
-- Cevap değiştirir: `lessons.js` `gateFor`, `roadmap.js` `coachNext`
+- Uygulamada: kapılar yalnız ünite sınavı; yol haritasındaki ölçülen kilometre taşlarını hoca kartı yalnız öneriyor. Dersler
+  bitince kart taşı söyler; taş iki ayrı günde denenip ya da üç çalışılan günde tutmazsa sıradaki derse geçer, taş yan öneri
+  olur (`MILE_STUCK`)
+- Cevap değiştirir: `lessons.js` `gateFor`, `roadmap.js` `coachNext`, `MILE_STUCK`
 
 ### Parmak
 
