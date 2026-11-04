@@ -662,7 +662,7 @@ Güncel sayılar ve sıralı liste [DENEME-LISTESI.md](DENEME-LISTESI.md) içind
    `bandFreqs`), usule oturma yüzdesi gerçekçi mi (±60 ms), taksimde süsleme sayısı kulağa uyuyor mu, 2 dakikalık taksimin
    çözümü telefonda ne kadar sürüyor, IndexedDB'de 50 kayıt ne kadar yer tutuyor. Bulgulara göre düzeltilir.
 2. **Mağazaya çıkış (proje sahibi):** Play Console hesabı, yükleme anahtarı, kapalı test, veri güvenliği formu. Görseller ve
-   metinler `store/` klasöründe hazır. Ayrıntı: [TODO.md](TODO.md).
+   metinler `store/` klasöründe hazır (5 Kasım 2026'da yenilendi: 8 ekran, Play 1080×2160 ve iPhone 6,9" 1320×2868; iPad takımı yok, Xcode hedefi iPad'i de kapsıyor). Ayrıntı: [TODO.md](TODO.md).
 3. **Daha sonra:** Kamerayla duruş ve ağız kontrolü; hoca–öğrenci modu (ödev, kayda yorum); cihazlar arası eşitleme.
    İnternet kullanmak serbest (28 Ekim 2026, proje sahibi): internetsiz çalışma şartı yok.
 

@@ -2,7 +2,8 @@
 
 Play Console → Ana mağaza girişi. Kısa açıklama en çok 80, uzun açıklama en çok 4000 karakter.
 Görseller: `store/play-icon-512.png` (simge), `store/feature-graphic.png` (1024×500 tanıtım görseli),
-`store/screens/*.png` (telefon ekran görüntüleri; yeniden üretmek için `npm run store-shots`).
+`store/screens/*.png` (Play telefon görüntüleri, 1080×2160), `store/screens/ios/*.png` (App Store iPhone 6,9", 1320×2868);
+yeniden üretmek için `npm run store-shots`.
 
 ## Türkçe
 
@@ -32,6 +33,7 @@ DERSLER VE YOL HARİTASI
 MAKAM VE KULAK
 • 20 makamın dizisi, seyri, durak ve güçlüsü; taklit, seyir (taksim) değerlendirmesi
 • Koma eşiği, perde ayırt, makam ve aralık tanıma; ritim ve ezgi diktesi, deşifre
+• Teori: dizekten perdelere, çeşniler (dörtlü ve beşliler), makam yapısı, usul
 
 OYUN HAVALARI VE EŞLİK
 • Kasap, karşılama, Roman havası, çiftetelli, Rumeli, sirto, köçekçe, zeybek ve Ağır Roman etütleri
@@ -46,6 +48,7 @@ TEKNİK VE SÜSLEME
 
 NOTA ARŞİVİ VE KAYIT
 • SymbTr'den 2200 eser: koma işaretli nota, eşlik, tempo, A–B döngü, mikrofonla takip
+• Çevir: PDF, resim ya da sesten notayı oku; okunanı denetle, düzelt, kendi eserlerine ekle
 • Kayıtlarını tarihle sakla, bir ay önceki kaydınla karşılaştır: perde eğrileri üst üste, farklar sayıyla
 
 Bilmen gerekenler: örnek klarnet sesleri Si♭ klarnet kaydıdır, perdesi Sol klarnete ayarlanır; Sol klarnet tınısı değildir. Perde bulucu Si♭ klarnet kayıtlarıyla ve benzetilmiş telefon ve oda koşullarıyla sınandı; Türk Sol klarnetiyle sınama sürüyor. Çeyrek ses parmakları kaynaktan alındı, Sol klarnette doğrulanmadı ve uygulamada öyle işaretli.
@@ -80,6 +83,7 @@ LESSONS AND ROADMAP
 MAKAM AND EAR
 • Scale, seyir, final and dominant of 20 makams; imitation and seyir (taksim) assessment
 • Comma threshold, pitch discrimination, makam and interval recognition; rhythm and melodic dictation, sight-reading
+• Theory: from the staff to perdes, çeşnis (tetrachords and pentachords), makam structure, usul
 
 DANCE TUNES AND PLAY-ALONG
 • Études for kasap, karşılama, Roman havası, çiftetelli, Rumeli, sirto, köçekçe, zeybek and ağır Roman
@@ -94,6 +98,7 @@ TECHNIQUE AND ORNAMENTS
 
 SCORE LIBRARY AND RECORDINGS
 • 2200 pieces from SymbTr: comma-accurate notation, band accompaniment, tempo, A–B loop, mic follow
+• Convert: read notes from a PDF, picture or recording; check, correct and save them to your own pieces
 • Keep your recordings by date and compare with one from a month ago: pitch curves overlaid, differences in numbers
 
 Good to know: the sample clarinet sounds are B♭ clarinet recordings pitched to the G clarinet, not the G clarinet's own timbre. The pitch detector was tested on B♭ clarinet recordings and on simulated phone and room conditions; testing with Turkish G clarinets is ongoing. Quarter-tone fingerings come from a published chart, are not yet verified on the G clarinet and are marked as such in the app.
