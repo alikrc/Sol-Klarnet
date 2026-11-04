@@ -178,6 +178,7 @@ const EXACT = {
   "Görünüm": "Appearance", "Hakkında": "About", "Gizlilik politikası": "Privacy policy", "Hata bildir ya da öneri yaz": "Report a bug or suggest something",
   "Fotoğraflar (Wikimedia Commons):": "Photos (Wikimedia Commons):", "klarnet": "clarinet", "ud": "oud", "ağızlık": "mouthpiece",
   "Kırpılıp küçültüldü; kırpılmış hâlleri de aynı lisansla.": "Cropped and resized; the crops carry the same licence.",
+  "Yazı tipleri:": "Fonts:", "(SIL OFL 1.1). Kitaplıklar:": "(SIL OFL 1.1). Libraries:",
   "Parmak pozisyonunu göster": "Show fingering", "Bütün parmaklar tek sayfada: parmak tablosu": "Every fingering on one page: fingering chart", "Nota şeridi": "Note strip", "Mikrofon": "Mic", "Çalınan perde ve sapma": "Played perde and deviation", "Çalışma türü": "Practice type", "mikrofon açık": "microphone on", "çoğu alıştırma mikrofon ister": "most exercises need the microphone",
   "Parmak testi": "Fingering quiz", "Uzun ton": "Long tone", "Makam": "Makam", "Taklit": "Echo", "Eser takibi": "Melody follow",
   "Kayıt": "Recording", "İlerleme": "Progress",

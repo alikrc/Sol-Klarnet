@@ -16,10 +16,10 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 | University of Iowa EMS kayıtları | `sounds/klarnet.wav`, `testdata/iowa/` | Site: ücretsiz, "herhangi bir projede kısıtlamasız" | Olur | Olur (sitenin beyanına göre) | Beyanın ekran görüntüsü/arşiv bağlantısı saklanmalı |
 | VCSL darbuka | `sounds/darbuka.wav` | CC0 | Olur | Olur | — |
 | Wikimedia fotoğrafları | `img/` (klarnet, darbuka, ud, ağızlık) | CC BY-SA 3.0, CC BY 2.0 | Atıfla olur (Ayarlar → Hakkında'da var) | Atıf ve (BY-SA) aynı lisansla paylaşım şartıyla olur | Düzenlenmiş görsellerin BY-SA altında kaldığı belirtilmeli |
-| Yazı tipleri: Commissioner, Fraunces, IBM Plex Mono, Noto Music | `fonts/` | SIL OFL 1.1 | Olur | Olur | Lisans metni pakete eklenmeli |
+| Yazı tipleri: Commissioner, Fraunces, IBM Plex Mono, Noto Music | `fonts/` | SIL OFL 1.1 | Olur | Olur | — (lisans metinleri `fonts/OFL-*.txt`, pakete giriyor; Hakkında'dan bağlantılı) |
 | Bravura, Leland (SMuFL) | `omrtemplates.js` simge kalıpları (glif resimlerinden) | SIL OFL 1.1 | Olur | Olur | — |
-| pdf.js | `vendor/pdfjs/` | Apache 2.0 | Olur | Olur | Lisans dosyası pakette olmalı |
-| qrcode-generator | `vendor/qrcode/` | MIT | Olur | Olur | Lisans başlığı korunmalı |
+| pdf.js | `vendor/pdfjs/` | Apache 2.0 | Olur | Olur | — (`vendor/pdfjs/LICENSE` pakete giriyor; Hakkında'dan bağlantılı) |
+| qrcode-generator | `vendor/qrcode/` | MIT | Olur | Olur | — (başlık `vendor/qrcode/qrcode.js` içinde duruyor) |
 | Capacitor ve eklentileri | Android/iOS paketi | MIT | Olur | Olur | — |
 | neyzen.com | Nota bul (arama ve PDF indirme) | Açık lisans yok | Kullanıcı kendi indiriyor; yine de izin istenmeli | İzin gerekir | Mehmet Yücel'den yazılı izin; yoksa `SOURCES.neyzen.enabled = false` |
 | projetsm.com | Nota bul | Açık lisans yok | Kullanıcı kendi indiriyor | İzin istenmeli | Site sahibine sorulmalı |

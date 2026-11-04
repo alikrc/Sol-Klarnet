@@ -1,5 +1,6 @@
 // Google Fonts'u depoya indirir: fonts/*.woff2 ve fonts/fonts.css (latin + latin-ext, Türkçe karakterler dahil).
 // Böylece uygulama internetsiz ilk açılışta da doğru fontla açılır. Fontlar SIL Open Font License ile dağıtılır.
+// Lisans metinleri de iner (fonts/OFL-*.txt): OFL, yazı tipiyle birlikte dağıtılmasını ister.
 // Kullanım: npm run fonts
 const fs = require("fs");
 const path = require("path");
@@ -11,6 +12,7 @@ const SOURCES = [
   // Nota simgeleri: yalnızca sol anahtarı, diyez ve bemol
   "https://fonts.googleapis.com/css2?family=Noto+Music&text=%F0%9D%84%9E%E2%99%AF%E2%99%AD&display=swap"
 ];
+const LICENSES = { Commissioner:"commissioner", Fraunces:"fraunces", IBMPlexMono:"ibmplexmono", NotoMusic:"notomusic" };
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -35,5 +37,10 @@ const SOURCES = [
     }
   }
   fs.writeFileSync(path.join(OUT, "fonts.css"), css);
+  for(const [name, dir] of Object.entries(LICENSES)){
+    const res = await fetch(`https://raw.githubusercontent.com/google/fonts/main/ofl/${dir}/OFL.txt`);
+    if(!res.ok) throw new Error(`${name} lisansı indirilemedi: ${res.status}`);
+    fs.writeFileSync(path.join(OUT, `OFL-${name}.txt`), await res.text());
+  }
   console.log(`fonts/: ${got.size} dosya`);
 })();
