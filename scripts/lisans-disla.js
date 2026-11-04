@@ -41,7 +41,7 @@ function status(r){
 const { pieces } = JSON.parse(fs.readFileSync(path.join(root, "notalar", "index.json"), "utf8"));
 const out = { telifli: [], belirsiz: [], guftesiz: [] }, count = { kamu: 0, anonim: 0, sozlu: 0 };
 for(const e of pieces){
-  const rb = composers.get(e.b || "(boş)"), rf = e.g ? null : found.get(e.id), rg = e.g ? poets.get(e.g) : rf;
+  const rb = composers.get(e.b || "(boş)"), note = e.g ? null : found.get(e.id), rf = note?.guftekar ? note : null, rg = e.g ? poets.get(e.g) : rf;
   if(!rb || (e.g && !rg)) throw new Error("tabloda yok: " + e.id);
   const b = status(rb), g = rg ? status(rg) : null, parts = g ? [b, g] : [b];
   const held = parts.filter(p => p.s === "telifli"), unknown = parts.filter(p => p.s === "bilinmiyor");
@@ -52,7 +52,7 @@ for(const e of pieces){
   if(!e.g && e.lyr && b.s === "kamu"){
     count.sozlu++;
     if(b.y > 1900) out.guftesiz.push({ id: e.id, eser: e.t, makam: e.mkn, form: e.fn, besteci: base.besteci, besteci_olum: b.y,
-      guftekar: base.guftekar, guftekar_durum: base.guftekar_durum, guftekar_olum: base.guftekar_olum, kaynak: rf?.not ?? "" });
+      guftekar: base.guftekar, guftekar_durum: base.guftekar_durum, guftekar_olum: base.guftekar_olum, kaynak: note?.not ?? "" });
   }
   if(held.length){
     // Kamu malı olacağı yıl: bütün hak sahipleri belliyse son ölenin ölüm yılı + 71 (1 Ocak)
