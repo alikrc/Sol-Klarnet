@@ -63,60 +63,90 @@ birbirinden bağımsızdır (m. 26).
 | `bilinmiyor` | Ölüm yılı doğrulanamadı ya da kim olduğu belli değil. **Kamu malı sayılmamalı** |
 | `anonim` | Ölüm + 70 uygulanmaz; adsız eserde süre alenileşmeden başlar (m. 27). Ezgi anonim olsa da derleyenin, notaya alanın ya da düzenleyenin hakları olabilir; TRT repertuvarı kaynaklıysa ayrıca bakılmalı |
 
-**Kaynak sırası:** önce TDV İslâm Ansiklopedisi, sonra Wikidata, MusicBrainz, Vikipedi ve salihbora.com. Kaynak `not`
-sütununda yazar. "tek kaynak" ve "ad eşleşmesi" yazan satırlar daha zayıftır, ticari karardan önce yeniden bakılmalı.
-Kaynaklar farklıysa `not`ta belirtildi. Veri tabanı bağlantıları ada karşı denetlendi; yanlış bulunanlar kullanılmadı
-(ör. MusicBrainz İsmet Ağa'nın eserini Neşet Ertaş'a bağlıyor).
+**Kaynak sırası:** önce TDV İslâm Ansiklopedisi, sonra İTÜ Türk Müziği Dijital Kütüphanesi'nin (tmdkarsiv.itu.edu.tr) besteci
+ve güfteci yetke kayıtları, Türk Edebiyatı İsimler Sözlüğü (TEİS), İstanbul Ansiklopedisi, Wikidata, MusicBrainz, Vikipedi ve
+salihbora.com. Kaynak `not` sütununda yazar. Not sütunundaki işaretler:
 
-**Durum (4 Kasım 2026):**
+| İşaret | Anlamı |
+|---|---|
+| `iki kaynak: A + B` | İki ayrı kayıt aynı ölüm yılını veriyor. Wikidata ve Vikipedi aynı kaynak ailesi sayıldı, birbirinin ikincisi olamaz. Kayıtlar ayrıdır ama aynı basılı kaynağa (ör. Öztuna) dayanıyor olabilirler |
+| `tek kaynak`, `ad eşleşmesi` | Yıl yalnız bir kayda ya da yalnız ada dayanıyor; zayıftır, ticari karardan önce yeniden bakılmalı |
+| `kaynaklar çelişiyor` | Kaynaklar farklı yıl veriyor; biri seçilmedi, tabloda ilk kayıt kaldı ve satır zayıf sayılır. Bu satırlarda çelişki kamu malı ya da telifli sonucunu değiştirmiyor |
 
-| Tablo | Satır | Ölüm yılı dolu | Kamu malı | Telifli | Anonim | Bilinmiyor |
-|---|---:|---:|---:|---:|---:|---:|
-| Besteciler | 502 | 309 | 184 | 163 | 1 | 154 |
-| Güfte yazarları | 363 | 203 | 105 | 122 | 0 | 136 |
+Veri tabanı bağlantıları ada, döneme ve eser türüne karşı denetlendi; yanlış bulunanlar kullanılmadı (ör. MusicBrainz İsmet
+Ağa'nın eserini Neşet Ertaş'a bağlıyor). Tek adlı kayıtlar (Hâşim, Nûri, Burhan gibi) adaş riski yüzünden kabul edilmedi.
 
-Besteciye göre 2200 eserin 1015'i kamu malı, 639'u telifli, 410'u bilinmiyor, 136'sı anonim. Besteci ve güfte birlikte
-sayılınca: 896 eserde ikisi de kamu malı, 690 eserde en az biri telifli, 131 eser anonim ve güftesi engel değil, 483 eser
-belirsiz.
+**Durum (4 Kasım 2026, doğrulama sonrası):**
 
-**Nerede durdu:** bütün satırlara bakıldı, "kontrol edilmedi" kalmadı. Kalan iş, `bilinmiyor` satırlarıdır: 154 besteci
-ve 136 güfte yazarı aranan kaynaklarda bulunamadı, adaşlarından ayrılamadı ya da yalnızca doğum yılı biliniyor. Bunların
-71 besteci ve 6 güfte yazarı satırında MusicBrainz eseri geleneksel gösteriyor; bu adlar derleyen ya da kaynak kişi
-olabilir. Öncelik: Erol Bingöl (66 seyir), Ömer Sami Güpgüp (21), Ömer Dilek (13), boş besteci satırları (118 + 7 eser)
-ve "-" güfte satırı (64 eser). Bunlar için Öztuna'nın *Türk Mûsikîsi Ansiklopedisi* gibi basılı kaynak ya da TRT repertuvar
-kayıtları gerekir.
+| Tablo | Satır | Ölüm yılı dolu | Kamu malı | Telifli | Anonim | Bilinmiyor | "İki kaynak" | Zayıf |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Besteciler | 502 | 318 | 189 | 170 | 1 | 142 | 113 | 61 |
+| Güfte yazarları | 363 | 207 | 105 | 126 | 0 | 132 | 51 | 36 |
 
-Telif sınırına takılan önemli adlar: Şefik Gürmeriç (ö. 1967, 74 seyir), Sadettin Kaynak (ö. 1961, 44), Rûhî Ayangil (28),
-Münir Nurettin Selçuk (ö. 1981, 25); güftede Vecdi Bingöl (ö. 1973, 24), Yahya Kemal Beyatlı (ö. 1958, 13). Sınır yılında:
-Şerif İçli, Nuri Halil Poyraz, Cahit Sıtkı Tarancı, Semih Mümtaz (ö. 1956, 1 Ocak 2027'den kamu malı).
+Zayıf sütunu "tek kaynak", "ad eşleşmesi" ve "kaynaklar çelişiyor" satırlarını sayar; doğrulamadan önce 162 ve 83'tü. Besteciye
+göre 2200 eserin 1030'u kamu malı, 736'sı telifli, 298'i bilinmiyor, 136'sı anonim. Besteci ve güfte birlikte sayılınca: 904
+eserde ikisi de kamu malı, 786 eserde en az biri telifli, 131 eser anonim ve güftesi engel değil, 379 eser belirsiz.
+
+**Doğrulamada sonucu değişenler:**
+
+- **Bilinmiyordan telifliye:** Erol Bingöl (66 seyir; İTÜ yetke kaydı 1948-, MusicBrainz d. 25 Ocak 1948, ölüm kaydı yok), Ömer
+  Sami Güpgüp (21 eser; ö. 11 Ekim 2016), Kemal Altınkaya (ö. 1956), İrfan Doğrusöz (ö. 2003), İzzet Altınbaş (ö. 1993), Bilge
+  Özgen (1935-), Özgen Gürbüz (1951-); güftede Melek Hiç (ö. 1964), Mehmet Çakırtaş (ö. 1988), Rahmi Duman (ö. 1985).
+- **Bilinmiyordan kamu malına:** İsmet Ağa (ö. 1875), Osman Pehlivan (ö. 1942), Şeyh Ethem Efendi (ö. 1933), Âfet Mısırlıyan
+  (ö. 1922), Seyfettin Osmanoğlu (ö. 1927). Çoğu tek kaynaktır. Osman Pehlivan bir notada "kaynak kişi" olarak geçiyor; eserleri
+  ayrıca derleyen hakkı açısından bakılmalı.
+- **Şefik Gürmeriç:** ölüm yılı doğrulandı. İstanbul Ansiklopedisi (Hikmet Tongir, *Orkestra* 1969) 30 Nisan 1967 diyor, İTÜ yetke
+  kaydı 1904-1967. Kişi İstanbul Konservatuvarı nazariyat öğretmenidir, basılmamış *Makamlar* kitabı vardır; ama 74 seyirin basılı
+  kaynağı bulunamadı, yazarlık SymbTr ve MusicBrainz kaydına dayanır.
+- **Erol Bingöl:** *Türk Musikisinde Makamlar ve Seyir Örnekleri* (Bakırköy Musıki Vakfı, 1999) kitabında "hazırlayan" olarak geçer.
+
+**Nerede durdu:** "tek kaynak" ve "ad eşleşmesi" satırlarının hepsine bakıldı; ikinci kaynağı çıkmayanlar zayıf kaldı. İTÜ
+kataloğuna bütün zayıf satırlar ve en çok eseri olan yaklaşık 70 `bilinmiyor` ad soruldu, kalan yaklaşık 200 ad sorulmadı: katalog
+2 saniye aralıkla sorguda bağlantıyı bir süre kesti, 8 saniye aralıkla devam edildi. Ömer Dilek bulunamadı: İTÜ kataloğunda da kayıt
+yok, TRT repertuvar numarası (19533) ve güfte yazarlarının dönemi çağdaş olduğunu düşündürüyor, ama belge olmadığı için `bilinmiyor`
+kaldı. Boş besteci satırları (118 + 7 eser) ve "-" güfte satırı (64 eser) kişi değildir, eser eser bakılmalı. TDV'nin arama adresi
+ile Studocu otomatik isteği engelledi, bu siteler bırakıldı. Öztuna'nın *Türk Mûsikîsi Ansiklopedisi* gibi basılı kaynaklara
+bakılmadı.
+
+Telif sınırına takılan önemli adlar: Şefik Gürmeriç (ö. 1967, 74 seyir), Erol Bingöl (66 seyir), Sadettin Kaynak (ö. 1961, 44),
+Rûhî Ayangil (28), Münir Nurettin Selçuk (ö. 1981, 25), Ömer Sami Güpgüp (ö. 2016, 21); güftede Vecdi Bingöl (ö. 1973, 25),
+Yahya Kemal Beyatlı (ö. 1958, 13). Sınır yılında: Şerif İçli, Nuri Halil Poyraz, Cahit Sıtkı Tarancı, Semih Mümtaz, Kemal Altınkaya,
+Ercüment Ekrem Talu (ö. 1956, 1 Ocak 2027'den kamu malı).
 
 - Kamu malı olmak yalnız besteciyi ve güfte yazarını ilgilendirir; SymbTr'nin NC şartı (yukarıda) ayrıca geçerlidir.
 
 ### Dışlama listesi
 
-`node scripts/lisans-disla.js [yıl]` iki tabloyu `notalar/index.json` ile eser eser eşleştirir ve iki dosya yazar. Yıl
+`node scripts/lisans-disla.js [yıl]` iki tabloyu `notalar/index.json` ile eser eser eşleştirir ve üç dosya yazar. Yıl
 verilmezse bugünün yılı alınır. **Arşive dokunmaz:** `scripts/symbtr.js` bu listeyi okumuyor, telifli eserler `notalar/`
 içinde durmaktadır. Liste hukuki görüş değildir; tablolardaki zayıf kayıtlar buraya da geçer.
 
-- [lisans-disla.csv](lisans-disla.csv): en az bir hak sahibi telifli olan **690 eser**. `engel` sütunu: besteci 408, güfte
-  51, ikisi 231. `kamu_mali_yili`, eserin 1 Ocak'ta serbest kalacağı yıldır; hak sahiplerinden biri bilinmiyorsa ya da ölüm
-  yılı yoksa boştur (516 eserde dolu). `zayif_kaynak` = `evet` olan 233 eserde telifli sayılmanın dayanağı yalnız "tek
-  kaynak" ya da "ad eşleşmesi" kaydıdır; bunların 74'ü Şefik Gürmeriç'in seyirleridir (ölüm yılı Wikidata ad eşleşmesi).
-- [lisans-belirsiz.csv](lisans-belirsiz.csv): telifli hak sahibi görünmeyen, ama en az biri bilinmeyen **483 eser**. `eksik`
-  sütunu: besteci 326, güfte 95, ikisi 62. Bunlar dışlanmış sayılmadı, kamu malı da sayılmamalı.
+- [lisans-disla.csv](lisans-disla.csv): en az bir hak sahibi telifli olan **786 eser** (doğrulamadan önce 690). `engel` sütunu:
+  besteci 493, güfte 50, ikisi 243. `kamu_mali_yili`, eserin 1 Ocak'ta serbest kalacağı yıldır; hak sahiplerinden biri bilinmiyorsa
+  ya da ölüm yılı yoksa boştur (530 eserde dolu). `zayif_kaynak` = `evet` olan 39 eserde telifli sayılmanın dayanağı yalnız "tek
+  kaynak", "ad eşleşmesi" ya da "kaynaklar çelişiyor" kaydıdır. Doğrulamadan önce bu sayı 233'tü; o 233 eserden 32'si zayıf kaldı,
+  7'si bu turda telifli çıkan yeni tek kaynaklı adlardır.
+- [lisans-belirsiz.csv](lisans-belirsiz.csv): telifli hak sahibi görünmeyen, ama en az biri bilinmeyen **379 eser** (önce 483).
+  `eksik` sütunu: besteci 243, güfte 98, ikisi 38. Bunlar dışlanmış sayılmadı, kamu malı da sayılmamalı.
+- [lisans-guftesiz.csv](lisans-guftesiz.csv): besteci kamu malı ve 1900'den sonra ölmüş, söz gösteriliyor, güfte yazarı SymbTr'de
+  kayıtlı değil: **146 eser** (Şarkı 116). Listede eser, besteci ve bulunan yazar var; söz yok. Bulunan yazarlar elle tutulan
+  [lisans-guftesiz-yazar.csv](lisans-guftesiz-yazar.csv) dosyasındadır, betik bunları eserin durumuna katar.
 
 Dikkat edilecekler:
 
 - **Sözü gösterilmeyen 4 eser:** Vecdi Bingöl'ün güfteleri olan `Bende Oldum`, `Dilbera Sazın`, `Gül Mevsimi` ve `Şeb-i
   Vuslat`ta besteci kamu malı, engel yalnız güftedir ve arşiv sözü göstermiyor. Listede kaldılar; yalnız ezgiyle tutulup
   tutulamayacakları avukata sorulmalı.
-- **Listeye girmeyen boşluk:** kamu malı sayılan 896 eserin 354'ünde söz gösteriliyor ama güfte yazarı kayıtlı değil;
-  bunların 141'inde besteci 1900'den sonra ölmüş. Eski eserlerde sorun çıkması beklenmez, ama güftenin hakkına bakılmış
-  değildir. Bu eserler sınıflandırmada kamu malı kalmıştır.
-- **Seyir örnekleri:** makam ekranındaki örnekler arşivden gelir (`drills.js`). 169 seyirin 74'ü telifli (Şefik Gürmeriç),
-  66'sı belirsizdir (Erol Bingöl). Telifliler çıkarılırsa 78 makamın 16'sında, belirsizler de çıkarılırsa 49'unda seyir
-  örneği kalmaz.
-- **Her yıl yeniden çalıştırılmalı:** örneğin 2027 için liste 670 telifli, 490 belirsiz, 909 kamu malı verir. Ölüm yılı
+- **Güftesi bilinmeyen eserler:** besteci kamu malı olan 362 eserde söz gösteriliyor ama güfte yazarı SymbTr'de kayıtlı değil;
+  146'sında besteci 1900'den sonra ölmüş (başta 141'di, beş eserin bestecisi bu turda kamu malı çıktı). ProjeTSM, MusicBrainz,
+  İTÜ kataloğu ve TRT repertuvar kayıtlarında (defteriniz.com) arandı: 14 eserin yazarı bulundu (8 kamu malı, 3 telifli, 3 ölüm yılı
+  bilinmiyor). Telifli çıkanlar `Varsın Gönül Aşkınla` (Vecdi Bingöl), `Aşkı Hüznümle Yarattım` (Kemal Şakir Yakar) ve `Sûziş-i
+  Aşkınla Ben` (Ercüment Ekrem Talu) dışlama listesine geçti. Kalan 132 eserde kaynakların çoğu "Meçhul" ya da "[unknown]" diyor;
+  bu, hak sahibinin olmadığı anlamına gelmez. Bu eserler sınıflandırmada kamu malı kalmıştır, kaynak durumu dosyada yazar.
+- **Seyir örnekleri:** makam ekranındaki örnekler arşivden gelir (`drills.js`). 169 seyirin 140'ı telifli (Şefik Gürmeriç 74,
+  Erol Bingöl 66), 29'u kamu malıdır (Rauf Yektâ). Belirsiz seyir kalmadı. Telifliler çıkarılırsa seyir örneği olan 78 makamın
+  49'unda örnek kalmaz. Bu, önceki hesapta yalnız en kötü durumdu; Erol Bingöl telifli çıkınca karar için gerçek durum oldu.
+- **Her yıl yeniden çalıştırılmalı:** örneğin 2027 için liste 763 telifli, 385 belirsiz, 921 kamu malı verir. Ölüm yılı
   belli satırlarda durum yıldan hesaplanır, tablodaki `telif_durumu` değil; tablo yine de elle güncellenmelidir.
 
 ## Woodwind Fingering Guide
