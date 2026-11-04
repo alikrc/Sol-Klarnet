@@ -57,7 +57,7 @@
     mimic: L("Duyduğun ezgiyi tekrar çal", "Play back the phrase you hear"),
     seyir: L("Serbest çal, seyrini gör", "Play freely, see your seyir"),
     ear: L("Koma farklarını ve aralıkları duymayı öğren", "Learn to hear commas and intervals"),
-    archive: L("2200 eser: ara, dinle, yavaşlat, birlikte çal", "2200 pieces: search, listen, slow down, play along"),
+    get archive(){ return L(archTotal() + " eser: ara, dinle, yavaşlat, birlikte çal", archTotal() + " pieces: search, listen, slow down, play along"); },
     piece: L("Etütleri ve kendi eserlerini çal", "Play études and your own pieces"),
     convert: L("PDF, resim ya da sesten esere", "From a PDF, picture or recording to a piece"),
     rec: L("Kaydet, dinle, sapmaları gör", "Record, listen, see deviations"),
@@ -282,7 +282,7 @@
         <li><b>Higher or lower:</b> two notes play; choose whether the second is higher or lower. The gap shrinks as you get it right, and finally shows the smallest difference you can hear.</li>
         <li><b>Tell perdes apart:</b> listen to A and B, then say which one X was.</li>
         <li><b>Name the makam:</b> listen to a short phrase and pick its makam.</li></ol>`),
-    archive: L(`<p><b>Ne işe yarar:</b> SymbTr koleksiyonundaki 2200 eseri bulup notasından çalışmak.</p>
+    get archive(){ return L(`<p><b>Ne işe yarar:</b> SymbTr koleksiyonundaki ${archTotal()} eseri bulup notasından çalışmak.</p>
       <ol><li>Ada, bestekâra, makama ya da usule göre ara; "Süzgeçler" ile makam, form, usul, bestekâr ve seviye seç.</li>
         <li>Esere dokun. <b>Çal</b> ile dinle, tempoyu düşür. Notaya dokununca çalma oradan başlar.</li>
         <li>Zor bir yer için <b>A–B</b>'ye bas, ilk ve son ölçüye dokun: o kısım tekrar tekrar çalar. Bölüm düğmeleri (Aranağme, Hane, Teslim…) de aynı işi yapar.</li>
@@ -290,14 +290,14 @@
         <li>Mikrofonla: <b>Beni takip et</b> doğru notayı çaldıkça ilerler; <b>Benimle çal</b>da orkestra seni izler (ilk notanla girer, hızlanırsan hızlanır, durursan bekler); <b>Tempolu çal</b> perde ve zamanlamanı ölçer; <b>Merdiven</b> tempoyu adım adım artırır.</li>
         <li>"Görünüm ve transpoze": perde perde transpoze, oktav, nota boyutu, sözler, perde adları, notayı izle, tam ekran, yazdır.</li>
         <li>"Eseri öğren" yedi adımda dinlemeden kendin çalmaya götürür. "Eserlerime ekle" eseri Etüt ve eserler listene koyar.</li></ol>`,
-      `<p><b>What it's for:</b> finding any of the 2200 pieces in the SymbTr collection and practising from the score.</p>
+      `<p><b>What it's for:</b> finding any of the ${archTotal()} pieces in the SymbTr collection and practising from the score.</p>
       <ol><li>Search by title, composer, makam or usul; use "Filters" for makam, form, usul, composer and level.</li>
         <li>Tap a piece. <b>Play</b> to listen, lower the tempo. Tapping a note starts playback there.</li>
         <li>For a hard passage press <b>A–B</b> and tap the first and last bar: it loops. Section buttons do the same.</li>
         <li><b>Drone</b> plays the tonic; <b>Accomp.</b> adds a metronome or the usul's düm-tek. <b>Mute melody</b> leaves only the accompaniment for you to play along.</li>
         <li>With the mic: <b>Follow me</b> advances as you play the right notes; in <b>Play with me</b> the band follows you (comes in with your first note, speeds up with you, waits when you stop); <b>Play in tempo</b> scores pitch and timing; <b>Ladder</b> raises the tempo step by step.</li>
         <li>"View and transpose": transpose by perde, octave, score size, lyrics, perde names, follow the score, full screen, print.</li>
-        <li>"Learn the piece" takes you from listening to playing in seven steps. "Add to my pieces" puts it in Études & pieces.</li></ol>`),
+        <li>"Learn the piece" takes you from listening to playing in seven steps. "Add to my pieces" puts it in Études & pieces.</li></ol>`); },
     piece: L(`<p><b>Ne işe yarar:</b> Etütleri ve eserleri notadan çalmak.</p>
       <ol><li>Listeden bir etüt seç; notası dizekte görünür. Dinle ile önce duy.</li>
         <li><b>Serbest takip:</b> kendi hızında çal, doğru notada bir sonrakine geçer. <b>Tempolu çal:</b> metronomla çal, doğru nota ve zamanlama ölçülür.
@@ -387,7 +387,7 @@
       <button type="button" class="hresume" id="hresume" data-hub="practice"></button>
       <button type="button" class="hresume hsearch" id="hsearch" data-hub="pieces"><span class="hic">${ART.icon("search")}</span><span><small>${L("Ara", "Search")}</small>
         <b>${L("Eser, besteci ya da makam", "Piece, composer or makam")}</b></span>${ICON.go}</button>
-      <button type="button" class="hfeat" data-open="archive" data-hub="pieces"><span class="hthumb hscore">${ART.SCORE}</span><span><small>${L("Nota arşivi · 2200 eser", "Score archive · 2200 pieces")}</small>
+      <button type="button" class="hfeat" data-open="archive" data-hub="pieces"><span class="hthumb hscore">${ART.SCORE}</span><span><small>${L("Nota arşivi · " + archTotalEl() + " eser", "Score archive · " + archTotalEl() + " pieces")}</small>
         <b>${L("Bir eser ara, dinle ve birlikte çal", "Find a piece, listen and play along")}</b></span>${ICON.go}</button>
       <button type="button" class="hfeat" data-open="band" data-hub="pieces"><span class="hthumb">${ART.photo("darbuka")}${ART.photo("ud")}</span><span><small>${L("Eşlik · Roman havası, karşılama, çiftetelli…", "Play-along · Roman havası, karşılama, çiftetelli…")}</small>
         <b>${L("Darbuka, bas ve udla oyun havası çal", "Play dance tunes with darbuka, bass and oud")}</b></span>${ICON.go}</button>
@@ -859,6 +859,8 @@
     markResetting: () => { resetting = true; } };
   setGuided(store.get("lesson.guided", true));            // kademe kapısı (lessons.js), sekmeler kurulmadan önce
   TABS.forEach(([id]) => { modules[id] = TRAINERS[id](ctx); });
+  // Ana sayfadaki eser sayısı dizinden gelir: açılış bitince dizin yüklenir (derlemeye göre sayı değişebilir, archive.js)
+  (window.requestIdleCallback || (f => setTimeout(f, 300)))(() => SK.archiveIndex().catch(() => {}));
   // Akort ekranı makamın durağında dron açabilsin (perde dron aralığına -22…62 oktavla taşınır)
   SK.drone = {
     on: c => { while(c > 62) c -= 53; while(c < -22) c += 53; const p = nearestPerde(c); ctx.droneOn(p ? p.comma : c); },

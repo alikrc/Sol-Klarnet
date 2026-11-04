@@ -149,6 +149,51 @@ Dikkat edilecekler:
 - **Her yıl yeniden çalıştırılmalı:** örneğin 2027 için liste 763 telifli, 385 belirsiz, 921 kamu malı verir. Ölüm yılı
   belli satırlarda durum yıldan hesaplanır, tablodaki `telif_durumu` değil; tablo yine de elle güncellenmelidir.
 
+### Lisans derlemesi
+
+Eserleri çıkarma kararı verilmedi; bu seçenek karar verilirse tek komutla uygulanabilsin diye var. Varsayılan derleme ve depodaki
+`notalar/` değişmez. Liste her derlemede CSV'lerden okunur. Bilinmeyen seçenek, boş liste ya da arşivde olmayan kimlik derlemeyi
+durdurur. Bu da hukuki görüş değildir; SymbTr'nin NC şartı çıkarılmayan eserler için de geçerlidir.
+
+```bash
+npm run android:bundle:temiz
+```
+
+`npm run build:web:temiz`, `android:sync:temiz` ve `ios:sync:temiz` de var. Düz `android:bundle` ve `android:sync`, `www/`'yi
+tam arşivle yeniden yazar. Belirsizleri de çıkarmak için: `npm run build:web -- --lisans-temiz --lisans-belirsiz`, sonra
+`npx cap sync android`.
+
+Etki (4 Kasım 2026 listeleriyle; CSV değişince sayılar değişir). Sıkıştırılmış sütun, dosyaların tek tek deflate edilmiş toplamıdır
+ve paketin yaklaşık karşılığıdır; gerçek APK ya da AAB ölçülmedi.
+
+| Derleme | Eser | Seyir | Seyiri olan makam (20'de) | Arşiv makamı | Form | Usul | Besteci | `www/` | Sıkıştırılmış |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Normal | 2200 | 169 | 20 | 155 | 56 | 88 | 501 | 16,99 MB | 4,62 MB |
+| `--lisans-temiz` | 1414 | 29 | 13 | 149 | 54 | 81 | 320 | 13,01 MB | 4,07 MB |
+| `--lisans-belirsiz` | 1821 | 169 | 20 | 146 | 49 | 83 | 362 | 15,18 MB | 4,39 MB |
+| İkisi birlikte | 1035 | 29 | 13 | 140 | 43 | 74 | 177 | 11,20 MB | 3,84 MB |
+
+- **Makam ekranı:** telifliler çıkınca Kürdî, Hümâyun, Uzzâl, Zirgüleli Hicaz, Kürdîli Hicazkâr, Mâhur ve Nikriz'in seyir örneği
+  kalmaz; ekranda "Arşivde bu makamın seyir örneği yok." yazar. Kalan 13 makamda birer örnek kalır, hepsi Rauf Yektâ'nın. 20 makamın
+  hiçbiri eserlerini tümden yitirmez; en azı Zirgüleli Hicaz (7 eserden 3) ve ikisi birlikte 2.
+- **Dersler, etütler, yol haritası:** arşivdeki bir esere kimlikle bağlanan yer yok, kopan bağ yok. Bir derste "bir eser aç" diye
+  genel bir görev var, o çalışır. Uygulamanın 15 usulünün 8'inde arşiv eseri vardır, bunların hiçbiri boşalmaz (en azı Türk Aksağı:
+  64 eserden 32, ikisi birlikte 19).
+- **Bağlantı, favori, son açılanlar:** `?eser=` bağlantısındaki eser yoksa arşiv listesi "Bu bağlantıdaki eser arşivde yok." ile
+  açılır. Favori sayısı ve son açılanlar yalnız var olan eserleri sayar. Kayıtlı süzgeçteki besteci yoksa süzgeç "Hepsi"ye döner.
+- **Sayılar:** uygulamadaki eser sayısı artık dizinden gelir, bunun için dizin açılışta boşta yüklenir. `store/listing.md` ve
+  `README.md` elle yazılı kalır, derleme değişirse güncellenmeli.
+- **Web önbelleği:** temiz derlemede `www/sw.js`'in önbellek adına listenin özeti eklenir; böylece web sürümünde daha önce açılmış
+  eserler önbellekten silinir.
+
+**Bu seçeneğin kapsamadıkları:**
+
+- **Depo ve web sitesi:** seçenek yalnız `www/`'yi, yani Android ve iOS paketini etkiler. Depo herkese açıktır ve GitHub Pages
+  `main` dalının kökünden yayımlar: `notalar/` içindeki 2200 eser orada kalır, `alikrc.github.io/Sol-Klarnet/` tam arşivi sunar.
+  Karar verilirse bunun için ayrı iş gerekir.
+- **Kullanıcının cihazı:** "Eserlerime ekle" ile kopyalanan eserler cihazda kalır ve paylaşım bağlantısı (`#nota=`) notayı kendi
+  içinde taşıdığı için bu kopyalardan paylaşım sürer.
+
 ## Woodwind Fingering Guide
 
 Parmak tabloları (temel, alternatif, çeyrek ses) WFG'den derlendi ve kaynak gösteriliyor. Sitede açık bir yeniden

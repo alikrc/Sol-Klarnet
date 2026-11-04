@@ -1,4 +1,4 @@
-// Nota arşivi: SymbTr koleksiyonundan 2200 eser (notalar/, scripts/symbtr.js üretir). Arama ve süzgeçler; eser ekranında
+// Nota arşivi: SymbTr koleksiyonundan eserler (notalar/, scripts/symbtr.js üretir). Arama ve süzgeçler; eser ekranında
 // satırlara bölünmüş nota, çalma (tempo, A–B ölçü döngüsü, bölüm ve cümle döngüsü, dem, usul eşliği, melodiyi kapat),
 // mikrofonla takip ve tempolu çalma (pieces.js piecePlayer), transpoze, yakınlaştırma, tam ekran, yazdırma,
 // "Eseri öğren" adımları ve benzer eserler. Arşiv uygulamanın içindedir, internet istemez.
@@ -23,6 +23,10 @@ const ARCH_LV = { 1: L("Başlangıç", "Beginner"), 2: L("Orta", "Intermediate")
 const ARCH_DANCE_F = new Set(["oyunhavasi","karsilama","kocekce","rumeliturkusu","sirto","longa","zeybek","tavsanca","oyun"]);
 const archDance = e => ARCH_DANCE_F.has(e.f) || e.u === "oynak" || e.u === "raksaksagi" || /roman|kasap|ciftetelli|karsilama/.test(e.id);
 const archDur = s => Math.floor(s/60) + ":" + String(s % 60).padStart(2, "0");
+// Eser sayısı metinlere sabit yazılmaz: lisans derlemesi eser çıkarabilir (scripts/build-web.js). Dizin gelene kadar son
+// bilinen sayı gösterilir; dizin yüklenince data-archn taşıyan yerler düzeltilir (practice.js açılışta dizini yükletir).
+const archTotal = () => SK.store.get("arch.n", "…");
+const archTotalEl = () => `<span data-archn>${archTotal()}</span>`;
 // Eser dosyasındaki nota [c, d, süs?, hece?] → { w, c, d, rest, orn?, syl? }
 const ARCH_ORN = { "tr":{ kind:"tril", dir:"up" }, "m+":{ kind:"mordan", dir:"up" }, "m-":{ kind:"mordan", dir:"down" },
   "ç+":{ kind:"carpma", dir:"up" }, "ç-":{ kind:"carpma", dir:"down" } };
@@ -51,8 +55,8 @@ TRAINERS.archive = function(ctx){
   const { SK, $, store, esc } = ctx;
   const P = $("pp-archive");
   P.innerHTML = `
-    <p class="pdesc">${L("SymbTr koleksiyonundan 2200 eser, AEU koma işaretleriyle. Ara, süz, aç: dinle, yavaşlat, zor ölçüyü döngüye al, usul ve demle birlikte çal; mikrofonla takip ettir ya da tempolu çalıp değerlendirt. Arşiv uygulamanın içindedir, internet istemez.",
-      "2200 pieces from the SymbTr collection, with AEU accidentals. Search, filter, open: listen, slow down, loop a hard bar, play along with the usul and the drone; let it follow you with the microphone or play in tempo and get scored. The archive is built in and works offline.")}</p>
+    <p class="pdesc">${L("SymbTr koleksiyonundan " + archTotalEl() + " eser, AEU koma işaretleriyle. Ara, süz, aç: dinle, yavaşlat, zor ölçüyü döngüye al, usul ve demle birlikte çal; mikrofonla takip ettir ya da tempolu çalıp değerlendirt. Arşiv uygulamanın içindedir, internet istemez.",
+      archTotalEl() + " pieces from the SymbTr collection, with AEU accidentals. Search, filter, open: listen, slow down, loop a hard bar, play along with the usul and the drone; let it follow you with the microphone or play in tempo and get scored. The archive is built in and works offline.")}</p>
     <div class="arlist" id="arlist">
       <div class="arsearch"><input id="arq" type="search" placeholder="${L("Eser, bestekâr, makam, usul ara…", "Search pieces, composers, makams, usuls…")}" aria-label="${L("Eser ara", "Search pieces")}" autocomplete="off"></div>
       <div class="arquick" id="arquick"></div>
@@ -71,6 +75,7 @@ TRAINERS.archive = function(ctx){
           <label class="chk"><input type="checkbox" id="arffav"> ${L("yalnız favoriler", "favourites only")}</label>
           <button class="linkbtn" type="button" id="arfclr">${L("Temizle", "Clear")}</button></div>
       </details>
+      <p class="fb bad" id="argone" hidden>${L("Bu bağlantıdaki eser arşivde yok.", "The piece in this link isn't in the archive.")}</p>
       <div class="muted arcount" id="arcount" aria-live="polite"></div>
       <div class="arrows" id="arrows"></div>
       <button class="stopbtn armore" type="button" id="armore" hidden>${L("Daha fazla göster", "Show more")}</button>
@@ -88,6 +93,8 @@ TRAINERS.archive = function(ctx){
       const list = j.pieces;
       list.forEach(e => { e.hay = archFold([e.t, e.b, e.g, e.mkn, e.fn, e.un].join(" ")); });
       INDEX = { list, map: new Map(list.map(e => [e.id, e])), source: j.source };
+      store.set("arch.n", list.length);
+      document.querySelectorAll("[data-archn]").forEach(x => { x.textContent = list.length; });
       fillFilters(); return INDEX;
     }).catch(e => { loading = null; throw e; });
     return loading;
@@ -106,7 +113,7 @@ TRAINERS.archive = function(ctx){
     opts($("arfu"), group("u", "un"), L("Hepsi", "All"));
     opts($("arfb"), group("b", "b"), L("Hepsi", "All"));
     const f = store.get("arch.filter", {});
-    [["arfmk","mk"],["arff","f"],["arfu","u"],["arfb","b"],["arflv","lv"],["arsort","sort"]].forEach(([id, k]) => { if(f[k] != null) $(id).value = f[k]; });
+    [["arfmk","mk"],["arff","f"],["arfu","u"],["arfb","b"],["arflv","lv"],["arsort","sort"]].forEach(([id, k]) => { if(f[k] != null){ $(id).value = f[k]; if($(id).selectedIndex < 0) $(id).selectedIndex = 0; } });
     $("arflyr").checked = !!f.lyr; $("arffav").checked = !!f.fav; $("arq").value = f.q || "";
   }
   const filt = () => ({ q: $("arq").value, mk: $("arfmk").value, f: $("arff").value, u: $("arfu").value, b: $("arfb").value,
@@ -130,8 +137,9 @@ TRAINERS.archive = function(ctx){
   function renderList(){
     if(!INDEX) return;
     store.set("arch.filter", filt());
+    $("argone").hidden = true;
     const r = results(), fv = favs();
-    $("arquick").innerHTML = [["all", L("Bütün eserler", "All pieces")], ["dance", L("Oyun havaları", "Dance tunes")], ["recent", L("Son açtıklarım", "Recently opened")], ["fav", L("Favorilerim", "My favourites") + " (" + fv.size + ")"]]
+    $("arquick").innerHTML = [["all", L("Bütün eserler", "All pieces")], ["dance", L("Oyun havaları", "Dance tunes")], ["recent", L("Son açtıklarım", "Recently opened")], ["fav", L("Favorilerim", "My favourites") + " (" + [...fv].filter(byId).length + ")"]]
       .map(([k, t]) => `<button type="button" class="chipbtn" data-quick="${k}" aria-pressed="${quick === k || (k === "fav" && quick === "all" && $("arffav").checked) ? "true" : "false"}">${t}</button>`).join("");
     $("arcount").textContent = r.length + L(" eser", " pieces") + (r.length !== INDEX.list.length ? L(" bulundu", " found") : "");
     $("arrows").innerHTML = r.length ? r.slice(0, shown).map(e => row(e, fv)).join("") :
@@ -179,7 +187,7 @@ TRAINERS.archive = function(ctx){
 
   async function openPiece(id){
     const e = byId(id);
-    if(!e) return;
+    if(!e){ $("argone").hidden = false; return; }           // eski ya da paylaşılmış bağlantı: eser bu derlemede yok
     // Eser, arşivin alt sayfasıdır: üst çubukta adı ve ←; geri tuşu listeye döner. Eserden esere geçiş geri adımı eklemez
     (onPieceSub() ? SK.nav.replaceSub : SK.nav.pushSub)("eser:" + id, e.t, showList);
     closePiece();
