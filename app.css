@@ -761,6 +761,11 @@ body[data-view="settings"] .page{max-width:680px}
 .rvv{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
 .rvv .rvc{flex:1 1 220px}
 .rvmk{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+#reviewview .ptabs{flex-wrap:wrap}
+.rvqt{font:600 15px/1.4 var(--ui);margin:0 0 10px}
+.rvqf{display:grid;gap:8px;margin:0}
+.rvqf dd{margin:3px 0 0;font-size:13.5px;line-height:1.55;overflow-wrap:anywhere}
+.rvq .seg{flex-wrap:wrap;border-radius:16px;max-width:100%}
 @media(max-width:520px){.rvitem{grid-template-columns:96px minmax(0,1fr)}.rvitem svg.minichart{width:96px}}
 
 /* Ritim, dinamik, seyir */

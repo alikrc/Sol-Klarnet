@@ -1,5 +1,7 @@
 # Sol Klarnet — Backlog
 
+Kodla bitmeyen işlerin güncel listesi: [DENEME-LISTESI.md](DENEME-LISTESI.md) (telefonda ve klarnetle denenecekler, hocaya sorulacaklar).
+
 ## ÖNCELİKLİ — proje sahibinin istekleri (3 Kasım 2026)
 
 Proje sahibi: "Uygulama seviye belirletip ona göre adım adım ilerletmeli; bir hoca gibi elinden tutup içerik arasında
@@ -576,6 +578,8 @@ plan: [docs/superpowers/plans/2026-10-23-susleme.md](superpowers/plans/2026-10-2
 - Fontlar uygulamanın içinde, internet izni yok; iOS projesi; İngilizce arayüzde eksik çeviri kalmadı
 
 ## İnsan gerektiren işler (kodla çözülemez)
+
+Güncel sayılar ve sıralı liste [DENEME-LISTESI.md](DENEME-LISTESI.md) içinde; buradaki sayılar yazıldığı günündür.
 
 1. **Uzman doğrulaması:** Bir Sol klarnet hocası Ayarlar → Uzman kontrolü ekranından 124 parmağı, 20 makamın (Nikriz dahil) dizisini,
    seyir türünü ve icra düzeltmelerini işaretleyip raporu göndermeli. 72 dersin metinleri ve 24 etüt de gözden geçirilmeli. Hız ünitesinin gam/arpej seçimi, hedef tempoları ve hızlı Hicaz etüdü
