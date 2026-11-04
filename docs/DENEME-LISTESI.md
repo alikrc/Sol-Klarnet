@@ -304,9 +304,10 @@ kesin hüküm değildir; **Hocaya soru** öğretmen görüşünü almak içindir
 - Cevap değiştirir: `lessons.js` `GATE_AFTER`
 
 **`kapi-ileri` — İleri seviye Makam sınavından sonra mı?**
-- Uygulamada: İleri ünitesi (beş taksim dersi, ileri kulak, iç tempo, deşifre, dikte) yalnız Makam sınavına bağlı; teknik,
-  hız, süsleme ve Trakya sınavları şart değil
-- Cevap değiştirir: `lessons.js` `GATE_AFTER`
+- Uygulamada: İleri ünitesi (beş taksim dersi, ileri kulak, iç tempo, deşifre, dikte) kapıda yalnız Makam sınavına bağlı;
+  teknik, hız, süsleme ve Trakya sınavları şart değil. Ama ilk dersi, listede önündeki Trakya'nın son dersi bitmeden
+  açılmıyor: Makam sınavını geçen, Trakya dersleri bitmemişse İleri'ye giremiyor. Trakya şart olsun mu?
+- Cevap değiştirir: `lessons.js` `GATE_AFTER`, `unlocked` son satırı
 
 **`kapi-taslar` — Kilometre taşları ilerlemeyi durdursun mu?**
 - Uygulamada: kapılar yalnız ünite sınavı; yol haritasındaki ölçülen kilometre taşlarını hoca kartı yalnız öneriyor
