@@ -13,6 +13,8 @@ let chromium;
 try{ ({ chromium } = require("playwright")); }
 catch(e){ console.error("Playwright bulunamadı: npm i -D playwright && npx playwright install chromium"); process.exit(1); }
 
+const sharp = require("sharp"), opentype = require("opentype.js");
+
 const ROOT = path.join(__dirname, "..");
 const SRC = path.resolve(process.env.SHOT_SRC || ROOT);
 const { LESSONS } = require(path.join(SRC, "lessons.js"));
@@ -60,11 +62,96 @@ function seedScript(){
   })()`;
 }
 
+// Çevir ekranının kaynak sayfası: eserin ilk ölçüleri Bravura ile dizilir (okuyucunun kalıpları da Bravura ve Leland'dandır).
+// Sol anahtarı, ölçü rakamı, kirişli notalar, değiştirici, nokta, sus. Dönen: PNG Buffer
+function engrave(file, { bars:nBars = 8, perRow = 2, title = "", sp = 20, width = 1500 } = {}){
+  const f = opentype.loadSync(path.join(SRC, "testdata", "fonts", "Bravura.otf")), EM = 4*sp/f.unitsPerEm;
+  const g = (cp, x, y) => { const q = f.charToGlyph(String.fromCodePoint(cp)); return `<path d="${q.getPath(x, y, 4*sp).toPathData(2)}"/>`; };
+  const gw = cp => f.charToGlyph(String.fromCodePoint(cp)).advanceWidth*EM;
+  const rect = (x, y, w, h) => `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"/>`;
+  const piece = JSON.parse(fs.readFileSync(path.join(SRC, "notalar", file + ".json"), "utf8")), [, num, den] = piece.meters[0], L = num*4/den;
+  // Komadan dizekteki yer (0 = alt çizgi Mi4) ve değiştirici: en yakın doğal nota; karşılığı olmayan fark en yakın işarete yuvarlanır
+  const NAT = [[-13, 0], [-9, 1], [0, 2], [9, 3], [18, 4], [22, 5], [31, 6]], ACC = { 1:0xE444, 4:0xE262, 5:0xE446, 8:0xE447, "-1":0xE443, "-4":0xE442, "-5":0xE260, "-8":0xE440 };
+  const place = c => {
+    let best = null;
+    for(let o = -1; o <= 2; o++) for(const [nc, st] of NAT){
+      let k = c - (nc + 53*o); if(k === -2) k = -1;
+      if((k === 0 || ACC[k]) && (!best || Math.abs(k) < Math.abs(best.k))) best = { k, step: st + 7*o };
+    }
+    return best;
+  };
+  const bars = []; let cur = [], sum = 0;
+  for(const [c, d] of piece.notes){
+    cur.push({ c, d, pos:sum, ...(c === null ? { rest:true, step:4 } : place(c)) }); sum += d;
+    if(sum >= L - 1e-6){ bars.push(cur); cur = []; sum = 0; if(bars.length === nBars) break; }
+  }
+  const left = 2*sp, rowH = 10*sp, top = (title ? 7 : 4)*sp, rows = Math.ceil(bars.length/perRow), H = Math.round(top + rows*rowH), parts = [];
+  for(let r = 0; r < rows; r++){
+    const y0 = top + r*rowH, line = 0.13*sp, right = width - 2*sp;
+    for(let i = 0; i < 5; i++) parts.push(rect(left, y0 + i*sp - line/2, right - left, line));
+    parts.push(rect(left, y0, 0.16*sp, 4*sp), rect(right - 0.16*sp, y0, 0.16*sp, 4*sp), g(0xE050, left + 0.5*sp, y0 + 3*sp));
+    let x0 = left + 4*sp;
+    if(r === 0){
+      [String(num), String(den)].forEach((t, i) => [...t].forEach((ch, k) => parts.push(g(0xE080 + +ch, x0 + k*1.7*sp + (i ? 0.85*sp : 0), y0 + (i ? 3 : 1)*sp))));
+      x0 += 4.2*sp;
+    }
+    const rowBars = bars.slice(r*perRow, (r + 1)*perRow), wt = n => 3.2 + n.d*1.3 + (n.k ? 1.4 : 0), tot = rowBars.flat().reduce((a, n) => a + wt(n), 0), k = (right - x0 - rowBars.length*sp)/tot;
+    let x = x0;
+    for(const bar of rowBars){
+      bar.forEach(n => { n.x = x + (n.k ? 1.9 : 0.7)*sp; x += wt(n)*k; });
+      // Vuruş içindeki kısa notalar kirişlenir; vuruşu aşan ya da tek kalan nota bayrak alır
+      const groups = []; let grp = [];
+      const close = () => { if(grp.length) groups.push(grp); grp = []; };
+      for(const n of bar){
+        if(n.rest || n.d >= 1){ close(); if(!n.rest) groups.push([n]); continue; }
+        if(grp.length && Math.floor(n.pos + 1e-6) !== Math.floor(grp[0].pos + 1e-6)) close();
+        grp.push(n);
+      }
+      close();
+      for(const n of bar){
+        const y = y0 + 4*sp - n.step*sp/2;
+        if(n.rest){ parts.push(g(n.d >= 1 ? 0xE4E5 : n.d >= 0.5 ? 0xE4E6 : 0xE4E7, n.x, y0 + 2*sp)); continue; }
+        for(let s = -2; s >= n.step; s -= 2) parts.push(rect(n.x - 0.4*sp, y0 + 4*sp - s*sp/2 - 0.06*sp, 2.1*sp, 0.13*sp));
+        for(let s = 10; s <= n.step; s += 2) parts.push(rect(n.x - 0.4*sp, y0 + 4*sp - s*sp/2 - 0.06*sp, 2.1*sp, 0.13*sp));
+        parts.push(g(0xE0A4, n.x, y));
+        if(n.k) parts.push(g(ACC[n.k], n.x - gw(ACC[n.k]) - 0.35*sp, y));
+        if(n.d === 0.75 || n.d === 1.5) parts.push(g(0xE1E7, n.x + gw(0xE0A4) + 0.35*sp, y - (n.step % 2 === 0 ? 0.5*sp : 0)));
+      }
+      const hw = gw(0xE0A4), st = 0.12*sp;
+      for(const grp2 of groups){
+        const up = grp2.reduce((a, n) => a + n.step, 0)/grp2.length < 4;
+        const ys = grp2.map(n => y0 + 4*sp - n.step*sp/2), end = up ? Math.min(...ys) - 3.5*sp : Math.max(...ys) + 3.5*sp;
+        const sx = n => up ? n.x + hw - st : n.x;
+        grp2.forEach((n, i) => parts.push(rect(sx(n), Math.min(ys[i], end), st, Math.abs(ys[i] - end))));
+        const beams = n => n.d <= 0.25 || n.d === 0.375 ? 2 : n.d < 1 ? 1 : 0, by = lv => up ? end + lv*0.75*sp : end - lv*0.75*sp - 0.5*sp;
+        if(grp2.length === 1){
+          const n = grp2[0], b = beams(n);
+          if(b) parts.push(g(up ? (b === 2 ? 0xE242 : 0xE240) : (b === 2 ? 0xE243 : 0xE241), sx(n), end));
+          continue;
+        }
+        parts.push(rect(sx(grp2[0]), by(0), sx(grp2[grp2.length - 1]) + st - sx(grp2[0]), 0.5*sp));
+        grp2.forEach((n, i) => {
+          if(beams(n) < 2) return;
+          const nx = grp2[i + 1], pv = grp2[i - 1];
+          if(nx && beams(nx) >= 2) parts.push(rect(sx(n), by(1), sx(nx) + st - sx(n), 0.5*sp));
+          else if(!(pv && beams(pv) >= 2)) parts.push(nx ? rect(sx(n), by(1), 1.1*sp, 0.5*sp) : rect(sx(n) - 1.1*sp + st, by(1), 1.1*sp, 0.5*sp));
+        });
+      }
+      x += sp;
+      if(bar !== rowBars[rowBars.length - 1]) parts.push(rect(x - 0.9*sp, y0, 0.16*sp, 4*sp));
+    }
+  }
+  const head = title ? `<text x="${width/2}" y="${3.4*sp}" text-anchor="middle" font-family="Georgia, serif" font-size="${1.9*sp}">${title}</text>` : "";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${H}"><rect width="${width}" height="${H}" fill="#fff"/>${head}${parts.join("")}</svg>`;
+  return sharp(Buffer.from(svg), { density:72 }).flatten({ background:"#fff" }).png().toBuffer();
+}
+
 // Seviye sınamasının nota turundaki sıra (onboard.js CHECK); sahte mikrofon notaları bu sırayla döngüde çalar
 const CHECK_SEQ = [67, 62, 60, 55, 52, 69, 70, 71, 72, 74, 79, 84].map(w => [w, 1.8]);
-// Arşiv ve Çevir ekranlarındaki eser: Kantemiroğlu (ö. 1723), Uşşak saz semâîsi; besteci kamu malı, sözsüz, docs/lisans-disla.csv
-// ve docs/lisans-belirsiz.csv listelerinde yok. Eser değişirse bu listelerden yeniden bakılmalı
-const PIECE = "ussak--sazsemaisi--aksaksemai----kantemiroglu";
+// Görüntülerdeki eserler: arşivde Tanburî Cemil Bey'in Çeçen Kızı'sı (ö. 1916), Çevir'de Kantemiroğlu'nun Uşşak saz semâîsi
+// (ö. 1723). İkisi de besteci kamu malı, sözsüz, docs/lisans-disla.csv ve docs/lisans-belirsiz.csv listelerinde yok. Eser
+// değişirse bu listelerden yeniden bakılmalı
+const PIECE = "huseyni--oyunhavasi--nimsofyan--cecen_kizi--tanburi_cemil_bey", READ_PIECE = "ussak--sazsemaisi--aksaksemai----kantemiroglu";
 // Akort ekranındaki ses: Uşşak'ta icra Segâh'ı (AEU'dan 1,5 koma pes), hedefin hemen altında. Yazılı nota kesirli olabilir
 const SEGAH_ICRA = 67 + (17 - 1.5 - 0.2)*12/53 - 0.04;
 
@@ -93,6 +180,18 @@ async function shootAll(t, base, wavs){
   // Üst çubuk yapışkan: öğe çubuğun altında kalmasın (gap: çubuktan uzaklık)
   const toTop = (page, sel, gap = 84) => page.evaluate(([s, g]) => window.scrollTo(0, window.scrollY + document.querySelector(s).getBoundingClientRect().top - g), [sel, gap]);
 
+  // Alt çubuğun (tam ekranda ekranın) ortasından kesilen satır ve kutular gizlenir: görüntü yarım yazıyla bitmesin
+  const trimBottom = page => page.evaluate(() => {
+    const nav = document.querySelector(".nav"), nr = nav && nav.getBoundingClientRect(), limit = nr && nr.height ? nr.top : innerHeight;
+    const walk = el => { for(const c of el.children){
+      if(c === nav) continue;
+      const r = c.getBoundingClientRect();
+      if(!r.height || r.top >= limit || r.bottom <= limit) continue;
+      if(r.height < 170 || !c.children.length) c.style.visibility = "hidden"; else walk(c);
+    } };
+    walk(document.body);
+  });
+
   // Seviye sınaması: nota okuma soruları geçilir, gerçek ses izleme altıncı notaya kadar sürer
   const lv = await open(wavs.check);
   { const page = lv.page;
@@ -116,27 +215,37 @@ async function shootAll(t, base, wavs){
   await shot("3-akort", "index.html?view=tune", async () => {
     await page.selectOption("#tmakam", "ussak"); await page.click('[data-tune="icra"]');
     await page.click("#btn"); await page.waitForTimeout(1800);
+    // Entonasyon izi ve nota şeridi ekranın altında yarım kalıyordu: görüntü Vibrato'da bitsin
+    await page.evaluate(() => { document.querySelector(".tracewrap").style.display = "none"; document.querySelector(".card.strip").style.visibility = "hidden"; });
   });
   await shot("4-parmak", "index.html?view=finger", async () => {
     await page.click('#rail [aria-label*="yazılı Re4 "]'); await page.waitForTimeout(500);
-    await page.evaluate(() => { SK.stopAll(); window.scrollTo(0, 225); });
+    // Şema ve "Sesi durdur" düğmesi nota şeridinin hemen üstünde bitsin
+    await page.evaluate(() => { SK.stopAll(); window.scrollBy(0, document.getElementById("stopbtn").getBoundingClientRect().bottom + 6 - document.querySelector(".card.strip").getBoundingClientRect().top); });
   });
   await shot("5-cesniler", "index.html?tab=teori", async () => {
     await page.click('[data-t="cesni"]'); await page.waitForTimeout(700);
-    await toTop(page, '[data-ce="0"]', 68);
+    await toTop(page, '[data-ce="0"]', 68); await trimBottom(page);
   });
-  await shot("6-nota-arsivi", "index.html?eser=" + PIECE, async () => { await page.click("#arfull"); await page.waitForTimeout(800); });
-  // Çevir: arşivdeki aynı eserin notası resim olarak verilir, gerçek okuyucu okur
-  const clip = await page.evaluate(() => { const r = [...document.querySelectorAll("#pp-archive svg.score")].slice(0, 4).map(e => e.getBoundingClientRect()); return { x:r[0].x + scrollX, y:r[0].y + scrollY, width:r[0].width, height:r[3].bottom - r[0].top }; });
-  const pic = await page.screenshot({ clip, fullPage:true });
-  await page.evaluate(() => document.body.classList.remove("arfullbody"));
+  await shot("6-nota-arsivi", "index.html?eser=" + PIECE, async () => {
+    await page.click("#arfull"); await page.waitForTimeout(800);
+    // Ekranın altından taşan dizek gizlenir (nota kutusu kendi içinde kaydığı için trimBottom bulamaz)
+    await page.evaluate(() => document.querySelectorAll("#pp-archive .arline").forEach(l => { if(l.getBoundingClientRect().bottom > innerHeight) l.style.visibility = "hidden"; }));
+  });
+  // Çevir: aynı eserin ilk ölçüleri Bravura ile dizilir, sayfayı gerçek okuyucu okur (temiz, sentetik sayfa; basılı nota değil)
+  const pic = await engrave(READ_PIECE, { title:"Uşşak Saz Semâîsi · Kantemiroğlu" });
   await shot("7-cevir", "index.html?tab=convert", async () => {
     await page.setInputFiles("#cvpic", { name:"ussak-saz-semaisi.png", mimeType:"image/png", buffer:pic });
     await page.waitForSelector("#cvchips button", { timeout:30000 }); await page.waitForTimeout(800);
-    await toTop(page, "#cvkind", 66);
+    await page.selectOption("#cvmk", "ussak"); await page.waitForTimeout(400);
+    await toTop(page, "#cvkind", 66); await trimBottom(page);
   });
   await shot("8-eslik", "index.html?tab=band", async () => {
-    await page.click("#bdgo"); await page.waitForTimeout(7000); await page.click("#bdgo"); await page.waitForTimeout(800);
+    await page.click("#bdgo"); await page.waitForTimeout(10000); await page.click("#bdgo");   // ses döngüsü 8,3 sn: en az bir nota başı duyulsun
+    await page.waitForTimeout(800);
+    // Sentetik uzun ton üç ölçüde tek başlangıç verir, sonuç %100 çıkar: gösterimde on altı ölçülük olağan bir çalış yazılır
+    await page.evaluate(() => { const b = document.querySelectorAll("#bdstage .big2"), st = document.getElementById("bdstage"); b[0].textContent = "%82"; b[2].textContent = "16";
+      const p = st.querySelector("p.muted"); if(p) p.textContent = "Grubun temposu 208–220 arasında gezindi; seni 1 kez bekledi."; });
   });
   await browser.close();
 }

@@ -34,7 +34,12 @@ boyutları kendisi türetir.
 1. App Store Connect'te uygulamayı oluştur (paket kimliği yukarıdaki).
 2. Xcode → *Product → Archive* → *Distribute App* → App Store Connect.
 3. TestFlight ile önce kendin ve birkaç deneyiciyle dene.
-4. Mağaza bilgileri: ekran görüntüleri (6,7" ve 5,5" iPhone, isteğe bağlı iPad), açıklama, gizlilik politikası URL'si
-   (`privacy.html`), *App Privacy* formunda "Veri toplanmıyor".
+4. Mağaza bilgileri: ekran görüntüleri, açıklama, gizlilik politikası URL'si (`privacy.html`), *App Privacy* formunda
+   "Veri toplanmıyor". iPhone görüntüleri `store/screens/ios/` altında, 6,9" boyutunda: 1320×2868 (`npm run store-shots`).
+   Bu boyutlar üçüncü taraf kaynaklardan alındı (Kasım 2026); **yüklemeden önce App Store Connect'te doğrula.** Kaynaklara
+   göre 6,9" takımı verilince 6,5" takımı gerekmez, küçük iPhone boyutları ondan türetilir.
+   iPad görüntüsü çekilmedi. Xcode hedefi şu an iPad'i de kapsıyor (`TARGETED_DEVICE_FAMILY = "1,2"`); kaynaklara göre bu
+   durumda 13" iPad görüntüsü de istenir (2064×2752 ya da 2048×2732). **iPad'in hedefte kalıp kalmayacağı proje sahibinin
+   kararı:** kalırsa iPad takımı çekilir, kalmazsa hedef yalnız iPhone yapılır.
 5. İnceleme notu: "Uygulama mikrofonu yalnızca kullanıcının çaldığı notanın perdesini ölçmek için kullanır;
    ses cihazda işlenir ve kaydedilmez/gönderilmez."
