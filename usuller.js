@@ -158,7 +158,17 @@ TRAINERS.usul = function(ctx){
       "This is one common darbuka pattern; dance rhythms vary by region, player and dance, and there is no single correct pattern. Follow your teacher's or your local group's version.") : "");
     $("ussay").textContent = cur.strokes.map(([s, d]) => usulSyl(s) + " –".repeat(d - 1)).join("  ");
     $("ustempo").value = store.get(tempoKey(), i.tempo); $("usunit").textContent = unitName(cur);
-    paintGrid(false); paintList(); paintSteps(); idleStage();
+    paintGrid(false); paintList(); paintSteps(); idleStage(); paintArch();
+  }
+  // Arşivde bu usulde eser yoksa düğme yalan söylemesin: oyun havası usulünde "Oyun havası eserleri" (SK.archiveByUsul o listeyi açar), ötekinde gizli
+  function paintArch(){
+    const b = $("usarch"), id = cur.id, set = has => {
+      if(cur.id !== id) return;
+      b.textContent = has ? L("Bu usulde eserler", "Pieces in this usul") : L("Oyun havası eserleri", "Dance tunes in the archive");
+      b.hidden = !has && !cur.halk;
+    };
+    set(true);
+    if(SK.archiveIndex) SK.archiveIndex().then(list => set(list.some(e => e.u === id))).catch(() => {});
   }
   function idleStage(){
     const next = USUL_STEPS.find(st => !passed(cur.id, st));
