@@ -548,7 +548,7 @@
     if(why === "pop" && active){
       if(!parked && modules[active].leave) modules[active].leave();
       // Alıştırmadan çıkınca sesi kesilir; çubukta kalmasın. Yine de ses sürerse o alıştırmaya yazılır (prevTab).
-      prevTab = active; soundTab = null; SK.resetSound();
+      prevTab = active; prevUntil = performance.now() + 1500; soundTab = null; SK.resetSound();
       active = null; parked = false;
     }
     shown = null; waiting = null;
@@ -900,26 +900,32 @@
     if(active) stopTab(active);
   });
 
-  // "Şu an çalıyor" çubuğu (nowplaying.js): metronom, dron ve sesi süren alıştırma. Alıştırma sesi, ses
-  // başladığında açık olan sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür.
-  let soundTab = null, prevTab = null;
+  // "Şu an çalıyor" çubuğu (nowplaying.js): metronom, dron ve sesi süren alıştırma. Alıştırma sesi yalnız sayfası
+  // ekrandaki sekmeye yazılır; başka sayfaya geçilse de çubuk oraya geri götürür. Arkada açık kalan ders, Akort'taki
+  // notanın sönen sesini üstüne alıp durduk yere çubukta görünmesin.
+  let soundTab = null, prevTab = null, prevUntil = 0, seenAt = 0;
   const inPractice = () => document.body.dataset.view === "practice";
   const toolsHere = () => inPractice() && !$("navtools").hidden;
-  const openTools = () => {
-    if(!toolsHere()) SK.nav.reveal(TOOLS_ON.includes(active) ? active : store.get("ptab.prac", "quiz"));
-    SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl);
-  };
+  // Akort'taki Dem düğmesi dronu ekranda gösterir ve durdurur; çubukta ikinci bir satıra gerek yok
+  const demHere = () => document.body.dataset.view === "tune" && !$("tunedrone").hidden;
+  // Panel her sayfada açılır: metronom ya da dron için başka bölüme geçilmez
+  const openTools = () => SK.nav.openSheet(L("Metronom ve dron", "Metronome & drone"), toolsEl);
   const mediaIn = id => [...$("pp-" + id).querySelectorAll("audio, video")].some(x => !x.paused && !x.ended);
   SK.addSource(() => {
     const out = [], here = toolsHere();
     if(met) out.push({ key:"met", title:L("Metronom", "Metronome"), sub:$("metsum").textContent, here, go:openTools, stop:stopMet });
-    if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here, go:openTools, stop:stopDrone });
-    const age = SK.soundAge();
-    if(age < 300 && (active || prevTab)) soundTab = active || prevTab;
+    if(drone) out.push({ key:"drone", title:L("Dron", "Drone"), sub:$("dronesum").textContent, here: here || demHere(), go:openTools, stop:stopDrone });
+    const age = SK.soundAge(), now = performance.now();
+    const owner = inPractice() && active && shown === active ? active : now < prevUntil ? prevTab : null;
+    if(age < 300 && owner) soundTab = owner;
+    const onTab = inPractice() && shown === soundTab;
+    if(onTab) seenAt = now;
     if(soundTab && (age < 2500 || mediaIn(soundTab))){
-      const id = soundTab, m = modules[id], sub = m.nowTitle ? m.nowTitle() : "";
-      out.push({ key:"ex", title:tabName(id), sub, here: inPractice() && shown === id,
-        go: () => SK.nav.reveal(id), stop: () => stopTab(id) });
+      // Sayfadan çıkmadan biten ses çubuğa gelmez: çıktıktan sonra ses duyulmuş olmalı
+      if(onTab || age < now - seenAt || mediaIn(soundTab)){
+        const id = soundTab, m = modules[id], sub = m.nowTitle ? m.nowTitle() : "";
+        out.push({ key:"ex", title:tabName(id), sub, here: onTab, go: () => SK.nav.reveal(id), stop: () => stopTab(id) });
+      }
     }else if(soundTab && !mediaIn(soundTab)) soundTab = null;
     return out;
   });

@@ -1,5 +1,5 @@
 // "Şu an çalıyor" çubuğu: başka sayfaya geçince süren ses (alıştırma, metronom, dron, şeritteki nota) alt menünün
-// üstünde bir satır olarak görünür. Satıra dokununca çalan yere dönülür, ■ yalnız o sesi durdurur. Kaynak ekranda
+// üstünde bir satır olarak görünür. Satıra dokununca alıştırmaya dönülür (metronom ve dronda panel olduğu yerde açılır), ■ yalnız o sesi durdurur. Kaynak ekranda
 // açıksa satır gösterilmez. Üst çubuktaki Durdur düğmesi bir şey çaldığı sürece görünür ve hepsini durdurur.
 // Kaynaklar SK.addSource ile app.js ve practice.js'ten gelir.
 (function(){
