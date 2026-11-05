@@ -355,13 +355,14 @@ Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınm
   inerken der, Gürbüz ölçümü ikisini de verir)
 - **OMR düşük çözünürlük** (P1): 9 px bulanık sayfada ♯ büyük mücenneb ♯ okunuyor (12 notada 7 ve 4); Leland 11 px
   bulanıkta büyük mücenneb ♭ bakiye okunuyor (3). Ayırmak için gerçek düşük çözünürlüklü fotoğraf örnekleri gerekli
-- **Lisans tablosu** (P1): 4 Kasım 2026'da dolduruldu ve zayıf kayıtlar doğrulandı; `lisans-besteciler.csv` 502 satır (318 ölüm
-  yılı dolu; 189 kamu malı, 170 telifli, 1 anonim, 142 bilinmiyor), `lisans-guftekarlar.csv` 363 satır (207 yıl dolu; 105 kamu malı,
-  126 telifli, 132 bilinmiyor). Sınır 2026 için ölüm yılı ≤ 1955 (FSEK m. 26-27). Dışlama listesi (`scripts/lisans-disla.js`):
-  `lisans-disla.csv` 786 telifli (39'u zayıf kaynaklı), `lisans-belirsiz.csv` 379 belirsiz, `lisans-guftesiz.csv` 146 güfte yazarı
-  kayıtlı olmayan eser (14'ünün yazarı bulundu). Şefik Gürmeriç 1967 doğrulandı, Erol Bingöl ve Ömer Sami Güpgüp telifli çıktı:
-  169 seyirin 140'ı telifli, çıkarılırsa 49 makamda seyir örneği kalmaz. Kalan: Ömer Dilek, İTÜ kataloğuna sorulmayan yaklaşık 200
-  `bilinmiyor` ad ve basılı kaynak. Eserler arşivden çıkarılmadı; bu proje sahibinin kararı; ayrıntı `LISANSLAR.md`
+- **Lisans tablosu** (P1): 4 Kasım 2026'da dolduruldu, zayıf kayıtlar doğrulandı, 5 Kasım'da kalan adlar İTÜ kataloğuna soruldu;
+  `lisans-besteciler.csv` 502 satır (329 ölüm yılı dolu; 192 kamu malı, 180 telifli, 1 anonim, 129 bilinmiyor),
+  `lisans-guftekarlar.csv` 363 satır (211 yıl dolu; 106 kamu malı, 131 telifli, 126 bilinmiyor). Sınır 2026 için ölüm yılı ≤ 1955
+  (FSEK m. 26-27). Dışlama listesi (`scripts/lisans-disla.js`): `lisans-disla.csv` 797 telifli (50'si zayıf kaynaklı),
+  `lisans-belirsiz.csv` 364 belirsiz, `lisans-guftesiz.csv` 147 güfte yazarı kayıtlı olmayan eser (14'ünün yazarı bulundu). Şefik
+  Gürmeriç 1967 doğrulandı, Erol Bingöl ve Ömer Sami Güpgüp telifli çıktı: 169 seyirin 140'ı telifli, çıkarılırsa 49 makamda seyir
+  örneği kalmaz. Kalan: Ömer Dilek, kataloğun da bilmediği adlar ve basılı kaynak. Eserler arşivden çıkarılmadı; bu proje sahibinin
+  kararı; ayrıntı `LISANSLAR.md`
 - **Proje sahibine / uzmana bağlı** (kod değil): gerçek Albert Sol klarnet kayıtları (her notada pp/mf/ff) ve
   `audio-check` ile sınama; 57 çeyrek ses parmağında ses kalitesi ve geçiş bilgisi; konuya özel kısa başlangıç videoları
   (eller, nefes, kamış takma); farklı icracı ve üsluplardan izinli örnekler; aşamalardaki "Uzman/hoca görmeli" maddeleri
