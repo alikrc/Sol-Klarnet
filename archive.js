@@ -475,17 +475,18 @@ TRAINERS.archive = function(ctx){
     }else{
       const avail = Math.max(200, (box.clientWidth || P.clientWidth || 360) - 8)/S.zoom;
       const lines = []; let line = null, w = 0;
+      const lineHead = mt => scoreStart(mt && [mt[1], mt[2]]) + 14;   // satırın notalardan önceki yeri ve sağ payı
       cur.ms.forEach(m => {
         const ly = scoreLayout(ns.slice(m.from, m.to), { names, lyrics: lyr, base: 0, showMeter: false, barAfter: new Set() });
         const mw = ly.end - ly.start + 6;
         const newMeter = meterAt.has(m.from), sec = [...secAt.keys()].some(k => k >= m.from && k < m.to);
-        const head = (newMeter || !line ? 46 : 34) + 14;
+        const head = lineHead(newMeter || !line ? m.meter : null);
         // Ölçü tek başına satıra sığmıyorsa (uzun usul, sık perde adları; telefonda) vuruş başlarından bölünür;
         // yoksa satır sıkışır, perde adları üst üste biner ve satır ekrandan taşar
         if(mw > avail - head){
           // Önceki satırda yer varsa ölçü oradan başlar (bölünen ölçünün kuyruğu tek başına satır kaplamasın)
           let cont = !!line && !sec && !newMeter && w < avail*0.7;
-          let from = m.from, x0 = ly.start, meter = newMeter || !line ? m.meter : null, used = cont ? w : meter ? 60 : 48, beats = 0, cand = -1;
+          let from = m.from, x0 = ly.start, meter = newMeter || !line ? m.meter : null, used = cont ? w : lineHead(meter), beats = 0, cand = -1;
           ly.xs.forEach((x, k) => {
             if(k) beats += ns[m.from + k - 1].d;
             const onBeat = k > 0 && Math.abs(beats - Math.round(beats)) < 1e-6;
@@ -493,7 +494,7 @@ TRAINERS.archive = function(ctx){
               const at = cand > from - m.from ? cand : onBeat ? k : -1;     // son uygun vuruş başı
               if(at > 0){
                 if(cont) line.to = m.from + at; else lines.push({ from, to: m.from + at, meter });
-                from = m.from + at; x0 = ly.xs[at]; meter = null; used = 48; cont = false;
+                from = m.from + at; x0 = ly.xs[at]; meter = null; used = lineHead(null); cont = false;
               }
             }
             if(onBeat) cand = k;

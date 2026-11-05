@@ -25,11 +25,13 @@ function noteAdvance(n, lyrics, names){
   if(names && !n.rest) own = Math.max(own, scorePerdeName(n).length*5 + 6);
   return { pre, own };
 }
+// İlk notanın yeri: anahtar 27'ye kadar, ölçü rakamı 34'ten başlar (hane başına ≈ 9); nota başının yarıçapı 5,2, araya ≈ 5 kalır
+const scoreStart = meter => meter ? 46 + 9*Math.max(String(meter[0]).length, String(meter[1]).length) : 40;
 // Yerleşim: süreye göre aralık, işaretli notaya ek yer. Dönen: { xs (nota yerleri), bars (ölçü çizgileri), end, start }
 function scoreLayout(notes, opts = {}){
   const showMeter = opts.meter && opts.showMeter !== false;
   const bar = opts.meter ? opts.meter[0] * 4 / opts.meter[1] : 4;
-  const start = showMeter ? 46 : 34;
+  const start = scoreStart(showMeter ? opts.meter : null);
   const xs = []; let x = start, beats = 0;
   const bars = [];
   // Arşiv satırlarında perde adları ve heceler komşusuna değmesin: iki yazının yarı genişlikleri toplamı kadar ara
