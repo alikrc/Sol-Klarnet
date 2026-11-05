@@ -780,7 +780,7 @@ const TRAINER_STEPS = {
       if(count >= st.n) done({ v: count });
     });
   },
-  // Okuma adımı: metin dersleri (bakım, duruş, nota okuma); "Okudum" ile geçilir
+  // Okuma adımı: metin dersleri (bakım, duruş, nota okuma); "Onay" ile geçilir, kutu kapanır
   read(st, stage, done, ctx){
     // Kontrol listesi (st.check): kendini aynada ya da videoda izleyip işaretlersin; işaretler cihazda kalır, geçmeyi engellemez
     const ck = st.check ? ctx.store.get("check." + st.checkId, {}) : null;
@@ -788,7 +788,7 @@ const TRAINER_STEPS = {
       (ck ? `<div class="label">${L("Kontrol listesi", "Checklist")} <small class="lsckn"></small></div>
         <p class="muted small">${L("Telefonla kendini 20–30 saniye videoya çek (yandan ve önden) ya da aynaya bak; doğru olanları işaretle. Emin olmadıklarını hocana göster.", "Film yourself for 20–30 seconds with your phone (from the side and the front) or use a mirror; tick what is right. Show your teacher anything you're unsure of.")}</p>
         <ul class="lscheck">${st.check.map((c, k) => `<li><label><input type="checkbox" data-ck="${k}"${ck[k] ? " checked" : ""}><span>${pick(c, LANG)}</span></label></li>`).join("")}</ul>` : "") +
-      `<div class="pbar"><button class="primary small" type="button" data-read>${L("Okudum, anladım", "Read and understood")}</button></div>`;
+      `<div class="pbar"><button class="primary small" type="button" data-read>${L("Onay", "OK")}</button></div>`;
     const count = () => { const n = stage.querySelectorAll("[data-ck]:checked").length, el = stage.querySelector(".lsckn"); if(el) el.textContent = n + "/" + st.check.length; };
     if(ck){ count(); stage.addEventListener("change", e => { const b = e.target.closest("[data-ck]"); if(!b) return; ck[b.dataset.ck] = b.checked; ck.d = dayKey(new Date()); ctx.store.set("check." + st.checkId, ck); count(); }); }
     stage.querySelector("[data-read]").addEventListener("click", () => done({ v:1 }));

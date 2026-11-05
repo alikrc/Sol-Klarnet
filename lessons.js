@@ -11,7 +11,7 @@
 //   mimic   { makam | commas, len }          taklit oyununda len notalık ezgiye ulaş
 //   vibrato { note, sec }                    notada sec saniye düzenli vibrato (4–8 Hz)
 //   glide   { from, to, n }                  from'dan to'ya n kez glissando
-//   read    { title, body }                   okuma (bilgi) adımı; "Okudum" ile geçilir
+//   read    { title, body }                   okuma (bilgi) adımı; "Onay" ile geçilir
 //   rhythm  { pattern | usul, tempo, bars, silent, min }  metronomla çal, en az min ritim puanı
 //   dynamics{ note, sec, shape }              crescendo / decrescendo / messa di voce
 //   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim

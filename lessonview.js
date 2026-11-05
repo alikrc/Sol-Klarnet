@@ -390,7 +390,9 @@ TRAINERS.lessons = function(ctx){
       if(!dd.includes(daily.day)){ dd.push(daily.day); store.set("lesson.dailyDone", dd.slice(-400)); }
     }
     save();
-    if(lesson.steps[i].type !== "listen")
+    // Okuma adımı onaylanınca kutusu kapanır; işaretli kontrol listesi kayıtta kalır
+    if(lesson.steps[i].type === "read"){ const s = $("lss"+i); if(cur === lesson && s){ s.hidden = true; s.innerHTML = ""; } }
+    else if(lesson.steps[i].type !== "listen")
       $("lss"+i).insertAdjacentHTML("beforeend", `<div class="fb ${r.ok ? "good" : "bad"}">${r.ok ? "Geçtin!" : "Geçme koşulu sağlanmadı; tekrar dene."}</div>`);
     if(cur === lesson){ refreshStep(i); renderList(); renderNext(); }
   }
