@@ -14,6 +14,11 @@
   const rv = store.get("review", { name:"", items:{} });
   const save = () => store.set("review", rv);
   const VERDICTS = [["ok", L("Doğru", "Correct")], ["bad", L("Yanlış", "Wrong")], ["unsure", L("Emin değilim", "Not sure")]];
+  // Çeyrek ses parmaklarında doğru/yanlışın yanında .q ses kalitesi, .g geçiş (1 en iyi, 3 en kötü), .u kullanım yeri.
+  // Ses kalitesi basamakları parmak kartındaki kişisel işaretle aynı (app.js QT_Q)
+  const QT_RATES = [["q", L("Ses kalitesi", "Tone quality"), [[1, L("Temiz", "Clean")], [2, L("İdare eder", "Usable")], [3, L("Zayıf", "Weak")]]],
+    ["g", L("Geçiş", "Transition"), [[1, L("Kolay", "Easy")], [2, L("Orta", "Moderate")], [3, L("Zor", "Hard")]]]];
+  const blank = it => !it.v && !it.c && !it.q && !it.g && !it.u;
 
   root.innerHTML = `
     <div class="cardhead"><h2 class="vtitle" id="rvlab">${L("Uzman kontrolü", "Expert review")}</h2>
@@ -151,7 +156,7 @@
       opts:[["suggest", L("Öneri kalsın", "Keep as advice")], ["gate", L("Kapı olsun", "Make it a gate")], ["some", L("Yalnız bazıları", "Only some")], NOT_SURE] },
     { id:"ceyrek-57", g:"parmak", title:L(qtAll.length + " çeyrek ses parmağı Türk Sol klarnetinde kullanılır mı?", "Are the " + qtAll.length + " quarter-tone fingerings usable on a Turkish G clarinet?"),
       now:L(qtNotes.size + " çeyrek seste " + qtAll.length + " parmak, WFG Oehler/Albert tablosundan (A. Wendl). Parmak kartında “doğrulanmamış” grubunda; ses kalitesi, geçiş ve kullanım yeri “bilinmiyor” yazılı.", qtAll.length + " fingerings for " + qtNotes.size + " quarter tones, from WFG's Oehler/Albert table (A. Wendl). They sit in the “unverified” group of the fingering card; tone quality, transitions and use are marked “unknown”."),
-      ask:L("Parmaklar sekmesindeki “+ ¼” satırlarını tek tek işaretleyin; burada genel kanınızı yazın. Ses kalitesi, geçiş ve kullanım yerini nota yazın.", "Mark the “+ ¼” rows one by one in the Fingerings tab; give your overall view here. Note tone quality, transitions and where each is used."),
+      ask:L("Parmaklar sekmesindeki “+ ¼” satırlarını tek tek işaretleyin; ses kalitesi, geçiş ve kullanım yeri de orada. Burada genel kanınızı yazın.", "Mark the “+ ¼” rows one by one in the Fingerings tab, including tone quality, transition and where each is used. Give your overall view here."),
       opts:[["usable", L("Kullanılır", "Usable")], ["some", L("Bir kısmı", "Some of them")], ["no", L("Kullanılmaz", "Not usable")], NOT_SURE] },
     { id:"a-mandal", g:"parmak", title:L("“a” mandalı hangi mandal?", "Which key is the “a” key?"),
       now:L("WFG'ye göre sağ orta deliğin üstündeki mandal; şemada öyle çiziliyor. " + qtKeyA + " çeyrek ses parmağı bunu kullanıyor.", "According to WFG, the key above the right middle hole, and the chart draws it there. " + qtKeyA + " quarter-tone fingerings use it."),
@@ -200,11 +205,36 @@
       <input type="text" class="rvc" placeholder="${o.ph || L("Yorum ya da doğrusu (ör. doğru parmak kodu)", "Comment or correction (e.g. the right fingering)")}" value="${esc(it.c || "")}">
     </div>`;
   }
+  function qtRateBox(key){
+    const it = rv.items[key] || {};
+    return `<div class="rvqs" data-key="${key}">${QT_RATES.map(([f, name, opts]) => `<div class="rvqr"><span class="label">${name}</span>
+        <div class="seg" role="radiogroup" aria-label="${name}">${opts.map(([v, t]) =>
+          `<button type="button" role="radio" data-rf="${f}" data-rv="${v}" aria-checked="${it[f] === v}">${t}</button>`).join("")}</div></div>`).join("")}
+      <input type="text" class="rvu" aria-label="${L("Kullanım yeri", "Where it is used")}" placeholder="${L("Kullanım yeri (ör. hangi makamda, hangi perdede)", "Where it is used (e.g. which makam, which perde)")}" value="${esc(it.u || "")}">
+    </div>`;
+  }
+  root.addEventListener("click", e => {
+    const b = e.target.closest(".rvqs [data-rf]"); if(!b) return;
+    const key = b.closest(".rvqs").dataset.key, it = rv.items[key] || (rv.items[key] = {}), f = b.dataset.rf, v = +b.dataset.rv;
+    if(it[f] === v) delete it[f]; else it[f] = v;
+    const now = it[f];
+    if(blank(it)) delete rv.items[key];
+    b.parentNode.querySelectorAll("button").forEach(x => x.setAttribute("aria-checked", String(+x.dataset.rv === now)));
+    save();
+  });
+  root.addEventListener("change", e => {
+    if(!e.target.classList.contains("rvu")) return;
+    const key = e.target.closest(".rvqs").dataset.key, it = rv.items[key] || (rv.items[key] = {});
+    it.u = e.target.value.trim();
+    if(!it.u) delete it.u;
+    if(blank(it)) delete rv.items[key];
+    save();
+  });
   root.addEventListener("click", e => {
     const b = e.target.closest(".rvv [data-v]"); if(!b) return;
     const key = b.closest(".rvv").dataset.key, it = rv.items[key] || (rv.items[key] = {});
     it.v = it.v === b.dataset.v ? undefined : b.dataset.v;
-    if(!it.v && !it.c) delete rv.items[key];
+    if(blank(it)) delete rv.items[key];
     b.parentNode.querySelectorAll("button").forEach(x => x.setAttribute("aria-checked", x.dataset.v === (it.v || "") ? "true" : "false"));
     save(); summary(); markHeads();
   });
@@ -212,7 +242,7 @@
     if(!e.target.classList.contains("rvc")) return;
     const key = e.target.closest(".rvv").dataset.key, it = rv.items[key] || (rv.items[key] = {});
     it.c = e.target.value.trim();
-    if(!it.v && !it.c) delete rv.items[key];
+    if(blank(it)) delete rv.items[key];
     save(); summary();
   });
 
@@ -259,7 +289,7 @@
           <code class="fcode">${esc(fg.code)}</code>${fg.note ? `<p class="muted">${esc(fg.note)}</p>` : ""}
           <ul class="rvsteps">${steps || `<li>${L("Hiçbir şey basılı değil", "Nothing pressed")}</li>`}</ul>
           <button class="stopbtn" type="button" data-hear="${w}"${q ? ' data-q="1"' : ""}>${L("Notayı duy", "Hear the note")}</button>
-          ${verdictBox((q ? "q:" : "f:") + w + ":" + i)}`;
+          ${verdictBox((q ? "q:" : "f:") + w + ":" + i)}${q ? qtRateBox("q:" + w + ":" + i) : ""}`;
         item.appendChild(side);
         list.appendChild(item);
       });
@@ -347,6 +377,8 @@
     const lines = [L("Sol Klarnet — uzman kontrolü raporu", "Sol Klarnet — expert review report"),
       L("Kontrol eden: ", "Reviewer: ") + (rv.name || "—"), L("Tarih: ", "Date: ") + new Date().toISOString().slice(0, 10), ""];
     const vt = v => ({ ok: L("DOĞRU", "CORRECT"), bad: L("YANLIŞ", "WRONG"), unsure: L("EMİN DEĞİL", "UNSURE") })[v] || "—";
+    const rates = it => [...QT_RATES.filter(([f]) => it[f]).map(([f, name, opts]) => name + ": " + opts.find(([v]) => v === it[f])[1]),
+      it.u ? L("Kullanım yeri: ", "Where used: ") + it.u : ""].filter(Boolean).map(x => " · " + x).join("");
     for(const k of allItems()){
       const it = rv.items[k]; if(!it) continue;
       if(isQ(k)){
@@ -359,10 +391,12 @@
       else if(k.startsWith("q:")){ const [, w, i] = k.split(":"); what = nn(+w) + " + ¼ " + L("çeyrek ses ", "quarter tone ") + (+i + 1) + " [" + quarterFingeringsFor(+w)[+i].code + "]"; }
       else if(k.startsWith("o:")){ const o = ORN_REVIEW.find(x => x.id === k.slice(2)); what = L("Süsleme ", "Ornament ") + (o.etude ? pick(etudeById(o.etude).name, LANG) : o.name); }
       else what = "Makam " + makamById(k.slice(2)).name;
-      lines.push(vt(it.v) + " · " + what + (it.c ? " — " + it.c : ""));
+      lines.push(vt(it.v) + " · " + what + (k.startsWith("q:") ? rates(it) : "") + (it.c ? " — " + it.c : ""));
     }
     const all = allItems().filter(k => !isQ(k)), done = all.filter(k => rv.items[k] && rv.items[k].v).length;
-    lines.push("", L("Kontrol edilen: ", "Reviewed: ") + done + "/" + all.length, L("Cevaplanan soru: ", "Questions answered: ") + answered() + "/" + QUESTIONS.length,
+    const qk = all.filter(k => k.startsWith("q:")), rated = qk.filter(k => { const it = rv.items[k]; return it && (it.q || it.g || it.u); }).length;
+    lines.push("", L("Kontrol edilen: ", "Reviewed: ") + done + "/" + all.length, L("Puanlanan çeyrek ses parmağı: ", "Quarter-tone fingerings rated: ") + rated + "/" + qk.length,
+      L("Cevaplanan soru: ", "Questions answered: ") + answered() + "/" + QUESTIONS.length,
       "", "JSON:", JSON.stringify({ app:"sol-klarnet-review", v:1, name:rv.name, items:rv.items }));
     return lines.join("\n");
   }

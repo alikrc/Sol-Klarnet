@@ -363,6 +363,10 @@ Aynı liste tekrar geldi; maddelerin hepsi yukarıdaki dört aşamada ele alınm
   Gürmeriç 1967 doğrulandı, Erol Bingöl ve Ömer Sami Güpgüp telifli çıktı: 169 seyirin 140'ı telifli, çıkarılırsa 49 makamda seyir
   örneği kalmaz. Kalan: Ömer Dilek, kataloğun da bilmediği adlar ve basılı kaynak. Eserler arşivden çıkarılmadı; bu proje sahibinin
   kararı; ayrıntı `LISANSLAR.md`
+- **Çeyrek ses puanı** (P0, tablo 1.3): tamamlandı (7 Kasım 2026). Uzman kontrolünde "+ ¼" satırlarına ses kalitesi (temiz /
+  idare eder / zayıf), geçiş (kolay / orta / zor) ve kullanım yeri eklendi (`review.js` `QT_RATES`; `.q`, `.g`, `.u`); rapora
+  ve JSON'a giriyor, raporda kaç parmağın puanlandığı yazıyor. Tarayıcıda denendi. Parmak kartı hâlâ "bilinmiyor" diyor:
+  gelen raporlar uygulamaya elle işlenecek
 - **Proje sahibine / uzmana bağlı** (kod değil): gerçek Albert Sol klarnet kayıtları (her notada pp/mf/ff) ve
   `audio-check` ile sınama; 57 çeyrek ses parmağında ses kalitesi ve geçiş bilgisi; konuya özel kısa başlangıç videoları
   (eller, nefes, kamış takma); farklı icracı ve üsluplardan izinli örnekler; aşamalardaki "Uzman/hoca görmeli" maddeleri

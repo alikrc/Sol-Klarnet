@@ -326,8 +326,8 @@ kesin hüküm değildir; **Hocaya soru** öğretmen görüşünü almak içindir
 **`ceyrek-57` — 57 çeyrek ses parmağı Türk Sol klarnetinde kullanılır mı?**
 - Uygulamada: 44 çeyrek seste 57 parmak, WFG Oehler/Albert tablosundan (A. Wendl). Parmak kartında "doğrulanmamış"
   grubunda; ses kalitesi, geçiş ve kullanım yeri "bilinmiyor" yazılı
-- Hocaya soru: Parmaklar sekmesindeki "+ ¼" satırlarını tek tek işaretleyin; burada genel kanı. Ses kalitesi, geçiş ve
-  kullanım yeri için ayrı alan yok, yorum kutusuna yazılır
+- Hocaya soru: Parmaklar sekmesindeki "+ ¼" satırlarını tek tek işaretleyin (doğru/yanlış, ses kalitesi, geçiş, kullanım
+  yeri); burada genel kanı
 - Cevap değiştirir: `core.js` `QT_FINGERINGS`; `app.js` `showFingerings` uyarısı
 
 **`a-mandal` — "a" mandalı hangi mandal?**
@@ -410,5 +410,5 @@ bağlanacak içerik: eller, nefes ve kamış takma için kısa videolar; farklı
 | İnsan işleri 6: "Telifli eserler eklenmedi", "SymbTr'den seçki eklenecekse" | Arşivde 2200 eser var; `lisans-disla.csv` 690 telifli eser sayıyor, karar `LISANSLAR.md`'de |
 | 4 Ekim: makam dizileri ve usul vuruşları hocaya kontrol ettirilmeli | Klasik usuller ve makam dizileri TDV ile karşılaştırıldı (`KAYNAKLAR.md`); kalan kısmı Makamlar sekmesi ve `oyun-havasi` |
 
-**Önerilip yapılmayan:** Tablo 1.3'ün "Uzman kontrolünde kalite ve geçiş puanı toplanır" maddesi yapılmadı; çeyrek ses
-satırlarında yalnız doğru/yanlış ve yorum var.
+**Önerilip sonra yapılan:** Tablo 1.3'ün "Uzman kontrolünde kalite ve geçiş puanı toplanır" maddesi 7 Kasım'da yapıldı;
+çeyrek ses satırlarında ses kalitesi, geçiş ve kullanım yeri var, rapora giriyor.
