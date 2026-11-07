@@ -7,9 +7,9 @@ Kodla bitmeyen işlerin güncel listesi: [DENEME-LISTESI.md](DENEME-LISTESI.md) 
 Proje sahibi: "Uygulama seviye belirletip ona göre adım adım ilerletmeli; bir hoca gibi elinden tutup içerik arasında
 kademe kademe götürmeli. Uygulama freemium olabilir, bazı yerler premium satılabilir." Bu iki madde diğer işlerin önünde.
 
-### 1. Kademeli hoca akışı — sürüyor
+### 1. Kademeli hoca akışı — kod işleri tamamlandı (4 Kasım 2026), gerçek klarnetle deneme kaldı
 
-**Bugünkü durum:** 87 ders düz bir listede, dersler bitirilince açılıyor ("tüm dersleri aç" kutusu her şeyi açıyor).
+**Başlangıçtaki durum (3 Kasım):** 87 ders düz bir listede, dersler bitirilince açılıyor ("tüm dersleri aç" kutusu her şeyi açıyor).
 "Bugünün çalışması" ısınma, tekrar ve bilinen konulardan her gün kuruluyor. Yol haritasında altı aşama ve ölçülen
 kilometre taşları var ama bunlar yalnızca gösterge: hiçbir dersi kilitlemiyor. Ünite sınavı yalnızca rozet veriyor.
 Kullanıcıya "şimdi şunu çalış, çünkü…" diyen tek bir yönlendirici yok; ne yapacağını listeden kendisi seçiyor.
@@ -141,7 +141,7 @@ yoksa ticari sürümde arşiv ve WFG tabloları çıkarılıp yerine kendi içer
 geliştirici hesapları hazır mı? Bu cevaplar gelmeden ödeme kodu yazılmayacak; kademe akışı (madde 1) premium ayrımına
 uygun kurulacak (kademe = satış sınırı olabilir).
 
-## Uzman inceleme bulguları — sürüyor (2 Kasım 2026)
+## Uzman inceleme bulguları — aşamalar tamamlandı, kalanlar uzmana ve örneklere bağlı (2 Kasım 2026)
 
 Bir Türk musikisi ve Sol klarnet uzmanı gözüyle yazılmış inceleme listesi. Yeni özellikten önce mevcut içeriğin müzikal
 doğruluğu, gerçek Sol klarnete uygunluğu ve eğitim kalitesi. Çalışan özellikler bozulmayacak, mimari gereksiz yere

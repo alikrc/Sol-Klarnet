@@ -407,7 +407,7 @@ bağlanacak içerik: eller, nefes ve kamış takma için kısa videolar; farklı
 | İnsan işleri 1: "72 ders", "24 etüt"; Aşama 2: "Toplam ders 84" | 87 ders, 28 etüt |
 | İnsan işleri 1: "testler tutarlılığı denetler" | Projede test yok; tutarlılık elle denetlenir |
 | İnsan işleri 4: mağaza ekran görüntüleri ve tanıtım görseli | `store/` içinde hazır; kalan hesap işleri `TODO.md`'de |
-| İnsan işleri 6: "Telifli eserler eklenmedi", "SymbTr'den seçki eklenecekse" | Arşivde 2200 eser var; `lisans-disla.csv` 690 telifli eser sayıyor, karar `LISANSLAR.md`'de |
+| İnsan işleri 6: "Telifli eserler eklenmedi", "SymbTr'den seçki eklenecekse" | Arşivde 2200 eser var; `lisans-disla.csv` 797 telifli eser sayıyor, karar `LISANSLAR.md`'de |
 | 4 Ekim: makam dizileri ve usul vuruşları hocaya kontrol ettirilmeli | Klasik usuller ve makam dizileri TDV ile karşılaştırıldı (`KAYNAKLAR.md`); kalan kısmı Makamlar sekmesi ve `oyun-havasi` |
 
 **Önerilip sonra yapılan:** Tablo 1.3'ün "Uzman kontrolünde kalite ve geçiş puanı toplanır" maddesi 7 Kasım'da yapıldı;
