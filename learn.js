@@ -189,6 +189,12 @@ const USULS = [
   { id:"agiraksak", name:"Ağır Aksak", meter:"9/4", strokes:[["D",2],["T",1],["T",1],["D",2],["T",2],["T",1]] },
   // Curcuna: Aksak Semâî'nin 10/16 mertebesi, notada çoğu zaman 10/8 yazılır
   { id:"curcuna", name:"Curcuna",    meter:"10/8", strokes:[["D",2],["T",1],["T",2],["D",2],["T",2],["T",1]] },
+  // 11 Kasım: TDV şemalarından (resim) okundu. Nîm-sofyan 2/4: düm tek (dörtlük). Sengin Semâî: Yürük Semâî ile aynı vuruşlar, 6/4 mertebesi
+  // (TDV: "vuruluşları aynı"). Devr-i Hindî 7/8: düm tek tek | düm (2) tek (2). Müsemmen 8/8: 3 + 5, şemada düm (3) tek (2) tek (3)
+  { id:"nimsofyan", name:"Nîm-sofyan", meter:"2/4", strokes:[["D",1],["T",1]] },
+  { id:"senginsemai", name:"Sengin Semâî", meter:"6/4", strokes:[["D",1],["T",1],["T",1],["D",1],["T",2]] },
+  { id:"devrihindi", name:"Devr-i Hindî", meter:"7/8", strokes:[["D",1],["T",1],["T",1],["D",2],["T",2]] },
+  { id:"musemmen", name:"Müsemmen", meter:"8/8", strokes:[["D",3],["T",2],["T",3]] },
   { id:"turkaksagi", name:"Türk Aksağı", meter:"5/8", strokes:[["D",2],["T",2],["T",1]] },
   { id:"yuruksemai", name:"Yürük Semâî", meter:"6/8", strokes:[["D",1],["T",1],["T",1],["D",1],["T",2]] },
   // Trakya, Rumeli ve Roman oyun havaları (halk: true). Vuruş kalıpları yaygın darbuka çalışından; bir hocaya kontrol ettirilmeli.
