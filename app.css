@@ -1334,3 +1334,17 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .pcsharebox{display:flex;flex-direction:column;gap:10px}
 .pcshareurl{width:100%;min-width:0;font:400 12px var(--mono)}
 .pcqr svg{display:block;width:min(260px,100%);height:auto;background:#fff;border-radius:8px}
+/* Ritim sekmesi: kalıp ve usul kartları */
+.rhcards{display:grid;gap:6px;margin:10px 0}
+.rhgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.rhcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;min-height:48px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 11px}
+.rhcard b{font:600 13.5px/1.2 var(--ui)}
+.rhcard small{font:500 12px var(--mono);color:var(--muted)}
+.rhcard[aria-pressed="true"]{border-color:var(--g-tech);box-shadow:inset 0 0 0 1px var(--g-tech)}
+.rhcard .usrow{width:100%}
+.rhcard .uscell b{height:22px;font-size:10px}
+.rhcard .uscell i{display:none}
+.rhmini{width:100%;height:30px}
+.rhnote{fill:var(--ink)}
+.rhsel{font:600 14px var(--ui);margin-right:auto}
+.rhcard .uscell b{font-size:0;height:20px}

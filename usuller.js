@@ -571,6 +571,105 @@ function heceSvg(bar, sys, cls = "", card = false){
   return s + "</svg>";
 }
 
+// ---- Hece: ortak ses ve ders adımı ----
+// Kısa, perdeli bir nota (heceyi duyurur); tıklardan ayrılsın diye üçgen dalga
+function heceTone(a, t, dest){
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = "triangle"; o.frequency.value = 523.25;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+  o.connect(g).connect(dest); o.start(t); o.stop(t + 0.18);
+}
+// Ölçüyü çalar: countIn ölçü sayım, ardından bars ölçü; vuruşlarda tık, notes ise kalıbın notaları da.
+// onCount(i) sayım vuruşu, onNote(n) o notanın duyulduğu an. startPerf: sayımdan sonraki ilk vuruş (performance.now)
+function hecePlay(ctx, sys, b, o){
+  const { SK, hit } = ctx, a = SK.audioCtx(), out = a.createGain(), beatS = 60/o.bpm, ev = heceEvents(b, sys), len = b.reduce((x, f) => x + f.beats, 0);
+  out.connect(a.destination);
+  const t0 = a.currentTime + 0.2, start = t0 + o.countIn*4*beatS, timers = [];
+  const at = s => Math.max(0, (s - a.currentTime)*1000);
+  for(let i = 0; i < o.countIn*4 + o.bars*len; i++) hit(a, (i < o.countIn*4 ? i % 4 : (i - o.countIn*4) % len) ? "T" : "D", t0 + i*beatS, i < o.countIn*4 ? 0.9 : 0.35, out);
+  for(let bb = 0; bb < o.bars; bb++) ev.forEach((e, n) => {
+    const t = start + (bb*len + e.at)*beatS;
+    if(o.notes) heceTone(a, t, out);
+    if(o.onNote) timers.push(setTimeout(() => o.onNote(n), at(t)));
+  });
+  if(o.onCount) for(let i = 0; i < o.countIn*4; i++) timers.push(setTimeout(() => o.onCount(i), at(t0 + i*beatS)));
+  timers.push(setTimeout(() => { if(o.onEnd) o.onEnd(); }, at(start + o.bars*len*beatS) + 150));
+  return { startPerf: ctxToPerf(a, start), beatMs: beatS*1000, ev, len,
+    stop(){ timers.forEach(clearTimeout); try { out.disconnect(); } catch(e){} } };
+}
+// Derslerde ritim hecesi: { type:"hece", mode:"say"|"tap"|"quiz", lv, tempo?, n?, min? }
+//   say  : ölçüyü dinle, heceleri sesli söyle (iki kez çalar, biter)
+//   tap  : bir ölçü sayımdan sonra ölçüyü iki kez vur, puan en az min
+//   quiz : çalan ölçüyü üç notadan bul, n soruda en az min doğru
+// Mikrofonsuz. Alıştırma sayfasıyla ortak kayıt: hece.best (tap), hece.quiz.best (quiz).
+TRAINER_STEPS.hece = function(st, stage, done, ctx){
+  const { store, esc } = ctx, sys = store.get("hece.sys", LANG === "en" ? "en" : "tr"), bpm = st.tempo || 72, lv = st.lv || 1;
+  let run = null, keyOff = null;
+  const mark = n => stage.querySelectorAll(".hcbar [data-n]").forEach(x => x.classList.toggle("on", +x.dataset.n === n));
+  const stop = () => { if(run){ run.stop(); run = null; } if(keyOff){ keyOff(); keyOff = null; } mark(-1); };
+  const syl = b => b.map(f => f.syl[sys].join("-")).join("  ·  ");
+  if(st.mode === "quiz"){
+    const N = st.n || 5; let i = 0, right = 0, q = null;
+    const play = () => { stop(); const r = hecePlay(ctx, sys, q.ans, { bpm, countIn:1, bars:2, notes:true, onEnd: () => { if(run === r) run = null; } }); run = r; };
+    const next = () => {
+      if(i >= N){
+        stop(); stage.innerHTML = `<div class="result"><div class="big">${right}/${N}</div><div>${L("doğru", "correct")}</div></div>`;
+        store.set("hece.quiz.best", Math.max(store.get("hece.quiz.best", 0), right)); return done({ v:right });
+      }
+      const key = b => b.map(f => f.id).join(), ans = heceBar(lv), opts = [ans];
+      for(let t = 0; opts.length < 3 && t < 60; t++){ const b = heceBar(lv); if(!opts.some(o => key(o) === key(b))) opts.push(b); }
+      opts.sort(() => Math.random() - 0.5); q = { ans, opts, done:false };
+      stage.innerHTML = `<div class="label">${L("Soru ", "Question ")}${i + 1} / ${N}</div><p>${L("Dinle: hangi ölçü çalıyor?", "Listen: which bar is playing?")}</p>
+        <div class="hcqopts">${opts.map((o, k) => `<button type="button" class="hcqopt" data-q="${k}">${heceSvg(o, sys)}</button>`).join("")}</div>
+        <div class="pbar"><button class="stopbtn" type="button" data-hq="again">${L("Tekrar dinle", "Hear again")}</button></div><div class="hcqfb"></div>`;
+      play();
+    };
+    stage.onclick = e => {
+      const t = e.target;
+      if(t.closest("[data-hq=again]")) return play();
+      if(t.closest("[data-hq=next]")) return next();
+      const b = t.closest("[data-q]"); if(!b || q.done) return;
+      q.done = true; const k = +b.dataset.q, ok = q.opts[k] === q.ans; if(ok) right++; i++;
+      stage.querySelectorAll("[data-q]").forEach(x => { x.disabled = true; if(q.opts[+x.dataset.q] === q.ans) x.classList.add("right"); else if(+x.dataset.q === k) x.classList.add("wrong"); });
+      stage.querySelector(".hcqfb").innerHTML = `<p><b>${ok ? L("Doğru.", "Right.") : L("Çalan, yeşil ölçüydü.", "The green bar was playing.")}</b> ${esc(syl(q.ans))}</p>
+        <div class="pbar"><button class="primary small" type="button" data-hq="next">${i < N ? L("Sonraki", "Next") : L("Sonuç", "Result")}</button></div>`;
+    };
+    next();
+    return { stop: () => { stop(); stage.onclick = null; } };
+  }
+  const bar = heceBar(lv);
+  stage.innerHTML = `<div class="hcbar">${heceSvg(bar, sys)}<div class="hcsay">${esc(syl(bar))}</div></div>`;
+  if(st.mode === "say"){
+    stage.insertAdjacentHTML("beforeend", `<div class="muted">${L("Notalarla birlikte heceleri sesli söyle. Kalın tık ölçü başı, ince tıklar vuruşlar. Ölçü iki kez çalar.", "Say the syllables aloud with the notes. The deep click is the downbeat, the light ones are the beats. The bar plays twice.")}</div>`);
+    run = hecePlay(ctx, sys, bar, { bpm, countIn:1, bars:2, notes:true, onNote: mark, onEnd: () => { run = null; mark(-1); done({ v:1 }); } });
+    return { stop };
+  }
+  stage.insertAdjacentHTML("beforeend", `<div class="muted">${L("Bir ölçü sayımdan sonra ölçüyü iki kez vur: her hecede bir kez. Klavyede boşluk ya da herhangi bir harf.", "After a one-bar count-in, tap the bar twice: once per syllable. On a keyboard: space or any letter.")}</div>
+    <div class="usbig" id="hccountl">${L("Sayım", "Count-in")}</div><div class="hcpad"><button type="button" class="hcpadb">${L("Vur", "Tap")}</button></div>`);
+  const taps = [], btn = stage.querySelector(".hcpadb"), bars = 2, cnt = stage.querySelector("#hccountl");
+  const press = t => { if(!run) return; taps.push({ k:"T", t }); btn.classList.remove("hit"); void btn.offsetWidth; btn.classList.add("hit"); };
+  btn.addEventListener("pointerdown", e => { e.preventDefault(); press(e.timeStamp || performance.now()); });
+  const onKey = e => { if(e.repeat || e.ctrlKey || e.metaKey || e.altKey || !(e.key === " " || /^[a-z]$/i.test(e.key))) return; e.preventDefault(); press(e.timeStamp || performance.now()); };
+  document.addEventListener("keydown", onKey); keyOff = () => document.removeEventListener("keydown", onKey);
+  const r = hecePlay(ctx, sys, bar, { bpm, countIn:1, bars, notes:false,
+    onCount: i => { cnt.textContent = L("Sayım ", "Count ") + (i + 1); },
+    onNote: n => { mark(n); cnt.textContent = r.ev[n].syl; },
+    onEnd: () => {
+      stop();
+      const expected = [];
+      for(let b = 0; b < bars; b++) r.ev.forEach(e => expected.push({ t: r.startPerf + (b*r.len + e.at)*r.beatMs, k:"T" }));
+      const step = Math.min(1, ...r.ev.map((e, i) => i ? e.at - r.ev[i-1].at : 1))*r.beatMs;
+      const res = usulTapScore(expected, taps.filter(p => p.t > r.startPerf - step*0.5), step);
+      const best = store.get("hece.best", {}); if(res.score > (best[lv] || 0)){ best[lv] = res.score; store.set("hece.best", best); }
+      cnt.remove(); const pad = stage.querySelector(".hcpad"); if(pad) pad.remove();
+      stage.insertAdjacentHTML("beforeend", `<div class="result"><div class="big">${res.score}</div><div>${L("puan", "points")} · ${res.hits.length}/${res.n} ${L("nota", "notes")}${res.score >= (st.min || 70) ? " · <strong>" + L("geçtin", "passed") + "</strong>" : " · " + L("geçmek için ", "pass at ") + (st.min || 70)}</div></div>` +
+        usulTapSvg(res, expected[0].t, r.startPerf + bars*r.len*r.beatMs));
+      done({ v: res.score });
+    } });
+  run = r;
+  return { stop };
+};
+
 TRAINERS.hece = function(ctx){
   const { SK, $, store, esc, hit, needMic } = ctx;
   const P = $("pp-hece");
@@ -626,31 +725,7 @@ TRAINERS.hece = function(ctx){
   const mark = (el, n) => el && el.querySelectorAll("[data-n]").forEach(x => x.classList.toggle("on", +x.dataset.n === n));
 
   // ---- Ses ----
-  // Kısa, perdeli bir nota (heceyi duyurur); tıklardan ayrılsın diye üçgen dalga
-  function tone(a, t, dest){
-    const o = a.createOscillator(), g = a.createGain();
-    o.type = "triangle"; o.frequency.value = 523.25;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
-    o.connect(g).connect(dest); o.start(t); o.stop(t + 0.18);
-  }
-  // Ölçüyü çalar: countIn ölçü sayım, ardından bars ölçü; vuruşlarda tık, notes ise kalıbın notaları da.
-  // onCount(i) sayım vuruşu, onNote(n) o notanın duyulduğu an. startPerf: sayımdan sonraki ilk vuruş (performance.now)
-  function playBar(b, o){
-    const a = SK.audioCtx(), out = a.createGain(), beatS = 60/o.bpm, ev = heceEvents(b, sys), len = b.reduce((x, f) => x + f.beats, 0);
-    out.connect(a.destination);
-    const t0 = a.currentTime + 0.2, start = t0 + o.countIn*4*beatS, timers = [];
-    const at = s => Math.max(0, (s - a.currentTime)*1000);
-    for(let i = 0; i < o.countIn*4 + o.bars*len; i++) hit(a, (i < o.countIn*4 ? i % 4 : (i - o.countIn*4) % len) ? "T" : "D", t0 + i*beatS, i < o.countIn*4 ? 0.9 : 0.35, out);
-    for(let bb = 0; bb < o.bars; bb++) ev.forEach((e, n) => {
-      const t = start + (bb*len + e.at)*beatS;
-      if(o.notes) tone(a, t, out);
-      if(o.onNote) timers.push(setTimeout(() => o.onNote(n), at(t)));
-    });
-    if(o.onCount) for(let i = 0; i < o.countIn*4; i++) timers.push(setTimeout(() => o.onCount(i), at(t0 + i*beatS)));
-    timers.push(setTimeout(() => { if(o.onEnd) o.onEnd(); }, at(start + o.bars*len*beatS) + 150));
-    return { startPerf: ctxToPerf(a, start), beatMs: beatS*1000, ev, len,
-      stop(){ timers.forEach(clearTimeout); try { out.disconnect(); } catch(e){} } };
-  }
+  const playBar = (b, o) => hecePlay(ctx, sys, b, o);
   function halt(){
     if(run){ run.stop(); run = null; }
     if(keyOff){ keyOff(); keyOff = null; }

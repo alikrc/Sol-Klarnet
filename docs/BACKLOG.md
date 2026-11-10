@@ -80,18 +80,18 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü. Hepsi 
 - [~] **A2 Usul derslerini yeniden kur** (O, İ2, İ4; 10 Kasım: yeni `usul-giris` Başlarken'in sonunda ve `usul-2` Teknik'te eklendi, ders sayısı 89; kalan: "Düyek ve Aksak"ta önce vur sonra çal ve Trakya derslerinde elle vurma, bunlar var olan ders adım sırasını kaydırır, yeni ders kimliğiyle çözülecek): "Usule giriş: Semâî ve Sofyan" Başlarken'e (klarnetsiz: dinle,
   vur); "Düyek ve Aksak" bugünkü yerinde, önce vur sonra çal; yeni "Türk Aksağı, Yürük Semâî, Curcuna" dersi.
   Trakya derslerinde usul adımından önce elle vurma. Var olan ders kimlikleri değişmez (ilerleme korunur)
-- [ ] **A3 Ders adımı: ritim hecesi** (K, İ1, İ2): "Ritim: vuruş ve nota değerleri" dersine hecelerle söyleme ve
+- [x] **A3 Ders adımı: ritim hecesi** (K, İ1, İ2; yapıldı 10 Kasım: `hece` adımı (söyle, vur, hangi ölçü) ve yeni `ritim-hece` dersi, nota okumadan sonra ve klarnetle ritimden önce; var olan `ritim-temel`'in adım sırası değişmedi): "Ritim: vuruş ve nota değerleri" dersine hecelerle söyleme ve
   "Hangi ölçü?" adımı; ders nota okumadan hemen sonraya
-- [ ] **A4 Yol haritası ve hoca kartı** (K, İ1): kilometre taşları "4 usulü ezberden vur" (Başlangıç), "8 usul" (Orta),
+- [x] **A4 Yol haritası ve hoca kartı** (K, İ1; yapıldı 10 Kasım: taşlar "4 usulü ezberden vur" (Başlangıç), "8 usulü ezberden vur" ve "Hangi usul? 6/8" (Temel çalgıcı aşaması, usul dersleri orada); ritim puanı geriledi ve 4 usul ezberlenmemişse kart Usuller'i açar): kilometre taşları "4 usulü ezberden vur" (Başlangıç), "8 usul" (Orta),
   "Hangi usul? 8'de 6"; hoca kartı ritim puanı zayıfsa Usuller'i önersin
-- [ ] **A5 Günlük çalışmada usul** (K): ritim turu bugün yalnız dörtlük ya da sekizlik; öğrenilmiş usullerden biri de
+- [x] **A5 Günlük çalışmada usul** (K; yapıldı 10 Kasım: usul dersleri bitmişse üç günden biri ritim turu öğrenilmiş bir usulle): ritim turu bugün yalnız dörtlük ya da sekizlik; öğrenilmiş usullerden biri de
   sıraya girsin
 
 **R — Ritim ekranlarının arayüzü (A ile birlikte; ≈ 2 gün)**
 
 - [x] **R-1 Usuller telefonda** (O, R1, R2, R5; yapıldı 10 Kasım: iki sütunlu liste, "2/4 adım", adım seçilince sahne ekrana gelir, Düm/Tek düğmeleri ekran boyuna göre büyür, birim "vuruş/dk (♪/♩)"): ızgara liste, sahne görünür alanda, büyük Düm/Tek düğmeleri
-- [ ] **R-2 Ritim sekmesi** (K, R3): notalı kalıp kartları
-- [ ] **R-3 Ritim grubu yolu** (K, R4): heceler → usul → klarnetle
+- [x] **R-2 Ritim sekmesi** (K, R3; yapıldı 10 Kasım: açılır liste yerine notalı kalıp kartları ve düm-tek ızgaralı usul kartları, seçili kalıp başlat satırında): notalı kalıp kartları
+- [x] **R-3 Ritim grubu yolu** (K, R4; yapıldı 10 Kasım: grup sırası heceler, usul, klarnetle; kartlarda 1 · Ağızla, 2 · Elle, 3 · Klarnetle): heceler → usul → klarnetle
 
 **B — Usul ve ritim içeriğini genişlet (≈ 1 hafta)**
 

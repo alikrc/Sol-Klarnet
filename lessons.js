@@ -15,6 +15,7 @@
 //   rhythm  { pattern | usul, tempo, bars, silent, min }  metronomla çal, en az min ritim puanı
 //   usultap { usul, mode: "listen"|"tap"|"mem", tempo?, min }  usulu elle vur (klarnetsiz): dinle ve say, Düm/Tek düğmeleriyle vur,
 //                                             ezberden vur; puanı en az min (usuller.js, ilerleme Usuller sayfasıyla ortak)
+//   hece    { mode: "say"|"tap"|"quiz", lv, n?, min? }  ritim hecesi (klarnetsiz): ölçüyü heceleriyle söyle, vur ya da üç notadan bul
 //   dynamics{ note, sec, shape }              crescendo / decrescendo / messa di voce
 //   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim
 //                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
@@ -674,6 +675,24 @@ const BASLANGIC = [
       { type:"usultap", usul:"sofyan", mode:"listen" },
       { type:"usultap", usul:"sofyan", mode:"tap", min:70 },
       { type:"usultap", usul:"sofyan", mode:"mem", min:70 }
+    ] },
+
+  { id:"ritim-hece", unit:"baslangic", notes:[],
+    title:{ tr:"Ritim heceleri: nota değerlerini söyle", en:"Rhythm syllables: say the note values" },
+    text:[
+      { tr:"Ritmi önce ağzınla öğren: her nota değerine bir hece verilir. Dörtlük “nar”, iki sekizlik “el-ma”, dörtlük sus sessizlik, ikilik “na-ar” diye söylenir. Heceyi söylemek vuruşu kendiliğinden doğru böler; klarnet gerekmez.",
+        en:"Learn rhythm with your mouth first: each note value gets a syllable. A quarter is “tea”, two eighths “cof-fee”, a quarter rest is silence, a half note “te-ea”. Saying the word splits the beat correctly; no clarinet needed." },
+      { tr:"Bu derste dört vuruşluk ölçüleri dinleyip heceleriyle söylersin, sonra elle vurursun ve çalan ölçüyü notasından tanırsın. Heceler Çalış → Ritim → Ritim heceleri sayfasında da var; orada başka hece takımı da seçebilirsin.",
+        en:"In this lesson you listen to four-beat bars and say them with the syllables, then tap them and recognise the playing bar from its notation. The same exercises are on the Practice → Rhythm → Rhythm syllables page, where you can pick another syllable set." }
+    ],
+    tips:[
+      { tr:"Önce yavaş söyle; metronomun kalın tıkı ölçünün başıdır.", en:"Say it slowly first; the deep metronome click is the start of the bar." },
+      { tr:"Suslarda sesin dur, içinden say.", en:"On rests stay silent and count in your head." }
+    ],
+    steps:[
+      { type:"hece", mode:"say", lv:1 },
+      { type:"hece", mode:"tap", lv:1, min:70 },
+      { type:"hece", mode:"quiz", lv:1, n:5, min:4 }
     ] }
 ];
 
@@ -1569,6 +1588,8 @@ const OKUMA2 = [
 { const ilk = LESSONS.splice(LESSONS.findIndex(l => l.id === "ilk-ses"), 1)[0]; ilk.unit = "baslangic";
   BASLANGIC.splice(BASLANGIC.findIndex(l => l.id === "uzun-ses-ilk"), 0, ilk); }
 LESSONS.unshift(...BASLANGIC);
+// Heceyle söyleme klarnetle ritimden önce gelir: ağızla öğren, sonra çal
+{ const h = LESSONS.splice(LESSONS.findIndex(l => l.id === "ritim-hece"), 1)[0]; LESSONS.splice(LESSONS.findIndex(l => l.id === "ritim-temel"), 0, h); }
 LESSONS.splice(LESSONS.findIndex(l => l.id === "vibrato") + 1, 0, ...TEKNIK2);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "huzzam") + 1, 0, ...MAKAM2);
 LESSONS.push(...ILERI);
@@ -1736,6 +1757,10 @@ function stepTitle(step, lang = "tr"){
       if(step.mode === "listen") return (en ? "Usul: listen and count " : "Usul: dinle ve say ") + u.name;
       return (en ? "Usul: " : "Usul: ") + u.name + (step.mode === "mem" ? (en ? " · tap from memory" : " · ezberden vur") : (en ? " · tap along" : " · elle vur")) +
         " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan"); }
+    case "hece": { const lv = en ? " (level " + step.lv + ")" : " (seviye " + step.lv + ")";
+      if(step.mode === "say") return (en ? "Rhythm syllables: say the bar" : "Ritim heceleri: ölçüyü heceleriyle söyle") + lv;
+      if(step.mode === "quiz") return (en ? "Rhythm syllables: which bar?" : "Ritim heceleri: hangi ölçü?") + lv + " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");
+      return (en ? "Rhythm syllables: tap the bar" : "Ritim heceleri: ölçüyü vur") + lv + " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan"); }
     case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn");
     case "seyir": if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
         return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
@@ -1759,6 +1784,7 @@ function stepOk(step, res){
     case "hold": return v >= step.min && (step.quality == null || (res.q || 0) >= step.quality);
     case "read": return v >= 1;
     case "rhythm": case "seyir": case "ear": case "sight": case "dictation": return v >= step.min;
+    case "hece": return v >= (step.mode === "say" ? 1 : step.min);
     case "usultap": return v >= (step.mode === "listen" ? 1 : step.min);
     case "dynamics": return v >= 1;
     case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
@@ -1941,7 +1967,12 @@ function dailyPlan(ctx){
     steps.push({ type:"notes", notes:[...known, ...[...known].reverse().slice(1)], maxMiss:3 });
   }
   // 5. Ritim: ritim dersi bitmişse kısa bir tur (tempo her gün biraz değişir)
-  if(done("ritim-temel")) steps.push({ type:"rhythm", pattern: rng() < 0.5 ? "quarter" : "eighth", tempo: 70 + 10*Math.floor(rng()*3), bars:4, min:60 });
+  // Usul dersleri bitmişse üç günden biri öğrenilmiş usullerden biri (dersteki tempo ve eşikle); öteki günler düz kalıp
+  const usulSteps = ["usul", "usul-2"].filter(done).flatMap(id => lessonById(id).steps.filter(x => x.type === "rhythm" && x.usul));
+  if(done("ritim-temel")){
+    if(usulSteps.length && rng() < 1/3) steps.push({ ...usulSteps[Math.floor(rng()*usulSteps.length)] });
+    else steps.push({ type:"rhythm", pattern: rng() < 0.5 ? "quarter" : "eighth", tempo: 70 + 10*Math.floor(rng()*3), bars:4, min:60 });
+  }
   // 6. Eser: makamın etüdü tempolu
   if(mk && LREP().etudeById("e-" + mk)) steps.push({ type:"piece", id:"e-" + mk, mode:"tempo", min:65 });
   // 7. Kulak: perde ayırt (ileri kulak dersi bittiyse tek koma)

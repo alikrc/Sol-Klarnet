@@ -64,18 +64,24 @@ const TRAINERS = {
   rhythm(ctx){
     const { SK, $, store } = ctx;
     const P = $("pp-rhythm");
-    const pats = RHYTHM_PATTERNS.map(p => `<option value="p:${p.id}">${pick(p.name, LANG)}</option>`).join("") +
-      USULS.map(u => `<option value="u:${u.id}">${L("Usul: ", "Usul: ")}${u.name} ${u.meter}</option>`).join("");
+    // Kalıp kartları: düz kalıplar nota başlarıyla, usuller düm-tek ızgarasıyla gösterilir (seçim #rhpat'ta: p:kimlik ya da u:kimlik)
+    const patSvg = p => { const W = 120, x = b => 8 + b*(W - 16)/p.beats;
+      return `<svg class="rhmini" viewBox="0 0 ${W} 30" aria-hidden="true"><line x1="4" x2="${W - 4}" y1="22" y2="22" class="rhaxis"/>${Array.from({ length: p.beats + 1 }, (_, b) => `<line x1="${x(b)}" x2="${x(b)}" y1="19" y2="25" class="rhaxis"/>`).join("")}${p.at.map(a => `<circle cx="${x(a)}" cy="12" r="4" class="rhnote"/>`).join("")}</svg>`; };
+    const card = (v, name, body) => `<button type="button" class="rhcard" data-p="${v}"><b>${name}</b>${body}</button>`;
+    const rhCards = () => `<div class="label">${L("Düz kalıplar", "Plain patterns")}</div><div class="rhgrid">${RHYTHM_PATTERNS.map(p => card("p:" + p.id, pick(p.name, LANG), patSvg(p))).join("")}</div>` +
+      [[L("Klasik usuller", "Classical usuls"), u => !u.halk], [L("Oyun havaları", "Dance tunes"), u => u.halk]].map(([t, f]) =>
+        `<div class="label">${t}</div><div class="rhgrid">${USULS.filter(f).map(u => card("u:" + u.id, `${u.name} <small>${u.meter}</small>`, usulGridHtml(u, false))).join("")}</div>`).join("");
     P.innerHTML = `
       <p class="pdesc">${L("Metronomla birlikte kısa notalar çal (herhangi bir nota). Bir ölçü sayımdan sonra çaldıkların vuruşlarla karşılaştırılır: isabet, erken/geç ve tutarlılık. Usul seçersen düm ve tek vuruşlarında çalarsın.",
         "Play short notes with the metronome (any note). After a one-bar count-in your notes are compared with the beats: hits, early/late and consistency. Pick an usul to play on its düm and tek strokes.")}</p>
       <div class="pbar">
-        <select id="rhpat" aria-label="${L("Kalıp", "Pattern")}">${pats}</select>
+        <input type="hidden" id="rhpat"><b class="rhsel" id="rhsel"></b>
         <label class="tnum"><input id="rhtempo" type="number" min="40" max="200" step="2" aria-label="Tempo"> <em>${L("vuruş/dk", "bpm")}</em></label>
         <label class="chk"><input type="checkbox" id="rhsilent"> ${L("sayımdan sonra metronom sussun", "mute the metronome after the count-in")}</label>
         <button class="primary small" id="rhstart" type="button">${L("Başlat", "Start")}</button>
       </div>
       <div class="stage" id="rhstage"><div class="muted">${L("Kalıbı ve tempoyu seç, sonra başlat.", "Pick a pattern and tempo, then start.")}</div></div>
+      <div class="rhcards" id="rhcards">${rhCards()}</div>
       <details class="pcadd"><summary>${L("Gecikme ayarı", "Latency calibration")} · <span id="rhlat"></span></summary>
         <p class="muted">${L("Telefonun hoparlörü ve mikrofonu sesi birkaç on milisaniye geciktirir. Hoparlörle ölçüm: telefonu masaya koy, sessiz kal; bip sesleri mikrofondan geri dinlenir. Kulaklıkla: bip seslerine tam üstünden kısa notalar çal.",
           "Phone speakers and microphones delay sound by tens of milliseconds. Speaker test: put the phone down and stay quiet; the beeps are heard back through the mic. With headphones: play short notes exactly on the beeps.")}</p>
@@ -88,7 +94,11 @@ const TRAINERS = {
     $("rhpat").value = store.get("rhythm.pat", "p:quarter");
     $("rhtempo").value = store.get("rhythm.tempo", 80);
     $("rhsilent").checked = store.get("rhythm.silent", false);
-    $("rhpat").addEventListener("change", () => store.set("rhythm.pat", $("rhpat").value));
+    const paintPat = () => $("rhcards").querySelectorAll("[data-p]").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === $("rhpat").value ? "true" : "false"));
+    const selName = () => { const b = $("rhcards").querySelector("[data-p][aria-pressed='true']"); $("rhsel").textContent = b ? b.querySelector("b").textContent : ""; };
+    Promise.resolve().then(selName);
+    paintPat();
+    $("rhcards").addEventListener("click", e => { const b = e.target.closest("[data-p]"); if(!b) return; $("rhpat").value = b.dataset.p; store.set("rhythm.pat", b.dataset.p); paintPat(); selName(); $("rhstart").scrollIntoView({ block:"center" }); });
     $("rhtempo").addEventListener("change", () => store.set("rhythm.tempo", +$("rhtempo").value));
     $("rhsilent").addEventListener("change", () => store.set("rhythm.silent", $("rhsilent").checked));
     const showLat = () => { $("rhlat").textContent = store.get("rhythm.lat", 0) + " ms"; };

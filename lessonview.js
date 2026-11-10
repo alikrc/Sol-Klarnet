@@ -192,6 +192,7 @@ TRAINERS.lessons = function(ctx){
       case "vibrato": return num(r.v) + " sn";
       case "read": return L("okundu", "read");
       case "rhythm": case "seyir": return r.v + L(" puan", " points");
+      case "hece": return st.mode === "say" ? L("söylendi", "done") : st.mode === "quiz" ? r.v + "/" + st.n : r.v + L(" puan", " points");
       case "usultap": return st.mode === "listen" ? L("dinlendi", "done") : r.v + L(" puan", " points");
       case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
       case "ear": case "dictation": return r.v + "/" + st.n;
@@ -270,6 +271,7 @@ TRAINERS.lessons = function(ctx){
       case "tech": return { goal:st.target, unit:" ♩" };
       case "ornament": return { goal:st.kind === "tril" ? st.rate : st.n };
       case "hold": case "rhythm": case "seyir": return { goal:st.min, unit:L(" puan", " points") };
+      case "hece": return st.mode === "say" ? null : st.mode === "quiz" ? { goal:st.min, unit:"/" + st.n } : { goal:st.min, unit:L(" puan", " points") };
       case "usultap": return st.mode === "listen" ? null : { goal:st.min, unit:L(" puan", " points") };
       case "ear": case "sight": case "dictation": case "quiz": return { goal:st.min, unit: st.type === "sight" ? "%" : "/" + st.n };
     }
@@ -356,7 +358,7 @@ TRAINERS.lessons = function(ctx){
   }
 
   // ---- Adım çalıştırma ----
-  const NO_MIC = new Set(["read", "listen", "ear", "usultap"]);
+  const NO_MIC = new Set(["read", "listen", "ear", "usultap", "hece"]);
   async function startStep(i){
     stopRun();
     const st = cur.steps[i], lesson = cur;

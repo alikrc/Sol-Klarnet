@@ -15,7 +15,8 @@ const RM_STAGES = [
     goal:{ tr:"Klarneti kurar, nefesle temiz ses çıkarır, iki elle Mi3–Sol4 arasını çalarsın.", en:"You assemble the clarinet, make a clean sound and play E3–G4 with both hands." },
     miles:[
       { id:"long67", tab:"long", title:{ tr:"Açık Sol'da uzun ton", en:"Long tone on open G" }, unit:{ tr:" puan", en:" pts" }, target:60, get: st => st.longBest[67] || null, tried: histDays("long", x => x.w === 67 && !x.src) },
-      { id:"quiz1", tab:"quiz", title:{ tr:"Parmak testi: klarino bölgesi açıldı", en:"Fingering quiz: clarion region unlocked" }, unit:{ tr:" bölge", en:" regions" }, target:2, get: st => st.quizRegions, tried: histDays("quiz") }
+      { id:"quiz1", tab:"quiz", title:{ tr:"Parmak testi: klarino bölgesi açıldı", en:"Fingering quiz: clarion region unlocked" }, unit:{ tr:" bölge", en:" regions" }, target:2, get: st => st.quizRegions, tried: histDays("quiz") },
+      { id:"usul4", tab:"usul", title:{ tr:"4 usulü ezberden vur", en:"Tap 4 usuls from memory" }, unit:{ tr:" usul", en:" usuls" }, target:4, get: st => st.usulMem || null }
     ] },
   { id:"temel", units:["klarino","teknik"], title:{ tr:"Temel çalgıcı: register, ritim, okuma", en:"Core player: register, rhythm, reading" },
     goal:{ tr:"Klarino bölgesi, dil vuruşu, dinamik, usuller; notayı ilk görüşte okur ve koma farkını duyarsın.", en:"The clarion register, tonguing, dynamics, usuls; you sight-read and hear comma differences." },
@@ -23,6 +24,8 @@ const RM_STAGES = [
       { id:"rhythm", tab:"rhythm", title:{ tr:"Ritim puanı", en:"Rhythm score" }, unit:{ tr:" puan", en:" pts" }, target:75, get: st => st.rhythmBest || null, tried: histDays("rhythm", x => !x.src) },
       { id:"ear", tab:"ear", title:{ tr:"Kulak eşiği (tiz mi pes mi)", en:"Ear threshold (higher or lower)" }, unit:{ tr:" koma", en:" commas" }, target:2, lower:true, get: st => st.earPitch },
       { id:"sight2", tab:"desifre", title:{ tr:"Deşifre seviye 2", en:"Sight-reading level 2" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[2] || null, tried: histDays("sight", x => +x.lv === 2) },
+      { id:"usul8", tab:"usul", title:{ tr:"8 usulü ezberden vur", en:"Tap 8 usuls from memory" }, unit:{ tr:" usul", en:" usuls" }, target:8, get: st => st.usulMem || null },
+      { id:"usulq", tab:"usul", title:{ tr:"Hangi usul? kulak sınaması (8 soruda)", en:"Which usul? ear test (of 8)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.usulQuiz || null },
       { id:"dictr", tab:"dikte", title:{ tr:"Ritim diktesi seviye 2 (10 soruda)", en:"Rhythm dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:7, get: st => st.dictBest.rhythm2 || null, tried: histDays("dict", x => x.m === "rhythm" && +x.lv === 2) }
     ] },
   { id:"orta", units:["hiz","susleme"], title:{ tr:"Orta: hız ve süsleme", en:"Intermediate: speed and ornaments" },
@@ -78,6 +81,7 @@ function roadmapStats(get){
     sightBest: get("sight.best", {}), dictBest: get("dict.best", {}),
     techBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
     seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length,
+    usulMem: Object.values(get("usul.prog", {})).filter(p => p && p.mem >= 70).length, usulQuiz: get("usul.quiz.best", 0),
     pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,
     hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []), quiz: get("quiz.rounds", []),
       sight: get("sight.hist", []), dict: get("dict.hist", []), band, tech: Object.values(tb).flat().map(x => ({ d: x.day })),
@@ -195,7 +199,7 @@ function weakSkill(st, today = new Date()){
     if(a.length < 3 || b.length < 3) continue;
     const recent = a.reduce((x, y) => x + y, 0)/a.length, before = b.reduce((x, y) => x + y, 0)/b.length;
     const drop = (s.low ? recent - before : before - recent)/s.eps;
-    if(drop >= 1 && (!best || drop > best.drop)) best = { id:s.id, tab:s.tab, title:s.title, unit:s.unit, low:!!s.low, recent, before, drop };
+    if(drop >= 1 && (!best || drop > best.drop)) best = { id:s.id, tab: s.id === "rhythm" && (st.usulMem || 0) < 4 ? "usul" : s.tab, title:s.title, unit:s.unit, low:!!s.low, recent, before, drop };
   }
   return best;
 }
