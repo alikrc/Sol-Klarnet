@@ -235,6 +235,9 @@ Klarnet gerektirmeyen dinleme ile sonraya kalabilecek işler.
 
 ## 2. Hocaya sorulacaklar
 
+> **10 Kasım 2026:** Proje sahibi uygulamayı hocaya göndermeyecek. Bu sorular cevap beklemiyor; kaynaklarla karara
+> bağlanacak (`BACKLOG.md`, D1). Liste o iş bitene kadar başvuru için duruyor.
+
 **Nasıl sorulur:** Ayarlar → Uzman kontrolü → Sorular sekmesinde aşağıdaki 22 sorunun hepsi seçenek ve not kutusuyla var;
 cevaplar "Raporu paylaş" ile gelen rapora girer. Her sorunun kimliği (`saba-perde` gibi) raporda da yazar.
 
