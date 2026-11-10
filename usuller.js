@@ -443,6 +443,8 @@ TRAINERS.usul = function(ctx){
   $("usarch").addEventListener("click", () => { halt(); if(SK.archiveByUsul) SK.archiveByUsul(cur.id); });
 
   paint(); setMode("learn");
+  // Eser sayfasından: seçili usulü değiştirir (sekme ayrıca açılır)
+  SK.openUsul = id => { const u = list.find(x => x.id === id); if(!u) return; halt(); cur = u; store.set("usul.cur", u.id); setMode("learn"); paint(); };
   return {
     enter(){ paintList(); paintSteps(); showCur(); },
     nowTitle: () => mode === "quiz" ? L("Hangi usul?", "Which usul?") : cur.name,

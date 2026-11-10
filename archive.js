@@ -17,6 +17,18 @@ function archUsul(slug, num, den){
   const g = ARCH_GROUPS[num + "/" + den] || Array(num).fill(1);
   return g.map((v, i) => [i === 0 ? "D" : "T", v]);
 }
+// Eser sayfasında usul: uygulama usulün düm-tek kalıbını biliyorsa kalıbı ve "bu usulü öğren" bağlantısını gösterir; bilmiyorsa
+// metronomun ne çaldığını açıkça söyler (kalıp yoksa ölçünün vuruş grupları: ilk grup düm, ötekiler tek)
+function usulBox(e, m, esc){
+  const id = (e.u || "").replace(/_ii$/, ""), num = m[1], den = m[2], meter = num + "/" + den;
+  const u = USULS.find(x => x.id === id && x.meter === meter), same = USULS.find(x => x.id === id);
+  const line = x => x.strokes.map(([s, d]) => (s === "D" ? "Düm" : "tek") + " –".repeat(d - 1)).join("  ");
+  const g = ARCH_GROUPS[meter];
+  if(u) return `<b>${L("Usul: ", "Usul: ")}${esc(e.un)} ${meter}</b> <span class="arstr">${esc(line(u))}</span> <button type="button" class="linkbtn" data-usul="${u.id}">${L("Bu usulü öğren", "Learn this usul")}</button>`;
+  if(same) return `<b>${L("Usul: ", "Usul: ")}${esc(e.un)} ${meter}</b> <span class="muted">${L("Uygulama bu usulü " + same.meter + " olarak biliyor; eser " + meter + " yazılmış, usul eşliği ölçünün vuruş gruplarıyla çalar.", "The app knows this usul as " + same.meter + "; the piece is written in " + meter + ", so the usul accompaniment follows the bar's beat groups.")}</span> <button type="button" class="linkbtn" data-usul="${same.id}">${L("Bu usulü öğren", "Learn this usul")}</button>`;
+  return `<b>${L("Usul: ", "Usul: ")}${esc(e.un || "—")} ${meter}</b> <span class="muted">${L("Uygulama bu usulün vuruş kalıbını bilmiyor. Usul eşliği ve metronom ölçüyü " + (g ? g.join("+") + " gruplarına bölüp ilk grupta düm, ötekilerde tek çalar" : num + " vuruşa bölüp ilkinde düm, ötekilerde tek çalar") + "; bu usulün gerçek kalıbı değildir.",
+    "The app doesn't know this usul's stroke pattern. The usul accompaniment and the metronome split the bar into " + (g ? g.join("+") : num) + " and play düm on the first group and tek on the others; this is not the usul's real pattern.")}</span>`;
+}
 const archFold = s => String(s || "").toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g, "i");
 const ARCH_LV = { 1: L("Başlangıç", "Beginner"), 2: L("Orta", "Intermediate"), 3: L("İleri", "Advanced") };
 // Hızlı süzgeç "Oyun havaları": Trakya, Rumeli ve oyun formları (karşılama, köçekçe, sirto, longa…) ve oyun usulleri
@@ -233,6 +245,7 @@ TRAINERS.archive = function(ctx){
         <span>♩ = ${e.tp}</span><span>${archDur(e.s)}</span><span>${e.n + L(" nota", " notes")}</span>
         <em class="arlv lv${e.lv}">${ARCH_LV[e.lv]}</em>
       </div>
+      <div class="arusul" id="arusul">${usulBox(e, cur.meters[0], esc)}</div>
       ${mkId ? "" : `<p class="muted arnote">${L("Bu makam uygulamanın makam listesinde yok; perdeler AEU'ya göre değerlendirilir.", "This makam isn't in the app's makam list; perdes are judged by AEU.")}</p>`}
       <div class="arctl" id="arctl">
         <div class="pbar">
@@ -303,6 +316,8 @@ TRAINERS.archive = function(ctx){
         makam: cur.tr.steps ? null : mkId, source: { site: "SymbTr", url: git } });
     });
     $("arpiece").querySelectorAll("[data-like]").forEach(b => b.addEventListener("click", () => listBy(b.dataset.like, e[b.dataset.like])));
+    const learn = $("arpiece").querySelector("[data-usul]");
+    if(learn) learn.addEventListener("click", () => { stopAll(); store.set("usul.cur", learn.dataset.usul); if(SK.openUsul) SK.openUsul(learn.dataset.usul); ctx.selectTab("usul"); });
     // Benzer eserler; anonim eserler bir bestekâr gibi gruplanmaz
     const likes = [["mk", e.mk, L("Bu makamda", "In this makam")], ["u", e.u, L("Bu usulde", "In this usul")], ["f", e.f, L("Bu formda", "In this form")], ["b", e.b, L("Bu bestekârdan", "By this composer")]]
       .filter(([k, v]) => v && !(k === "b" && v === "Anonim")).map(([k, v, t]) => [k, v, t, INDEX.list.filter(x => x[k] === v && x.id !== e.id).length]).filter(x => x[3]);
