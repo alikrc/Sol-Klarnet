@@ -74,10 +74,10 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü. Hepsi 
 
 **A — Ritim ve usulü derslere bağla (ilk iş; ≈ 4 gün)**
 
-- [ ] **A1 Ders adımı: usul vurma** (O, İ1): Usuller sayfasının Dinle ve say, Elle vur, Ezberden vur adımları ders
+- [x] **A1 Ders adımı: usul vurma** (O, İ1; yapıldı 10 Kasım, `usultap` adımı, `usuller.js`; mikrofonsuz, puan ve sınır sayfayla aynı, kayıt ortak `usul.prog`): Usuller sayfasının Dinle ve say, Elle vur, Ezberden vur adımları ders
   içinde çalışsın (yeni adım türü; puan ve geçme sınırı sayfadakiyle aynı, ilerleme ortak). Kabul: derste geçilen adım
   Usuller sayfasında da geçilmiş görünür
-- [ ] **A2 Usul derslerini yeniden kur** (O, İ2, İ4): "Usule giriş: Semâî ve Sofyan" Başlarken'e (klarnetsiz: dinle,
+- [~] **A2 Usul derslerini yeniden kur** (O, İ2, İ4; 10 Kasım: yeni `usul-giris` Başlarken'in sonunda ve `usul-2` Teknik'te eklendi, ders sayısı 89; kalan: "Düyek ve Aksak"ta önce vur sonra çal ve Trakya derslerinde elle vurma, bunlar var olan ders adım sırasını kaydırır, yeni ders kimliğiyle çözülecek): "Usule giriş: Semâî ve Sofyan" Başlarken'e (klarnetsiz: dinle,
   vur); "Düyek ve Aksak" bugünkü yerinde, önce vur sonra çal; yeni "Türk Aksağı, Yürük Semâî, Curcuna" dersi.
   Trakya derslerinde usul adımından önce elle vurma. Var olan ders kimlikleri değişmez (ilerleme korunur)
 - [ ] **A3 Ders adımı: ritim hecesi** (K, İ1, İ2): "Ritim: vuruş ve nota değerleri" dersine hecelerle söyleme ve
@@ -89,7 +89,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü. Hepsi 
 
 **R — Ritim ekranlarının arayüzü (A ile birlikte; ≈ 2 gün)**
 
-- [ ] **R-1 Usuller telefonda** (O, R1, R2, R5): ızgara liste, sahne görünür alanda, büyük Düm/Tek düğmeleri
+- [x] **R-1 Usuller telefonda** (O, R1, R2, R5; yapıldı 10 Kasım: iki sütunlu liste, "2/4 adım", adım seçilince sahne ekrana gelir, Düm/Tek düğmeleri ekran boyuna göre büyür, birim "vuruş/dk (♪/♩)"): ızgara liste, sahne görünür alanda, büyük Düm/Tek düğmeleri
 - [ ] **R-2 Ritim sekmesi** (K, R3): notalı kalıp kartları
 - [ ] **R-3 Ritim grubu yolu** (K, R4): heceler → usul → klarnetle
 

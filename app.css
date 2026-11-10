@@ -780,16 +780,18 @@ svg.rhsvg{width:100%;height:auto;display:block;margin:8px 0;background:var(--sur
 /* Usuller: liste, düm-tek ızgarası, vurma düğmeleri */
 #uslearn{display:grid;gap:14px}
 @media (min-width:900px){#uslearn{grid-template-columns:220px minmax(0,1fr);align-items:start}}
-.uslist{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
-@media (min-width:900px){.uslist{flex-direction:column;overflow:visible}}
-.usgl{flex:0 0 auto;align-self:center;padding:0 4px}
-@media (min-width:900px){.usgl{align-self:auto;margin-top:8px}}
-.usitem{flex:0 0 auto;display:grid;grid-template-columns:auto auto;gap:4px 8px;align-items:baseline;text-align:left;
+.uslist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+@media (min-width:900px){.uslist{display:flex;flex-direction:column}}
+.usgl{grid-column:1/-1;padding:4px 2px 0}
+@media (min-width:900px){.usgl{margin-top:8px}}
+.usitem{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:baseline;text-align:left;min-height:48px;
   border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 11px}
 .usitem b{font:600 14px/1.1 var(--ui);white-space:nowrap}
 .usitem small{font:500 12px/1 var(--mono);color:var(--muted)}
 .usitem[aria-pressed="true"]{border-color:var(--g-tech);box-shadow:inset 0 0 0 1px var(--g-tech)}
-.usdots{grid-column:1/-1;display:flex;gap:4px}
+.usdots{grid-column:1/-1;display:flex;align-items:center;gap:4px}
+.usdots em{margin-left:auto;font:500 12px/1 var(--mono);font-style:normal;color:var(--muted)}
+.usdots em.all{color:var(--ok)}
 .usdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .usdots i.on{background:var(--ok)}
 .ushead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -817,7 +819,8 @@ svg.rhsvg{width:100%;height:auto;display:block;margin:8px 0;background:var(--sur
 .ussteps li.ok .usstep span::after{content:" ✓";color:var(--ok)}
 .usbig{font:600 30px/1.2 var(--display);min-height:40px;margin:4px 0 8px}
 .uspad{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;max-width:520px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-.uspad button{height:110px;border-radius:14px;font:700 20px/1 var(--ui);border:0}
+.uspad button{height:clamp(110px,24vh,190px);border-radius:14px;font:700 22px/1 var(--ui);border:0}
+.usstage-live{scroll-margin-bottom:84px}
 .uspadD{background:var(--g-tech);color:var(--surface)}
 .uspadT{background:var(--surface);color:var(--g-tech);box-shadow:inset 0 0 0 2px var(--g-tech) !important}
 .uspad button.hit{animation:ushit .15s ease-out}

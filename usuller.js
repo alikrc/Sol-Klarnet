@@ -68,11 +68,113 @@ function usulTapScore(expected, taps, unitMs){
   return { score, hits, wrong, missed, extra, extras, all: expected, mean, n: expected.length };
 }
 
+// ---- Ortak parçalar: Usuller sayfası ve ders adımı (usultap) aynı döngüyü, ızgarayı ve sonuç ekranını kullanır ----
+// Usul döngüsü sesi. opts: { u, bpm, bars (Infinity: durdurulana kadar), countIn, guide "full" | "bar", onSlot(k, bar), onEnd }.
+// Dönen t0Perf: ilk dilimin duyulduğu an (performance.now zamanı).
+function usulLoop(ctx, opts){
+  const { SK, hit } = ctx, a = SK.audioCtx(), slots = usulSlots(opts.u), n = slots.length, unit = 60/opts.bpm;
+  const t0 = a.currentTime + 0.2, lat = (a.outputLatency || 0) + (a.baseLatency || 0);
+  const total = opts.bars === Infinity ? Infinity : (opts.bars + (opts.countIn ? 1 : 0))*n;
+  let i = 0, shown = -1, ended = false, raf = 0;
+  const sched = () => {
+    while(i < total && t0 + i*unit < a.currentTime + 0.15){
+      const k = i % n, at = t0 + i*unit, counting = opts.countIn && i < n;
+      if(counting || opts.guide === "full"){ if(slots[k]) hit(a, slots[k], at, counting ? 1 : 0.8); }
+      else if(k === 0) hit(a, "T", at, 0.3);
+      i++;
+    }
+  };
+  const iv = setInterval(sched, 40); sched();
+  const stopLoop = () => { clearInterval(iv); cancelAnimationFrame(raf); };
+  const frame = () => {
+    const pos = Math.floor((a.currentTime - lat - t0)/unit);
+    if(pos >= 0 && pos !== shown && pos < total){ shown = pos; if(opts.onSlot) opts.onSlot(pos % n, Math.floor(pos/n)); }
+    if(pos >= total && !ended){ ended = true; stopLoop(); if(opts.onEnd) opts.onEnd(); return; }
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return { t0Perf: ctxToPerf(a, t0), unitMs: unit*1000, n, slots, stop: stopLoop };
+}
+// Usulün düm-tek ızgarası (hide: heceler gizli)
+function usulGridHtml(u, hide){
+  const slots = usulSlots(u);
+  return `<div class="usrow" style="--n:${slots.length}">${slots.map((s, k) =>
+    `<span class="uscell ${hide ? "x" : s || "c"}" data-k="${k}"><b>${hide ? "" : usulSyl(s)}</b><i>${k + 1}</i></span>`).join("")}</div>`;
+}
+// Ölçü sayısı: uzun ölçüde az tekrar
+function usulBars(unitMs, n){ const barMs = unitMs*n; return barMs > 4000 ? 2 : barMs > 2500 ? 3 : 4; }
+// Sonuç görseli: beklenen vuruşlar çizgi (düm kalın), vurulanlar nokta (sapmaya göre renk, yanlış türse içi boş)
+function usulTapSvg(r, from, to){
+  const W = 600, t0 = from - 250, t1 = to, x = t => (((t - t0)/(t1 - t0))*W).toFixed(1);
+  let s = `<svg class="rhsvg" viewBox="0 0 ${W} 60" role="img" aria-label="${L("Vuruşlar ve vurdukların", "Strokes and your taps")}"><line x1="0" x2="${W}" y1="30" y2="30" class="rhaxis"/>`;
+  r.all.forEach(e => s += `<line x1="${x(e.t)}" x2="${x(e.t)}" y1="${e.k === "D" ? 8 : 16}" y2="${e.k === "D" ? 52 : 44}" class="rhexp${e.k === "D" ? " usd" : ""}"/>`);
+  r.hits.forEach(h => { const c = Math.abs(h.dev) <= 60 ? "good" : Math.abs(h.dev) <= 120 ? "mid" : "bad";
+    s += `<circle cx="${x(h.p.t)}" cy="30" r="5" class="rh${c}${h.ok ? "" : " uswrong"}"/>`; });
+  r.extras.forEach(p => s += `<circle cx="${x(p.t)}" cy="30" r="4" class="rhextra"/>`);
+  return s + "</svg>";
+}
+// Vuruş sonucu: puan, zamanlama, ipuçları ve görsel. pass: geçme puanı
+function usulTapResultHtml(r, pass, from, to){
+  const ms = v => Math.round(Math.abs(v));
+  const where = !r.hits.length ? "—" : Math.abs(r.mean) < 20 ? L("vuruşun üstünde", "on the beat") : r.mean < 0 ? ms(r.mean) + L(" ms erken", " ms early") : ms(r.mean) + L(" ms geç", " ms late");
+  const tips = [];
+  if(r.missed > r.n*0.3) tips.push(L("Birçok vuruş kaçtı: tempoyu düşür, önce Dinle ile sesli say.", "Many strokes were missed: lower the tempo and count aloud with Listen first."));
+  if(r.wrong) tips.push(L("Düm ve teki karıştırdığın yerler var: hecelerle say (Düm kalın, tek ince).", "Some düms and teks were swapped: say the syllables (Düm deep, tek light)."));
+  if(r.extra > 2) tips.push(L("Fazla vuruş var: noktalı yerlerde ses sürer, vurma.", "Extra taps: on the dots the sound carries on, don't tap."));
+  if(Math.abs(r.mean) > 60) tips.push(r.mean < 0 ? L("Acele ediyorsun: vuruşu bekle.", "You're rushing: wait for the stroke.") : L("Geride kalıyorsun: vuruşu önceden hisset.", "You're dragging: feel the stroke coming."));
+  return `<div class="result"><div class="big">${r.score}</div><div>${L("puan", "points")} · ${r.hits.length}/${r.n} ${L("vuruş", "strokes")}${r.score >= pass ? " · <strong>" + L("geçtin", "passed") + "</strong>" : " · " + L("geçmek için ", "pass at ") + pass}</div></div>
+    <div class="kv"><div><span class="label">${L("Zamanlama", "Timing")}</span>${where}</div>
+      <div><span class="label">${L("Düm/tek karışan", "Düm/tek swapped")}</span>${r.wrong}</div>
+      <div><span class="label">${L("Kaçan · fazla", "Missed · extra")}</span>${r.missed} · ${r.extra}</div></div>
+    ${usulTapSvg(r, from, to)}
+    ${tips.length ? `<div class="muted">${tips.join(" ")}</div>` : ""}`;
+}
+// Düm ve Tek vuruş alanı + klavye (F/J). Dönen: { slots, stop } — vuruşlar taps dizisine yazılır.
+// Düğmeler sahnenin altına yapışık büyük hedeflerdir (başparmakla vurulur).
+function usulPadHtml(){ return `<div class="uspad"><button type="button" class="uspadD" data-k="D">Düm</button><button type="button" class="uspadT" data-k="T">Tek</button></div>`; }
+function usulPadBind(stage, isLive, taps){
+  const press = (k, t, btn) => {
+    if(!isLive()) return;
+    taps.push({ k, t });
+    if(btn){ btn.classList.remove("hit"); void btn.offsetWidth; btn.classList.add("hit"); }
+  };
+  stage.querySelector(".uspad").addEventListener("pointerdown", e => {
+    const b = e.target.closest("[data-k]"); if(!b) return;
+    e.preventDefault(); press(b.dataset.k, e.timeStamp || performance.now(), b);
+  });
+  const onKey = e => {
+    if(e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = /^[fds]$/i.test(e.key) ? "D" : /^[jkl]$/i.test(e.key) ? "T" : null;
+    if(!k) return;
+    e.preventDefault(); press(k, e.timeStamp || performance.now(), stage.querySelector(k === "D" ? ".uspadD" : ".uspadT"));
+  };
+  document.addEventListener("keydown", onKey);
+  return () => document.removeEventListener("keydown", onKey);
+}
+// Vuruş turu: sayım ölçüsü + bars ölçü; bitince beklenen ve vurulan vuruşlar puanlanır. Dönen: { stop }
+function usulTapRun(ctx, o){
+  const { u, bpm, mem, taps, onSlot, onEnd } = o, slots = usulSlots(u), unitMs = 60000/bpm, bars = usulBars(unitMs, slots.length);
+  const l = usulLoop(ctx, { u, bpm, bars, countIn:true, guide: mem ? "bar" : "full", onSlot: (k, bar) => onSlot(k, bar, bars, slots),
+    onEnd: () => {
+      const expected = [];
+      for(let b = 1; b <= bars; b++) slots.forEach((s, k) => { if(s) expected.push({ t: l.t0Perf + (b*slots.length + k)*unitMs, k:s }); });
+      const r = usulTapScore(expected, taps.filter(p => p.t > l.t0Perf + (slots.length - 0.5)*unitMs), unitMs);
+      onEnd(r, expected[0] ? expected[0].t : 0, l.t0Perf + (bars + 1)*slots.length*unitMs);
+    } });
+  return l;
+}
+// Usuller sayfası ile derslerin ortak ilerlemesi: { [usulId]: { listen, tap, mem, play } }
+function usulRecord(store, id, step, v){
+  const prog = store.get("usul.prog", {}), p = prog[id] || (prog[id] = {});
+  if(p[step] == null || v > p[step]){ p[step] = v; store.set("usul.prog", prog); }
+}
+
 TRAINERS.usul = function(ctx){
   const { SK, $, store, esc, hit, needMic } = ctx;
   const P = $("pp-usul");
   const list = Object.keys(USUL_INFO).map(id => USULS.find(u => u.id === id)).filter(Boolean);
-  const prog = store.get("usul.prog", {});
+  let prog = store.get("usul.prog", {});
+  const reload = () => { prog = store.get("usul.prog", {}); };
   let cur = list.find(u => u.id === store.get("usul.cur", "semai")) || list[0];
   let mode = "learn", run = null, raf = 0, keyOff = null;
 
@@ -114,33 +216,32 @@ TRAINERS.usul = function(ctx){
       <div class="stage" id="usqstage"></div>
     </div>`;
 
-  const unitName = u => u.meter.split("/")[1] === "8" ? L("sekizlik/dk", "eighths/min") : L("dörtlük/dk", "quarters/min");
+  // Her yerde aynı birim: vuruş/dk; hangi notanın bir vuruş olduğu yanında (♪ sekizlik, ♩ dörtlük)
+  const unitName = u => L("vuruş/dk", "beats/min") + (u.meter.split("/")[1] === "8" ? " (♪)" : " (♩)");
   const tempoKey = () => "usul.tempo." + cur.id;
   const tempo = () => Math.max(40, Math.min(260, +$("ustempo").value || USUL_INFO[cur.id].tempo));
   const pg = id => prog[id] || (prog[id] = {});
   const passed = (id, st) => { const v = (prog[id] || {})[st.id]; return v != null && v >= st.pass; };
   const nDone = id => USUL_STEPS.filter(st => passed(id, st)).length;
-  const record = (st, v) => { const p = pg(cur.id); if(p[st.id] == null || v > p[st.id]) p[st.id] = v; store.set("usul.prog", prog); paintList(); paintSteps(); };
+  const record = (st, v) => { const p = pg(cur.id); if(p[st.id] == null || v > p[st.id]) p[st.id] = v; usulRecord(store, cur.id, st.id, v); paintList(); paintSteps(); };
 
   // ---- Çizim ----
   function paintList(){
+    reload();
     let lv = 0, h = "";
     for(const u of list){
       const i = USUL_INFO[u.id];
       if(i.lv !== lv){ lv = i.lv; h += `<div class="label usgl">${USUL_LV[lv]}</div>`; }
       const n = nDone(u.id);
       h += `<button type="button" class="usitem" data-u="${u.id}" aria-pressed="${u === cur}"><b>${esc(u.name)}</b><small>${u.meter}</small>
-        <span class="usdots" aria-label="${n}/4 ${L("adım", "steps")}">${USUL_STEPS.map((_, k) => `<i${k < n ? ' class="on"' : ""}></i>`).join("")}</span></button>`;
+        <span class="usdots" aria-label="${n}/4 ${L("adım", "steps")}">${USUL_STEPS.map((_, k) => `<i${k < n ? ' class="on"' : ""}></i>`).join("")}<em class="${n === 4 ? "all" : ""}">${n}/4 ${L("adım", "steps")}</em></span></button>`;
     }
     $("uslist").innerHTML = h;
   }
-  function gridHtml(u, hide){
-    const slots = usulSlots(u);
-    return `<div class="usrow" style="--n:${slots.length}">${slots.map((s, k) =>
-      `<span class="uscell ${hide ? "x" : s || "c"}" data-k="${k}"><b>${hide ? "" : usulSyl(s)}</b><i>${k + 1}</i></span>`).join("")}</div>`;
-  }
+  const gridHtml = usulGridHtml;
   function paintGrid(hide){ $("usgrid").innerHTML = gridHtml(cur, hide); }
   function paintSteps(){
+    reload();
     const next = USUL_STEPS.findIndex(st => !passed(cur.id, st));
     $("ussteps").innerHTML = USUL_STEPS.map((st, k) => {
       const v = (prog[cur.id] || {})[st.id], ok = passed(cur.id, st);
@@ -179,33 +280,8 @@ TRAINERS.usul = function(ctx){
     $("usgrid").querySelectorAll(".uscell").forEach(c => c.classList.toggle("now", +c.dataset.k === k));
   };
 
-  // ---- Ses: usul döngüsü ----
-  // opts: { bars (Infinity: durdurulana kadar), countIn (ilk ölçü sayım), guide "full" | "bar" (yalnız ölçü başı tık),
-  //         onSlot(k, bar), onEnd, u (varsayılan seçili usul), bpm }. Dönen t0Perf: ilk dilimin duyulduğu an (performance.now zamanı).
-  function loop(opts){
-    const a = SK.audioCtx(), slots = usulSlots(opts.u || cur), n = slots.length, unit = 60/(opts.bpm || tempo());
-    const t0 = a.currentTime + 0.2, lat = (a.outputLatency || 0) + (a.baseLatency || 0);
-    const total = opts.bars === Infinity ? Infinity : (opts.bars + (opts.countIn ? 1 : 0))*n;
-    let i = 0, shown = -1, ended = false;
-    const sched = () => {
-      while(i < total && t0 + i*unit < a.currentTime + 0.15){
-        const k = i % n, at = t0 + i*unit, counting = opts.countIn && i < n;
-        if(counting || opts.guide === "full"){ if(slots[k]) hit(a, slots[k], at, counting ? 1 : 0.8); }
-        else if(k === 0) hit(a, "T", at, 0.3);
-        i++;
-      }
-    };
-    const iv = setInterval(sched, 40); sched();
-    const frame = () => {
-      const pos = Math.floor((a.currentTime - lat - t0)/unit);
-      if(pos >= 0 && pos !== shown && pos < total){ shown = pos; if(opts.onSlot) opts.onSlot(pos % n, Math.floor(pos/n)); }
-      if(pos >= total && !ended){ ended = true; stopLoop(); if(opts.onEnd) opts.onEnd(); return; }
-      raf = requestAnimationFrame(frame);
-    };
-    raf = requestAnimationFrame(frame);
-    function stopLoop(){ clearInterval(iv); cancelAnimationFrame(raf); }
-    return { t0Perf: ctxToPerf(a, t0), unitMs: unit*1000, n, slots, stop: stopLoop };
-  }
+  // ---- Ses: usul döngüsü (ortak: usulLoop) ----
+  const loop = opts => usulLoop(ctx, { u: cur, bpm: tempo(), ...opts });
   function halt(){
     if(run){ run.stop(); run = null; }
     if(keyOff){ keyOff(); keyOff = null; }
@@ -228,73 +304,29 @@ TRAINERS.usul = function(ctx){
   }
   function tapStep(st){
     halt();
-    const mem = st.id === "mem", u = cur, slots = usulSlots(u), unitMs = 60000/tempo(), barMs = unitMs*slots.length;
-    const bars = barMs > 4000 ? 2 : barMs > 2500 ? 3 : 4;
+    const mem = st.id === "mem", u = cur, slots = usulSlots(u);
     $("usstage").innerHTML = `<div class="muted" id="ustell">${mem
       ? L("Bir ölçü sayım çalar, sonra yalnız ölçü başında hafif bir tık duyulur. Düm ve tekleri ezberden vur.", "One bar of count-in, then only a light click on each downbeat. Tap the düms and teks from memory.")
       : L("Bir ölçü sayımı dinle, sonra usulle birlikte vur.", "Listen to one bar of count-in, then tap along with the usul.")} ${L("Klavyede F = düm, J = tek.", "On a keyboard F = düm, J = tek.")}</div>
       <div class="usbig" id="uscount">${L("Sayım", "Count-in")}</div>
-      <div class="uspad"><button type="button" class="uspadD" data-k="D">Düm</button><button type="button" class="uspadT" data-k="T">Tek</button></div>`;
+      ${usulPadHtml()}`;
     const taps = [];
-    const press = (k, t, btn) => {
-      if(!run || run.kind !== "tap") return;
-      taps.push({ k, t });
-      if(btn){ btn.classList.remove("hit"); void btn.offsetWidth; btn.classList.add("hit"); }
-    };
-    $("usstage").querySelector(".uspad").addEventListener("pointerdown", e => {
-      const b = e.target.closest("[data-k]"); if(!b) return;
-      e.preventDefault(); press(b.dataset.k, e.timeStamp || performance.now(), b);
-    });
-    const onKey = e => {
-      if(e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
-      const k = /^[fds]$/i.test(e.key) ? "D" : /^[jkl]$/i.test(e.key) ? "T" : null;
-      if(!k) return;
-      e.preventDefault(); press(k, e.timeStamp || performance.now(), $("usstage").querySelector(k === "D" ? ".uspadD" : ".uspadT"));
-    };
-    document.addEventListener("keydown", onKey); keyOff = () => document.removeEventListener("keydown", onKey);
+    keyOff = usulPadBind($("usstage"), () => !!run && run.kind === "tap", taps);
     if(mem) paintGrid(true);
-    const l = loop({ bars, countIn:true, guide: mem ? "bar" : "full",
-      onSlot: (k, bar) => {
+    const l = usulTapRun(ctx, { u, bpm: tempo(), mem, taps,
+      onSlot: (k, bar, bars) => {
         mark(k);
         const el = $("uscount"); if(!el) return;
         el.textContent = bar === 0 ? L("Sayım ", "Count ") + (k + 1) : (mem ? "" : usulSyl(slots[k]) === "·" ? "" : usulSyl(slots[k])) || (bar + " / " + bars);
       },
-      onEnd: () => {
+      onEnd: (r, from, to) => {
         if(keyOff){ keyOff(); keyOff = null; }
         run = null; mark(-1); paintGrid(false);
-        const expected = [];
-        for(let b = 1; b <= bars; b++) slots.forEach((s, k) => { if(s) expected.push({ t: l.t0Perf + (b*slots.length + k)*unitMs, k:s }); });
-        const r = usulTapScore(expected, taps.filter(p => p.t > l.t0Perf + (slots.length - 0.5)*unitMs), unitMs);
         record(st, r.score);
-        showTapResult(r, st, expected[0] ? expected[0].t : 0, l.t0Perf + (bars + 1)*slots.length*unitMs);
+        $("usstage").innerHTML = usulTapResultHtml(r, st.pass, from, to) +
+          `<div class="pbar"><button class="primary small" type="button" data-again="${st.id}">${L("Yeniden", "Again")}</button></div>`;
       } });
     run = { kind:"tap", stop: l.stop };
-  }
-  function showTapResult(r, st, from, to){
-    const ms = v => Math.round(Math.abs(v));
-    const where = !r.hits.length ? "—" : Math.abs(r.mean) < 20 ? L("vuruşun üstünde", "on the beat") : r.mean < 0 ? ms(r.mean) + L(" ms erken", " ms early") : ms(r.mean) + L(" ms geç", " ms late");
-    const tips = [];
-    if(r.missed > r.n*0.3) tips.push(L("Birçok vuruş kaçtı: tempoyu düşür, önce Dinle ile sesli say.", "Many strokes were missed: lower the tempo and count aloud with Listen first."));
-    if(r.wrong) tips.push(L("Düm ve teki karıştırdığın yerler var: hecelerle say (Düm kalın, tek ince).", "Some düms and teks were swapped: say the syllables (Düm deep, tek light)."));
-    if(r.extra > 2) tips.push(L("Fazla vuruş var: noktalı yerlerde ses sürer, vurma.", "Extra taps: on the dots the sound carries on, don't tap."));
-    if(Math.abs(r.mean) > 60) tips.push(r.mean < 0 ? L("Acele ediyorsun: vuruşu bekle.", "You're rushing: wait for the stroke.") : L("Geride kalıyorsun: vuruşu önceden hisset.", "You're dragging: feel the stroke coming."));
-    $("usstage").innerHTML = `<div class="result"><div class="big">${r.score}</div><div>${L("puan", "points")} · ${r.hits.length}/${r.n} ${L("vuruş", "strokes")}${r.score >= st.pass ? " · <strong>" + L("geçtin", "passed") + "</strong>" : " · " + L("geçmek için ", "pass at ") + st.pass}</div></div>
-      <div class="kv"><div><span class="label">${L("Zamanlama", "Timing")}</span>${where}</div>
-        <div><span class="label">${L("Düm/tek karışan", "Düm/tek swapped")}</span>${r.wrong}</div>
-        <div><span class="label">${L("Kaçan · fazla", "Missed · extra")}</span>${r.missed} · ${r.extra}</div></div>
-      ${tapSvg(r, from, to)}
-      ${tips.length ? `<div class="muted">${tips.join(" ")}</div>` : ""}
-      <div class="pbar"><button class="primary small" type="button" data-again="${st.id}">${L("Yeniden", "Again")}</button></div>`;
-  }
-  // Sonuç görseli: beklenen vuruşlar çizgi (düm kalın), vurulanlar nokta (sapmaya göre renk, yanlış türse içi boş)
-  function tapSvg(r, from, to){
-    const W = 600, t0 = from - 250, t1 = to, x = t => (((t - t0)/(t1 - t0))*W).toFixed(1);
-    let s = `<svg class="rhsvg" viewBox="0 0 ${W} 60" role="img" aria-label="${L("Vuruşlar ve vurdukların", "Strokes and your taps")}"><line x1="0" x2="${W}" y1="30" y2="30" class="rhaxis"/>`;
-    r.all.forEach(e => s += `<line x1="${x(e.t)}" x2="${x(e.t)}" y1="${e.k === "D" ? 8 : 16}" y2="${e.k === "D" ? 52 : 44}" class="rhexp${e.k === "D" ? " usd" : ""}"/>`);
-    r.hits.forEach(h => { const c = Math.abs(h.dev) <= 60 ? "good" : Math.abs(h.dev) <= 120 ? "mid" : "bad";
-      s += `<circle cx="${x(h.p.t)}" cy="30" r="5" class="rh${c}${h.ok ? "" : " uswrong"}"/>`; });
-    r.extras.forEach(p => s += `<circle cx="${x(p.t)}" cy="30" r="4" class="rhextra"/>`);
-    return s + "</svg>";
   }
   async function playStep(st){
     halt();
@@ -318,10 +350,13 @@ TRAINERS.usul = function(ctx){
     });
     run = { kind:"play", stop: r.stop };
   }
+  // Adım seçilince sahne (talimat, Düm/Tek düğmeleri, sonuç) görünür alana gelir; alt menünün altında kalmaz
   function startStep(id){
     const st = USUL_STEPS.find(s => s.id === id);
     if(id === "listen") listen(st); else if(id === "play") playStep(st); else tapStep(st);
+    showStage();
   }
+  function showStage(){ const el = $("usstage"); if(el && el.scrollIntoView) el.scrollIntoView({ block:"center" }); }
 
   // ---- Hangi usul? ----
   // Aynı vuruşları olan usullerden yalnız ilki sorulur (kasap = sirto, aksak = zeybek = ağır aksak)
@@ -395,8 +430,7 @@ TRAINERS.usul = function(ctx){
     const b = e.target.closest("[data-u]"); if(!b) return;
     halt(); cur = list.find(u => u.id === b.dataset.u); store.set("usul.cur", cur.id); paint(); showCur();
   });
-  // Telefonda liste yatay kayar: seçili usul görünür kalsın
-  const showCur = () => { const el = $("uslist"), it = el.querySelector('[aria-pressed="true"]'); if(it) el.scrollLeft = it.offsetLeft - el.offsetLeft - 60; };
+  const showCur = () => {};
   $("uslisten").addEventListener("click", () => listen(USUL_STEPS[0]));
   $("ussteps").addEventListener("click", e => { const b = e.target.closest("[data-st]"); if(b) startStep(b.dataset.st); });
   $("usstage").addEventListener("click", e => { const b = e.target.closest("[data-again]"); if(b) startStep(b.dataset.again); });
@@ -410,11 +444,55 @@ TRAINERS.usul = function(ctx){
 
   paint(); setMode("learn");
   return {
-    enter(){ showCur(); },
+    enter(){ paintList(); paintSteps(); showCur(); },
     nowTitle: () => mode === "quiz" ? L("Hangi usul?", "Which usul?") : cur.name,
     stop(){ halt(); if(mode === "learn") idleStage(); else quizIdle(); quiz = null; },
     leave(){ halt(); quiz = null; if(mode === "quiz") quizIdle(); }
   };
+};
+
+// Derslerde usul vurma: { type:"usultap", usul, mode:"listen"|"tap"|"mem", tempo?, min? }. Puan ve geçme sınırı Usuller
+// sayfasındakiyle aynı, sonuç aynı kayda (usul.prog) yazılır: derste geçilen adım sayfada da geçilmiş görünür.
+// Mikrofon gerekmez; ayrıca adım klarnetsiz yapılabildiği için ses çıkaramayan ilk günlerde de çalışır.
+TRAINER_STEPS.usultap = function(st, stage, done, ctx){
+  const { store, SK } = ctx, u = USULS.find(x => x.id === st.usul), slots = usulSlots(u);
+  const bpm = st.tempo || (store.get("usul.tempo." + u.id, 0) || USUL_INFO[u.id].tempo), taps = [];
+  let l = null, off = null, live = true;
+  const grid = hide => stage.querySelector(".usgridl").innerHTML = usulGridHtml(u, hide);
+  const mark = k => stage.querySelectorAll(".uscell").forEach(c => c.classList.toggle("now", +c.dataset.k === k));
+  const say = u.strokes.map(([s, d]) => usulSyl(s) + " –".repeat(d - 1)).join("  ");
+  const head = `<div class="label">${esc(u.name)} · ${u.meter} · ${bpm} ${L("vuruş/dk", "bpm")}</div><div class="usgrid usgridl" aria-hidden="true"></div><p class="ussay">${esc(say)}</p>`;
+  function esc(t){ return ctx.esc(t); }
+  const cleanup = () => { live = false; if(l){ l.stop(); l = null; } if(off){ off(); off = null; } mark(-1); };
+  if(st.mode === "listen"){
+    stage.innerHTML = head + `<div class="usbig" id="lsuscount"></div><div class="muted">${L("Vuruşlarla birlikte sesli say: “Düm” kalın, “tek” ince. Noktalı yerlerde ses sürer. Üç ölçü sonra adım biter.", "Count aloud with the strokes: “Düm” deep, “tek” light. On the dots the sound carries on. The step ends after three bars.")}</div>`;
+    grid(false);
+    l = usulLoop(ctx, { u, bpm, bars: 3, guide:"full", onSlot: (k, bar) => {
+      mark(k); const el = stage.querySelector("#lsuscount"), s = slots[k]; if(el) el.textContent = usulSyl(s) === "·" ? "" : usulSyl(s);
+    }, onEnd: () => { l = null; mark(-1); usulRecord(store, u.id, "listen", 1); done({ v:1 }); } });
+    return { stop: cleanup };
+  }
+  const mem = st.mode === "mem";
+  stage.innerHTML = head + `<div class="muted">${mem
+    ? L("Bir ölçü sayım çalar, sonra yalnız ölçü başında hafif bir tık duyulur. Düm ve tekleri ezberden vur.", "One bar of count-in, then only a light click on each downbeat. Tap the düms and teks from memory.")
+    : L("Bir ölçü sayımı dinle, sonra usulle birlikte vur.", "Listen to one bar of count-in, then tap along with the usul.")} ${L("Klavyede F = düm, J = tek.", "On a keyboard F = düm, J = tek.")}</div>
+    <div class="usbig" id="lsuscount">${L("Sayım", "Count-in")}</div>${usulPadHtml()}`;
+  grid(mem);
+  off = usulPadBind(stage, () => live && !!l, taps);
+  l = usulTapRun(ctx, { u, bpm, mem, taps,
+    onSlot: (k, bar, bars) => {
+      mark(k); const el = stage.querySelector("#lsuscount"); if(!el) return;
+      el.textContent = bar === 0 ? L("Sayım ", "Count ") + (k + 1) : (mem ? "" : usulSyl(slots[k]) === "·" ? "" : usulSyl(slots[k])) || (bar + " / " + bars);
+    },
+    onEnd: (r, from, to) => {
+      cleanup(); grid(false);
+      const body = stage.querySelector(".usbig"); if(body) body.remove();
+      const pad = stage.querySelector(".uspad"); if(pad) pad.remove();
+      usulRecord(store, u.id, mem ? "mem" : "tap", r.score);
+      stage.insertAdjacentHTML("beforeend", usulTapResultHtml(r, st.min || 70, from, to));
+      done({ v: r.score });
+    } });
+  return { stop: cleanup };
 };
 
 // ======== Ritim heceleri ========

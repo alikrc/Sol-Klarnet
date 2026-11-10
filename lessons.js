@@ -13,6 +13,8 @@
 //   glide   { from, to, n }                  from'dan to'ya n kez glissando
 //   read    { title, body }                   okuma (bilgi) adımı; "Onay" ile geçilir
 //   rhythm  { pattern | usul, tempo, bars, silent, min }  metronomla çal, en az min ritim puanı
+//   usultap { usul, mode: "listen"|"tap"|"mem", tempo?, min }  usulu elle vur (klarnetsiz): dinle ve say, Düm/Tek düğmeleriyle vur,
+//                                             ezberden vur; puanı en az min (usuller.js, ilerleme Usuller sayfasıyla ortak)
 //   dynamics{ note, sec, shape }              crescendo / decrescendo / messa di voce
 //   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim
 //                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
@@ -651,6 +653,27 @@ const BASLANGIC = [
       { type:"rhythm", pattern:"quarter", tempo:60, bars:4, min:55 },
       { type:"rhythm", pattern:"half", tempo:70, bars:4, min:55 },
       { type:"rhythm", pattern:"eighth", tempo:60, bars:4, min:50 }
+    ] },
+
+  { id:"usul-giris", unit:"baslangic", notes:[],
+    title:{ tr:"Usule giriş: Semâî ve Sofyan", en:"Introduction to usul: Semâî and Sofyan" },
+    text:[
+      { tr:"Türk müziğinde ritim kalıbına usul denir. Usul, kalın “düm” ve ince “tek” vuruşlarının dizisidir; ezgi ne olursa olsun altında bu kalıp döner. Usulü önce elinle öğrenirsin: klarnet gerekmez, ses çıkaramadığın günlerde de çalışabilirsin.",
+        en:"A rhythmic pattern in Turkish music is called an usul: a cycle of deep “düm” and light “tek” strokes that keeps turning under the tune. You learn it with your hands first: no clarinet needed, so you can practise on days you can't make a sound." },
+      { tr:"Semâî üç zamanlıdır: Düm Tek Tek, vals gibi döner. Sofyan dört zamanlıdır ama üç darbı vardır: düm iki zaman sürer, ardından iki tek (Düm · Tek Tek). Dinle, sesli say, sonra Düm ve Tek düğmeleriyle vur.",
+        en:"Semâî has three beats: Düm Tek Tek, turning like a waltz. Sofyan has four beats but three strokes: the düm lasts two beats, then two teks (Düm · Tek Tek). Listen, count aloud, then tap with the Düm and Tek buttons." }
+    ],
+    tips:[
+      { tr:"Hecelerle sesli say: “Düm” kalın, “tek” ince söylenir. Noktalı yerlerde sesi uzat, vurma.", en:"Count aloud with the syllables: “Düm” deep, “tek” light. On the dots hold the sound, don't tap." },
+      { tr:"Vuruşları yanlış zamanda atıyorsan tempoyu düşür: Çalış → Ritim → Usuller'de tempo ayarı var.", en:"If your taps land at the wrong time, lower the tempo: the Practice → Rhythm → Usuls page has a tempo control." }
+    ],
+    steps:[
+      { type:"usultap", usul:"semai", mode:"listen" },
+      { type:"usultap", usul:"semai", mode:"tap", min:70 },
+      { type:"usultap", usul:"semai", mode:"mem", min:70 },
+      { type:"usultap", usul:"sofyan", mode:"listen" },
+      { type:"usultap", usul:"sofyan", mode:"tap", min:70 },
+      { type:"usultap", usul:"sofyan", mode:"mem", min:70 }
     ] }
 ];
 
@@ -739,6 +762,26 @@ const TEKNIK2 = [
       { type:"rhythm", usul:"semai", tempo:110, bars:4, min:60 },
       { type:"rhythm", usul:"duyek", tempo:160, bars:3, min:55 },
       { type:"rhythm", usul:"aksak", tempo:180, bars:3, min:55 }
+    ] },
+
+  { id:"usul-2", unit:"teknik", notes:[],
+    title:{ tr:"Türk Aksağı, Yürük Semâî ve Curcuna", en:"Türk Aksağı, Yürük Semâî and Curcuna" },
+    text:[
+      { tr:"Üç usul daha: Türk Aksağı beş sekizliktir (2+3): iki sekizlik düm, sonra uzun bir tek ve kısa bir tek. Yürük Semâî altı sekizliktir, iki üçlük (3+3): düm tek tek, düm tek. Curcuna on sekizliktir; Aksak'a benzer ama üçüncü vuruşu bir sekizlik uzundur.",
+        en:"Three more usuls: Türk Aksağı has five eighths (2+3): a two-eighth düm, then a long tek and a short tek. Yürük Semâî has six eighths in two threes (3+3): düm tek tek, düm tek. Curcuna has ten eighths; it resembles aksak but its third stroke is one eighth longer." },
+      { tr:"Her usulde önce elinle vur, ezgiyi klarnetle çalmadan kalıbı vücuduna oturt; sonra aynı kalıbı metronomla klarnette çal.",
+        en:"For each usul tap it with your hands first so the pattern sits in your body, then play the same pattern on the clarinet with the metronome." }
+    ],
+    tips:[
+      { tr:"Aksak usullerde vuruşlar eşit aralıklı değildir: Türk Aksağı'nı 2+3, Yürük Semâî'yi 3+3 diye say.", en:"In limping usuls the strokes are not evenly spaced: count Türk Aksağı as 2+3 and Yürük Semâî as 3+3." }
+    ],
+    steps:[
+      { type:"usultap", usul:"turkaksagi", mode:"tap", min:70 },
+      { type:"rhythm", usul:"turkaksagi", tempo:140, bars:3, min:55 },
+      { type:"usultap", usul:"yuruksemai", mode:"tap", min:70 },
+      { type:"rhythm", usul:"yuruksemai", tempo:150, bars:3, min:55 },
+      { type:"usultap", usul:"curcuna", mode:"mem", min:70 },
+      { type:"rhythm", usul:"curcuna", tempo:150, bars:3, min:55 }
     ] },
 
   { id:"kulak-1", unit:"teknik", notes:[],
@@ -1689,6 +1732,10 @@ function stepTitle(step, lang = "tr"){
       return (en ? "Rhythm: " : "Ritim: ") + what + " · " + step.tempo + (en ? " bpm" : " vuruş/dk") + (step.silent ? (en ? " · metronome only for the count-in" : " · metronom yalnızca sayımda") : "") +
         " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan");
     }
+    case "usultap": { const u = LLEARN.USULS.find(x => x.id === step.usul);
+      if(step.mode === "listen") return (en ? "Usul: listen and count " : "Usul: dinle ve say ") + u.name;
+      return (en ? "Usul: " : "Usul: ") + u.name + (step.mode === "mem" ? (en ? " · tap from memory" : " · ezberden vur") : (en ? " · tap along" : " · elle vur")) +
+        " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan"); }
     case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn");
     case "seyir": if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
         return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
@@ -1712,6 +1759,7 @@ function stepOk(step, res){
     case "hold": return v >= step.min && (step.quality == null || (res.q || 0) >= step.quality);
     case "read": return v >= 1;
     case "rhythm": case "seyir": case "ear": case "sight": case "dictation": return v >= step.min;
+    case "usultap": return v >= (step.mode === "listen" ? 1 : step.min);
     case "dynamics": return v >= 1;
     case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
     case "tech": return v >= step.target;
