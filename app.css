@@ -1348,3 +1348,24 @@ body.arfullbody #arpiece > :not(.arctl):not(.arscore):not(.fb){display:none}
 .rhnote{fill:var(--ink)}
 .rhsel{font:600 14px var(--ui);margin-right:auto}
 .rhcard .uscell b{font-size:0;height:20px}
+
+/* U-1: dokunma hedefleri en az 44 px, okunur yazı en az 14 px (telefon ve dokunmatik cihazlar).
+   Klarnet elde, telefon sehpada: küçük hedef burada normalden pahalı. */
+@media (pointer:coarse), (max-width:600px){
+  button,[role=tab],[role=radio],summary,select,input[type=number],input[type=text],input[type=search]{min-height:44px}
+  .mini,.tplay,.barico,.navback,.micbtn{min-width:44px;min-height:44px}
+  .linkbtn{padding:12px 4px}
+  .seg button{min-height:44px}
+  .chip{min-height:0}
+  small,.small,.muted.small,.hint,.srow .hint,p.pdesc,footer,.thelp,.reg,.usdots em,.rhcard small{font-size:14px}
+  .usitem small,.stopbtn,.primary.small,.seg button,.rootseg button,.opt{font-size:14px}
+  .uscell i{font-size:12px}
+  .gsbtn{min-width:44px;min-height:44px}
+  input[type=range]{min-height:44px}
+  .muted,.chk,label.arsel,label.tnum,em,summary,.usdesc,.ussay,.pmore,#rhlat,#usarch,.linkbtn{font-size:14px}
+  .chip{font-size:12px}
+  .nav button{font-size:12.5px}
+  .stopbtn.small,.primary.small,.stopbtn{min-height:44px}
+  .eyebrow,.lsunit,.lsunit small,.pmore,.lsres,.label{font-size:12.5px}
+  .lsitem span,.lsitem small,.lsitem i{font-size:14px}
+}

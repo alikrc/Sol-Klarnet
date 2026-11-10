@@ -109,7 +109,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü. Hepsi 
 
 **U — Genel sadeleştirme (≈ 1,5 hafta)**
 
-- [ ] **U-1 Dokunma hedefleri ve yazı boyu** (O, U5): etkileşimli her öğe en az 44 px; gövde yazısı en az 14 px. En
+- [x] **U-1 Dokunma hedefleri ve yazı boyu** (O, U5; yapıldı 10 Kasım: `app.css` sonunda dokunmatik ve dar ekran bloğu; düğme, seçici, sekme, aralık çubuğu en az 44 px, yardım ve açıklama yazıları 14 px, büyük harfli etiketler 12,5 px, alt menü 12,5 px; Akort, Dersler, Çalış, Usuller, Ritim, Eşlik 375 px genişlikte ölçüldü, kalan küçük yazı: bazı arşiv ve düzeltme ekranı öğeleri, ölçülmedi): etkileşimli her öğe en az 44 px; gövde yazısı en az 14 px. En
   ucuz ve en görünür iyileştirme; A'dan önce de yapılabilir
 - [ ] **U-2 "Bugün" ana ekranı** (B, U1): hoca kartı, günlük hedef, seri; Akort ikinci sırada. Tasarım önce proje
   sahibine gösterilir
