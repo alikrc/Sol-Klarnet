@@ -2,6 +2,154 @@
 
 Kodla bitmeyen işlerin güncel listesi: [DENEME-LISTESI.md](DENEME-LISTESI.md) (telefonda ve klarnetle denenecekler, hocaya sorulacaklar).
 
+## Genel değerlendirme ve iş planı (10 Kasım 2026)
+
+Proje baştan sona incelendi: belgeler, kod (35 betik, ~21 800 satır), derleme ve paket ayarları; uygulama tarayıcıda
+telefon genişliğinde (375×812), geniş ekranda, açık ve koyu temada gezildi; karşılama akışı sıfırdan yürütüldü.
+**Bakılamayanlar:** gerçek mikrofon, gerçek telefon, Android/iOS paketi. Aşağıdaki "cihazda ölçülmeli" notları bu yüzden.
+Öncelik sırası bu bölümdedir; alttaki bölümler ayrıntı ve geçmiştir (3 Kasım'ın iki önceliğinden hoca akışının kodu bitti,
+kalan denemesi Faz 1'de; freemium proje sahibinin kararıyla ertelendi, Faz 5'te duruyor).
+
+### Özet hüküm
+
+Ürün kapsamca çok ileride, doğrulamaca çok geride. Yedi haftada 206 commit ile 87 ders, 30'a yakın ekran, 2200 eserlik
+arşiv, nota okuyucu ve seni izleyen eşlik yazıldı; arayüz derli toplu, konsolda hata yok, dar ekranda taşma yok. Ama
+uygulamayı bugüne kadar gerçek bir Sol klarnetle, gerçek bir telefonda, proje sahibinden başka biri hiç kullanmadı; bütün
+ses eşikleri Si♭ kaydı ve benzetimle ayarlı. **En büyük risk eksik özellik değil; çekirdeğin (telefonda perde bulma)
+gerçekte nasıl davrandığının bilinmemesi ve yayının önündeki lisans kararı.** Bu yüzden öneri: yeni özellik dondurulsun,
+sıra doğrulama → yayın → sadeleştirme olsun.
+
+### Bulgular — ürün (PM)
+
+| # | Bulgu | Etki |
+|---|---|---|
+| PM1 | Gerçek kullanım verisi yok: Sol klarnet kaydı yok, cihaz denemesi yapılmadı (`DENEME-LISTESI.md` 32 madde açık), hoca raporu gelmedi (22 soru, 181 parmak) | Eşiklerin hepsi tahmin; ilk kullanıcıda akort yanlış gösterirse güven gider |
+| PM2 | Yayın yok: Play hesabı, yükleme anahtarı, gizlilik adresi, kapalı test bekliyor (`TODO.md`); sürüm 1.0.0, `versionCode` 1 | Kapalı test takvim süresi ister; ne kadar geç başlarsa yayın o kadar gecikir |
+| PM3 | Lisans kararı verilmedi ve bu yalnız ücretli sürümün sorunu değil: 797 telifli eser ücretsiz dağıtımda da telifli. Depo herkese açık ve GitHub Pages tam arşivi sunuyor. neyzen.com ve WFG izni istenmedi | Mağazada telif bildirimi, uygulamanın kaldırılması riski |
+| PM4 | Geri bildirim kanalı yok: uygulamada "sorun bildir" düğmesi, e-posta adresi ya da hata kaydı yok; ölçüm (analitik) bilerek yok | Yayından sonra neyin bozulduğu ve neyin kullanıldığı öğrenilemez |
+| PM5 | Konum belirsiz: akort aleti, kurs, nota arşivi, nota okuyucu ve eşlik grubu aynı ağırlıkta. Mağaza metni de hepsini sayıyor | Yeni kullanıcı "bu ne işe yarar"ı tek cümlede alamıyor; çekirdek döngü (hoca kartı → ders → günlük) kalabalıkta kayboluyor |
+| PM6 | Belgeler dağınık: bu dosya 700+ satır ve çoğu tamamlanmış işin günlüğü; `TODO.md` ile "Sonraki adımlar" çakışıyor; eski bölümlerde eski sayılar (72 ders, 24 etüt) | Sıradaki işi bulmak zor |
+| PM7 | İçerik tek kaynaklı: videoların hepsi tek kanal, örnek ses Si♭ kaydı, ders metinlerini hoca görmedi | Uzman güveni; arayüzde dürüstçe yazılı, ama kalıcı çözüm değil |
+
+### Bulgular — teknik
+
+| # | Bulgu (kodda doğrulandı) | Etki |
+|---|---|---|
+| T1 | Bütün ilerleme `localStorage`'da; `store.set` (`app.js:20`) yazma hatasını yutuyor. Kota dolarsa ya da depolama kapalıysa ilerleme sessizce kaydedilmez. Yedekten dönüş (`app.js:1341`) önce her şeyi siler, sonra yazar; yazma yarıda kalırsa veri gider. Yedek yalnız elle alınıyor ve kayıtları (IndexedDB) içermiyor; paketli uygulamada `storage.persist` istenmiyor | Haftalarca ilerlemenin kaybı; en pahalı hata türü |
+| T2 | Genel hata yakalama yok (`error`, `unhandledrejection` dinlenmiyor), 12 boş `catch` var | Bir modül açılışta düşerse kullanıcı boş ekran görür, kimse haberdar olmaz (PM4 ile birlikte) |
+| T3 | Üç dosya listesi elle tutuluyor: `index.html` betikleri, `sw.js` `SHELL`, `scripts/build-web.js` `FILES`. Bugün üçü tutarlı (denetlendi), ama yeni dosyada biri unutulursa çevrimdışı ya da paketli sürüm bozulur; projede otomatik denetim yok (test yok kararı) | Sessiz yayın hatası |
+| T4 | Service worker her isteği önce ağdan istiyor, zaman aşımı yok | Zayıf bağlantıda (sinyal var, veri yok) açılış ağ pes edene kadar bekler |
+| T5 | Açılışta 35 betik, 1,43 MB sıkıştırılmamış JS sırayla yükleniyor; nota okuyucu (`omr.js`, `omrtemplates.js`, `convert.js` ≈ 250 KB) ve arşiv de açılışta. Açılışta 9 850 DOM düğümü var (bütün ekranlar baştan kurulu). SW ilk kurulumda 6,6 MB indiriyor | Masaüstünde 95 ms; ucuz Android'de bilinmiyor, **cihazda ölçülmeli** |
+| T6 | İçerik güvenlik politikası (CSP) yok; 244 `innerHTML` kullanımı var. Bakılan yerlerde dış veri `esc` ile kaçırılıyor (Nota bul başlıkları, eser adları), ama paylaşım bağlantısı, MusicXML ve Nota bul dışarıdan veri alıyor. Satır içi olay yok, tek satır içi betik var: CSP eklemek kolay | Derinlemesine savunma eksik |
+| T7 | Perde bulma ana iş parçacığında (`setInterval(tick, 40)`); çizimle aynı sırada | Ağır ekranlarda (arşiv, perde eğrisi) ölçüm aksayabilir; **cihazda ölçülmeli** |
+| T8 | Android: `allowBackup="true"` (web görünümü verisinin Google yedeğine girip girmediği doğrulanmadı), `requestLegacyExternalStorage`, `projetsm.com` için şifresiz trafik | Veri güvenliği formunda doğru beyan gerekir |
+| T9 | Kod yapısı: modül sistemi yok, global `SK` üzerinden; bazı dosyalarda 400 karakteri aşan satırlar; içerik ile mantık aynı dosyada (`lessons.js` 160 KB) | Tek kişilik projede sorun değil; yeniden yazmaya değmez, yalnız not |
+
+İyi olanlar: erişilebilirlik emeği var (396 `aria` özniteliği, klavye odağı, hareket azaltma), adres çubuğu ve geri tuşu
+tutarlı, dış bağımlılık yok denecek kadar az, ses cihazda işleniyor, lisans derlemesi (`--lisans-temiz`) hazır.
+
+### Bulgular — arayüz ve kullanım (UI/UX)
+
+| # | Bulgu (tarayıcıda görüldü) | Öneri |
+|---|---|---|
+| U1 | Açılış ekranı Akort; sıradaki adımı söyleyen hoca kartı Dersler'in içinde. Proje sahibinin birinci önceliği olan "elinden tutan hoca" ilk bakışta görünmüyor | "Bugün" ana ekranı: hoca kartı, günlük hedef, seri, tek düğme. Akort bir dokunuş uzakta kalsın |
+| U2 | Dersler'de üç giriş birden: hoca kartı, "Bugünün çalışması 0/1", 12 satırlık liste (11'i "kilitli"). Yeni başlayana kilitli satır duvarı | Yeni kullanıcıda liste kart altında katlı; "kilitli" yazısı yerine kilit simgesi |
+| U3 | Çalış'ta eşit ağırlıkta 20 kart, beş grup. Hangisini ne zaman açacağını kullanıcı bilmiyor | Üstte "Son kullandıkların" ve "Sana önerilen" (hoca kartının yan önerisi); seviyenin üstündekiler soluk |
+| U4 | Ayarlar tek sayfa, 3 400 px kaydırma | Alt sayfalara böl: Akort ve mikrofon, Çalışma, Görünüm, Veri ve yedek, Hakkında, Uzman |
+| U5 | Dokunma hedefleri küçük: Akort/Parmak geçişi ve makam seçici 35 px, AEU/İcra/Kendim 34 px, "Nasıl kullanılır?" 20 px (öneri en az 44 px). 60'tan fazla yerde yazı 12,5 px ve altı | Klarnet elde, telefon sehpada, 50 cm–1 m uzaktan bakılıyor: bu uygulamada küçük hedef normalden pahalı |
+| U6 | Boş durum metinleri: yeni kullanıcıya yol haritası "hepsi 15 ay sürer", "Son 4 hafta: günde ort. 0 dk" diyor | İlk hafta verisi oluşana kadar tahmini gizle, yerine ilk hedefi yaz |
+| U7 | Çalarken uzaktan okuma: sonuçlar ve geri bildirim küçük yazıyla, ekranın altında | Ölçüm sırasında "sehpa görünümü": büyük nota, büyük sapma, tek renkli doğru/yanlış |
+| U8 | Her sayfanın başında üç satırlık açıklama ve "devamı" var; "Nasıl kullanılır?" da var | İlk üç açılıştan sonra açıklamayı gizle, yardım düğmesi yetsin |
+| U9 | Derin bağlantıyla açılışta alt menüde Akort kısa süre seçili görünüyor (`body data-view="tune"` varsayılanı); tam doğrulanamadı | Cihazda bak; varsa ilk boyamadan önce bölümü ayarla |
+
+İyi olanlar: karşılama altı adım ve atlanabilir, mikrofon izni gerekçesiyle isteniyor; örnek değerler "örnek gösterim"
+diye işaretli; görsel dil tutarlı; geniş ekranda yan menü ve iki sütun düzgün; genel arama ayarları da buluyor.
+
+### İş listesi (öncelik sırasıyla)
+
+Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü. "Kim": **kod** = oturumda yapılabilir, **sahip** = proje
+sahibinin işi ya da kararı.
+
+**Faz 0 — veri ve hata güvenliği (yayından önce şart; kod, toplam ≈ 3 gün)**
+
+- [ ] **F0-1 Kayıt hatası görünür olsun** (K, T1): `store.set` başarısızsa bir kez uyarı ("ilerleme kaydedilemiyor,
+  yedek al"); yedekten dönüş önce doğrulasın, eski veriyi yazma bitince silsin. Kabul: depolama dolu benzetiminde uyarı
+  çıkıyor, yarıda kesilen geri yüklemede eski veri duruyor
+- [ ] **F0-2 Otomatik yedek** (O, T1): paketli uygulamada haftada bir ve her ünite sınavından sonra yedek dosyası
+  uygulamanın belge klasörüne yazılsın (son 3 dosya); açılışta `localStorage` boş ve yedek varsa "geri yükleyelim mi" diye
+  sorsun. Paketli uygulamada da kalıcı depolama istensin
+- [ ] **F0-3 Hata günlüğü ve "Sorun bildir"** (O, T2, PM4): `error` ve `unhandledrejection` son 20 hatayı cihazda
+  tutsun; Ayarlar → "Sorun bildir" sürüm, cihaz, ayarlar ve hata günlüğünü paylaşım menüsüyle (e-posta) göndersin. Bir
+  ekran açılışta düşerse "bu ekran açılamadı, bildir" kutusu. Sunucu ve analitik yok
+- [ ] **F0-4 Yayın denetimi** (K, T3): `npm run denetim`: üç dosya listesi tutarlı mı, `SHELL`'deki her dosya var mı,
+  sürüm numaraları (package.json, sw önbelleği, Android, iOS) aynı mı; `release` betiği önce bunu çalıştırsın. Test
+  takımı değil, tek betik
+- [ ] **F0-5 Service worker zaman aşımı** (K, T4): kabuk dosyalarında ağ 3 sn'de yanıt vermezse önbellekten ver, arkada
+  güncelle
+
+**Faz 1 — gerçeklik sınaması (sahip; 1–2 hafta, Faz 0 ile aynı anda başlayabilir)**
+
+- [ ] **F1-1 Telefona kur, deneme listesinin A–C bölümleri** (sahip): `npm run android:apk`; akort ekranı gerçek
+  klarnetle (pp pes notalar, gürültü, register geçişi). Çekirdek bu; sonuç kötüyse sonraki her şey bekler
+- [ ] **F1-2 Sol klarnet kayıtları** (sahip, `DENEME-LISTESI` H2): her notada pp/mf/ff; `npm run audio-check`. Bütün
+  eşikler ilk kez gerçek sesle ölçülür
+- [ ] **F1-3 Açılış ve akıcılık ölçümü** (sahip + kod, T5, T7): telefonda soğuk açılış süresi, arşiv ve perde eğrisi
+  açıkken ölçüm takılması. 2 sn'yi aşarsa Faz 4 öne alınır
+- [ ] **F1-4 Deneme listesinin D–H bölümleri** (sahip): süsleme, taksim, eşlik sızıntısı, araçlar
+- [ ] **F1-5 Hocaya gönder** (sahip): Uzman kontrolü ekranı ve 22 soru; en az bir Sol klarnet hocası, mümkünse bir
+  Trakya/Roman klarnetçisi
+- [ ] **F1-6 Bulguları işle** (kod): F1-1…5'ten gelen eşik ve içerik düzeltmeleri; her eşik denemenin sonucuyla değişir
+
+**Faz 2 — yayına hazırlık (sahip kararları + kod; Faz 1 ile koşut)**
+
+- [ ] **F2-1 Lisans kararı** (sahip, PM3). Öneri: ilk yayın ücretsiz ve reklamsız; paket `--lisans-temiz` ile (1 414
+  eser); neyzen.com kaynağı izin gelene kadar kapalı; MTG, WFG ve neyzen.com'a izin yazısı bugün gitsin. Seyir örneği
+  kalmayan 7 makam için Rauf Yektâ dışı kamu malı örnek aranır
+- [ ] **F2-2 Depo ve web sitesi** (sahip + kod, PM3): karar "temiz" ise GitHub Pages da temiz derlemeden yayımlansın
+  (bugün `main` kökünden tam arşiv çıkıyor); depo geçmişi ayrı karar
+- [ ] **F2-3 Play hesabı, yükleme anahtarı, gizlilik adresi, kapalı test** (sahip, PM2, `TODO.md`): kapalı testin güncel
+  şartı (test eden sayısı ve süresi) Play Console'dan okunup takvime yazılsın; test edenler F1-5'in hocaları olabilir
+- [ ] **F2-4 Veri güvenliği formu ve Android ayarları** (kod + sahip, T8): `allowBackup` kararı (F0-2 varsa kapatılabilir),
+  `requestLegacyExternalStorage` gerekli mi, şifresiz trafik beyanı
+- [ ] **F2-5 CSP** (K, T6): `script-src 'self'`, `connect-src` yalnız Nota bul alanları; paylaşım bağlantısı, MusicXML ve
+  Nota bul girişlerinde `innerHTML` yolu bir kez daha gözden geçirilsin
+- [ ] **F2-6 Mağaza metni tek cümleye insin** (K, PM5): "Türk Sol klarnetini mikrofonla dinleyen ve adım adım öğreten
+  hoca"; arşiv, okuyucu ve eşlik alt başlık. Ekran görüntülerinin ilki hoca kartı
+
+**Faz 3 — sadeleştirme (kod; ≈ 1,5 hafta; kapalı test sürerken)**
+
+- [ ] **F3-1 Dokunma hedefleri ve yazı boyu** (O, U5): etkileşimli her öğe en az 44 px; gövde yazısı en az 14 px,
+  yardımcı yazı en az 12 px. En ucuz ve en görünür iyileştirme, öne alınabilir
+- [ ] **F3-2 "Bugün" ana ekranı** (B, U1, PM5): hoca kartı, günlük hedef, seri, "Bugünün çalışması"; ilk bölüm bu olur,
+  Akort ikinci. Karşılamada "yalnız akort aleti olarak kullanacağım" diyen eskisi gibi Akort'ta açar. Tasarım önce
+  proje sahibine gösterilir (alt menü sırası değişiyor)
+- [ ] **F3-3 Dersler ve Çalış'ta odak** (O, U2, U3): yeni kullanıcıda liste katlı; Çalış'ta "Son kullandıkların" ve
+  "Sana önerilen"; kilit simgesi
+- [ ] **F3-4 Sehpa görünümü** (O, U7): ölçüm sırasında büyük nota ve sapma; önce Uzun ton ve ders adımlarında
+- [ ] **F3-5 Ayarlar alt sayfaları** (O, U4)
+- [ ] **F3-6 Boş durumlar ve açıklamalar** (K, U6, U8, U9)
+
+**Faz 4 — başarım (kod; yalnız F1-3 gerektirirse)**
+
+- [ ] **F4-1 Tembel yükleme** (O, T5): nota okuyucu, Çevir, Kulaktan çıkar, arşiv ve Uzman kontrolü ilk açıldıklarında
+  yüklensin; ekranlar ilk açılışta kurulsun
+- [ ] **F4-2 Perde bulmayı ana iş parçacığından al** (B, T7): yalnız cihazda takılma ölçülürse
+
+**Faz 5 — sonra (bugün başlanmaz)**
+
+- Belgeleri toparla (K, PM6): bu dosyanın tamamlanmış bölümleri `docs/GECMIS.md`'ye, `TODO.md` buraya; Faz 2 bitince
+- Kendi içerik: gerçek Sol klarnet örnek sesleri, konuya özel kısa videolar, ikinci bir icracı (PM7)
+- Freemium: lisans izinleri ve proje sahibinin beş cevabı gelmeden açılmaz (aşağıda madde 2)
+- Hoca–öğrenci modu, cihazlar arası eşitleme, kamerayla duruş: yayından ve ilk kullanıcı geri bildiriminden sonra
+- Kod yapısı (T9): dokunulmaz; yalnız bir dosya 2 000 satırı aşarsa bölünür
+
+### Proje sahibinden beklenen kararlar
+
+1. **Özellik dondurma:** Faz 0–2 bitene kadar yeni özellik yok, uygun mu?
+2. **Lisans (F2-1):** ilk yayın temiz derleme ve neyzen kapalı mı, yoksa izinler beklenip tam arşivle mi?
+3. **"Bugün" ana ekranı (F3-2):** açılış Akort'tan hoca kartına taşınsın mı?
+4. **Play hesabı (F2-3):** ne zaman açılacak? Kapalı testin süresi yayın tarihini bu belirler.
+
 ## ÖNCELİKLİ — proje sahibinin istekleri (3 Kasım 2026)
 
 Proje sahibi: "Uygulama seviye belirletip ona göre adım adım ilerletmeli; bir hoca gibi elinden tutup içerik arasında
