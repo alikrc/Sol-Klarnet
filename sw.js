@@ -1,7 +1,7 @@
 // Çevrimdışı kullanım: uygulama dosyaları önbellekte tutulur.
 // Kendi dosyalarımız önce ağdan istenir (güncellemeler hemen gelsin), ağ yoksa önbellekten verilir.
 // Fontlar da uygulamanın içindedir (fonts/); dış kaynak yoktur. Nota arşivinin eser dosyaları (notalar/) açıldıkça saklanır.
-const CACHE = "sol-klarnet-v93";
+const CACHE = "sol-klarnet-v94";
 const SHELL = ["./", "index.html", "app.css", "app.js", "nav.js", "i18n.js", "art.js", "core.js", "learn.js", "sources.js", "premium.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "usuller.js", "sounds/sounds.js", "sounds/klarnet.wav", "sounds/darbuka.wav", "sampler.js", "pieces.js", "band.js", "follow.js", "transcribe.js", "reading.js", "roadmap.js", "archive.js", "notalar/index.json", "omrtemplates.js", "omr.js", "omrworker.js", "convert.js", "vendor/pdfjs/pdf.min.mjs", "vendor/pdfjs/pdf.worker.min.mjs", "vendor/qrcode/qrcode.js", "drills.js", "chartsheet.js", "lessonview.js", "teori.js", "sorunlar.js", "practice.js", "equip.js", "review.js", "onboard.js", "search.js", "nowplaying.js", "pcmring.js", "manifest.webmanifest", "icon.svg",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "img/klarnet.webp", "img/darbuka.webp", "img/ud.webp", "img/agizlik.webp", "privacy.html",
   "fonts/Commissioner-0.woff2", "fonts/Commissioner-1.woff2", "fonts/fonts.css", "fonts/Fraunces-2.woff2", "fonts/Fraunces-3.woff2", "fonts/IBMPlexMono-4.woff2", "fonts/IBMPlexMono-5.woff2", "fonts/IBMPlexMono-6.woff2", "fonts/IBMPlexMono-7.woff2", "fonts/NotoMusic-8.woff2"];

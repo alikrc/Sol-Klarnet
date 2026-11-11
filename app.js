@@ -741,7 +741,10 @@
       // out → hoparlör; master (alıştırma sesleri, ölçülür) ve tools (metronom, dron) out'a bağlanır
       master = actx.createGain(); tools = actx.createGain(); out = actx.createGain();
       meter = actx.createAnalyser(); meter.fftSize = 512; meterBuf = new Float32Array(meter.fftSize);
-      out.connect(actx.destination); master.connect(out); tools.connect(out); master.connect(meter);
+      // Sınırlayıcı: klarnet, yankı, orkestra ve darbuka üst üste binince toplam 1'i aşıp kırpılmasın (cızırt)
+      const lim = actx.createDynamicsCompressor();
+      lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.12;
+      out.connect(lim); lim.connect(actx.destination); master.connect(out); tools.connect(out); master.connect(meter);
       const connect = AudioNode.prototype.connect;
       AudioNode.prototype.connect = function(dest, ...rest){
         return connect.call(this, dest === actx.destination && this !== out ? master : dest, ...rest);

@@ -14,8 +14,30 @@ const SAMPLER = (() => {
   }
   function load(a){
     if(loading || typeof SOUND_MAP === "undefined" || typeof fetch === "undefined") return loading;
-    loading = Promise.all(["klarnet", "darbuka"].map(n => get(a, n).then(b => { S[n] = b; }).catch(e => console.warn("örnek yüklenemedi", e))));
+    loading = Promise.all(["klarnet", "darbuka"].map(n => get(a, n).then(b => { if(n === "klarnet") mendLoops(b); S[n] = b; }).catch(e => console.warn("örnek yüklenemedi", e))));
     return loading;
+  }
+  // Döngü dikişini onar. Dosya 32 kHz; tarayıcı çözerken ses kartının hızına (çoğu zaman 48 kHz) çevirir ve
+  // döngü sonunun hemen ardındaki sessizlik son örnekleri bozar (yarıya düşer, dalgalanır): uzun notalarda her
+  // döngüde (yarım saniyede bir) tık, art arda cızırt. Döngü sonunun son 10 ms'i, döngü başının öncesindeki temiz
+  // sesle (bir döngü uzunluğu geride) değiştirilir; sonundaki boşluğa da döngü başının devamı yazılır.
+  function mendLoops(b){
+    const sr = b.sampleRate, X = Math.round(0.01*sr), H = 96, G = Math.round(0.02*sr);
+    for(let c = 0; c < b.numberOfChannels; c++){
+      const d = b.getChannelData(c);
+      for(const m of SOUND_MAP.klarnet){
+        const ls = m.loopStart*sr, le = m.loopEnd*sr, L = le - ls;
+        const at = p => { const i = Math.floor(p), f = p - i; return d[i]*(1 - f) + d[i + 1]*f; };
+        const i0 = Math.ceil(le) - X, i1 = Math.min(d.length - 1, Math.ceil(le) + G);
+        if(i0 - L < 1) continue;
+        const src = new Float32Array(i1 - i0);
+        for(let i = i0; i < i1; i++) src[i - i0] = at(i - L);
+        for(let i = i0; i < i1; i++){
+          const w = Math.min(1, (i - i0)/(X - H));
+          d[i] = d[i]*(1 - w) + src[i - i0]*w;
+        }
+      }
+    }
   }
   // İstenen frekansa en yakın klarnet örneği (log ölçekte) ve gereken çalma hızı
   function klarnet(freq){
