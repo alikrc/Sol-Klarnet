@@ -91,7 +91,7 @@ TRAINERS.archive = function(ctx){
       <div class="muted arcount" id="arcount" aria-live="polite"></div>
       <div class="arrows" id="arrows"></div>
       <button class="stopbtn armore" type="button" id="armore" hidden>${L("Daha fazla göster", "Show more")}</button>
-      <p class="muted arsrcnote">${L("Notalar: SymbTr (M. K. Karaosmanoğlu; Music Technology Group, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.", "Scores: SymbTr (M. K. Karaosmanoğlu; Music Technology Group, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.")}</p>
+      <p class="muted arsrcnote">${L("Notalar: SymbTr v3.0 (M. K. Karaosmanoğlu, 2025), CC BY 4.0; birkaç eser SymbTr v2.4 (MTG, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.", "Scores: SymbTr v3.0 (M. K. Karaosmanoğlu, 2025), CC BY 4.0; a few pieces from SymbTr v2.4 (MTG, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.")}</p>
     </div>
     <div class="arpiece" id="arpiece" hidden></div>`;
 
@@ -229,7 +229,9 @@ TRAINERS.archive = function(ctx){
 
   function buildPiece(){
     const e = cur.e, fv = favs(), mkId = archMakam(e.mk);
-    const git = "https://github.com/MTG/SymbTr/blob/master/MusicXML/" + encodeURIComponent(e.id) + ".xml";
+    // v3 eserlerinin tek tek dosya adresi yok (Zenodo'da toplu zip); yalnız v2'den gelenler GitHub'daki dosyaya bağlanır
+    const v2 = e.src === "v2";
+    const git = v2 ? "https://github.com/MTG/SymbTr/blob/master/MusicXML/" + encodeURIComponent(e.id) + ".xml" : "https://doi.org/10.5281/zenodo.15470412";
     const yt = "https://www.youtube.com/results?search_query=" + encodeURIComponent([e.t, e.b].filter(Boolean).join(" "));
     $("arpiece").innerHTML = `
       <div class="pbar arhead">
@@ -301,8 +303,8 @@ TRAINERS.archive = function(ctx){
       <button type="button" class="arfab" id="arfab" hidden>${L("▶ Çal", "▶ Play")}</button>
       <details class="arlearn" id="arlearn"><summary id="arlearnsum"></summary><ol class="arsteps" id="arsteps"></ol></details>
       <div class="arlike"><span class="label">${L("Benzer eserler", "Similar pieces")}</span><div class="pbar" id="arlikes"></div></div>
-      <p class="muted arsrc">${L("Kaynak: ", "Source: ")}SymbTr (M. K. Karaosmanoğlu; MTG, Universitat Pompeu Fabra), CC BY-NC-SA 4.0 ·
-        <a href="${git}" target="_blank" rel="noopener">MusicXML</a>
+      <p class="muted arsrc">${L("Kaynak: ", "Source: ")}${v2 ? "SymbTr v2.4 (M. K. Karaosmanoğlu; MTG, Universitat Pompeu Fabra), CC BY-NC-SA 4.0" : "SymbTr v3.0 (M. K. Karaosmanoğlu, 2025), CC BY 4.0"} ·
+        <a href="${git}" target="_blank" rel="noopener">${v2 ? "MusicXML" : "Zenodo"}</a>
         ${e.mb ? ` · <a href="https://musicbrainz.org/work/${esc(e.mb)}" target="_blank" rel="noopener">MusicBrainz</a>` : ""}
         · <a href="${yt}" target="_blank" rel="noopener">${L("YouTube'da dinle", "Listen on YouTube")}</a></p>`;
 

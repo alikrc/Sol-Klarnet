@@ -10,7 +10,8 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 
 | Kaynak | Nerede | Lisans | Ücretsiz dağıtım | Ticari kullanım | Yapılacak |
 |---|---|---|---|---|---|
-| SymbTr nota koleksiyonu | `notalar/` (2200 eser), Nota arşivi | CC BY-NC-SA 4.0 | Atıfla olur; türetilen veri de BY-NC-SA kalmalı | **Olmaz** (NC) | Ticari sürümde arşiv çıkarılmalı ya da MTG'den yazılı izin alınmalı; ayrıca eser telifleri (aşağıda) |
+| SymbTr v3.0 nota koleksiyonu | `notalar/` (3000 eser), Nota arşivi | CC BY 4.0 | Atıfla olur | Atıfla olur | Eser telifleri (aşağıda) |
+| SymbTr v2.4 nota koleksiyonu | `notalar/` (`src: "v2"` işaretli 37 eser) | CC BY-NC-SA 4.0 | Atıfla olur; türetilen veri de BY-NC-SA kalmalı | **Olmaz** (NC) | Ticari sürümde bu 37 eser çıkarılmalı ya da MTG'den yazılı izin alınmalı |
 | Eserlerin besteci ve güfte telifleri | `notalar/` | Eserine göre | Tabloya göre eser eser bakılmalı | Telifli eserler izinsiz olmaz | `lisans-besteciler.csv` ve `lisans-guftekarlar.csv` dolduruldu, `lisans-disla.csv` dışlama listesi çıkarıldı (4 Kasım 2026); telifli eserler arşivden henüz çıkarılmadı, bilinmeyenler araştırılmalı |
 | Woodwind Fingering Guide | `core.js` parmak tabloları, çeyrek ses parmakları | Açık lisans yok | Atıfla veriliyor | İzin gerekir | Sahibinden (WFG) yazılı izin |
 | University of Iowa EMS kayıtları | `sounds/klarnet.wav`, `testdata/iowa/` | Site: ücretsiz, "herhangi bir projede kısıtlamasız" | Olur | Olur (sitenin beyanına göre) | Beyanın ekran görüntüsü/arşiv bağlantısı saklanmalı |
@@ -27,7 +28,20 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 | TDV İslâm Ansiklopedisi, akademik kaynaklar | Makam, usul ve icra bilgileri (`docs/KAYNAKLAR.md`) | Telifli metin | Bilgi aktarılıyor, metin kopyalanmıyor | Aynı | Uzun alıntı yapılmamalı |
 | Özgün etütler ve ders metinleri | `repertoire.js`, `lessons.js` | Proje sahibinin | — | — | — |
 
-## SymbTr (CC BY-NC-SA 4.0)
+## SymbTr v3.0 (CC BY 4.0) ve v2.4 (CC BY-NC-SA 4.0)
+
+**11 Kasım 2026:** Arşiv SymbTr v3.0'a geçti. Koleksiyonun hazırlayıcısı M. K. Karaosmanoğlu (Yıldız Teknik Üniversitesi)
+v3.0'ı 20 Mayıs 2025'te kendi ORCID'li hesabıyla Zenodo'ya **CC BY 4.0** lisansıyla yükledi
+(https://doi.org/10.5281/zenodo.15470412; 3000 eser, 164 makam, 135 usul). CC BY ticari kullanıma izin verir, şartı
+atıftır; atıf arşiv sayfasında ve her eser ekranında var (`archive.js`). v2.4'te olup v3'te bulunmayan 37 eser arşivde
+kaldı (`index.json`'da `src: "v2"`); yalnız onlar için aşağıdaki NC şartı sürer. v2'deki 153 eserin v3'te adı değişmiş
+(makam ya da usul yeniden sınıflanmış, ad kısaltılmış); `scripts/symbtr-adlar.json` bunları eşler ve eski kimlik korunur.
+v2'den hâlâ okunan şeyler: başlık ve kişi adları (lisans tabloları bu adlarla tutulur), büyük usullerin ölçüsü (v3 XML'i
+28/4'lük Devr-i Kebîr gibi usulleri 4/4'lük ölçülere bölüyor). Bunlar olgu bilgisidir; notaların kendisi v3'ten gelir.
+v3 ile gelen 98 besteci ve 126 güfte yazarı tablolara eklendi: 53'ünün ölüm yılı ya da durumu Claude'un genel bilgisinden
+yazıldı ("tek kaynak", doğrulanmalı), geri kalanı "bilinmiyor"dur ve eserleri `lisans-belirsiz.csv`'de.
+
+Aşağısı v2.4 içindir (artık yalnız `src: "v2"` eserleri):
 
 - Kaynak: M. K. Karaosmanoğlu, *A Turkish makam music symbolic database for music information retrieval: SymbTr*,
   ISMIR 2012; Music Technology Group, Universitat Pompeu Fabra. https://github.com/MTG/SymbTr
@@ -40,6 +54,11 @@ parçası olması. Ücretsiz ve reklamsız dağıtım da bazı lisanslarda tart�
 - SymbTr lisansı yalnız kodlamanın (notaya dökümün) lisansıdır; **eserlerin kendi telif haklarını kaldırmaz**.
 
 ## Eserlerin telif durumu
+
+**v3 sonrası (11 Kasım 2026, `node scripts/lisans-disla.js`):** 3037 eserin 1232'sinde en az bir hak sahibi telifli,
+532'si belirsiz, 1121'i kamu malı, 152'si anonim. Besteci kamu malı ama güfte yazarı kayıtlı olmayan sözlü eser 534;
+bunların 213'ünde besteci 1900'den sonra ölmüş (`lisans-guftesiz.csv`; v3'le gelen 66 satır henüz araştırılmadı).
+Aşağıdaki sayılar ve açıklamalar v2.4'teki 2200 eserlik arşive aittir.
 
 Arşivde 502 besteci satırı (136 eser "Anonim", 118 boş), 363 güfte yazarı satırı ve sözüyle birlikte gösterilen 1558
 eser var. **Aşağıdaki tablolar çalışma tablosudur, hukuki görüş değildir.** Besteci ve güfte yazarının hakları ayrıdır:
