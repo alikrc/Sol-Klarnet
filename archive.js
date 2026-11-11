@@ -91,6 +91,12 @@ TRAINERS.archive = function(ctx){
       <div class="muted arcount" id="arcount" aria-live="polite"></div>
       <div class="arrows" id="arrows"></div>
       <button class="stopbtn armore" type="button" id="armore" hidden>${L("Daha fazla göster", "Show more")}</button>
+      <div class="arweb" id="arweb" hidden>
+        <p>${L("Aradığın eser arşivde yok mu?", "Can't find the piece in the archive?")}</p>
+        <button type="button" class="stopbtn" id="arwebgo"></button>
+        <p class="muted small">${L("Nota bul, eseri neyzen.com ve projetsm.com'da arar; seçtiğin notayı sitesinden indirip okur. Eser yalnız senin cihazına kaydedilir.",
+          "Find a score searches neyzen.com and projetsm.com; it downloads the score you pick from that site and reads it. The piece is saved only on your device.")}</p>
+      </div>
       <p class="muted arsrcnote">${L("Notalar: SymbTr v3.0 (M. K. Karaosmanoğlu, 2025), CC BY 4.0; birkaç eser SymbTr v2.4 (MTG, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.", "Scores: SymbTr v3.0 (M. K. Karaosmanoğlu, 2025), CC BY 4.0; a few pieces from SymbTr v2.4 (MTG, Universitat Pompeu Fabra), CC BY-NC-SA 4.0.")}</p>
     </div>
     <div class="arpiece" id="arpiece" hidden></div>`;
@@ -157,6 +163,10 @@ TRAINERS.archive = function(ctx){
     $("arrows").innerHTML = r.length ? r.slice(0, shown).map(e => row(e, fv)).join("") :
       `<p class="muted">${quick === "recent" ? L("Henüz eser açmadın.", "You haven't opened a piece yet.") : L("Bu aramaya uyan eser yok. Süzgeçleri temizlemeyi dene.", "No piece matches. Try clearing the filters.")}</p>`;
     $("armore").hidden = r.length <= shown;
+    // Arşivde olmayan eser için Nota bul'a geçiş: arama sözcüğü varken, sonuçların altında
+    const q = $("arq").value.trim();
+    $("arweb").hidden = !q || !SK.findScore;
+    if(q) $("arwebgo").textContent = L("“" + q + "” için Nota bul'da ara", "Search Find a score for “" + q + "”");
   }
   let qTimer = null;
   $("arq").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(() => { shown = 40; quick = "all"; renderList(); }, 150); });
@@ -166,6 +176,7 @@ TRAINERS.archive = function(ctx){
     $("arsort").value = "name"; $("arflyr").checked = $("arffav").checked = false; $("arq").value = ""; shown = 40; quick = "all"; renderList();
   });
   $("armore").addEventListener("click", () => { shown += 40; renderList(); });
+  $("arwebgo").addEventListener("click", () => { const q = $("arq").value.trim(); if(q && SK.findScore) SK.findScore(q); });
   $("arquick").addEventListener("click", e => {
     const b = e.target.closest("[data-quick]"); if(!b) return;
     quick = b.dataset.quick === "recent" || b.dataset.quick === "dance" ? b.dataset.quick : "all";

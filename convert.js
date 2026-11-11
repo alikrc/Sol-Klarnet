@@ -1075,6 +1075,8 @@ TRAINERS.convert = function(ctx){
   });
 
   SK.openConvert = job => { open(job); ctx.selectTab("convert"); };
+  // Nota arşivinden (archive.js): arşivde olmayan eseri Nota bul'da arar
+  SK.findScore = q => { ctx.selectTab("convert"); $("cvq").value = q; doSearch(false); $("cvq").scrollIntoView({ block: "center" }); };
   // Kayıt sekmesi (drills.js) için: ham ses → { raw, offset, q } (onProgress(%)), iş belirteci çağıranda
   SK.convertPcm = (data, sr, opts = {}) => analyzePcm(data, sr, { makam: opts.makam, onProgress: opts.onProgress || (() => {}), isStale: opts.isStale || (() => false) });
   // Tarayıcı panelinde mikrofon olmadan denemek için (adrese ?debug eklenince): dinleyerek yazın durdurma sonrası yolu
