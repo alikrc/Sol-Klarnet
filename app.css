@@ -883,6 +883,7 @@ svg.score{display:block}
 .score .sn.ornmiss .orn,.score .sn.ornmiss .head.grace{fill:var(--muted)} .score .sn.ornmiss .ornl{stroke:var(--muted)}
 .score .va{font:italic 600 9px var(--ui);fill:var(--muted)}
 .score .pname{font:500 8.5px var(--ui);fill:var(--teal);text-anchor:middle}
+.score .pname.west{fill:var(--muted)}
 .score .sn.cur .head{fill:var(--accent)} .score .sn.cur .head.hollow{fill:none;stroke:var(--accent)} .score .sn.cur .stem{stroke:var(--accent)}
 .score .sn.ok .head{fill:var(--ok)} .score .sn.ok .head.hollow{fill:none;stroke:var(--ok)}
 .score .sn.bad .head{fill:#D2553A} .score .sn.bad .head.hollow{fill:none;stroke:#D2553A}

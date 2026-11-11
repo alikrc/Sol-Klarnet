@@ -3,7 +3,7 @@
 // Mantık repertoire.js'te; practice.js TRAINERS.piece ve TRAINER_STEPS.piece'i kendi yardımcılarıyla çağırır.
 
 // ---- Dizek ----
-// notes: [{ w, c, d, rest, syl? }]; opts: { meter:[n, birim], cur, marks:{ i: "ok"|"bad"|"miss" }, names (perde adları) }
+// notes: [{ w, c, d, rest, syl? }]; opts: { meter:[n, birim], cur, marks:{ i: "ok"|"bad"|"miss" }, names (perde adları), west (batı adları: Sol4) }
 // Nota arşivinin satırları için: base (data-i'ye eklenen genel sıra; cur ve marks genel sırayla), barAfter (ölçü
 // çizgisi konacak yerel sıralar; verilmezse ölçüden hesaplanır), showMeter:false, lyrics (heceler), label (satırın
 // üstündeki bölüm adı), width (satırı bu genişliğe yayar), fit (taşan satırı sıkıştırır), stretch:false (yayma), zoom, open (son çizgi ince)
@@ -17,12 +17,16 @@ function scoreEl(tag, attrs, text){
 // Bir notanın dizekte kapladığı yer: önündeki işaret ya da süs payı ve kendi aralığı (hecesi ya da perde adı
 // gösteriliyorsa yazının sığacağı kadar)
 const scorePerdeName = n => n.rest ? "" : (n.c !== null ? (PERDES.find(q => q[0] === n.c) || [, ""])[1] : noteName(n.w).tr).replace(/^(Tiz|Kaba) /, "");
-function noteAdvance(n, lyrics, names){
+// Batı adı (yazılı nota, oktavıyla): Sol4, Do5; İngilizcede G4, C5
+const scoreWestName = n => n.rest ? "" : noteName(n.w)[LANG === "en" ? "en" : "tr"];
+// Notanın altındaki ad yazılarının en uzunu (perde adı ve/veya batı adı)
+const scoreNameLen = (n, names, west) => n.rest ? 0 : Math.max(names ? scorePerdeName(n).length : 0, west ? scoreWestName(n).length : 0);
+function noteAdvance(n, lyrics, names, west){
   const acc = !n.rest && (n.c !== null ? (turkishAccidental(n.c, n.w) || {}).k : staffPos(n.w).acc);
   const pre = (acc ? 12 : 0) + (n.orn && (n.orn.kind === "carpma" || n.orn.kind === "giris") ? 12 : 0);
   let own = 16 + 15*Math.sqrt(n.d);
   if(lyrics && n.syl) own = Math.max(own, n.syl.trim().length*5.6 + 6);
-  if(names && !n.rest) own = Math.max(own, scorePerdeName(n).length*5 + 6);
+  if((names || west) && !n.rest) own = Math.max(own, scoreNameLen(n, names, west)*5 + 6);
   return { pre, own };
 }
 // İlk notanın yeri: anahtar 27'ye kadar, ölçü rakamı 34'ten başlar (hane başına ≈ 9); nota başının yarıçapı 5,2, araya ≈ 5 kalır
@@ -36,10 +40,10 @@ function scoreLayout(notes, opts = {}){
   const bars = [];
   // Arşiv satırlarında perde adları ve heceler komşusuna değmesin: iki yazının yarı genişlikleri toplamı kadar ara
   const roomy = opts.base !== undefined;
-  const half = n => roomy ? Math.max(opts.names && !n.rest ? scorePerdeName(n).length*2.5 : 0, opts.lyrics && n.syl ? n.syl.trim().length*2.8 : 0) : 0;
+  const half = n => roomy ? Math.max(scoreNameLen(n, opts.names, opts.west)*2.5, opts.lyrics && n.syl ? n.syl.trim().length*2.8 : 0) : 0;
   let prevHalf = 0;
   notes.forEach((n, i) => {
-    const a = noteAdvance(n, opts.lyrics, opts.names && roomy);
+    const a = noteAdvance(n, opts.lyrics, opts.names && roomy, opts.west && roomy);
     x += a.pre;
     const h = half(n);
     if(i && h + prevHalf > 0) x = Math.max(x, xs[i-1] + prevHalf + h + 5);
@@ -54,7 +58,7 @@ function scoreLayout(notes, opts = {}){
 }
 function drawScore(holder, notes, opts = {}){
   const STEP = 4, BASE = 84 + (opts.label ? 10 : 0), sy = s => BASE - s*STEP;
-  const H = 124 + (opts.label ? 10 : 0) + (opts.names ? 18 : 0) + (opts.lyrics ? 14 : 0);
+  const H = 124 + (opts.label ? 10 : 0) + (opts.names ? 18 : 0) + (opts.west ? (opts.names ? 11 : 18) : 0) + (opts.lyrics ? 14 : 0);
   const base = opts.base || 0, showMeter = opts.meter && opts.showMeter !== false;
   let { xs, bars, end: x, start } = scoreLayout(notes, opts);
   let W = x + 14;
@@ -124,9 +128,10 @@ function drawScore(holder, notes, opts = {}){
       else if(o.kind === "dusus") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx+8} ${y+1} L${nx+17} ${y+8}` }));
       else if(o.kind === "grupetto") g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-7} ${oy-1} c0 -5 6 -5 7 0 c1 5 7 5 7 0` }));
     }
-    if(opts.names){
-      g.appendChild(scoreEl("text", { class:"pname", x:nx, y:H - (opts.lyrics ? 18 : 4) }, scorePerdeName(n)));
-    }
+    // Alttan yukarı: hece, batı adı, perde adı
+    const nameY = H - (opts.lyrics ? 18 : 4);
+    if(opts.west) g.appendChild(scoreEl("text", { class:"pname west", x:nx, y:nameY }, scoreWestName(n)));
+    if(opts.names) g.appendChild(scoreEl("text", { class:"pname", x:nx, y:nameY - (opts.west ? 11 : 0) }, scorePerdeName(n)));
     if(opts.lyrics && n.syl) g.appendChild(scoreEl("text", { class:"syl", x:nx, y:H - 4 }, n.syl.trim()));
     svg.appendChild(g);
   });
@@ -182,7 +187,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   const playable = notes.map((n, i) => n.rest ? null : i).filter(i => i !== null);
   let names = ctx.store.get("piece.names", true);
   let sc = null;
-  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm }); }, cur: i => curScore(sc.svg, i, holder),
+  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm, west: ctx.store.get("piece.west", false) }); }, cur: i => curScore(sc.svg, i, holder),
                    mark: (i, cls) => markScore(sc.svg, i, cls), el: i => sc.svg.querySelector(`g.sn[data-i="${i}"]`) };
   view.draw(names);
   let mode = null, k = 0, miss = 0, release = false, hold = null, t0 = null, run = null, playToken = null, band = null;
@@ -414,6 +419,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   return {
     startFree, startTempo, startLadder, startFollow, listen, stop, playing: () => !!playToken || !!mode || !!ladder,
     toggleNames(){ names = !names; ctx.store.set("piece.names", names); redraw(); },
+    toggleWest(){ ctx.store.set("piece.west", !ctx.store.get("piece.west", false)); redraw(); },
     note(r, t){
       if(mode === "free") freeNote(r, t);
       else if(mode === "tempo" && run) run.stable.push({ t, w:r.written });
@@ -490,6 +496,7 @@ TRAINERS.piece = function(ctx){
       <label class="chk"><input type="checkbox" id="pcmet"> ${L("metronom", "metronome")}</label>
       <label class="chk"><input type="checkbox" id="pcband"> ${L("orkestra (darbuka, bas, ud)", "band (darbuka, bass, oud)")}</label>
       <label class="chk"><input type="checkbox" id="pcnames"> ${L("perde adları", "perde names")}</label>
+      <label class="chk"><input type="checkbox" id="pcwest"> ${L("Sol4 · Do5 adları", "G4 · C5 names")}</label>
     </div>
     <details class="pcadd"><summary>${L("Eser ekle: yaz ya da MusicXML içe aktar", "Add a piece: type it or import MusicXML")}</summary>
       <p class="muted">${L("Notaları süreleriyle yaz: <code>Sol4:1 La4:0.5 Segâh:2 -:1</code> (süre dörtlük cinsinden; perde adı da yazabilirsin, boşluk yerine alt çizgi: <code>Dik_Kürdî</code>; <code>-</code> sus). MusicXML dosyaları (MuseScore, Finale, SymbTr) koma değerleriyle birlikte içe aktarılır.",
@@ -549,6 +556,8 @@ TRAINERS.piece = function(ctx){
   $("pcband").addEventListener("change", () => store.set("piece.band", $("pcband").checked));
   $("pcnames").checked = store.get("piece.names", true);
   $("pcnames").addEventListener("change", () => player && player.toggleNames());
+  $("pcwest").checked = store.get("piece.west", false);
+  $("pcwest").addEventListener("change", () => player && player.toggleWest());
   const pct = () => +$("pcpct").value/100;
   $("pcpct").addEventListener("input", () => { $("pcpctv").textContent = $("pcpct").value + "%"; });
   $("pctempo").addEventListener("click", () => player.startTempo(pct()));

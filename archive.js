@@ -288,6 +288,7 @@ TRAINERS.archive = function(ctx){
           <label class="chk"><input type="checkbox" id="arfol"> ${L("notayı izle", "follow the score")}</label>
           <label class="chk"><input type="checkbox" id="arlyr"> ${L("sözler", "lyrics")}</label>
           <label class="chk"><input type="checkbox" id="arnames"> ${L("perde adları", "perde names")}</label>
+          <label class="chk"><input type="checkbox" id="arwest"> ${L("Sol4 · Do5 adları", "G4 · C5 names")}</label>
           <label class="chk"><input type="checkbox" id="arfing"> ${L("parmağı göster", "show fingering")}</label>
           <label class="chk"><input type="checkbox" id="arphr"> ${L("cümleler", "phrases")}</label>
           <button type="button" class="linkbtn" id="arprint">${L("Yazdır", "Print")}</button>
@@ -376,6 +377,8 @@ TRAINERS.archive = function(ctx){
     chk("arfol", "follow"); chk("arlyr", "lyr", render); chk("arphr", "phr", renderSecs);
     $("arnames").checked = store.get("piece.names", true);
     $("arnames").addEventListener("change", () => cur.player && cur.player.toggleNames());
+    $("arwest").checked = store.get("piece.west", false);
+    $("arwest").addEventListener("change", () => cur.player && cur.player.toggleWest());
     $("arfing").checked = store.get("piece.fing", true);
     $("arfing").addEventListener("change", () => store.set("piece.fing", $("arfing").checked));
     $("arprint").addEventListener("click", () => { document.body.classList.add("arprinting"); window.print(); setTimeout(() => document.body.classList.remove("arprinting"), 500); });
@@ -476,11 +479,11 @@ TRAINERS.archive = function(ctx){
   }
   function render(){
     if(!cur || !cur.view) return;
-    const box = $("arscore"), ns = cur.notes, names = cur.view.names(), lyr = S.lyr && cur.e.lyr;
+    const box = $("arscore"), ns = cur.notes, names = cur.view.names(), west = store.get("piece.west", false), lyr = S.lyr && cur.e.lyr;
     box.className = "arscore ar" + S.layout;
     const secAt = new Map(cur.raw.sections.map(([i, t]) => [i, t]));
     const meterAt = new Map(cur.meters.map(m => [m[0], m]));
-    const common = { names, lyrics: lyr, zoom: S.zoom, base: 0 };
+    const common = { names, west, lyrics: lyr, zoom: S.zoom, base: 0 };
     const barSet = (from, to) => { const s = new Set(); cur.ms.forEach(m => { if(m.to > from && m.to <= to) s.add(m.to - 1 - from); }); return s; };
     if(S.layout === "strip"){
       const d = document.createElement("div"); d.className = "arline";
@@ -492,7 +495,7 @@ TRAINERS.archive = function(ctx){
       const lines = []; let line = null, w = 0;
       const lineHead = mt => scoreStart(mt && [mt[1], mt[2]]) + 14;   // satırın notalardan önceki yeri ve sağ payı
       cur.ms.forEach(m => {
-        const ly = scoreLayout(ns.slice(m.from, m.to), { names, lyrics: lyr, base: 0, showMeter: false, barAfter: new Set() });
+        const ly = scoreLayout(ns.slice(m.from, m.to), { names, west, lyrics: lyr, base: 0, showMeter: false, barAfter: new Set() });
         const mw = ly.end - ly.start + 6;
         const newMeter = meterAt.has(m.from), sec = [...secAt.keys()].some(k => k >= m.from && k < m.to);
         const head = lineHead(newMeter || !line ? m.meter : null);
