@@ -104,7 +104,7 @@ const SQ = [
       L("Akortu tek notaya göre değil, açık Sol4, Do5 ve Sol5'e birlikte bakarak yap. Hepsi tizse kesiği biraz dışarı çek, hepsi pesse it.", "Tune by looking at open G4, C5 and G5 together, not one note. If all are sharp, pull the barrel out a little; if all are flat, push it in."),
       L("Kesiği çok fazla çekmek boğaz notalarını daha da pesleştirir; çok çekmen gerekiyorsa daha uzun bir kesik ya da başka ağızlık gerekebilir.", "Pulling the barrel a lot lowers the throat notes even more; if you need to pull far, a longer barrel or another mouthpiece may help."),
       L("Ayarladıktan sonra akort aracında birkaç notayı tut, ibre ortada dursun; sonra gözünü kapatıp çal, tekrar bak.", "After setting it, hold a few notes on the tuner until the needle centres; then play with eyes closed and check again.")],
-    links:[{ go:"tune" }, { tab:"long" }, { lesson:"klarneti-tani" }] },
+    links:[{ go:"tune" }, { lesson:"akortlama" }, { tab:"long" }, { lesson:"klarneti-tani" }] },
 
   { id:"bogaz", cat:"perde", emo:"🫁", title:L("Boğaz notaları kötü ve tiz", "Throat notes sound poor and sharp"),
     keys:L("boğaz sol♯4 la4 si♭4 bemol cılız tiz zayıf", "throat g#4 a4 bb4 weak sharp thin"),
@@ -230,7 +230,7 @@ const SQ = [
       L("Çalmadan önce kamışı bir iki dakika ağızda ya da suda ıslat.", "Wet the reed for a minute or two in your mouth or in water before playing."),
       L("Üç dört kamışı sırayla kullan; çaldıktan sonra kurulayıp düz bir yüzeyde ya da kutusunda sakla.", "Rotate three or four reeds; after playing, wipe them and store them flat or in a case."),
       L("Doğru sertlik: pes Mi3 ve tiz Do6 ikisi de rahat çıkmalı. Pes zor çıkıyorsa kamış sert, tiz kapanıyorsa yumuşak.", "The right strength lets both low E3 and high C6 speak comfortably. Hard lows mean too hard; closing highs mean too soft.")],
-    links:[{ lesson:"klarneti-tani" }, { long:84 }, { long:52 }] },
+    links:[{ lesson:"bakim" }, { lesson:"klarneti-tani" }, { long:84 }, { long:52 }] },
 
   { id:"su", cat:"ekipman", emo:"💧", title:L("Ses cızırtılı ya da hırıltılı, bir notada kesiliyor", "Gurgling or buzzing; a note cuts out"),
     keys:L("su damla cızırtı hırıltı fokurdama nem bakım temizlik", "water gurgle buzz moisture cleaning care"),
@@ -240,7 +240,7 @@ const SQ = [
     fix:[L("Cümle arasında suyun toplandığı deliği açıp kısa ve sert üfle; ya da deliğe ince bir kâğıt şerit bastırıp nemi al.", "Between phrases open the wet hole and blow a short sharp breath, or press a thin paper strip on the hole to soak it up."),
       L("Çalmadan önce çalgıyı ısıt; çaldıktan sonra temizlik bezini gövdelerden geçir.", "Warm the instrument before playing; pull a swab through after playing."),
       L("Sorun sürekli aynı deliktense bir ustaya göster: deliğin içi ya da register borusu temizlik isteyebilir.", "If it's always the same hole, show a repairer: the hole or register tube may need cleaning.")],
-    links:[{ lesson:"klarneti-tani" }] }
+    links:[{ lesson:"bakim" }, { lesson:"klarneti-tani" }] }
 ];
 
 TRAINERS.sorun = function(ctx){

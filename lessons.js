@@ -5,14 +5,16 @@
 // Adım türleri (hepsi mikrofonla değerlendirilir, "listen" hariç):
 //   listen  { notes | commas }               örnek ezgiyi dinle (geçme koşulu yok)
 //   hold    { note, sec, min }               notayı sec saniye tut, en az min puan
-//   notes   { notes | commas, maxMiss }      notaları sırayla çal, en çok maxMiss hata
+//   notes   { notes | commas, maxMiss, hint? }  notaları sırayla çal, en çok maxMiss hata; hint başlığa eklenir ("yarı hızda")
 //   quiz    { notes, mode, n, min }          n soruluk parmak testi ("play" çal / "find" bul), en az min doğru
 //   scale   { makam, min }                   makam dizisi çıkış-iniş, perdelerin en az min oranı ±1 koma temiz
 //   mimic   { makam | commas, len }          taklit oyununda len notalık ezgiye ulaş
 //   vibrato { note, sec }                    notada sec saniye düzenli vibrato (4–8 Hz)
 //   glide   { from, to, n }                  from'dan to'ya n kez glissando
-//   read    { title, body, fing? }            okuma (bilgi) adımı; "Onay" ile geçilir. fing: [yazılı nota…] her nota için
-//                                             parmak şeması ve describeFingering tarifi (elle parmak tarifi yazılmaz)
+//   read    { title, body, fing?, check?, checkId?, checkHint?, links? }  okuma (bilgi) adımı; "Onay" ile geçilir.
+//                                             fing: [yazılı nota…] her nota için parmak şeması ve describeFingering tarifi
+//                                             (elle parmak tarifi yazılmaz); check: kontrol listesi (checkHint liste notu);
+//                                             links: [{ go: SK.go görünümü, el?: kaydırılacak öğe, label }]
 //   soru    { q, opts, ok, why } | { items:[{ q, opts, ok, why, staff?, fing? }…], min }  bilgi sorusu (mikrofonsuz):
 //                                             seçenekler karışık gelir, yanlışta why gösterilir ve soru turun sonunda yeniden
 //                                             sorulur; puan ilk denemede doğru bilinen soru sayısı, en az min (varsayılan:
@@ -1902,6 +1904,173 @@ insertLessonAfter("register",
       { type:"piece", id:"e-k3", mode:"tempo", min:60 }
     ] });
 
+// ---- S1.5 Hocasız öğrenci ----
+// Hocası olmayan öğrencinin kendi kendine yapacağı işler: nasıl çalışılır, ısınma, akortlama, bakım. Bilgiler var olan
+// derslerden ve Sorunlar sayfasından (sorunlar.js "akort", "kamis", "su") alınır; yeni müzikal ya da bakım iddiası yok.
+insertLessonAfter("ilk-gecis", { id:"nasil-calisilir", unit:"baslangic", since:2, notes:[],
+  title:{ tr:"Nasıl çalışılır", en:"How to practise" },
+  text:[
+    { tr:"Hocan yokken çalışmanın nasıl geçeceğine sen karar verirsin. Bu derste beş kural var: yavaş çal, zor yeri küçült, beş temiz tekrar, her gün kısa çalış, kendini dinle.",
+      en:"Without a teacher, you decide how each practice session goes. This lesson has five rules: play slowly, shrink the hard spot, five clean repeats, practise a little every day, listen to yourself." }
+  ],
+  tips:[
+    { tr:"Bir şey olmuyorsa daha çok zorlamak yerine yavaşla ve parçayı küçült.", en:"If something won't come, don't push harder: slow down and make the piece smaller." }
+  ],
+  steps:[
+    { type:"read", title:{ tr:"Beş kural", en:"Five rules" }, body:[
+      { tr:"<b>Yavaş çal.</b> Hatasız çalabildiğin hız senin bugünkü hızındır. Hızlı ve hatalı tekrar, hatayı da alışkanlık yapar; hız temiz tekrarlarla kendiliğinden gelir.",
+        en:"<b>Play slowly.</b> The speed at which you play without mistakes is your speed today. Fast, sloppy repeats turn the mistake into a habit too; speed comes by itself from clean repeats." },
+      { tr:"<b>Zor yeri küçült.</b> Takıldığın yeri bul ve iki notaya indir; yalnız o iki nota arasında geç. Temiz geçince bir nota ekle, sonra yerine koyup bütün cümleyi çal.",
+        en:"<b>Shrink the hard spot.</b> Find where you stumble and cut it down to two notes; move only between those two. When that is clean, add a note, then put it back and play the whole phrase." },
+      { tr:"<b>Beş temiz tekrar.</b> Bir geçişi arka arkaya beş kez hatasız çalınca öğrenmiş say. Arada hata olursa sayı baştan başlar.",
+        en:"<b>Five clean repeats.</b> Count a passage as learned when you play it five times in a row without a mistake. If you slip, the count starts again." },
+      { tr:"<b>Her gün kısa çalış.</b> Her gün 20–30 dakika, haftada bir uzun oturumdan iyidir. Dudak yorulunca (ses incelir, ağız köşelerinden hava kaçar) bırak: yorgun dudakla çalmak yanlış ağız alışkanlığı kurar. Dersler'deki “Bugünün çalışması” her gün kısa bir plan kurar.",
+        en:"<b>Practise a little every day.</b> 20–30 minutes a day beats one long session a week. Stop when the lips tire (the tone thins, air leaks from the corners): playing on tired lips builds a wrong embouchure. “Today's practice” in Lessons builds a short plan every day." },
+      { tr:"<b>Kendini dinle.</b> Çalarken duyduğun ses dışarıdan duyulanla aynı değildir. Telefonla kısa bir kayıt al ve dinle: ses nerede titriyor, nefesi nerede alıyorsun?",
+        en:"<b>Listen to yourself.</b> What you hear while playing isn't what others hear. Make a short phone recording and listen: where does the tone wobble, where do you breathe?" } ] },
+    { type:"soru", min:3, items:[
+      { q:{ tr:"Bir geçişte hep hata yapıyorsun. İlk ne yaparsın?", en:"You keep making a mistake in one passage. What do you do first?" },
+        opts:[{ tr:"Yavaşlarım ve zor yeri iki notaya indiririm", en:"Slow down and cut the hard spot to two notes" },
+              { tr:"Daha hızlı çalıp geçmeye çalışırım", en:"Play it faster to get through" },
+              { tr:"O yeri atlayıp devam ederim", en:"Skip it and carry on" }], ok:0,
+        why:{ tr:"Zor yeri küçült ve yavaş çal: iki nota temiz olunca bir nota ekle.", en:"Shrink the hard spot and slow down: when two notes are clean, add one more." } },
+      { q:{ tr:"Beş temiz tekrar kuralında 4. tekrarda hata yaptın. Ne olur?", en:"Using the five-clean-repeats rule, you slip on the 4th repeat. What happens?" },
+        opts:[{ tr:"Sayı baştan başlar", en:"The count starts again" },
+              { tr:"5. tekrarı yapıp bitiririm", en:"I do the 5th and I'm done" },
+              { tr:"Hata sayılmaz", en:"It doesn't count" }], ok:0,
+        why:{ tr:"Arka arkaya beş hatasız tekrar gerekir; arada hata olursa sayı sıfırlanır.", en:"You need five in a row without a mistake; a slip resets the count." } },
+      { q:{ tr:"Hangisi daha iyi bir çalışma düzeni?", en:"Which is the better practice routine?" },
+        opts:[{ tr:"Her gün 20–30 dakika", en:"20–30 minutes every day" },
+              { tr:"Haftada bir gün üç saat", en:"Three hours one day a week" },
+              { tr:"Canım istediğinde, ara sıra", en:"Now and then, when I feel like it" }], ok:0,
+        why:{ tr:"Kısa ve her gün: dudak ve parmaklar her gün biraz çalışınca gelişir.", en:"Short and daily: lips and fingers improve with a little work every day." } },
+      { q:{ tr:"Çalarken ses inceliyor, ağız köşelerinden hava kaçıyor. Ne yaparsın?", en:"While playing, the tone thins and air leaks from the corners of your mouth. What do you do?" },
+        opts:[{ tr:"Dudağım yorulmuştur; ara veririm ya da o gün bırakırım", en:"My lips are tired; I take a break or stop for the day" },
+              { tr:"Dudaklarımı daha çok sıkarım", en:"Squeeze my lips harder" },
+              { tr:"Daha yüksek sesle çalarım", en:"Play louder" }], ok:0,
+        why:{ tr:"Bunlar yorgun dudağın işaretleri. Yorgun dudakla devam etmek yanlış ağız alışkanlığı kurar.", en:"Those are signs of tired lips. Carrying on with tired lips builds a wrong embouchure." } }
+    ] },
+    { type:"notes", notes:[67, 64, 67, 66, 64, 66, 67], maxMiss:3 },
+    { type:"notes", notes:[67, 64, 67, 66, 64, 66, 67], maxMiss:1,
+      hint:{ tr:"yarı hızda", en:"at half speed" } }
+  ] });
+
+// Isınma, iki elin notaları öğrenildikten sonra (S1.1'in ezgi dersi varsa onun arkasında). Bu dersi bitirenin günlük
+// çalışması ısınmayı bu sırayla kurar (dailyPlan)
+insertLessonAfter(LESSONS.some(l => l.id === "ezgi-iki-el") ? "ezgi-iki-el" : "sag-el", { id:"isinma", unit:"temel", since:2, notes:[],
+  title:{ tr:"Beş dakikalık ısınma", en:"A five-minute warm-up" },
+  text:[
+    { tr:"Her çalışmaya aynı kısa ısınmayla başla: önce klarnetsiz birkaç rahat nefes (omuzlar kalkmadan, alt kaburgalar genişler), sonra açık Sol'de uzun ton, sonra pes Sol3'te uzun ton, en son Sol3'ten Sol4'e yavaş bir dizi.",
+      en:"Start every session with the same short warm-up: first a few relaxed breaths without the clarinet (shoulders down, lower ribs widening), then a long tone on open G, then a long tone on low G3, and last a slow scale from G3 to G4." },
+    { tr:"Isınma hem dudağı hem çalgıyı hazırlar: soğuk klarnet pes çalar, ısındıkça tizleşir. Bu dersi bitirince “Bugünün çalışması” ısınmayı bu sırayla kurar.",
+      en:"The warm-up gets both your lips and the instrument ready: a cold clarinet plays flat and rises as it warms. Once you finish this lesson, “Today's practice” builds its warm-up in this order." }
+  ],
+  tips:[
+    { tr:"Uzun tonda göstergedeki çizgi düz kalsın; sesin sonunda perdeyi düşürme.", en:"On long tones keep the line on the tuner flat; don't let the pitch sag at the end." },
+    { tr:"Dizide acele etme: her nota temiz başlasın, parmaklar birlikte insin.", en:"Don't rush the scale: let every note start cleanly and the fingers move together." }
+  ],
+  steps:[
+    { type:"hold", note:67, sec:8, min:55 },
+    { type:"hold", note:55, sec:8, min:50 },
+    { type:"notes", notes:[55, 57, 59, 60, 62, 64, 66, 67, 66, 64, 62, 60, 59, 57, 55], maxMiss:3 }
+  ] });
+
+// Akortlama Temeller'in sonunda, toparlama dersinden (temel-tekrar) önce. Bilgi sorunlar.js "akort" maddesiyle aynı
+insertLessonAfter((() => { const t = LESSONS.filter(l => l.unit === "temel"), k = t.findIndex(l => l.id === "temel-tekrar");
+  return (k > 0 ? t[k - 1] : t[t.length - 1]).id; })(), { id:"akortlama", unit:"temel", since:2, notes:[],
+  title:{ tr:"Klarneti akortlamak", en:"Tuning the clarinet" },
+  text:[
+    { tr:"Akort, bütün notaların birlikte doğru yerde durmasıdır. Tek tek notaları dudakla düzeltmeden önce çalgının kendisini ayarlarsın: ısıtırsın, gerekirse kesiği çeker ya da itersin.",
+      en:"Tuning means getting all the notes to sit in the right place together. Before fixing single notes with the lips, you set up the instrument itself: warm it up, then pull or push the barrel if needed." }
+  ],
+  tips:[
+    { tr:"Ağız alışkanlığı da akordu kaydırır: çene sıkmak tizleştirir, gevşek ve desteksiz hava pesleştirir.", en:"Embouchure habits shift the tuning too: biting raises the pitch, slack unsupported air lowers it." }
+  ],
+  steps:[
+    { type:"read", title:{ tr:"Isıt, bak, ayarla", en:"Warm up, check, adjust" }, body:[
+      { tr:"<b>Önce ısıt.</b> Soğuk klarnet pes çalar, ısındıkça tizleşir. Akortlamadan önce çalgıyı birkaç dakika ısıt: içine sıcak nefes ver ya da hafif notalar çal.",
+        en:"<b>Warm up first.</b> A cold clarinet plays flat and rises as it warms. Warm it for a few minutes before tuning: breathe warm air through it or play softly." },
+      { tr:"<b>Birkaç notaya birlikte bak.</b> Akortu tek notaya göre yapma: açık Sol4, Do5 ve Sol5'e birlikte bakılır. Do5 ile Sol5'i Register ve klarino ünitesinde öğreneceksin; o zamana kadar açık Sol4'e ve bildiğin birkaç notaya bak.",
+        en:"<b>Check several notes together.</b> Don't tune to a single note: look at open G4, C5 and G5 together. You'll learn C5 and G5 in the Register and clarion unit; until then check open G4 and a few notes you know." },
+      { tr:"<b>Kesikle ayarla.</b> Bütün notalar aynı yöne kayıyorsa: hepsi tizse kesiği (baş, barel) biraz dışarı çek, hepsi pesse it. Kesiği çok fazla çekmek boğaz notalarını daha da pesleştirir; çok çekmen gerekiyorsa daha uzun bir kesik ya da başka ağızlık gerekebilir.",
+        en:"<b>Adjust with the barrel.</b> If every note leans the same way: when all are sharp pull the barrel out a little, when all are flat push it in. Pulling the barrel a lot lowers the throat notes even more; if you need to pull far, a longer barrel or another mouthpiece may help." },
+      { tr:"<b>Akort ekranı ve diyapazon.</b> Akort ekranı çaldığın notanın sapmasını gösterir. Ayarladıktan sonra birkaç notayı tut, ibre ortada dursun; sonra gözünü kapatıp çal, tekrar bak. Ölçünün dayandığı La (diyapazon) Ayarlar'ın Akort bölümündedir, varsayılan 440 Hz. Başka bir sazla ya da grupla çalıyorsan onlardan bir nota çaldırıp “Dinleyerek ayarla”ya bas: diyapazon o sese göre kurulur.",
+        en:"<b>The tuner and the reference pitch.</b> The tuner shows how far off the note you play is. After adjusting, hold a few notes until the needle centres; then play with your eyes closed and check again. The A it measures against (the reference pitch) is in Settings under Tuning, 440 Hz by default. If you play with another instrument or a group, have them play a note and press “Tune by listening”: the reference is set to that sound." } ],
+      links:[{ go:"tune", label:{ tr:"Akort ekranını aç", en:"Open the tuner" } },
+             { go:"settings", el:"a4", label:{ tr:"Diyapazon ayarı", en:"Reference pitch setting" } }] },
+    { type:"hold", note:67, sec:6, min:50 },
+    { type:"soru", min:2, items:[
+      { q:{ tr:"Klarnet ısındıkça perdesi ne olur?", en:"What happens to the pitch as the clarinet warms up?" },
+        opts:[{ tr:"Tizleşir", en:"It rises" }, { tr:"Pesleşir", en:"It drops" }, { tr:"Değişmez", en:"It doesn't change" }], ok:0,
+        why:{ tr:"Soğuk klarnet pes çalar, ısındıkça tizleşir. Bu yüzden akorttan önce birkaç dakika ısıtılır.", en:"A cold clarinet plays flat and rises as it warms, so you warm it for a few minutes before tuning." } },
+      { q:{ tr:"Isınmış klarnette akort ekranında bütün notalar biraz tiz. Ne yaparsın?", en:"With the clarinet warm, every note on the tuner is a bit sharp. What do you do?" },
+        opts:[{ tr:"Kesiği biraz dışarı çekerim", en:"Pull the barrel out a little" },
+              { tr:"Kesiği iterim", en:"Push the barrel in" },
+              { tr:"Çenemi sıkarım", en:"Bite harder" }], ok:0,
+        why:{ tr:"Hepsi tizse kesik biraz dışarı çekilir, hepsi pesse itilir. Çene sıkmak sesi daha da tizleştirir.", en:"All sharp: pull the barrel out a little; all flat: push it in. Biting makes it even sharper." } },
+      { q:{ tr:"Birlikte çaldığın sazın akordu 440 Hz'e uymuyor. Uygulamada ne yaparsın?", en:"The instrument you play with doesn't match 440 Hz. What do you do in the app?" },
+        opts:[{ tr:"Ayarlar'da “Dinleyerek ayarla” ile diyapazonu onun sesine kurarım", en:"Use “Tune by listening” in Settings to set the reference to its sound" },
+              { tr:"Kesiği sonuna kadar çekerim", en:"Pull the barrel out as far as it goes" },
+              { tr:"Hiçbir şey; uygulama hep 440 Hz ölçer", en:"Nothing; the app always measures at 440 Hz" }], ok:0,
+        why:{ tr:"Diyapazon Ayarlar'ın Akort bölümünde değişir; “Dinleyerek ayarla” öteki sazın notasını dinleyip kurar.", en:"The reference pitch is changed in Settings under Tuning; “Tune by listening” sets it from the other instrument's note." } }
+    ] }
+  ] });
+
+// Bakım Başlarken'in sonunda. Bilgi klarneti-tani, kamis dersleri ve sorunlar.js "kamis", "su" maddelerinden
+insertLessonAfter(LESSONS.filter(l => l.unit === "baslangic").pop().id, { id:"bakim", unit:"baslangic", since:2, notes:[],
+  title:{ tr:"Klarnetin ve kamışın bakımı", en:"Caring for the clarinet and reeds" },
+  text:[
+    { tr:"Bakım her çalıştan sonra birkaç dakikadır. Düzenli bakılan klarnet ve kamış daha uzun yaşar, ses de bozulmaz.",
+      en:"Care takes a few minutes after every session. A clarinet and reeds that are looked after regularly last longer, and the sound stays good." }
+  ],
+  tips:[
+    { tr:"Sorunlar sayfasının “Kamış ve çalgı” bölümünde fokurdama, kamış ve kaçak sorunlarının çözümleri var.", en:"The “Reed and instrument” section of the Troubleshooting page has fixes for gurgling, reed and leak problems." }
+  ],
+  steps:[
+    { type:"read", title:{ tr:"Çaldıktan sonra", en:"After playing" }, body:[
+      { tr:"<b>Kurula.</b> Kamışı çıkar, kurula ve kutusuna koy. Temizlik bezini (swab) gövdelerden geçir: nefesteki nem içeride su olarak toplanır.",
+        en:"<b>Dry it.</b> Take the reed off, wipe it and put it in its case. Pull a swab through the joints: moisture from your breath collects inside as water." },
+      { tr:"<b>Çalarken su toplanırsa.</b> Bir notada fokurdama ya da cızırtı başlarsa cümle arasında o deliği açıp kısa ve sert üfle, ya da deliğe ince bir kâğıt şerit bastırıp nemi al. Soğuk çalgıda yoğuşma daha fazladır; çalmadan önce ısıt.",
+        en:"<b>If water collects while playing.</b> If a note starts gurgling or buzzing, open that hole between phrases and blow a short sharp breath, or press a thin paper strip on it to soak up the moisture. Cold instruments collect more condensation, so warm it before playing." },
+      { tr:"<b>Sakla.</b> Klarneti güneşte, kaloriferin yanında ya da soğuk arabada bırakma; soğuk tahtayı birden ısıtma: tahta çatlayabilir.",
+        en:"<b>Store it.</b> Never leave the clarinet in the sun, by a radiator or in a cold car, and don't warm cold wood suddenly: it can crack." } ] },
+    { type:"read", title:{ tr:"Kamış, mantar, mandallar", en:"Reeds, corks, keys" }, body:[
+      { tr:"<b>Kamışlar.</b> Üç dört kamışı sırayla kullan; yeni kamışı ilk günlerde kısa süre çal. Kamış eskir: birkaç haftalık düzenli çalışmada canlılığını yitirir. Ucunu ışığa tut; çatlak ya da dalgalıysa değiştir.",
+        en:"<b>Reeds.</b> Rotate three or four reeds; play a new reed only briefly for the first days. Reeds wear out: after a few weeks of steady use they lose life. Hold the tip to the light; if it's chipped or wavy, replace it." },
+      { tr:"<b>Kamış ömrü sayacı.</b> Ayarlar'daki Ekipmanım bölümüne kamışlarını ekle: seçili kamışla çaldığın süre sayılır ve belirlediğin ömrü geçince bir kez hatırlatılır. Tını matlaşınca ya da ses zor çıkınca kamışın notuna yaz.",
+        en:"<b>Reed-life counter.</b> Add your reeds under My gear in Settings: the time you play on the selected reed is counted, with one reminder when it passes the life you set. When the tone goes dull or notes get hard to start, write it in the reed's note." },
+      { tr:"<b>Mantarlar.</b> Gövdeler zor takılıyorsa ya da mantarlar kuruysa biraz mantar yağı sür. Takarken zorlama, döndürerek tak.",
+        en:"<b>Corks.</b> If the joints are hard to fit or the corks are dry, add a little cork grease. Don't force them; twist them together." },
+      { tr:"<b>Ne zaman tamirciye?</b> Mandallar sertleşirse, parmaklar doğru olduğu hâlde ses bir yerden hava kaçırır gibiyse (özellikle pes notalarda), su hep aynı delikte toplanıyorsa ya da bir mandal veya halka eğildiyse: kaçıran yastık ve eğri mandal ancak onarımla düzelir, bir çalgı tamircisine göster.",
+        en:"<b>When to see a repairer?</b> If keys get stiff, if the sound seems to leak somewhere although the fingers are right (especially on low notes), if water always gathers in the same hole, or if a key or ring is bent: leaking pads and bent keys only get better with a repair, so take it to a repairer." } ],
+      links:[{ go:"settings", el:"equipgrp", label:{ tr:"Ekipmanım: kamış ömrü", en:"My gear: reed life" } }],
+      checkId:"bakim", checkHint:{ tr:"Her çalıştan sonra bu listeye bak; işaretler cihazında kalır, geçmeyi engellemez.", en:"Look at this list after every session; your ticks stay on this device and don't block progress." },
+      check:[
+        { tr:"Kamışı çıkardım, kuruladım, kutusuna koydum", en:"I took the reed off, wiped it and put it in its case" },
+        { tr:"Temizlik bezini gövdelerden geçirdim", en:"I pulled the swab through the joints" },
+        { tr:"Klarneti güneşte, kalorifer yanında ya da arabada bırakmadım", en:"I didn't leave the clarinet in the sun, by a radiator or in the car" },
+        { tr:"Mantarlar kuru değil; gövdeler zorlamadan takılıyor", en:"The corks aren't dry; the joints fit without forcing" },
+        { tr:"Mandallar rahat çalışıyor; bir yerden hava kaçmıyor", en:"The keys move freely; nothing is leaking" }
+      ] },
+    { type:"soru", min:2, items:[
+      { q:{ tr:"Çalışman bitti. İlk ne yaparsın?", en:"Your session is over. What do you do first?" },
+        opts:[{ tr:"Kamışı çıkarıp kurularım, gövdelerden temizlik bezini geçiririm", en:"Take the reed off and wipe it, then pull the swab through the joints" },
+              { tr:"Kamışı ağızlıkta bırakıp klarneti kutuya koyarım", en:"Leave the reed on and put the clarinet in its case" },
+              { tr:"Kurusun diye klarneti güneşe koyarım", en:"Put the clarinet in the sun to dry" }], ok:0,
+        why:{ tr:"Kamış çıkarılıp kurulanır, nem temizlik beziyle alınır. Güneş ve sıcak tahtayı çatlatabilir.", en:"The reed comes off and is wiped, the moisture comes out with the swab. Sun and heat can crack the wood." } },
+      { q:{ tr:"Hep aynı delikte fokurdama oluyor; üflemek ve kâğıt şerit geçirmiyor. Ne yaparsın?", en:"The same hole always gurgles; blowing and the paper strip don't help. What do you do?" },
+        opts:[{ tr:"Bir çalgı tamircisine gösteririm", en:"Show it to a repairer" },
+              { tr:"Daha sert üflerim", en:"Blow harder" },
+              { tr:"Kamışı değiştiririm", en:"Change the reed" }], ok:0,
+        why:{ tr:"Sorun hep aynı delikteyse deliğin içi ya da register borusu temizlik isteyebilir: bu tamircinin işi.", en:"If it's always the same hole, the hole or register tube may need cleaning: that's a job for a repairer." } },
+      { q:{ tr:"Kamışın ucunu ışığa tuttun, ucunda küçük bir çatlak var. Ne yaparsın?", en:"You hold the reed tip to the light and see a small chip. What do you do?" },
+        opts:[{ tr:"Kamışı değiştiririm", en:"Replace the reed" },
+              { tr:"Bağı daha sıkı takarım", en:"Tighten the ligature more" },
+              { tr:"Daha çok ıslatırım", en:"Wet it more" }], ok:0,
+        why:{ tr:"Ucu çatlak ya da dalgalı kamış kullanılmaz; değiştir.", en:"A chipped or wavy reed shouldn't be used; replace it." } }
+    ] }
+  ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2039,7 +2208,7 @@ function stepTitle(step, lang = "tr"){
       " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan") +
       (step.quality ? (en ? " · tone clarity ≥ " : " · ses temizliği ≥ %") + step.quality + (en ? "%" : "") : "");
     case "notes": return (en ? "Play in order: " : "Sırayla çal: ") + seq() +
-      " · " + (en ? "at most " + step.maxMiss + " mistakes" : "en çok " + step.maxMiss + " hata");
+      " · " + (en ? "at most " + step.maxMiss + " mistakes" : "en çok " + step.maxMiss + " hata") + (step.hint ? " · " + pick(step.hint, lang) : "");
     case "quiz": return (step.mode === "find" ? (en ? "Fingering quiz (find): " : "Parmak testi (bul): ") : step.mode === "staff" ? (en ? "Read from the staff and play: " : "Dizekten oku ve çal: ") : (en ? "Fingering quiz (play): " : "Parmak testi (çal): ")) +
       step.notes.map(nn).join(" ") + " · " + (en ? step.min + "/" + step.n + " correct" : step.min + "/" + step.n + " doğru");
     case "scale": return (en ? "Scale up and down: " : "Dizi çıkış ve iniş: ") + mk + " · " +
@@ -2300,11 +2469,16 @@ function dailyPlan(ctx){
   const rng = seeded(ctx.day);
   const known = knownNotes(ctx.prog);
   const steps = [];
-  // 1. Isınma: entonasyonu en çok sapan bilinen nota, yoksa bilinenlerden biri
-  const off = known.map(w => [w, ctx.intStats[w]]).filter(([, s]) => s && s.n >= 3)
-    .sort((a,b) => Math.abs(b[1].sum/b[1].n) - Math.abs(a[1].sum/a[1].n));
-  const warm = off.length ? off[0][0] : known[Math.floor(rng()*known.length)];
-  steps.push({ type:"hold", note:warm, sec:8, min:60 });
+  const done = id => { const l = lessonById(id); return !!l && lessonDone(l, ctx.prog); };
+  // 1. Isınma: ısınma dersi bitmişse onun sırası (açık Sol, pes Sol, yavaş dizi); yoksa entonasyonu en çok sapan bilinen
+  // nota, o da yoksa bilinenlerden biri
+  if(done("isinma")) steps.push(...lessonById("isinma").steps.map(st => ({ ...st })));
+  else {
+    const off = known.map(w => [w, ctx.intStats[w]]).filter(([, s]) => s && s.n >= 3)
+      .sort((a,b) => Math.abs(b[1].sum/b[1].n) - Math.abs(a[1].sum/a[1].n));
+    const warm = off.length ? off[0][0] : known[Math.floor(rng()*known.length)];
+    steps.push({ type:"hold", note:warm, sec:8, min:60 });
+  }
   // 2. Parmak testi: bilinen notalardan en zorlanılan 6'sı (en az 3 nota)
   if(known.length >= 3){
     const hard = [...known].sort((a,b) => LLEARN.quizWeight(ctx.quizStats[b]) - LLEARN.quizWeight(ctx.quizStats[a]) || a - b).slice(0, 6);
@@ -2316,7 +2490,6 @@ function dailyPlan(ctx){
   const nFix = steps.length;
   // 3–4. Makam: bitirilen makam derslerinden biri; hiç yoksa bilinen notalarla çıkış-iniş ve taklit
   const mks = LESSONS.filter(l => l.makam && l.id !== "rast-giris" && lessonDone(l, ctx.prog)).map(l => l.makam);
-  const done = id => { const l = lessonById(id); return !!l && lessonDone(l, ctx.prog); };
   let mk = null;
   if(mks.length){
     mk = mks[Math.floor(rng()*mks.length)];

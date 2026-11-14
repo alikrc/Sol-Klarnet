@@ -220,7 +220,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
   `okuma-4` için `expandRepeats`'in dolap desteği var; etüt metin biçiminin tekrar işaretini nasıl yazdığına
   `parseScoreText`'ten bakılır. Teori sayfasının "Dizek" ve "Nota değerleri" konuları bu derslere bağlantı verir.
-- [ ] **S1.5 Hocasız öğrenci dersleri: çalışma yöntemi, ısınma, akort, bakım** (O, E23, E24). Dördü de kısa,
+- [x] **S1.5 Hocasız öğrenci dersleri: çalışma yöntemi, ısınma, akort, bakım** (O, E23, E24). **Yapıldı (15 Kasım 2026).** Dördü de kısa,
   ağırlıkla `read` + `soru`:
   - `nasil-calisilir` (Başlarken, `ilk-gecis`'ten sonra): yavaş çalış, zor yeri iki notaya indir, 5 temiz tekrar
     kuralı, 20–30 dk günlük, yorulunca bırak (dudak), kayıt dinle. Adım: `read`, `soru` ×4, bir `notes` adımı iki
@@ -234,6 +234,16 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   - `bakim` (Başlarken sonu): çalış sonrası kurulama, kamış döndürme ve saklama, mantar yağı, mandal yastıkları, ne
     zaman tamirciye. `equip.js` kamış ömrü sayacına bağlantı. Adım: `read` ×2, kontrol listesi (var olan
     `durus-nefes` listesi kalıbı), `soru` ×3.
+  *Uygulanan:* `lessons.js` "S1.5 Hocasız öğrenci" bloğu, dördü `since:2`. Sıra: `nasil-calisilir` `ilk-gecis`'ten,
+  `bakim` Başlarken'in son dersinden, `isinma` `ezgi-iki-el`'den (yoksa `sag-el`), `akortlama` `temel-tekrar`'dan hemen
+  önce. Bilgi `klarneti-tani`, `kamis` dersleri ve `sorunlar.js` "akort", "kamis", "su" maddelerinden; yeni iddia yok.
+  `read` adımına `links` (`{ go, el?, label }`: `SK.go` ile ekranı açar, öğeye kaydırır; Akort ekranı, diyapazon,
+  Ekipmanım) ve `checkHint` (kontrol listesi notu; varsayılan not oturuşa göre) eklendi; `notes` adımına başlığa giden
+  `hint` ("yarı hızda"). `dailyPlan`: `isinma` bitmişse ısınma turu dersin üç adımı, değilse eski tek uzun ton.
+  `onboard.js` sınamasının Başlarken döngüsü `since`'li dersleri bitmiş saymaz: göç, arkası bitmiş olanı "istersen"
+  yapar (`nasil-calisilir`), arkası boş kalan `bakim` açık kalır. Sorunlar'da "akort" → `akortlama`, "kamis" ve "su" →
+  `bakim` bağlantısı. Var olan kontrol listesi notunda ve `klarneti-tani` bakım adımında "hocana göster" sözü duruyor
+  (adım metni değişmediği için dokunulmadı).
 - [ ] **S1.6 İlk eserler basamağı** (O, E1, E16; S0.3 gerekir). `ilk-eserler-1` ve `ilk-eserler-2` (Temeller sonu),
   her biri arşivden 2–3 eser, `eserSteps` ile. Seçim betikle: `scripts/eser-sec.js` arşivi tarar; ölçüt: yazılı
   aralık 52–70 içinde, en kısa süre onaltılık değil sekizlik, usul Sofyan/Düyek/Nîm-sofyan/Semâî, süre ≤ 90 sn,

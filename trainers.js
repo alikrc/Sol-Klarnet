@@ -796,9 +796,12 @@ const TRAINER_STEPS = {
     const ck = st.check ? ctx.store.get("check." + st.checkId, {}) : null;
     stage.innerHTML = (st.body || []).map(t => `<p>${pick(t, LANG)}</p>`).join("") +
       (ck ? `<div class="label">${L("Kontrol listesi", "Checklist")} <small class="lsckn"></small></div>
-        <p class="muted small">${L("Telefonla kendini 20–30 saniye videoya çek (yandan ve önden) ya da aynaya bak; doğru olanları işaretle. Emin olmadıklarını hocana göster.", "Film yourself for 20–30 seconds with your phone (from the side and the front) or use a mirror; tick what is right. Show your teacher anything you're unsure of.")}</p>
+        <p class="muted small">${st.checkHint ? pick(st.checkHint, LANG) : L("Telefonla kendini 20–30 saniye videoya çek (yandan ve önden) ya da aynaya bak; doğru olanları işaretle. Emin olmadıklarını hocana göster.", "Film yourself for 20–30 seconds with your phone (from the side and the front) or use a mirror; tick what is right. Show your teacher anything you're unsure of.")}</p>
         <ul class="lscheck">${st.check.map((c, k) => `<li><label><input type="checkbox" data-ck="${k}"${ck[k] ? " checked" : ""}><span>${pick(c, LANG)}</span></label></li>`).join("")}</ul>` : "") +
-      `<div class="pbar"><button class="primary small" type="button" data-read>${L("Onay", "OK")}</button></div>`;
+      `<div class="pbar">${(st.links || []).map((k, j) => `<button class="stopbtn small" type="button" data-rlink="${j}">${pick(k.label, LANG)}</button>`).join("")}<button class="primary small" type="button" data-read>${L("Onay", "OK")}</button></div>`;
+    // Bağlantılar (st.links: { go, el?, label }): SK.go ile ekranı açar, el verilmişse o bölüme kaydırır
+    stage.addEventListener("click", e => { const b = e.target.closest("[data-rlink]"); if(!b) return; const k = st.links[+b.dataset.rlink];
+      ctx.SK.go(k.go); if(k.el) setTimeout(() => { const el = document.getElementById(k.el); if(el) el.scrollIntoView({ block:"center" }); }, 80); });
     const count = () => { const n = stage.querySelectorAll("[data-ck]:checked").length, el = stage.querySelector(".lsckn"); if(el) el.textContent = n + "/" + st.check.length; };
     if(ck){ count(); stage.addEventListener("change", e => { const b = e.target.closest("[data-ck]"); if(!b) return; ck[b.dataset.ck] = b.checked; ck.d = dayKey(new Date()); ctx.store.set("check." + st.checkId, ck); count(); }); }
     // Parmak kartları (st.fing: [yazılı nota…]): şema ve describeFingering tarifi; metin elle yazılmaz, İngilizcesi sayfa çevirmeninden

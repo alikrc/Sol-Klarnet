@@ -347,6 +347,9 @@
       for(const l of LESSONS.filter(x => x.unit === "baslangic")){
         // Klarnetsiz ritim dersleri (usul vurma, hece) çalma düzeyine bağlı değil: herkes yapar
         if(l.id === "usul-giris" || l.id === "ritim-hece") continue;
+        // Sonradan eklenen Başlarken dersleri (nasıl çalışılır, bakım) burada bitmiş sayılmaz: aşağıdaki göç, arkasında
+        // bitmiş ders olanı "istersen" yapar (Dersler'de yeni ders kartıyla görünür), arkası boş kalanı açık bırakır
+        if(l.since) continue;
         // Okumada ya da ritimde zorlanana o ders açık kalır; önceki bir sınamanın bitmiş saydığı (placed) kayıt da
         // silinir (yeniden ölçmede). Gerçekten çalınmış ders bitmiş kalır
         if(l.id === "nota-okuma" && !readOk() || l.id === "ritim-temel" && !rhythmOk()){
