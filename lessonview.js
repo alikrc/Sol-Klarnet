@@ -52,7 +52,7 @@ TRAINERS.lessons = function(ctx){
       for(const l of ls){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
         items += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
-          <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
+          <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done && prog[l.id].mig ? L("✓ yeni · istersen", "✓ new · optional") : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
       if(ex){
         const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
@@ -81,6 +81,7 @@ TRAINERS.lessons = function(ctx){
   const nextUp = () => { const id = coachLesson(coachSt(), coachOpts()); return id ? lessonById(id) : nextLesson(prog, allOpen); };
   function renderCoach(){
     const day = dayKey(new Date());
+    pickOptNew();
     coach = coachNext(coachSt(), { ...coachOpts(), dailyDone: store.get("lesson.dailyDone", []).includes(day) || dailySettled(daily, day),
       due: srsDue(store.get("lesson.srs", {}), day).length, reported: store.get("rm.reported", []) });
     const c = coach, names = xs => xs.map(tx).join(", ");
@@ -123,11 +124,21 @@ TRAINERS.lessons = function(ctx){
       <strong class="lscoachh">${esc(head)}</strong><p>${esc(why)}</p>
       <button class="primary small" type="button" data-coach="go">${esc(btn)} →</button>
       ${c.side ? `<p>${esc(L("Yan öneri: ", "On the side: ") + tx(c.side.title) + " (" + mileNow(c.side) + "). " + L("Bu ölçüm henüz tutmadı; dersler onu beklemez, araya kısa turlar koy.", "This measurement hasn't reached its goal yet; the lessons won't wait for it, so fit in short rounds."))}</p>
-      <button class="stopbtn small" type="button" data-coach="side">${esc(L("Alıştırmaya git", "Go to the exercise"))}</button>` : ""}`;
+      <button class="stopbtn small" type="button" data-coach="side">${esc(L("Alıştırmaya git", "Go to the exercise"))}</button>` : ""}
+      ${optNew ? `<p>${esc(L("Yeni ders eklendi: ", "New lesson added: ") + tx(optNew.title) + ". " + L("Sen bu konunun ötesine geçtiğin için bitmiş sayıldı; istersen çal.", "You're already past this point, so it counts as done; play it if you like."))}</p>
+      <button class="stopbtn small" type="button" data-coach="opt">${esc(L("Derse bak", "Open the lesson"))}</button>` : ""}`;
   }
+  // Göçle bitmiş sayılan (lessons.js migrateCurriculum) ve henüz açılmamış ilk yeni ders: kart bir kez önerir
+  let optNew = null;
+  function pickOptNew(){
+    const seen = store.get("lesson.migSeen", []);
+    optNew = LESSONS.find(l => prog[l.id] && prog[l.id].mig && !seen.includes(l.id)) || null;
+  }
+  const markOptSeen = id => { const seen = store.get("lesson.migSeen", []); if(!seen.includes(id)){ seen.push(id); store.set("lesson.migSeen", seen); } };
   $("lscoach").addEventListener("click", e => {
     const b = e.target.closest("[data-coach]"); if(!b || !coach) return;
     if(b.dataset.coach === "side"){ ctx.selectTab(coach.side.tab); return; }
+    if(b.dataset.coach === "opt"){ if(optNew) openSub(optNew); return; }
     // Eski kayıtlar korunur: yeniden ölçmede geri açılıp tekrar biten kademenin raporu ikinci kez gelmesin
     if(coach.kind === "report"){ store.set("rm.reported", [...new Set([...store.get("rm.reported", []), ...coach.all])]); renderCoach(); return; }
     if(coach.kind === "lesson") openSub(lessonById(coach.id));
@@ -191,6 +202,7 @@ TRAINERS.lessons = function(ctx){
       case "mimic": return r.v + " nota";
       case "vibrato": return num(r.v) + " sn";
       case "read": return L("okundu", "read");
+      case "soru": return r.v + "/" + soruItems(st).length;
       case "rhythm": case "seyir": return r.v + L(" puan", " points");
       case "hece": return st.mode === "say" ? L("söylendi", "done") : st.mode === "quiz" ? r.v + "/" + st.n : r.v + L(" puan", " points");
       case "usultap": return st.mode === "listen" ? L("dinlendi", "done") : r.v + L(" puan", " points");
@@ -226,6 +238,7 @@ TRAINERS.lessons = function(ctx){
   function open(l){
     stopRun();
     cur = l; store.set("lesson.cur", l.id); SK.setRoute({ ders: l.id });
+    if(prog[l.id] && prog[l.id].mig) markOptSeen(l.id);
     const p = progFor(l), u = UNITS.find(x => x.id === l.unit), vids = l.daily ? [] : videosForLesson(l.id);
     $("lsbody").innerHTML = `
       <div class="eyebrow">${u ? (ART.UNIT_EMOJI[u.id] || "") + " " + esc(tx(u.name)) : "☀️ " + esc(dayKey(new Date()))}</div>
@@ -274,6 +287,7 @@ TRAINERS.lessons = function(ctx){
       case "hece": return st.mode === "say" ? null : st.mode === "quiz" ? { goal:st.min, unit:"/" + st.n } : { goal:st.min, unit:L(" puan", " points") };
       case "usultap": return st.mode === "listen" ? null : { goal:st.min, unit:L(" puan", " points") };
       case "ear": case "sight": case "dictation": case "quiz": return { goal:st.min, unit: st.type === "sight" ? "%" : "/" + st.n };
+      case "soru": return { goal:soruMin(st), unit:"/" + soruItems(st).length };
     }
     return null;
   }
@@ -358,7 +372,7 @@ TRAINERS.lessons = function(ctx){
   }
 
   // ---- Adım çalıştırma ----
-  const NO_MIC = new Set(["read", "listen", "ear", "usultap", "hece"]);
+  const NO_MIC = new Set(["read", "soru", "listen", "ear", "usultap", "hece"]);
   async function startStep(i){
     stopRun();
     const st = cur.steps[i], lesson = cur;

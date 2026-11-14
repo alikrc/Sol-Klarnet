@@ -12,6 +12,11 @@
 //   vibrato { note, sec }                    notada sec saniye düzenli vibrato (4–8 Hz)
 //   glide   { from, to, n }                  from'dan to'ya n kez glissando
 //   read    { title, body }                   okuma (bilgi) adımı; "Onay" ile geçilir
+//   soru    { q, opts, ok, why } | { items:[{ q, opts, ok, why, staff?, fing? }…], min }  bilgi sorusu (mikrofonsuz):
+//                                             seçenekler karışık gelir, yanlışta why gösterilir ve soru turun sonunda yeniden
+//                                             sorulur; puan ilk denemede doğru bilinen soru sayısı, en az min (varsayılan:
+//                                             tek soruda 1, çok soruda %70). staff: [yazılı nota | { w, d }…] dizek çizer,
+//                                             fing: <yazılı nota> parmak şemasını gösterir
 //   rhythm  { pattern | usul, tempo, bars, silent, min }  metronomla çal, en az min ritim puanı
 //   usultap { usul, mode: "listen"|"tap"|"mem", tempo?, min }  usulu elle vur (klarnetsiz): dinle ve say, Düm/Tek düğmeleriyle vur,
 //                                             ezberden vur; puanı en az min (usuller.js, ilerleme Usuller sayfasıyla ortak)
@@ -1602,6 +1607,8 @@ LESSONS.push(...OKUMA2);
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
+// Sınav yalnız ilk müfredatın (since alanı olmayan) derslerinden kurulur: sonradan ünitelere eklenen dersler sınavın
+// adımlarını kaydırmasın (geçilmiş sınav, adım indeksine bağlı kayıtla geçilmiş kalsın). Yeni adımlar sınava elle eklenir.
 // Her ünitenin sonunda karışık bir sınav: ünitenin derslerinden eşit aralıkla seçilen en çok altı dersin son (en zor)
 // adımı, ünite kimliğinden türeyen sırayla karışık. Sınav ders zincirine girmez (sonraki dersleri kilitlemez);
 // ünitenin bütün dersleri bitince açılır, geçilince ünitenin rozeti kazanılır (roadmap.js badgeList).
@@ -1610,7 +1617,7 @@ const gatedStep = st => st.type !== "listen" && st.type !== "read" && !(st.type 
 // Adımı dersinden kopyalar: makam dersinin adımı makamını yanında taşır (günlük planda ve sınavda ders bağlamı yok)
 const stepFrom = (l, st) => ({ ...st, ...(l.makam && !st.makam ? { makam: l.makam } : {}) });
 function makeExam(u){
-  const ls = LESSONS.filter(l => l.unit === u.id && l.steps.some(gatedStep));
+  const ls = LESSONS.filter(l => l.unit === u.id && !l.since && l.steps.some(gatedStep));
   const n = Math.min(EXAM_STEPS, ls.length), idx = [...new Set(Array.from({ length:n }, (_, k) => n < 2 ? 0 : Math.round(k*(ls.length - 1)/(n - 1))))];
   const rng = seeded("sinav-" + u.id);
   const steps = idx.map(i => { const l = ls[i], g = l.steps.filter(gatedStep); return stepFrom(l, g[g.length - 1]); })
@@ -1644,7 +1651,7 @@ function srsSync(srs, prog, day){
   for(const id of Object.keys(srs)) if(!lessonById(id) || !prog[id]) delete srs[id];
   let k = 0;
   for(const l of LESSONS){
-    if(srs[l.id] || !lessonDone(l, prog) || !l.steps.some(gatedStep)) continue;
+    if(srs[l.id] || !lessonDone(l, prog) || prog[l.id].mig || !l.steps.some(gatedStep)) continue;
     const a = shiftDay(prog[l.id].d || day, SRS_DAYS[0]), b = shiftDay(day, Math.floor(k++/SRS_PER_DAY));
     srs[l.id] = { lv:0, due: a > b ? a : b };
   }
@@ -1744,6 +1751,9 @@ function stepTitle(step, lang = "tr"){
     case "vibrato": return (en ? "Vibrato: " : "Vibrato: ") + nn(step.note) + " · " + step.sec + (en ? " s of even vibrato" : " sn düzenli vibrato");
     case "glide": return (en ? "Glissando: " : "Glissando: ") + nn(step.from) + " → " + nn(step.to) + " · " + step.n + (en ? " times" : " kez");
     case "read": return (en ? "Read: " : "Oku: ") + pick(step.title, lang);
+    case "soru": { const n = soruItems(step).length;
+      return n === 1 ? (en ? "Question: " : "Soru: ") + pick(step.q || step.items[0].q, lang)
+        : (en ? "Questions: " + n + " · at least " + soruMin(step) + " right first time" : "Sorular: " + n + " soru · en az " + soruMin(step) + " ilk seferde doğru"); }
     case "piece": { const e = LREP().etudeById(step.id);
       if(step.mode === "ladder") return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + (en ? " · tempo ladder · up to " + step.min + "%" : " · tempo merdiveni · %" + step.min + "'e kadar");
       return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
@@ -1775,6 +1785,10 @@ function stepTitle(step, lang = "tr"){
   return step.type;
 }
 
+// Bilgi sorusu adımının soruları ve geçme sınırı
+const soruItems = st => st.items || [st];
+const soruMin = st => st.min != null ? st.min : soruItems(st).length === 1 ? 1 : Math.max(1, Math.round(soruItems(st).length*0.7));
+
 // Bir adımın sonucu geçer mi. res: { v } — puan, doğru sayısı, hata sayısı, oran ya da ulaşılan uzunluk.
 function stepOk(step, res){
   if(!res) return false;
@@ -1783,6 +1797,7 @@ function stepOk(step, res){
     case "listen": return true;
     case "hold": return v >= step.min && (step.quality == null || (res.q || 0) >= step.quality);
     case "read": return v >= 1;
+    case "soru": return v >= soruMin(step);
     case "rhythm": case "seyir": case "ear": case "sight": case "dictation": return v >= step.min;
     case "hece": return v >= (step.mode === "say" ? 1 : step.min);
     case "usultap": return v >= (step.mode === "listen" ? 1 : step.min);
@@ -1815,6 +1830,7 @@ function recordStep(prog, lesson, idx, res, day){
   const prev = p.s[idx];
   const b = better(step, { v:res.v, ok }, prev);
   p.s[idx] = { v:b.v, ok: ok || !!(prev && prev.ok) };
+  if(ok && p.mig) delete p.mig;                      // göçle geçilmiş ders gerçekten çalındı: aralıklı tekrara girer
   if(!p.d && lessonDone(lesson, prog)) p.d = day;
   return { ok, first: !(prev && prev.ok) && ok, done: !!p.d };
 }
@@ -1829,6 +1845,48 @@ function lessonProgress(lesson, prog){
   const gated = lesson.steps.map((st, i) => i).filter(i => lesson.steps[i].type !== "listen");
   return { done: gated.filter(i => p.s[i] && p.s[i].ok).length, total: gated.length };
 }
+// ---- Müfredat sürümü ve göç ----
+// Sürüm 1: ilk 89 ders. Sonradan eklenen derste since: <sürüm> alanı olur. Araya giren ders, onun ötesine geçmiş eski
+// kullanıcıda sonraki üniteleri kilitlemesin (unlocked: Temeller ve klarinonun hepsi bitmeli): uygulama açılışında kayıtlı
+// sürüm (lesson.ver; yoksa 1) eskiyse migrateCurriculum bir kez çalışır. Kullanıcının sürümünden yeni olup bitmemiş her
+// ders, kullanıcı onun ötesine geçmişse bitmiş sayılır: aynı ünitede sonraki bir ders ya da dizideki bir sonraki ders
+// bitmişse, ünitenin sınavı geçilmişse ya da ünitenin kapısından geçen (GATE_AFTER zincirinde ondan sonra gelen) bir
+// ünitede ders bitmişse. Böyle ders placed (çalınmadan geçildi) ve mig (göçle; aralıklı tekrara girmez, liste ve hoca
+// kartı "istersen" der) işaretlenir. Önündeki dersler sırayla açılır. Yedekten eski kayıt yüklenince lesson.ver de eski
+// gelir (ya da hiç yoktur), göç yeniden çalışır.
+const CURRICULUM_VER = 2;
+// Dersin bütün adımlarını geçilmiş say (seviye sınamasının kayıt biçimi, onboard.js markDone)
+function placeLesson(prog, l, day){
+  const p = prog[l.id] || (prog[l.id] = { s:{} });
+  l.steps.forEach((st, k) => { if(!(p.s[k] && p.s[k].ok)) p.s[k] = { v: st.type === "read" ? 1 : st.type === "notes" ? 0 : (st.min || st.n || 1), ok:true }; });
+  p.d = p.d || day; p.placed = true;
+  return p;
+}
+// unitId'nin kapısından geçen üniteler (GATE_AFTER zincirinde sonra gelenler)
+function unitsAfter(unitId){
+  const out = new Set(), walk = u => { for(const [k, v] of Object.entries(GATE_AFTER)) if(v.includes(u) && !out.has(k)){ out.add(k); walk(k); } };
+  walk(unitId);
+  return out;
+}
+// Dönen: bitmiş sayılan derslerin kimlikleri
+function migrateCurriculum(prog, fromVer, day){
+  const placed = [], done = l => lessonDone(l, prog);
+  // Sondan başa: yeni ders, ondan sonra gelen ve aynı göçte geçilmiş yeni dersi de "ötesi" sayar
+  for(let i = LESSONS.length - 1; i >= 0; i--){
+    const l = LESSONS[i];
+    if(!(l.since > fromVer) || done(l)) continue;
+    const after = unitsAfter(l.unit), ex = examFor(l.unit);
+    const beyond = (i + 1 < LESSONS.length && done(LESSONS[i + 1])) ||
+      LESSONS.slice(i + 1).some(x => x.unit === l.unit && done(x)) ||
+      (ex && prog[ex.id] && lessonDone(ex, prog)) ||
+      LESSONS.some(x => after.has(x.unit) && done(x));
+    if(!beyond) continue;
+    placeLesson(prog, l, day).mig = true;
+    placed.push(l.id);
+  }
+  return placed.reverse();
+}
+
 // Rehberli ilerleme (kademe kapısı): bir ünitenin dersleri, önkoşul ünitelerin sınavı geçilmeden açılmaz; hoca
 // ünite bitince sınavla pekiştirip öyle geçirir. Kapı, kullanıcı o üniteden daha önce ders bitirdiyse uygulanmaz
 // (eski ilerleme bozulmasın). Tarayıcıda practice.js açar (Ayarlar: lesson.guided), Node'da kapalı.
@@ -2020,5 +2078,6 @@ function dailySettled(daily, day){
 
 if(typeof module !== "undefined") module.exports = {
   UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
-  unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed
+  unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed,
+  CURRICULUM_VER, migrateCurriculum, placeLesson, soruItems, soruMin, GATE_AFTER
 };

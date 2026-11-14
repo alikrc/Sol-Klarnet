@@ -105,7 +105,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S0 — Altyapı (önce bunlar; ≈ 1 hafta)
 
-- [ ] **S0.1 Müfredat sürümü ve göç** (O). *Neden:* Temeller ve Klarino'ya ders eklenince `base()` yanlış olur,
+- [x] **S0.1 Müfredat sürümü ve göç** (O). **Yapıldı (15 Kasım 2026).** *Neden:* Temeller ve Klarino'ya ders eklenince `base()` yanlış olur,
   bütün dersleri bitirmiş kullanıcıda Teknik, Hız, Süsleme ve Makam yeniden kilitlenir.
   *Yapılacak:* `lessons.js`'e `CURRICULUM_VER` (şimdi 2) ve yeni derslere `since: 2` alanı. Uygulama açılışında
   `lesson.ver` kaydı `CURRICULUM_VER`'den küçükse bir kez çalışan `migrateCurriculum(prog)`: `since` değeri kullanıcının
@@ -117,10 +117,23 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   önerir; (b) Temeller'in ortasındaki kullanıcıda yalnız geride kalan yeni dersler `placed`, öndekiler sırada;
   (c) sıfır kullanıcıda hiçbir şey `placed` değil; (d) göç ikinci açılışta çalışmaz; (e) yedekten eski kayıt geri
   yüklenince göç yeniden çalışır.
-- [ ] **S0.2 Adım türü: `soru`** (O, E6). `{ type:"soru", q:{tr,en}, opts:[{tr,en}…], ok:<indeks>, why:{tr,en} }`;
+  *Uygulanan:* `lessons.js` `CURRICULUM_VER = 2`, `migrateCurriculum(prog, fromVer, day)`, `placeLesson`; açılışta
+  `practice.js` çalıştırır (`lesson.ver` yoksa 1 sayılır; yedekten dönen eski kayıtta `lesson.ver` yok ya da eski, göç
+  yeniden çalışır). "Ötesine geçti" ölçütü dörtlü: aynı ünitede sonraki ders bitmiş, dizide hemen sonraki ders bitmiş,
+  ünite sınavı geçilmiş ya da `GATE_AFTER` zincirinde sonra gelen bir ünitede ders bitmiş (ünitenin sonuna eklenen ders
+  sınavsız ilerleyen kullanıcıyı da kilitlemesin). Göçle geçilen ders `placed` ve `mig` işaretlenir. **Düzeltme:**
+  `srsSync` `placed` dersleri de tekrara alıyordu (sınamayla geçilenler bilerek); göç dersleri `mig` ile dışarıda
+  kalır, ders gerçekten bir adımı geçince `mig` silinir ve tekrara girer. Listede "✓ yeni · istersen", hoca kartında
+  açılmamış ilk göç dersi için "istersen çal" notu (`lesson.migSeen`). **Sınavlar dondu:** `makeExam` yalnız `since`
+  alanı olmayan derslerden kurulur; yoksa ünitelere ders eklenince sınav adımları kayar ve geçilmiş sınav geçilmemiş
+  görünürdü. Yeni adımlar sınava S5.3'te elle eklenir. Node'da sahte `since:2` derslerle (a)–(d) denendi.
+- [x] **S0.2 Adım türü: `soru`** (O, E6). **Yapıldı (15 Kasım 2026).** `{ type:"soru", q:{tr,en}, opts:[{tr,en}…], ok:<indeks>, why:{tr,en} }`;
   bir adımda `items:[…]` ile 3–6 soru, `min` doğru sayısı. Seçenekler karıştırılır, yanlışta `why` gösterilir ve soru
   tur sonunda yeniden gelir. Mikrofonsuz. `lessonview.js`'te `hece` adımının "quiz" kipindeki arayüz yeniden
-  kullanılır; `stepOk`/`recordStep` puanı doğru sayısı. İsteğe bağlı `staff:[midi…]` alanı soruda dizek çizer
+  kullanılır; `stepOk`/`recordStep` puanı doğru sayısı. *Uygulanan:* `trainers.js` `TRAINER_STEPS.soru`; puan ilk
+  denemede doğru bilinen soru sayısı, yanlış bilinen soru doğru bilinene kadar turun sonunda yeniden gelir. `min`
+  verilmezse tek soruda 1, çok soruda %70 (yuvarlanır). `staff` tek dörtlükse `drawStaffInto`, değilse `drawScore`
+  (`{ w, d }` nesneleri de alır, `meter` isteğe bağlı). Tarayıcıda 375 px'te denendi; henüz hiçbir ders kullanmıyor. İsteğe bağlı `staff:[midi…]` alanı soruda dizek çizer
   (`chartsheet.js`), `fing:<midi>` parmak kartı gösterir.
   *Kabul:* derste ve ünite sınavında çalışır; `reviewStep` bu adımı tekrara alabilir; ekran okuyucuda seçenekler
   düğme olarak okunur. Var olan `read` adımlarına dokunulmaz; yeni derslerde her `read`'in ardından bir `soru` gelir.
@@ -134,12 +147,15 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   *Kabul:* 3 örnek eserle (kısa bir türkü, bir şarkı, bir saz semâîsi) ders açılır; bölüm döngüsü doğru ölçülerde
   başlar ve biter; tekrar işaretli eserde bölüm sınırı kaymaz; internet yokken ders açılır; eser arşivden kalkarsa
   ders "eser bulunamadı" der ve geçilebilir olur (çıkmaz yok).
-- [ ] **S0.4 Müfredat denetim betiği** (K). `scripts/mufredat-check.js` (`npm run mufredat`), ölçüm betiği; test
+- [x] **S0.4 Müfredat denetim betiği** (K). **Yapıldı (15 Kasım 2026).** `scripts/mufredat-check.js` (`npm run mufredat`), ölçüm betiği; test
   değil. Denetler: ders kimlikleri tekil; her `piece.id` `ETUDES`'te, her `piece.arsiv` `notalar/`'da var; her
   `makam`, `usul`, `pattern` kimliği veride var; her etüt yalnız o derse kadar öğretilmiş notaları kullanıyor
   (`knownNotes`); makam etütleri yalnız makamın perdelerini kullanıyor; her metinde `tr` ve `en` dolu; her ünitede
   sınav var; `RM_STAGES` bütün üniteleri kapsıyor; `GATE_AFTER` döngüsüz. Çıktı: ünite başına ders, etüt, yeni nota
   sayısı tablosu (bu bölümdeki envanterin güncel hâli).
+  *Uygulanan:* ek olarak etüt ölçüleri (`barCheck`), ritim ve hız kalıpları, `ear` havuzundaki makamlar, `since`
+  değeri ve `soru` cevap indeksi denetlenir. "Yalnız öğretilmiş nota" makamsız etütlere uygulanır; makam etüdünde
+  ölçüt makamın perdeleri (mod 53). Bugünkü çıktı: 90 ders, 28 etüt, 9 sınav, hata yok. Sahte hatalarla denendi.
 
 ### S1 — Sıfırdan ilk eserlere (Başlangıç aşaması; ≈ 2 hafta)
 

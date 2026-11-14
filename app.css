@@ -387,6 +387,12 @@ svg.minichart.tap .hole:focus-visible circle,svg.minichart.tap .key:focus-visibl
 .hole.lift circle{stroke:var(--accent);stroke-width:3.5;stroke-dasharray:4 3}
 .key.lift rect{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:3 2}
 .qopts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0;max-width:280px}
+/* Bilgi sorusu (ders adımı "soru"): seçenekler tam genişlikte, uzun metin sarar */
+.sqopts{display:grid;gap:8px;margin:10px 0;max-width:520px}
+.opt.sqopt{text-align:left;font:500 15px/1.35 var(--ui);padding:12px 14px;border-radius:10px}
+.sqfig{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.sqfig:empty{display:none}
+.sqfig .staff{max-width:180px}
 .opt{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 16px/1 var(--display);
   padding:12px 8px;border-radius:10px}
 @media (hover:hover){.opt:hover{border-color:var(--accent)}}

@@ -805,6 +805,50 @@ const TRAINER_STEPS = {
     return {};
   },
 
+  // Bilgi sorusu (lessons.js soru): seçenekler karışık, yanlışta açıklama; yanlış bilinen soru turun sonunda yeniden
+  // gelir ve doğru bilinene kadar tur bitmez. Puan: ilk denemede doğru bilinen soru sayısı
+  soru(st, stage, done, ctx){
+    const { esc } = ctx, items = soruItems(st), N = items.length;
+    const shuffle = a => { const b = a.slice(); for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+    let queue = shuffle(items.map((_, k) => k)), first = 0, asked = 0, cur = null;
+    const missed = new Set();
+    function ask(){
+      if(!queue.length){
+        stage.innerHTML = `<div class="result"><div class="big">${first}/${N}</div><div>${L("ilk denemede doğru", "right first time")}${first >= soruMin(st) ? " · <strong>" + L("geçtin", "passed") + "</strong>" : " · " + L("geçmek için ", "pass at ") + soruMin(st)}</div></div>`;
+        return done({ v:first });
+      }
+      const k = queue.shift(), it = items[k], order = shuffle(it.opts.map((_, j) => j));
+      cur = { k, it, order, done:false }; asked++;
+      stage.innerHTML = (N > 1 ? `<div class="qcount">${L("Soru ", "Question ")}${Math.min(asked, N)}/${N}${missed.has(k) ? " · " + L("yeniden", "again") : ""}</div>` : "") +
+        `<p class="sqq"><b>${esc(pick(it.q, LANG))}</b></p><div class="sqfig"></div>
+        <div class="sqopts" role="group" aria-label="${L("Seçenekler", "Options")}">${order.map(j => `<button type="button" class="opt sqopt" data-j="${j}">${esc(pick(it.opts[j], LANG))}</button>`).join("")}</div>
+        <div class="sqfb" aria-live="polite"></div>`;
+      const fig = stage.querySelector(".sqfig");
+      if(it.staff && it.staff.length){
+        const notes = it.staff.map(n => typeof n === "number" ? { w:n, d:1 } : n);
+        if(notes.length === 1 && notes[0].d === 1){ const sv = ctx.staffSvg(); ctx.SK.drawStaffInto(sv, notes[0].w); fig.appendChild(sv); }
+        else drawScore(fig, notes, it.meter ? { meter:it.meter } : {});
+      }
+      if(it.fing != null && FINGERINGS[it.fing]){ const mc = ctx.miniChart(); ctx.paintMini(mc, FINGERINGS[it.fing]); fig.appendChild(mc); }
+    }
+    stage.onclick = e => {
+      if(e.target.closest("[data-sq=next]")) return ask();
+      const b = e.target.closest("[data-j]"); if(!b || !cur || cur.done) return;
+      cur.done = true;
+      const j = +b.dataset.j, ok = j === cur.it.ok;
+      if(ok && !missed.has(cur.k)) first++;
+      if(!ok){ missed.add(cur.k); queue.push(cur.k); }
+      stage.querySelectorAll("[data-j]").forEach(x => { x.disabled = true; if(+x.dataset.j === cur.it.ok && ok) x.classList.add("right"); else if(+x.dataset.j === j && !ok) x.classList.add("wrong"); });
+      const why = cur.it.why ? esc(pick(cur.it.why, LANG)) : "";
+      stage.querySelector(".sqfb").innerHTML = `<div class="fb ${ok ? "good" : "bad"}">${ok ? L("Doğru.", "Right.") : L("Doğru değil.", "Not quite.") + (N > 1 ? " " + L("Bu soru turun sonunda yeniden gelecek.", "This question will come back at the end of the round.") : "")}</div>` +
+        (why && (!ok || N === 1) ? `<p>${why}</p>` : ok && why ? `<p class="muted small">${why}</p>` : "") +
+        `<div class="pbar"><button class="primary small" type="button" data-sq="next">${queue.length ? L("Sonraki", "Next") : L("Sonuç", "Result")}</button></div>`;
+      stage.querySelector("[data-sq=next]").focus();
+    };
+    ask();
+    return { stop(){ stage.onclick = null; cur = null; } };
+  },
+
   rhythm(st, stage, done, ctx){
     const pattern = st.usul ? (() => { const s = usulSlots(USULS.find(u => u.id === st.usul)); return { beats:s.length, at:usulStrokeTimes(s), accents:s }; })()
                             : RHYTHM_PATTERNS.find(p => p.id === st.pattern);
