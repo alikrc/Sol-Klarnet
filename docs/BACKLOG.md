@@ -243,7 +243,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S2 — Klarino, teknik ve nefes (Temel ve Orta aşama; ≈ 2 hafta)
 
-- [ ] **S2.1 Klarino ünitesi 2 dersten 8 derse** (B, E3). Var olan `register` ve `klarino` dersleri kalır; `klarino`
+- [x] **S2.1 Klarino ünitesi 2 dersten 8 derse** (B, E3). **Yapıldı (15 Kasım 2026).** Var olan `register` ve `klarino` dersleri kalır; `klarino`
   ünitenin toparlama dersi olur (başlığı "Klarino bölgesi: hepsi birden" yapılır, adımlar aynı).
 
   | Yeni ders | Yeri | Notalar | Adımlar |
@@ -257,6 +257,17 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
   Metinlerde on ikili ilişkisi parmak verisinden doğrulanır (`fingeringIds(n)` ile `fingeringIds(n+19)` register
   mandalı dışında aynı mı; aynı olmayan çift derse konmaz). Roadmap `quiz1` taşı etkilenmez.
+  *Uygulanan:* `lessons.js` `// ---- S2.1 Klarino ----` bloğu (`onikili` `register`'ın hemen önüne, diğerleri
+  `insertLessonAfter("register", …)`; hepsi `since:2`); `klarino` başlığı "Klarino bölgesi: hepsi birden". On ikili
+  doğrulaması: 52–64 ile 71–83 register dışında aynı parmak; Fa4 → Do6 aynı değil, `klarino-2` metni Do6 için parmak
+  kartına yönlendirir. `klarino-ariza` çiftleri (Fa♯3 → Do♯5, Sol♯3 → Mi♭5, Si3 → Fa♯5, Do♯4 → Sol♯5, Mi♭4 → Si♭5)
+  veriden doğrulandı; parmak tarifi elle yazılmadı, `soru` adımı parmak kartından nota buldurur (5 soru, `min:4`).
+  `onikili` ve `klarino-ariza`'da `read` ardından `soru`. `techSteps({type:"break", pair:[69,71], sub:2}, 50, 66)`
+  olduğu gibi çalışıyor (`art` verilmezse bağlı). Etütler `e-k1` (Si4–Sol5), `e-k2` (10 ölçü, her ölçüde La4/Si♭4 ↔
+  Si4/Do5), `e-k3` (12 ölçü, Sol3–Do6). `onboard.js` `CHECK`: "Register geçişi" `onikili`, `register`, `kirilma-1`;
+  "Klarino" `klarino-1`, `klarino-2`, `klarino-ariza`, `klarino` (`ezgi-klarino` yok, S5.2). Tarayıcıda 375 px'te
+  dersler açıldı, `read`, `soru`, `listen` ve hız `listen` adımları çalıştı; mikrofonlu adımlar tarayıcı panosunda
+  mikrofon kapalı olduğu için başlatılamadı, telefonda denenmeli.
 - [ ] **S2.2 Artikülasyon 2: bağlı, kesik, aksan** (B, E7). Yeni adım türü `artik { notes, style:"legato"|
   "staccato"|"tenuto", tempo, min }`: metronomla nota dizisi; ölçüm her vuruşta sesin sürdüğü oran (`runVoicedRatio`
   ve `OnsetDetector` var). Legato: vuruşlar arası kesinti yok (sesli oran ≥ ≈ %95, perde değişimi var); staccato:

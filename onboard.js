@@ -19,8 +19,8 @@
   const CHECK = [
     { name: () => L("Pes ve orta ses", "Low and middle register"), notes: [67, 62, 60, 55, 52], lessons: ["sol-el-1", "sol-el-2", "sag-el", "pes", "ariza-1", "ariza-2"] },
     { name: () => L("Boğaz notaları", "Throat tones"), notes: [69, 70], lessons: ["bogaz"] },
-    { name: () => L("Register geçişi", "Crossing the break"), notes: [71, 72, 74], lessons: ["register"] },
-    { name: () => L("Klarino", "Clarion"), notes: [79, 84], lessons: ["klarino"] }
+    { name: () => L("Register geçişi", "Crossing the break"), notes: [71, 72, 74], lessons: ["onikili", "register", "kirilma-1"] },
+    { name: () => L("Klarino", "Clarion"), notes: [79, 84], lessons: ["klarino-1", "klarino-2", "klarino-ariza", "klarino"] }
   ];
   const CHECK_NOTES = CHECK.flatMap((g, gi) => g.notes.map(w => ({ w, gi })));
   const HOLD_MS = 1200;

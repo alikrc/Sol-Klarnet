@@ -261,6 +261,16 @@ const ETUDES = [
   { id:"e-t10", name:{ tr:"Pes bölge toparlama ezgisi", en:"Low-register review tune" }, level:1, makam:null, tempo:76, meter:[4,4],
     text:"Sol3 La3 Si3 Do4 | Re4:2 Mi4:2 | Re4 Do4 Si3 Do4 | Re4:4 | Mi4 Fa♯4 Sol4 Fa♯4 | Mi4:2 Re4:2 | Do4 Si3 La3 Si3 | Sol3:4 | " +
          "La3 Si3 Do4 Re4 | Mi4 Fa♯4 Sol4 La4 | Sol4 Fa♯4 Mi4:0.5 Re4:0.5 Mi4 | Fa♯4:4 | Mi4 Re4 Do4 Si3 | La3:2 Mi3:2 | Fa♯3 Sol3 La3:0.5 Si3:0.5 La3 | Sol3:4" },
+  // ---- Klarino ezgileri (level 2; docs/BACKLOG.md S2.1, ezgi-klarino dersi) ----
+  // e-k1 yalnız klarino bölgesinde; e-k2 her ölçüde kırılmayı geçer (La4/Si♭4 ↔ Si4/Do5); e-k3 Sol3'ten Do6'ya
+  { id:"e-k1", name:{ tr:"Klarino'da ilk ezgi", en:"First clarion tune" }, level:2, makam:null, tempo:72, meter:[4,4],
+    text:"Re5 Mi5 Fa5 Mi5 | Re5:2 Do5:2 | Si4 Do5 Re5 Mi5 | Fa5:4 | Sol5 Fa5 Mi5 Re5 | Mi5:2 Do5:2 | Re5 Mi5 Do5 Si4 | Do5:4" },
+  { id:"e-k2", name:{ tr:"Kırılma ezgisi", en:"Break-crossing tune" }, level:2, makam:null, tempo:60, meter:[4,4],
+    text:"Sol4 La4 Si4 Do5 | Re5:2 Do5 La4 | Si♭4 Do5 Re5 Do5 | Do5 Si♭4 La4:2 | La4 Si4 Do5 Si4 | La4:2 Si4:2 | " +
+         "Do5 Si♭4 La4 Si♭4 | Si♭4 Do5 Re5:2 | Do5 Si4 La4 Sol4 | Si4 La4 Sol4:2" },
+  { id:"e-k3", name:{ tr:"İki bölge ezgisi", en:"Two-register tune" }, level:2, makam:null, tempo:66, meter:[4,4],
+    text:"Sol3 La3 Si3 Do4 | Re4:2 Sol4:2 | La4 Si4 Do5 Re5 | Mi5:4 | Fa5 Sol5 La5 Sol5 | Fa5:2 Mi5:2 | " +
+         "Re5 Mi5 Fa5 Sol5 | La5 Si5 Do6:2 | Si5 La5 Sol5 Fa5 | Mi5 Re5 Do5 Si4 | La4 Sol4 Re4 Si3 | Sol3:4" },
   { id:"e-rast", name:{ tr:"Rast etüdü", en:"Rast étude" }, level:3, makam:"rast", tempo:80, meter:[4,4],
     text:"Rast Dügâh Segâh Çargâh | Nevâ:2 Hüseynî Nevâ | Çargâh Segâh Dügâh Segâh | Nevâ:4 | Hüseynî Evç Gerdâniye:2 | Acem Hüseynî Nevâ:2 | Çargâh Segâh Dügâh Irak | Rast:4" },
   { id:"e-ussak", name:{ tr:"Uşşak etüdü", en:"Uşşak étude" }, level:3, makam:"ussak", tempo:80, meter:[4,4],

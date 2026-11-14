@@ -183,7 +183,7 @@ const LESSONS = [
     ] },
 
   { id:"klarino", unit:"klarino", notes:[76, 77, 78, 79, 81, 83, 84, 73, 75, 80, 82],
-    title:{ tr:"Klarino bölgesi: Mi5'ten Do6'ya", en:"Clarion register: E5 to C6" },
+    title:{ tr:"Klarino bölgesi: hepsi birden", en:"Clarion register: all together" },
     text:[
       { tr:"Klarino parmakları pes bölgenin aynısıdır, yalnızca register basılıdır: La3 → Mi5, Si3 → Fa♯5, Do4 → Sol5, Re4 → La5, Mi4 → Si5. Do6 için sol elde yalnızca orta parmak kapalıdır.",
         en:"Clarion fingerings are the low ones with the register pressed: A3 → E5, B3 → F♯5, C4 → G5, D4 → A5, E4 → B5. For C6 only the left middle finger is down." },
@@ -1742,6 +1742,165 @@ insertLessonAfter(LESSONS.filter(l => l.unit === "temel").pop().id, { id:"temel-
     ] };
   insertLessonAfter("pes", ariza1, ariza2);
 }
+
+// ---- S2.1 Klarino ----
+// Klarino ünitesi 2 dersten 8 derse (docs/BACKLOG.md S2.1). On ikili çiftleri core.js parmak verisinden doğrulandı:
+// fingeringIds(n) ile fingeringIds(n + 19) register mandalı dışında aynı (52–64 → 71–83); Fa4 → Do6 aynı değil, derse
+// on ikili diye konmadı. onikili register'dan hemen önce girer (Temeller'in sonuna eklenen derslerden bağımsız).
+LESSONS.splice(LESSONS.findIndex(l => l.id === "register"), 0,
+  { id:"onikili", unit:"klarino", since:2, notes:[71, 72, 74],
+    title:{ tr:"On ikili: aynı parmak, iki ses", en:"The twelfth: one fingering, two notes" },
+    text:[
+      { tr:"Register mandalı klarnette sesi bir oktav değil, bir on ikili (oktav + beşli, 19 yarım ses) yükseltir. Bu yüzden pes bölgede öğrendiğin parmaklar, register basılınca başka adlı notalar verir.",
+        en:"On the clarinet the register key raises the note not by an octave but by a twelfth (octave + fifth, 19 semitones). So the fingerings you learned in the low register give differently named notes with the register pressed." },
+      { tr:"Bu derste üç çifti tanıyacaksın: Mi3 → Si4, Fa3 → Do5, Sol3 → Re5. Parmaklar aynı kalır; yalnız başparmak deliği kapatmaya devam ederken register mandalına da basar.",
+        en:"In this lesson you meet three pairs: E3 → B4, F3 → C5, G3 → D5. The fingers stay the same; the thumb keeps covering its hole and also presses the register key." }
+    ],
+    tips:[
+      { tr:"Tiz nota çıkmıyorsa dudağı sıkma; havayı hızlandır ve pes notayı önce temiz çal.", en:"If the high note won't speak, don't bite; speed up the air and get the low note clean first." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Neden on ikili?", en:"Why a twelfth?" }, body:[
+        { tr:"Flüt ve saksafonda üfleme tizleşince ses bir oktav çıkar; klarnette on ikili çıkar. Mi3 ile Si4 arası 19 yarım sestir: bir oktav (12) ve bir beşli (7).",
+          en:"On the flute and the saxophone overblowing goes up an octave; on the clarinet it goes up a twelfth. E3 to B4 is 19 semitones: an octave (12) plus a fifth (7)." },
+        { tr:"Bunu bilmek klarino bölgesini ezberlemeyi kolaylaştırır: tiz notanın parmağını bulmak için 19 yarım ses aşağıdaki pes notayı düşün ve register'ı ekle.",
+          en:"Knowing this makes the clarion register easy to learn: to find a high note's fingering, think of the low note 19 semitones below and add the register." }
+      ] },
+      { type:"soru", items:[
+        { q:{ tr:"Register mandalına basınca ses ne kadar yükselir?", en:"How far does the register key raise the note?" },
+          opts:[{ tr:"On ikili (oktav + beşli)", en:"A twelfth (octave + fifth)" }, { tr:"Bir oktav", en:"An octave" }, { tr:"Bir beşli", en:"A fifth" }], ok:0,
+          why:{ tr:"Klarnette register sesi oktav değil on ikili (19 yarım ses) yükseltir.", en:"On the clarinet the register raises the note by a twelfth (19 semitones), not an octave." } },
+        { q:{ tr:"Mi3 parmağına register eklersen hangi nota çıkar?", en:"Which note do you get by adding the register to the E3 fingering?" }, fing:71,
+          opts:[{ tr:"Si4", en:"B4" }, { tr:"Mi4", en:"E4" }, { tr:"La4", en:"A4" }], ok:0,
+          why:{ tr:"Mi3'ün on ikili üstü Si4'tür.", en:"A twelfth above E3 is B4." } },
+        { q:{ tr:"Re5'i hangi pes notanın parmağıyla çalarsın?", en:"Which low fingering do you use for D5?" },
+          opts:[{ tr:"Sol3", en:"G3" }, { tr:"Re4", en:"D4" }, { tr:"Fa3", en:"F3" }], ok:0,
+          why:{ tr:"Re5 Sol3'ün on ikili üstüdür; Fa3 parmağı Do5 verir.", en:"D5 is a twelfth above G3; the F3 fingering gives C5." } }
+      ] },
+      { type:"listen", notes:[52, 71, 53, 72, 55, 74] },
+      { type:"notes", notes:[52, 71, 52], maxMiss:1 },
+      { type:"notes", notes:[53, 72, 53], maxMiss:1 },
+      { type:"notes", notes:[55, 74, 55], maxMiss:1 },
+      { type:"hold", note:71, sec:4, min:45 }
+    ] });
+
+insertLessonAfter("register",
+  { id:"kirilma-1", unit:"klarino", since:2, notes:[69, 70, 71, 72],
+    title:{ tr:"La4–Si4: kırılmayı geçmek", en:"A4–B4: crossing the break" },
+    text:[
+      { tr:"La4 ve Si♭4'te deliklerin neredeyse hepsi açıktır; Si4 ve Do5'te hepsi kapalıdır ve register basılıdır. Bu geçişe kırılma denir: bütün parmaklar aynı anda inmeli, yoksa arada istenmeyen sesler duyulur.",
+        en:"On A4 and B♭4 almost every hole is open; on B4 and C5 they are all closed and the register is pressed. This move is called the break: all fingers must land together, or stray notes sneak in between." },
+      { tr:"Yavaş başla. Önce parmakları birlikte indirip kaldırmaya odaklan, sonra hızı artır.",
+        en:"Start slowly. Focus first on putting the fingers down and lifting them together, then build speed." }
+    ],
+    tips:[
+      { tr:"Geçişte havayı kesme; parmaklar değişirken hava aynı hızla aksın.", en:"Don't stop the air at the break; keep it flowing at the same speed while the fingers change." }
+    ],
+    steps:[
+      { type:"notes", notes:[69, 71, 69, 71, 69, 71, 69, 71, 69, 71, 69, 71, 69, 71, 69, 71], maxMiss:3 },
+      { type:"notes", notes:[70, 72, 70, 72, 70, 72, 70, 72, 70, 72, 70, 72, 70, 72, 70, 72], maxMiss:3 },
+      ...techSteps({ type:"break", pair:[69, 71], sub:2 }, 50, 66)
+    ] },
+
+  { id:"klarino-1", unit:"klarino", since:2, notes:[76, 77, 79],
+    title:{ tr:"Mi5, Fa5, Sol5", en:"E5, F5, G5" },
+    text:[
+      { tr:"Üç yeni nota da pes bölgedeki bir parmağın on ikili üstüdür: La3 → Mi5, Si♭3 → Fa5, Do4 → Sol5. Parmağı parmak kartında karşılaştır; tek fark register mandalıdır.",
+        en:"All three new notes are a twelfth above a low fingering: A3 → E5, B♭3 → F5, C4 → G5. Compare them on the fingering card; the only difference is the register key." },
+      { tr:"Sol5 Gerdâniye perdesidir; makamların tiz bölgesinde sık kullanılır.",
+        en:"G5 is the Gerdâniye perde; makams use it often in the upper range." }
+    ],
+    tips:[
+      { tr:"Tiz notalar tizleşmeye eğilimlidir; entonasyon izini izle, gerekirse çeneyi gevşet.", en:"High notes tend to go sharp; watch the intonation trace and loosen the jaw if needed." }
+    ],
+    steps:[
+      { type:"listen", notes:[74, 76, 77, 79] },
+      { type:"hold", note:76, sec:4, min:45 },
+      { type:"hold", note:77, sec:4, min:45 },
+      { type:"hold", note:79, sec:4, min:45 },
+      { type:"notes", notes:[72, 74, 76, 77, 79, 77, 76, 74, 72], maxMiss:3 },
+      { type:"quiz", notes:[71, 72, 74, 76, 77, 79], mode:"play", n:8, min:6 }
+    ] },
+
+  { id:"klarino-2", unit:"klarino", since:2, notes:[81, 83, 84],
+    title:{ tr:"La5, Si5, Do6", en:"A5, B5, C6" },
+    text:[
+      { tr:"La5 Re4'ün, Si5 Mi4'ün on ikili üstüdür; ikisi de register eklenmiş pes parmaklardır. Do6 farklıdır: Fa4'ün parmağına register eklemek Do6 vermez, parmağını kartta ayrıca incele.",
+        en:"A5 is a twelfth above D4 and B5 a twelfth above E4; both are low fingerings with the register added. C6 is different: adding the register to the F4 fingering does not give C6, so study its fingering on the card on its own." },
+      { tr:"La5 Muhayyer perdesidir. Bu üç nota klarino bölgesinin tepesidir; ses incelmesin diye ağız boşluğunu açık tut.",
+        en:"A5 is the Muhayyer perde. These three notes are the top of the clarion register; keep the mouth cavity open so the tone doesn't thin out." }
+    ],
+    tips:[
+      { tr:"Tepeye çıkarken dudakla sıkma, havayı hızlandır.", en:"Going up to the top, don't bite; speed up the air." }
+    ],
+    steps:[
+      { type:"listen", notes:[79, 81, 83, 84] },
+      { type:"hold", note:81, sec:4, min:40 },
+      { type:"hold", note:83, sec:4, min:40 },
+      { type:"hold", note:84, sec:4, min:40 },
+      { type:"notes", notes:[76, 77, 79, 81, 83, 84, 83, 81, 79, 77, 76], maxMiss:3 },
+      { type:"quiz", notes:[76, 77, 79, 81, 83, 84], mode:"play", n:8, min:6 }
+    ] },
+
+  { id:"klarino-ariza", unit:"klarino", since:2, notes:[73, 75, 78, 80, 82],
+    title:{ tr:"Klarino'da diyez ve bemoller", en:"Sharps and flats in the clarion register" },
+    text:[
+      { tr:"Klarino bölgesinin beş arızalı notası da pes bölgede öğrendiğin arızalı parmakların on ikili üstüdür: Fa♯3 → Do♯5, Sol♯3 → Mi♭5, Si3 → Fa♯5, Do♯4 → Sol♯5, Mi♭4 → Si♭5.",
+        en:"All five altered notes of the clarion register are a twelfth above low fingerings you already know: F♯3 → C♯5, G♯3 → E♭5, B3 → F♯5, C♯4 → G♯5, E♭4 → B♭5." },
+      { tr:"Hangi mandalın basıldığını her notanın parmak kartında gör; mandal pes notadakiyle aynıdır, üstüne register eklenir.",
+        en:"See which key is pressed on each note's fingering card; it is the same key as on the low note, with the register added." }
+    ],
+    tips:[
+      { tr:"Serçe mandalından mandala geçerken parmağı kaldırmadan kaydır.", en:"Moving from one pinky key to another, slide the finger instead of lifting it." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Pes parmak + register", en:"Low fingering + register" }, body:[
+        { tr:"Do♯5 Fa♯3'ün, Mi♭5 Sol♯3'ün, Fa♯5 Si3'ün, Sol♯5 Do♯4'ün, Si♭5 Mi♭4'ün parmağıdır; hepsine register eklenir. Ders sayfasındaki nota kartlarına dokunup parmakları karşılaştır.",
+          en:"C♯5 uses the F♯3 fingering, E♭5 the G♯3, F♯5 the B3, G♯5 the C♯4 and B♭5 the E♭4; the register is added to each. Tap the note cards on the lesson page to compare the fingerings." }
+      ] },
+      { type:"soru", min:4, items:[
+        { q:{ tr:"Parmak kartındaki nota hangisi?", en:"Which note is on the fingering card?" }, fing:73,
+          opts:[{ tr:"Do♯5", en:"C♯5" }, { tr:"Fa♯3", en:"F♯3" }, { tr:"Re5", en:"D5" }], ok:0,
+          why:{ tr:"Fa♯3 parmağına register eklenmiş: Do♯5.", en:"The F♯3 fingering with the register added: C♯5." } },
+        { q:{ tr:"Parmak kartındaki nota hangisi?", en:"Which note is on the fingering card?" }, fing:75,
+          opts:[{ tr:"Mi♭5", en:"E♭5" }, { tr:"Sol♯3", en:"G♯3" }, { tr:"Mi5", en:"E5" }], ok:0,
+          why:{ tr:"Sol♯3 parmağına register eklenmiş: Mi♭5.", en:"The G♯3 fingering with the register added: E♭5." } },
+        { q:{ tr:"Parmak kartındaki nota hangisi?", en:"Which note is on the fingering card?" }, fing:78,
+          opts:[{ tr:"Fa♯5", en:"F♯5" }, { tr:"Si3", en:"B3" }, { tr:"Sol5", en:"G5" }], ok:0,
+          why:{ tr:"Si3 parmağına register eklenmiş: Fa♯5.", en:"The B3 fingering with the register added: F♯5." } },
+        { q:{ tr:"Parmak kartındaki nota hangisi?", en:"Which note is on the fingering card?" }, fing:80,
+          opts:[{ tr:"Sol♯5", en:"G♯5" }, { tr:"Do♯4", en:"C♯4" }, { tr:"La5", en:"A5" }], ok:0,
+          why:{ tr:"Do♯4 parmağına register eklenmiş: Sol♯5.", en:"The C♯4 fingering with the register added: G♯5." } },
+        { q:{ tr:"Parmak kartındaki nota hangisi?", en:"Which note is on the fingering card?" }, fing:82,
+          opts:[{ tr:"Si♭5", en:"B♭5" }, { tr:"Mi♭4", en:"E♭4" }, { tr:"Si5", en:"B5" }], ok:0,
+          why:{ tr:"Mi♭4 parmağına register eklenmiş: Si♭5.", en:"The E♭4 fingering with the register added: B♭5." } }
+      ] },
+      { type:"hold", note:73, sec:4, min:45 },
+      { type:"hold", note:75, sec:4, min:45 },
+      { type:"hold", note:78, sec:4, min:45 },
+      { type:"hold", note:80, sec:4, min:40 },
+      { type:"hold", note:82, sec:4, min:40 },
+      { type:"notes", notes:[72, 73, 74, 75, 76, 75, 74, 73, 72], maxMiss:3 },
+      { type:"notes", notes:[77, 78, 79, 80, 81, 82, 83, 82, 81, 80, 79, 78, 77], maxMiss:4 },
+      { type:"quiz", notes:[71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84], mode:"play", n:10, min:7 }
+    ] },
+
+  { id:"ezgi-klarino", unit:"klarino", since:2, notes:[],
+    title:{ tr:"İki bölgede ezgiler", en:"Tunes across both registers" },
+    text:[
+      { tr:"Üç kısa ezgi: ilki yalnız klarino bölgesinde, ikincisi her ölçüde kırılmayı geçer, üçüncüsü Sol3'ten Do6'ya çıkıp geri iner.",
+        en:"Three short tunes: the first stays in the clarion register, the second crosses the break in every bar, and the third climbs from G3 to C6 and back down." },
+      { tr:"Önce yavaş tempoda dinle, sonra çal. Kırılmada takılırsan o ölçüyü ayrıca tekrar et.",
+        en:"Listen at a slow tempo first, then play. If you stumble at the break, repeat that bar on its own." }
+    ],
+    tips:[
+      { tr:"Bölge değişirken havayı kesme.", en:"Keep the air going when you change registers." }
+    ],
+    steps:[
+      { type:"piece", id:"e-k1", mode:"tempo", min:60 },
+      { type:"piece", id:"e-k2", mode:"tempo", min:60 },
+      { type:"piece", id:"e-k3", mode:"tempo", min:60 }
+    ] });
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
