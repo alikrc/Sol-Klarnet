@@ -52,7 +52,7 @@ TRAINERS.lessons = function(ctx){
       for(const l of ls){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
         items += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
-          <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done && prog[l.id].mig ? L("✓ yeni · istersen", "✓ new · optional") : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
+          <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done && prog[l.id].mig ? L("✓ istersen", "✓ optional") : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
       if(ex){
         const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
@@ -125,7 +125,7 @@ TRAINERS.lessons = function(ctx){
       <button class="primary small" type="button" data-coach="go">${esc(btn)} →</button>
       ${c.side ? `<p>${esc(L("Yan öneri: ", "On the side: ") + tx(c.side.title) + " (" + mileNow(c.side) + "). " + L("Bu ölçüm henüz tutmadı; dersler onu beklemez, araya kısa turlar koy.", "This measurement hasn't reached its goal yet; the lessons won't wait for it, so fit in short rounds."))}</p>
       <button class="stopbtn small" type="button" data-coach="side">${esc(L("Alıştırmaya git", "Go to the exercise"))}</button>` : ""}
-      ${optNew ? `<p>${esc(L("Yeni ders eklendi: ", "New lesson added: ") + tx(optNew.title) + ". " + L("Sen bu konunun ötesine geçtiğin için bitmiş sayıldı; istersen çal.", "You're already past this point, so it counts as done; play it if you like."))}</p>
+      ${optNew ? `<p>${esc(L("İstersen çal: ", "Optional: ") + tx(optNew.title) + ". " + L("Bu dersin ötesine geçtiğin için bitmiş sayıldı; pekiştirmek istersen aç.", "You're already past this lesson, so it counts as done; open it if you want the extra practice."))}</p>
       <button class="stopbtn small" type="button" data-coach="opt">${esc(L("Derse bak", "Open the lesson"))}</button>` : ""}`;
   }
   // Göçle bitmiş sayılan (lessons.js migrateCurriculum) ve henüz açılmamış ilk yeni ders: kart bir kez önerir

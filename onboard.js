@@ -373,6 +373,10 @@
         if(l && k < mp) markDone(prog, l, true);
         else if(k < chk.mks.length && prog[id] && prog[id].placed) delete prog[id];
       }));
+      // Sınamanın bitmiş saydığı derslerin arasına sonradan giren dersler (ezgi, pekiştirme) yolu kesmesin: göç kuralıyla
+      // "istersen" olarak geçilir (lessons.js migrateCurriculum). Önceki sınamadan kalan böyle kayıtlar önce silinir
+      for(const l of LESSONS) if(l.since && prog[l.id] && prog[l.id].placed && prog[l.id].mig) delete prog[l.id];
+      migrateCurriculum(prog, 1, dayKey(new Date()));
       syncExams(prog);
       store.set("lesson.prog", prog);
       if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, rhythm: chk.rts.length ? chk.rts : null, makam: chk.mks.length ? chk.mks.map(v => Math.round(v*100)/100) : null, d: dayKey(new Date()) });

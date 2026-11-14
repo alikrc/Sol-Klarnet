@@ -1604,6 +1604,14 @@ LESSONS.splice(LESSONS.findIndex(l => l.id === "kulak-1") + 1, 0, ...OKUMA1);
 LESSONS.splice(LESSONS.findIndex(l => l.id === "taksim-cumle"), 0, ...TRAKYA);
 LESSONS.push(...OKUMA2);
 
+// Sonradan eklenen dersler (müfredat sürümü 2 ve sonrası; docs/BACKLOG.md S1–S5) var olan dersin hemen arkasına girer.
+// Her yeni derste since: <sürüm> olur (migrateCurriculum, sınavın dondurulması). Bloklar PBI'a göre ayrı tutulur.
+function insertLessonAfter(afterId, ...ls){
+  const i = LESSONS.findIndex(l => l.id === afterId);
+  if(i < 0) throw new Error("insertLessonAfter: ders yok " + afterId);
+  LESSONS.splice(i + 1, 0, ...ls);
+}
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2079,5 +2087,5 @@ function dailySettled(daily, day){
 if(typeof module !== "undefined") module.exports = {
   UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
   unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed,
-  CURRICULUM_VER, migrateCurriculum, placeLesson, soruItems, soruMin, GATE_AFTER
+  CURRICULUM_VER, migrateCurriculum, placeLesson, soruItems, soruMin, GATE_AFTER, insertLessonAfter
 };
