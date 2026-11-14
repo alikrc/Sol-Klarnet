@@ -1612,6 +1612,75 @@ function insertLessonAfter(afterId, ...ls){
   LESSONS.splice(i + 1, 0, ...ls);
 }
 
+// ---- S1.1 Temeller ezgileri ----
+// Her yeni nota grubundan sonra o notalarla kısa ezgiler: dinle, zor geçişi ayır, etüdü önce serbest takipte sonra
+// tempoda çal, dizekten oku. Etütler repertoire.js'te (e-t1…e-t10)
+const ezgiSteps = (listen, pass, etudes, staff, o = {}) => [
+  { type:"listen", notes: listen },
+  { type:"notes", notes: pass, maxMiss: o.maxMiss || 3 },
+  ...etudes.flatMap((id, k) => k < (o.free ?? etudes.length) ? [{ type:"piece", id, mode:"free", min: o.freeMin || 4 }, { type:"piece", id, mode:"tempo", min:70 }]
+                                                             : [{ type:"piece", id, mode:"tempo", min:70 }]),
+  { type:"quiz", notes: staff, mode:"staff", n: o.n || 8, min: o.min || 6 }
+];
+const EZGI_TEXT = {
+  slow:{ tr:"Etüdü önce serbest takipte çal: uygulama seni bekler, acele yok. Takıldığın iki notayı ayırıp beş kez temiz çal, sonra yeniden baştan. Tempolu çalış ancak serbestte rahatça çıkınca.",
+         en:"Play the étude in follow mode first: the app waits for you, there is no rush. Take the two notes you stumble on, play them cleanly five times, then start again. Move to the in-tempo run only when follow mode feels easy." }
+};
+insertLessonAfter("sol-el-2", { id:"ezgi-sol-el", unit:"temel", since:2, notes:[],
+  title:{ tr:"Sol elle iki ezgi", en:"Two tunes with the left hand" },
+  text:[
+    { tr:"Sol elin altı notasıyla (Do4, Re4, Mi4, Fa4, Fa♯4, Sol4) iki kısa ezgi. Birincisi Fa4'ü, ikincisi Fa♯4'ü kullanır: ikisinin parmağı farklıdır, kulağın da farkı duysun. En zor geçiş Mi4 → Fa4: yan mandala basarken sol elin parmakları kalkmasın.",
+      en:"Two short tunes on the six left-hand notes (C4, D4, E4, F4, F♯4, G4). The first uses F4, the second F♯4: their fingerings differ, and your ear should hear the difference too. The hardest move is E4 → F4: keep the left-hand fingers down while you press the side key." },
+    EZGI_TEXT.slow
+  ],
+  tips:[{ tr:"Do4'te ses kırılıyorsa üç parmağın da deliği tam kapattığına bak; en sık kaçak yüzük parmağındadır.", en:"If C4 cracks, check all three fingers seal fully; the ring finger leaks most often." }],
+  steps: ezgiSteps([60, 62, 64, 60, 62, 64, 65, 64], [60, 62, 64, 65, 67, 65, 64, 66, 67, 66, 64, 62, 60], ["e-t1", "e-t2"], [60, 62, 64, 65, 66, 67]) });
+
+insertLessonAfter("sag-el", { id:"ezgi-iki-el", unit:"temel", since:2, notes:[],
+  title:{ tr:"İki elle üç ezgi", en:"Three tunes with both hands" },
+  text:[
+    { tr:"Sol3'ten Sol4'e kadar iki elle üç ezgi; üçüncüsü 3/4 ölçüde, her ölçüde üç vuruş. En zor yer Do4 ↔ Si3: sol el tam kapalı kalırken sağ işaret parmağı iner ve kalkar. Sol el bu geçişte hiç kıpırdamamalı.",
+      en:"Three tunes from G3 to G4 with both hands; the third is in 3/4, three beats to the bar. The hardest spot is C4 ↔ B3: the left hand stays fully closed while the right index finger goes down and up. The left hand must not move at all here." },
+    EZGI_TEXT.slow
+  ],
+  tips:[{ tr:"Pes notalarda ağız boşluğunu açık tut; Sol3'e inerken dudağı sıkma, havayı yavaşlat.", en:"Keep the mouth open on low notes; going down to G3, don't pinch, slow the air down." }],
+  steps: ezgiSteps([60, 59, 57, 59, 60, 62, 64, 62], [60, 59, 57, 59, 60, 62, 60, 59, 57, 55, 57, 59, 60], ["e-t3", "e-t4", "e-t5"], [55, 57, 59, 60, 62, 64, 65, 66, 67], { free:1, n:10, min:7 }) });
+
+// Pes bölge ezgileri pes dersinden (ve varsa arızalı nota derslerinden, S1.2) sonra gelir
+insertLessonAfter(["ariza-2", "ariza-1", "pes"].find(id => LESSONS.some(l => l.id === id)), { id:"ezgi-pes", unit:"temel", since:2, notes:[],
+  title:{ tr:"Pes bölge ezgileri", en:"Low-register tunes" },
+  text:[
+    { tr:"Mi3'e kadar inen iki ezgi. Birincisi doğal notalarla, ikincisi Fa♯3, Sol♯3 ve Do♯4 ile. İlk ezgide ilk kez sekizlik var: bir vuruşa iki nota, “el-ma” der gibi. Mi3 ve Fa3'te serçe parmaklar mandala tam basmalı, yoksa ses gelmez.",
+      en:"Two tunes reaching down to E3. The first uses natural notes, the second F♯3, G♯3 and C♯4. The first has eighth notes for the first time: two notes to a beat, like saying “cof-fee”. On E3 and F3 the little fingers must press their keys fully or the note won't speak." },
+    EZGI_TEXT.slow
+  ],
+  tips:[{ tr:"Pes notalar geç konuşur: notayı biraz erken düşün, havayı önce ver.", en:"Low notes speak late: think the note a little early and get the air there first." }],
+  steps: ezgiSteps([55, 53, 52, 53, 55, 57, 59, 57], [55, 53, 52, 53, 55, 57, 56, 57, 59, 61, 62, 61, 59, 57, 56, 54, 56, 57], ["e-t6", "e-t7"],
+    [52, 53, 54, 55, 56, 57, 59, 60, 61, 62, 64, 65, 67], { n:10, min:7 }) });
+
+insertLessonAfter("bogaz", { id:"ezgi-bogaz", unit:"temel", since:2, notes:[],
+  title:{ tr:"Boğaz notalarıyla ezgi", en:"Tunes with the throat tones" },
+  text:[
+    { tr:"La4, Si♭4 ve Sol♯4 ile iki ezgi; ikincisi 2/4 ölçüde, her ölçüde iki vuruş. Bu ezgilerde ilk kez bir dörtlü atlama var (Mi4 → La4). Boğaz notalarında çok az parmak kapalıdır, ses kolayca incelir ve tizleşir: havayı aynı tut, dudağı gevşet.",
+      en:"Two tunes with A4, B♭4 and G♯4; the second is in 2/4, two beats to the bar. For the first time there is a leap of a fourth (E4 → A4). Few fingers are down on the throat tones, so the sound thins and goes sharp easily: keep the air the same and relax the lips." },
+    EZGI_TEXT.slow
+  ],
+  tips:[{ tr:"Si♭4 ile La4 arasında yalnız bir mandal değişir; parmakları yükseğe kaldırma.", en:"Only one key changes between B♭4 and A4; don't lift the fingers high." }],
+  steps: ezgiSteps([65, 67, 69, 67, 70, 69, 67, 69], [65, 67, 69, 70, 69, 67, 68, 69, 64, 69, 67, 65, 62], ["e-t8", "e-t9"], [52, 55, 57, 59, 62, 65, 67, 68, 69, 70], { n:10, min:7 }) });
+
+// Ünitenin sonu: Temeller'in son dersinden sonra
+insertLessonAfter(LESSONS.filter(l => l.unit === "temel").pop().id, { id:"temel-tekrar", unit:"temel", since:2, notes:[],
+  title:{ tr:"Pes bölge: toparlama", en:"Low register: review" },
+  text:[
+    { tr:"Temeller'in bütün notaları bir arada: Mi3'ten La4'e 16 ölçülük bir ezgi. İkinci yarı tiz Sol4 ve La4'e çıkar, sonra Mi3'e bir dörtlüyle iner. Önce aralıksız Sol3'ten La4'e çıkıp inen geçişi çal.",
+      en:"All the Basics notes together: a 16-bar tune from E3 to A4. The second half climbs to G4 and A4, then drops a fourth to E3. First play the run from G3 up to A4 and back without stopping." },
+    { tr:"Bu dersi bitirince register ve klarino bölgesine geçmeye hazırsın. Ünite sınavı geçmediysen önce onu çöz.",
+      en:"Once this lesson is done you're ready for the register and the clarion. If you haven't passed the unit test yet, do that first." }
+  ],
+  tips:[{ tr:"Uzun ezgide nefesi ölçü sonlarında al; 4. ve 8. ölçünün uzun notası en rahat yer.", en:"In a long tune, breathe at the ends of bars; the long notes in bars 4 and 8 are the easiest places." }],
+  steps: ezgiSteps([55, 57, 59, 60, 62, 64, 62, 60], [55, 57, 59, 60, 62, 64, 66, 67, 69, 67, 66, 64, 62, 60, 59, 57, 55, 52, 55], ["e-t10"],
+    [52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70], { maxMiss:4, freeMin:6, n:10, min:8 }) });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -1855,12 +1924,13 @@ function lessonProgress(lesson, prog){
 }
 // ---- Müfredat sürümü ve göç ----
 // Sürüm 1: ilk 89 ders. Sonradan eklenen derste since: <sürüm> alanı olur. Araya giren ders, onun ötesine geçmiş eski
-// kullanıcıda sonraki üniteleri kilitlemesin (unlocked: Temeller ve klarinonun hepsi bitmeli): uygulama açılışında kayıtlı
-// sürüm (lesson.ver; yoksa 1) eskiyse migrateCurriculum bir kez çalışır. Kullanıcının sürümünden yeni olup bitmemiş her
-// ders, kullanıcı onun ötesine geçmişse bitmiş sayılır: aynı ünitede sonraki bir ders ya da dizideki bir sonraki ders
+// kullanıcıda sonraki üniteleri kilitlemesin (unlocked: Temeller ve klarinonun hepsi bitmeli). Uygulama açılışında
+// migrateCurriculum, daha önce değerlendirilmemiş (lesson.migIds'te olmayan) her since'li dersi bir kez değerlendirir;
+// sürüm numarasına değil kimliğe bakılır, çünkü aynı sürüme ders sonradan da eklenir. Bitmemiş yeni ders, kullanıcı onun
+// ötesine geçmişse bitmiş sayılır: aynı ünitede sonraki bir ders ya da dizideki bir sonraki ders
 // bitmişse, ünitenin sınavı geçilmişse ya da ünitenin kapısından geçen (GATE_AFTER zincirinde ondan sonra gelen) bir
 // ünitede ders bitmişse. Böyle ders placed (çalınmadan geçildi) ve mig (göçle; aralıklı tekrara girmez, liste ve hoca
-// kartı "istersen" der) işaretlenir. Önündeki dersler sırayla açılır. Yedekten eski kayıt yüklenince lesson.ver de eski
+// kartı "istersen" der) işaretlenir. Önündeki dersler sırayla açılır. Yedekten eski kayıt yüklenince lesson.migIds de eski
 // gelir (ya da hiç yoktur), göç yeniden çalışır.
 const CURRICULUM_VER = 2;
 // Dersin bütün adımlarını geçilmiş say (seviye sınamasının kayıt biçimi, onboard.js markDone)
@@ -1876,13 +1946,15 @@ function unitsAfter(unitId){
   walk(unitId);
   return out;
 }
-// Dönen: bitmiş sayılan derslerin kimlikleri
-function migrateCurriculum(prog, fromVer, day){
+const sinceIds = () => LESSONS.filter(l => l.since).map(l => l.id);
+// seen: daha önce değerlendirilmiş ders kimlikleri (Set; boşsa bütün since'li dersler). Dönen: bitmiş sayılanlar
+function migrateCurriculum(prog, seen, day){
+  seen = seen || new Set();
   const placed = [], done = l => lessonDone(l, prog);
   // Sondan başa: yeni ders, ondan sonra gelen ve aynı göçte geçilmiş yeni dersi de "ötesi" sayar
   for(let i = LESSONS.length - 1; i >= 0; i--){
     const l = LESSONS[i];
-    if(!(l.since > fromVer) || done(l)) continue;
+    if(!l.since || seen.has(l.id) || done(l)) continue;
     const after = unitsAfter(l.unit), ex = examFor(l.unit);
     const beyond = (i + 1 < LESSONS.length && done(LESSONS[i + 1])) ||
       LESSONS.slice(i + 1).some(x => x.unit === l.unit && done(x)) ||
@@ -2087,5 +2159,5 @@ function dailySettled(daily, day){
 if(typeof module !== "undefined") module.exports = {
   UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
   unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed,
-  CURRICULUM_VER, migrateCurriculum, placeLesson, soruItems, soruMin, GATE_AFTER, insertLessonAfter
+  CURRICULUM_VER, migrateCurriculum, sinceIds, placeLesson, soruItems, soruMin, GATE_AFTER, insertLessonAfter
 };

@@ -117,9 +117,13 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   önerir; (b) Temeller'in ortasındaki kullanıcıda yalnız geride kalan yeni dersler `placed`, öndekiler sırada;
   (c) sıfır kullanıcıda hiçbir şey `placed` değil; (d) göç ikinci açılışta çalışmaz; (e) yedekten eski kayıt geri
   yüklenince göç yeniden çalışır.
-  *Uygulanan:* `lessons.js` `CURRICULUM_VER = 2`, `migrateCurriculum(prog, fromVer, day)`, `placeLesson`; açılışta
-  `practice.js` çalıştırır (`lesson.ver` yoksa 1 sayılır; yedekten dönen eski kayıtta `lesson.ver` yok ya da eski, göç
-  yeniden çalışır). "Ötesine geçti" ölçütü dörtlü: aynı ünitede sonraki ders bitmiş, dizide hemen sonraki ders bitmiş,
+  *Uygulanan:* `lessons.js` `CURRICULUM_VER = 2`, `migrateCurriculum(prog, seen, day)`, `placeLesson`; açılışta
+  `practice.js` çalıştırır. **Sürüme değil kimliğe bağlı (S1.1'de düzeltildi):** `lesson.migIds` değerlendirilmiş
+  `since`'li derslerin listesi; listede olmayan her yeni ders bir kez değerlendirilir. Sürüm numarası yetmiyordu: S0.1'i
+  açan kullanıcıda `lesson.ver` 2 olmuştu ve aynı sürüme sonradan eklenen dersler hiç göçe girmiyordu. Yedekten dönen
+  eski kayıtta liste eski ya da yok, göç yeniden çalışır. Seviye sınaması da sonunda göçü çalıştırır (`onboard.js`):
+  sınamanın bitmiş saydığı derslerin arasına giren dersler "istersen" geçilir, önceki sınamadan kalan böyle kayıtlar
+  önce silinir. "Ötesine geçti" ölçütü dörtlü: aynı ünitede sonraki ders bitmiş, dizide hemen sonraki ders bitmiş,
   ünite sınavı geçilmiş ya da `GATE_AFTER` zincirinde sonra gelen bir ünitede ders bitmiş (ünitenin sonuna eklenen ders
   sınavsız ilerleyen kullanıcıyı da kilitlemesin). Göçle geçilen ders `placed` ve `mig` işaretlenir. **Düzeltme:**
   `srsSync` `placed` dersleri de tekrara alıyordu (sınamayla geçilenler bilerek); göç dersleri `mig` ile dışarıda
@@ -159,7 +163,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S1 — Sıfırdan ilk eserlere (Başlangıç aşaması; ≈ 2 hafta)
 
-- [ ] **S1.1 Temeller'e ezgi ve pekiştirme dersleri** (B, E1, E2). Var olan beş dersin arasına, hepsi `unit:"temel"`,
+- [x] **S1.1 Temeller'e ezgi ve pekiştirme dersleri** (B, E1, E2). **Yapıldı (15 Kasım 2026).** Var olan beş dersin arasına, hepsi `unit:"temel"`,
   `since:2`. Kalıp: `listen` → `notes` (yeni geçişler, `maxMiss:3`) → `piece` ×2 (`mode:"free"` sonra `"tempo"`,
   `min:70`) → `quiz` (`mode:"staff"`, o ana kadarki notalar, `n:8, min:6`).
 
@@ -176,6 +180,13 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   hangi geçiş zor, nasıl çalışılır (yavaş, iki notayı ayırıp tekrar).
   *Kabul:* S0.4 "yalnız öğretilmiş nota" denetimi geçer; Temeller sınavına (`sinav-temel`) `e-t10` adımı eklenmez
   (sınav adım sırası korunur), yerine S5.3'te ele alınır.
+  *Uygulanan:* `lessons.js` "S1.1 Temeller ezgileri" bloğu (`insertLessonAfter`, ortak kalıp `ezgiSteps`), etütler
+  `repertoire.js` `e-t1`…`e-t10`. Kurallar betikle ölçüldü (ölçü, aralık, en çok üçlü atlama, e-t8'den sonra tek
+  dörtlü, bitiş notası); sekizlik e-t6'dan başlıyor, e-t5'te noktalı ikilik (3/4) var. `ezgi-pes`, S1.2'nin
+  `ariza-*` dersleri varsa onların arkasına girer. Üç etütlü `ezgi-iki-el`'de yalnız ilk etüt serbest takiple, diğer
+  ikisi yalnız tempoda (adım sayısı makul kalsın). Sınama bu dersleri bitmiş saymaz, göçle "istersen" yapar (S5.2'nin
+  ezgi kısmı böylece karşılandı). Mikrofonlu adımlar tarayıcı panelinde çalıştırılamadı (mikrofon engelli); notaların
+  çizimi, ders sırası, kilit ve göç tarayıcıda denendi. README ders sayısı dalga sonunda güncellenecek.
 - [ ] **S1.2 Arızalı notalar iki derse yayılsın** (O, E2). `pes` dersi kalır (kimlik ve adımlar aynı). Yeni:
   `ariza-1` "Fa♯3, Sol♯3, Si♭3" (54, 56, 58) ve `ariza-2` "Do♯4, Mi♭4 ve kromatik dizi" (61, 63; sonra 52'den 67'ye
   kromatik `notes`, `maxMiss:4`). Her derste: `read` (hangi mandal; metin `describeFingering` çıktısından üretilir,

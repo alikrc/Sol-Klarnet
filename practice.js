@@ -858,11 +858,12 @@
     setBandFreqs,
     markResetting: () => { resetting = true; } };
   // Müfredat göçü (lessons.js migrateCurriculum): araya eklenen dersler eski kullanıcının ötesine geçtiği yerde bitmiş sayılır
-  if(store.get("lesson.ver", 1) < CURRICULUM_VER){
-    const prog = store.get("lesson.prog", {});
-    if(Object.keys(prog).length && migrateCurriculum(prog, store.get("lesson.ver", 1), dayKey(new Date())).length) store.set("lesson.prog", prog);
-    store.set("lesson.ver", CURRICULUM_VER);
-  }
+  { const seen = new Set(store.get("lesson.migIds", [])), ids = sinceIds();
+    if(ids.some(id => !seen.has(id))){
+      const prog = store.get("lesson.prog", {});
+      if(Object.keys(prog).length && migrateCurriculum(prog, seen, dayKey(new Date())).length) store.set("lesson.prog", prog);
+      store.set("lesson.migIds", [...new Set([...seen, ...ids])]);
+    } }
   setGuided(store.get("lesson.guided", true));            // kademe kapısı (lessons.js), sekmeler kurulmadan önce
   TABS.forEach(([id]) => { modules[id] = TRAINERS[id](ctx); });
   // Ana sayfadaki eser sayısı dizinden gelir: açılış bitince dizin yüklenir (derlemeye göre sayı değişebilir, archive.js)
