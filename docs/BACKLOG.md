@@ -2,6 +2,428 @@
 
 Kodla bitmeyen işlerin güncel listesi: [DENEME-LISTESI.md](DENEME-LISTESI.md) (telefonda ve klarnetle denenecekler).
 
+## Sıfırdan ileriye müfredat denetimi ve içerik PBI'ları (15 Kasım 2026)
+
+Proje sahibi (15 Kasım): "İçeriği artır, eksik her şeyi çıkar, uygulanabilecek ayrıntıda PBI yaz. Hoca test etmeyecek.
+Uygulama hiçbir şey bilmeyen birini sıfırdan ileri seviyeye götürmeli." Bu bölüm o denetimin sonucu. Yalnız **içerik
+ve öğrenme yolu**; arayüz işleri (U grubu) ve teknik işler aşağıdaki bölümlerde duruyor.
+
+**Bakılanlar:** `lessons.js` (89 ders, 9 ünite, sınavlar, kapılar), `repertoire.js` (28 etüt), `learn.js` (20 makam,
+19 usul), `teori.js` (8 konu), `sorunlar.js` (19 sorun), `roadmap.js` (6 aşama, 21 kilometre taşı), `reading.js`
+(deşifre, dikte, aralık), `videos.js` (122 video, 46 derse bağlı), `core.js` (parmak verisi yazılı 52–99), `notalar/`
+(3037 eser). **Bakılamayanlar:** ders metinlerinin tek tek müzikal doğruluğu ve mikrofonlu adımların gerçek klarnetle
+davranışı. Aşağıdaki eşik ve tempo değerleri var olan benzer derslerden alındı; gerçek çalgıyla ölçülmedi.
+
+### Bugünkü müfredat (envanter)
+
+| Ünite | Ders | Etüt | Öğrettiği | Denetim notu |
+|---|---|---|---|---|
+| Başlarken | 14 | 0 | Montaj, kamış, duruş, eller, ağızlık, ilk ses, uzun ses, dil, ilk geçiş, nefes, nota okuma, hece, ritim, usule giriş | En dolu ünite. Okuma tek ders, 6 nota |
+| Temeller | 5 | 2 | Pes bölgenin 19 notası (Mi3–Si♭4) | **Çok dik:** ders başına 3–7 yeni nota, toplam 2 ezgi |
+| Register ve klarino | 2 | 1 | Si4–Do6, 14 nota | **En dik yer:** ikinci ders tek seferde 11 nota |
+| Teknik ve üslup | 13 | 1 | Uzun ton, glissando, vibrato, kırılma, dil, dinamik, ton, usul ×2, kulak, deşifre, dikte, aralık | Dil vuruşu yalnız ritim ölçüyor (kesik/bağlı ayrımı yok) |
+| Hız ve teknik | 7 | 1 | Dizi, arpej, üçlü, onaltılık, makam dizisi hızda | Kromatik dizi ve iki oktav yok |
+| Süsleme | 8 | 2 | Çarpma, mordan, tril, grupetto, kayış, düşüş | Yeterli |
+| Makamlar | 21 | 9 | 19 makam + "makam bulma" | 10 makam dersinin etüdü yok; geçki, şed, form yok |
+| Trakya ve Roman | 11 | 11 | Kasap, karşılama, roman, çiftetelli, rumeli, sirto, köçekçe, zeybek, Nikriz | Yeterli; başka yöre yok |
+| İleri | 9 | 1 | Taksim ×5, kulak, iç tempo, deşifre, dikte | Altissimo, saz eseri icrası, geçkili taksim, repertuvar yok |
+
+Araç olarak var, ders yoluna bağlı olmayanlar: nota arşivi (3037 eser; "kolaydan zora" sıralama ve üç seviye var ama
+hiçbir ders arşivden eser çaldırmıyor, `piece` adımı yalnız `ETUDES`'i tanıyor), Teori sayfası (8 konu ve alıştırmaları;
+derslerde `read` adımı "Onay" ile geçiliyor, bilgi ölçülmüyor), Kulaktan çıkar, Eşlik, Çevir.
+
+### Bulgular: sıfırdan ileriye yolda eksikler
+
+| # | Eksik | Kanıt | PBI |
+|---|---|---|---|
+| E1 | **İlk 3 ayda çalacak ezgi yok.** Hiç bilmeyen biri nota öğreniyor ama müzik çalmıyor | İlk 21 derste 3 etüt (`e-sol-el`, `e-iki-el`, `e-register`) | S1.1, S1.6 |
+| E2 | **Temeller çok hızlı.** "Pes bölge" dersi 7 notayı, 5 diyez/bemolü "birer kez tanıtıp" geçiyor | `pes`: notes 53, 52, 58, 54, 56, 61, 63 | S1.1, S1.2 |
+| E3 | **Klarino iki ders.** Si4–Re5 bir ders, Mi5–Do6 ve 5 arızalı nota tek ders. Kırılma çalışması (`register-gecisi`) bundan sonra, Teknik'te geliyor | `klarino`: 11 nota | S2.1 |
+| E4 | **Altissimo hiç öğretilmiyor.** Parmak verisi 99'a kadar var, dersler 84'te (Do6) bitiyor | `LEVELS.altissimo` 85–99; `LESSONS` en tiz 84 | S2.4 |
+| E5 | **Nota okuma tek ders.** Sus, nokta, bağ, donanım, arıza kuralı, tekrar işaretleri (dolap, senyo, D.C., Fine), ek çizgiler, tempo ve nüans terimleri ders olarak yok; arşivden eser açan kullanıcı bunları görüyor | `nota-okuma`: 1 okuma + 6 notalık test | S1.4 |
+| E6 | **Bilgi ölçülmüyor.** 16 `read` adımı onayla geçiliyor; Teori sayfasının soruları derse bağlı değil | `lessons.js` adım türleri | S0.2 |
+| E7 | **Kesik, bağlı, aksan yok.** Artikülasyon dersi dört ritim kalıbı; notanın uzunluğu ölçülmüyor | `artikulasyon`: 4 × `rhythm` | S2.2 |
+| E8 | **Dizi ve arpej programı eksik.** Kromatik dizi, iki oktav makam dizisi, aksak usulde gruplar yok | `techPattern` türleri: scale, arp, groups, thirds, break | S2.3 |
+| E9 | **10 makam dersinin etüdü yok.** Bayâtî, Karcığar, Hümâyun, Uzzâl, Zirgüleli Hicaz, Sûzinak, Hicazkâr, Kürdîli Hicazkâr, Mâhur, Acemaşîran dersleri dizi ve taklitle bitiyor | Ders adımları | S3.1 |
+| E10 | **Arşivde sık, uygulamada olmayan makamlar.** Muhayyer 78 eser, Bûselik 73, Muhayyer Kürdî 50, Acemkürdî 46, Neveser 42, Evç 37, Sûzidil 37, Tâhir 35, Gerdâniye 32, Nişâburek 32, Şehnaz 32, Yegâh 30, Sultânîyegâh 29 (toplam 553 eser, arşivin %18'i) | `notalar/` dosya adları | S3.2 |
+| E11 | **Makam dersi sığ.** Her makam tek ders: dizi, 1 ezgi, taklit. Karar kalıpları, çeşni çalışması, o makamda gerçek eser, benzer makamdan ayırma ve taksim aynı derste değil | Makam ders kalıbı | S3.3 |
+| E12 | **Geçki öğretilmiyor.** Bütün derslerde sözcük bir kez geçiyor; eserlerin çoğu geçkili | `lessons.js` "geçki": 1 | S3.4 |
+| E13 | **Şed (göçürme) ve ahenk yok.** Makam hep kendi yerinden çalınıyor; solistle çalan klarnetçi makamı başka perdeden çalar | Ders yok; Teori'de yalnız transpozisyon | S3.5 |
+| E14 | **Form bilgisi yok.** Arşiv: şarkı 1527, türkü 356, saz semâîsi 122, peşrev 118, aranağme 77, beste 63, ilâhi 63; kullanıcı hane, teslim, meyan, aranağme nedir bilmeden açıyor | Teori 8 konu, form yok | S3.6 |
+| E15 | **Veride olup dersi olmayan usuller.** Ağır Aksak ile 11 Kasım'da eklenen Nîm-sofyan, Sengin Semâî, Devr-i Hindî, Müsemmen hiçbir derste yok. Aksak Semâî 177 eserle veride de yok (B1) | `USULS` 19, derslerde 14 | S3.7 |
+| E16 | **Dereceli repertuvar yok.** Öğrenci "sıradaki eserim ne" sorusuna cevap bulamıyor | Arşiv ders yoluna bağlı değil | S0.3, S4.1 |
+| E17 | **Tek yöre: Trakya.** Türkü (356 eser), Ege zeybekleri (19), Rumeli türküleri (16) için ders yok; zeybek tek ders | `trakya` ünitesi | S4.2 |
+| E18 | **Fasıl ve eşlik pratiği yok.** Aranağme, şarkıya giriş, söz arasını doldurma, solistin perdesine uyma | Ders yok; 77 aranağme arşivde | S4.3 |
+| E19 | **Saz eseri icrası yok.** İleri ünite taksimle bitiyor; peşrev, saz semâîsi, longa çalınmıyor | `ileri`: 9 ders | S4.4 |
+| E20 | **Taksim beş derste kalıyor.** Geçkili taksim, usullü (eşlik üstünde) taksim, meyan ve tiz bölge, uzun taksim planı yok | `taksim-*` | S4.5 |
+| E21 | **Kulaktan çalma yolu yok.** `mimic` yalnız makam derslerinde tek adım; Kulaktan çıkar aracı derse bağlı değil | Ders adımları | S4.6 |
+| E22 | **Ezber ve icra hazırlığı yok.** Notasız çalma, kendini kaydedip değerlendirme, bir eseri baştan sona hazırlama | `piece` modları: tempo, free | S4.7 |
+| E23 | **Çalışma yöntemi öğretilmiyor.** Yavaş çalışma, parçalara bölme, ısınma sırası, günlük süre; hocasız öğrenci için en kritik bilgi | Ders yok | S1.5 |
+| E24 | **Çalgıyı akortlama ve bakım dersi yok.** Bakım tek okuma adımı; barili çekme, ısınınca tizleşme, kamış döndürme yalnız Sorunlar'da | `klarneti-tani` 3. adım | S1.5 |
+| E25 | **Nefes ileri kademesi yok.** Uzun cümle planı, nefes yeri işaretleme, sürekli nefes | `nefes-cumle` tek ders | S2.5 |
+| E26 | **Terimler sözlüğü yok.** Dersler çeşni, yeden, asma karar, teslim, velvele gibi 100'e yakın terim kullanıyor | Sözlük sayfası yok | S5.4 |
+| E27 | **Yol haritası ve sınama yeni içeriği bilmiyor.** Taş, sınav ve seviye sınaması 89 derse göre kurulu | `roadmap.js`, `onboard.js` | S5.1–S5.3 |
+| E28 | **Bitiş yok.** Son dersten sonra "ileri seviye oldun" diyen ölçülü bir bitirme yok | `ileri` sınavı karışık adımlar | S5.5 |
+
+### Hedef müfredat
+
+Bugün 89 ders, 28 etüt, 20 makam. Hedef **≈ 170 ders, ≈ 75 etüt, 33 makam, 60 dereceli eser**. Süreler günde 30 dk
+çalışmaya göre kaba tahmin (`roadmapPace` ders başına ≈ 3 gün sayıyor).
+
+| Aşama | Süre | Bugün | Hedef | Bitince öğrenci ne yapabilir |
+|---|---|---|---|---|
+| 1 Başlangıç | 0–4 ay | 19 ders | 34 | Pes bölgede 19 notayı okur, 10 kısa ezgi ve arşivden 5 kolay eser çalar, 4 usulü vurur |
+| 2 Temel çalgıcı | 4–9 ay | 15 ders | 30 | Mi3–Do6 arası çalar, kırılmayı temiz geçer, kesik ve bağlı çalar, 10 eser |
+| 3 Orta | 9–15 ay | 15 ders | 22 | ♩=100 onaltılık, süslemeler, kromatik dizi, iki oktav diziler |
+| 4 Makam | 15–27 ay | 21 ders | 48 | 33 makamda dizi, karar, etüt ve eser; geçki ve şed; form bilgisi; 20 eser |
+| 5 Yöreler ve fasıl | 21–30 ay | 11 ders | 24 | Trakya, türkü ve zeybek; aranağme ve şarkı eşliği |
+| 6 İleri | 27–36 ay+ | 9 ders | 20 | Altissimo, saz eserleri, geçkili ve usullü taksim, ezberden icra, bitirme sınavı |
+
+### Bütün PBI'lar için ortak kurallar
+
+1. **Var olan ders kimliği ve adım sırası değişmez.** İlerleme `lesson.prog` kaydında adım indeksine bağlı. Yeni
+   içerik yeni ders kimliğiyle gelir; var olan derse adım yalnız **sona** eklenir (eklenince o ders eski kullanıcıda
+   "bitmemiş" görünür, bu yüzden tercih yeni ders).
+2. **Araya ders girince eski kullanıcı kilitlenmesin:** S0.1 göçü olmadan Temeller ve Klarino'ya ders eklenmez
+   (`unlocked()` içindeki `base()` bu iki ünitenin bütün derslerini ister).
+3. **Her metin iki dilde** (`{ tr, en }`); makam ve perde adları iki dilde Türkçe kalır.
+4. **Müzikal bilgi uydurulmaz.** Dizi, durak, güçlü, yeden, seyir TDV İslâm Ansiklopedisi maddesinden alınır ve
+   `KAYNAKLAR.md`'ye yazılır; kaynakların ayrıştığı yerde ders iki görüşü de söyler. Doğrulanmayan kalıp, parmak ya da
+   tavır bilgisi eklenmez; "hocaya sor" ya da "uzman görmeli" notu yazılmaz (hoca yok).
+5. **Etütler özgün yazılır** (telif yok), `repertoire.js` `ETUDES` biçiminde; makam etütleri perde adlarıyla, başlangıç
+   etütleri nota adlarıyla. Her makam etüdü seyri izler: giriş bölgesi, güçlüde yarım karar, durakta tam karar; yalnız
+   `MAKAMS[x].asc/desc` perdeleri. Yazıldıktan sonra `barCheck` ve `rangeIssues` ile denetlenir.
+6. **Yeni ders eklenince dokunulacak yerler:** `lessons.js` (`LESSONS`, gerekiyorsa `EXAMS`, `GATE_AFTER`,
+   `unlocked`), `roadmap.js` (`RM_STAGES` ünite listesi ve taşlar), `onboard.js` (sınamanın bitmiş saydığı dersler),
+   `premium.js` (`units`), `videos.js` (`LESSON_VIDEOS`), `sorunlar.js` ve `search.js` bağlantıları, `sw.js` önbellek
+   sürümü, `README.md` ders sayısı.
+7. **Doğrulama (test yok):** S0.4 denetim betiği temiz çıkar; tarayıcıda 375 px genişlikte yeni dersler açılır, her
+   adım türü bir kez başlatılır, konsolda hata yok; rehberli modda sıfır kullanıcı ve eski kullanıcı (bütün dersleri
+   bitmiş kayıt) ile hoca kartı çıkmaza girmez.
+
+Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
+
+### S0 — Altyapı (önce bunlar; ≈ 1 hafta)
+
+- [ ] **S0.1 Müfredat sürümü ve göç** (O). *Neden:* Temeller ve Klarino'ya ders eklenince `base()` yanlış olur,
+  bütün dersleri bitirmiş kullanıcıda Teknik, Hız, Süsleme ve Makam yeniden kilitlenir.
+  *Yapılacak:* `lessons.js`'e `CURRICULUM_VER` (şimdi 2) ve yeni derslere `since: 2` alanı. Uygulama açılışında
+  `lesson.ver` kaydı `CURRICULUM_VER`'den küçükse bir kez çalışan `migrateCurriculum(prog)`: `since` değeri kullanıcının
+  sürümünden büyük her ders için, **aynı ünitede ondan sonra gelen bir ders bitmişse ya da o ünitenin sınavı geçilmişse**
+  dersi `placed` olarak işaretle (seviye sınamasının kullandığı kayıt biçimi; `onboard.js` `finish`). Sonra
+  `lesson.ver` yazılır. `placed` ders listede "✓ (sınamayla)" görünür, kullanıcı isterse çalar; aralıklı tekrara
+  girmez (`srsSync` zaten çalınmamış dersi almıyor).
+  *Kabul:* (a) 89 dersi bitmiş kayıtla açınca hiçbir ünite kilitlenmez, hoca kartı yeni dersleri "istersen" diye
+  önerir; (b) Temeller'in ortasındaki kullanıcıda yalnız geride kalan yeni dersler `placed`, öndekiler sırada;
+  (c) sıfır kullanıcıda hiçbir şey `placed` değil; (d) göç ikinci açılışta çalışmaz; (e) yedekten eski kayıt geri
+  yüklenince göç yeniden çalışır.
+- [ ] **S0.2 Adım türü: `soru`** (O, E6). `{ type:"soru", q:{tr,en}, opts:[{tr,en}…], ok:<indeks>, why:{tr,en} }`;
+  bir adımda `items:[…]` ile 3–6 soru, `min` doğru sayısı. Seçenekler karıştırılır, yanlışta `why` gösterilir ve soru
+  tur sonunda yeniden gelir. Mikrofonsuz. `lessonview.js`'te `hece` adımının "quiz" kipindeki arayüz yeniden
+  kullanılır; `stepOk`/`recordStep` puanı doğru sayısı. İsteğe bağlı `staff:[midi…]` alanı soruda dizek çizer
+  (`chartsheet.js`), `fing:<midi>` parmak kartı gösterir.
+  *Kabul:* derste ve ünite sınavında çalışır; `reviewStep` bu adımı tekrara alabilir; ekran okuyucuda seçenekler
+  düğme olarak okunur. Var olan `read` adımlarına dokunulmaz; yeni derslerde her `read`'in ardından bir `soru` gelir.
+- [ ] **S0.3 `piece` adımı arşiv eserini çalsın; "eser dersi" kalıbı** (B, E16). Bugün `piece.id` yalnız `etudeById`.
+  *Yapılacak:* `{ type:"piece", arsiv:"<notalar kimliği>", from?, to?, tempoPct?, mode, min }`. `from`/`to` ölçü
+  numarası (1 tabanlı, dahil); `tempoPct` eserin kendi temposunun yüzdesi (60, 80, 100). Eser `notalar/<id>.json`'dan
+  yüklenir (`archive.js` yükleyicisi; çevrimdışı için ders listesindeki eserler `sw.js` ön belleğine eklenir),
+  `expandRepeats` uygulanmış hâli ölçülere bölünür (`barsAt`). Değerlendirme `alignPerformance` ile, etütle aynı.
+  Yardımcı `eserSteps(id, parts, o)` (`techSteps` gibi): bir eser için sırayla `listen` (bölüm) → `piece` bölüm
+  `tempoPct:60, mode:"free"` → sonraki bölüm … → `piece` tamamı `tempoPct:80, mode:"tempo"` → tamamı `100`.
+  *Kabul:* 3 örnek eserle (kısa bir türkü, bir şarkı, bir saz semâîsi) ders açılır; bölüm döngüsü doğru ölçülerde
+  başlar ve biter; tekrar işaretli eserde bölüm sınırı kaymaz; internet yokken ders açılır; eser arşivden kalkarsa
+  ders "eser bulunamadı" der ve geçilebilir olur (çıkmaz yok).
+- [ ] **S0.4 Müfredat denetim betiği** (K). `scripts/mufredat-check.js` (`npm run mufredat`), ölçüm betiği; test
+  değil. Denetler: ders kimlikleri tekil; her `piece.id` `ETUDES`'te, her `piece.arsiv` `notalar/`'da var; her
+  `makam`, `usul`, `pattern` kimliği veride var; her etüt yalnız o derse kadar öğretilmiş notaları kullanıyor
+  (`knownNotes`); makam etütleri yalnız makamın perdelerini kullanıyor; her metinde `tr` ve `en` dolu; her ünitede
+  sınav var; `RM_STAGES` bütün üniteleri kapsıyor; `GATE_AFTER` döngüsüz. Çıktı: ünite başına ders, etüt, yeni nota
+  sayısı tablosu (bu bölümdeki envanterin güncel hâli).
+
+### S1 — Sıfırdan ilk eserlere (Başlangıç aşaması; ≈ 2 hafta)
+
+- [ ] **S1.1 Temeller'e ezgi ve pekiştirme dersleri** (B, E1, E2). Var olan beş dersin arasına, hepsi `unit:"temel"`,
+  `since:2`. Kalıp: `listen` → `notes` (yeni geçişler, `maxMiss:3`) → `piece` ×2 (`mode:"free"` sonra `"tempo"`,
+  `min:70`) → `quiz` (`mode:"staff"`, o ana kadarki notalar, `n:8, min:6`).
+
+  | Yeni ders | Yeri | Notalar (yazılı) | Yeni etütler |
+  |---|---|---|---|
+  | `ezgi-sol-el` "Sol elle iki ezgi" | `sol-el-2`'den sonra | Do4–Sol4 (60, 62, 64, 65, 66, 67) | `e-t1`, `e-t2` |
+  | `ezgi-iki-el` "İki elle üç ezgi" | `sag-el`'den sonra | Sol3–Sol4 | `e-t3`, `e-t4`, `e-t5` (biri 3/4) |
+  | `ezgi-pes` "Pes bölge ezgileri" | `pes`'ten sonra | Mi3–Sol4 | `e-t6`, `e-t7` |
+  | `ezgi-bogaz` "Boğaz notalarıyla ezgi" | `bogaz`'dan sonra | Mi3–Si♭4 | `e-t8`, `e-t9` (biri 2/4) |
+  | `temel-tekrar` "Pes bölge: toparlama" | ünitenin sonu | hepsi | `e-t10` (16 ölçü) |
+
+  Etüt kuralları: 8 ölçü, tempo 66–80, `level:1`, yalnız dörtlük, ikilik, birlik ve (e-t5'ten sonra) sekizlik;
+  en çok üçlü atlama, e-t8'den sonra bir dörtlü; her etüt Sol4, Re4 ya da Sol3'te biter. Ders metni 2 paragraf:
+  hangi geçiş zor, nasıl çalışılır (yavaş, iki notayı ayırıp tekrar).
+  *Kabul:* S0.4 "yalnız öğretilmiş nota" denetimi geçer; Temeller sınavına (`sinav-temel`) `e-t10` adımı eklenmez
+  (sınav adım sırası korunur), yerine S5.3'te ele alınır.
+- [ ] **S1.2 Arızalı notalar iki derse yayılsın** (O, E2). `pes` dersi kalır (kimlik ve adımlar aynı). Yeni:
+  `ariza-1` "Fa♯3, Sol♯3, Si♭3" (54, 56, 58) ve `ariza-2` "Do♯4, Mi♭4 ve kromatik dizi" (61, 63; sonra 52'den 67'ye
+  kromatik `notes`, `maxMiss:4`). Her derste: `read` (hangi mandal; metin `describeFingering` çıktısından üretilir,
+  elle parmak tarifi yazılmaz) → `soru` (parmak kartından nota bul, 4 soru) → `hold` her yeni nota 4 sn `min:45` →
+  `notes` komşularıyla geçiş → `quiz` `mode:"play"`. `ariza-2`'de serçe parmağın mandaldan mandala kayması için ayrı
+  `notes` adımı (Mi3–Fa3–Fa♯3–Sol♯3 ileri geri). Yer: `pes`'ten sonra, `ezgi-pes`'ten önce.
+- [ ] **S1.3 İlk diziler** (K). `dizi-ilk` "İlk diziler: Sol ve Do" Temeller'in sonunda, `temel-tekrar`'dan önce:
+  `techSteps({ type:"scale", base:55, mode:"major", sub:1 }, 50, 66)`, aynısı `base:60` ve `{ base:57, mode:"minor" }`.
+  Metin: dizi nedir, neden her gün; Türk müziğinde karşılığı (Do majör dizisi Çargâh, Sol'den majör Mâhur'a yakın;
+  "yakın" sözü kalır, eşitlik iddia edilmez). Önce `techPattern`'in `sub:1` (dörtlük) desteklediğine bakılır,
+  desteklemiyorsa eklenir.
+- [ ] **S1.4 Nota okuma 2–5** (B, E5). Dört yeni ders, `unit:"baslangic"` yerine **Temeller**'e dağıtılır (okuma,
+  çalınan notayla birlikte ilerlesin):
+
+  | Ders | Yeri | İçerik | Adımlar |
+  |---|---|---|---|
+  | `okuma-2` "Süreler: sus, nokta, bağ" | `ezgi-sol-el`'den önce | Dörtlük, ikilik, birlik, sekizlik susları; noktalı nota; uzatma bağı ile ifade bağının farkı | `read`, `soru` ×5 (dizekte süre say), `hece` `lv:2` vur, `rhythm` noktalı kalıp |
+  | `okuma-3` "Diyez, bemol, natürel ve donanım" | `ariza-1`'den önce | Arıza ölçü boyunca geçerlidir; donanım; natürel; Türk müziği işaretleri (koma, bakiye, küçük ve büyük mücenneb: `aeu-accidentals` kuralı, ♯ = +4, ♭ = −5, çizgili ♭ = −4) | `read` ×2, `soru` ×6 (`staff` alanıyla), `quiz` `mode:"staff"` arızalı notalar |
+  | `okuma-4` "Yol işaretleri" | `ezgi-pes`'ten sonra | Tekrar çizgileri, 1. ve 2. dolap, senyo, D.C., D.S., Fine, koda; "bu eser hangi sırayla çalınır" | `read`, `soru` ×5 (ölçü sırası), `piece` `e-t7b` (dolaplı özgün 8 ölçü) |
+  | `okuma-5` "Ek çizgiler, tempo ve nüans" | `temel-tekrar`'dan önce | Mi3–Si3 ek çizgileri; ♩=, ağır/yürük terimleri; p, f, cresc., nefes işareti | `read`, `quiz` `mode:"staff"` 52–60, `soru` ×4, `sight` seviye 1 |
+
+  `okuma-4` için `expandRepeats`'in dolap desteği var; etüt metin biçiminin tekrar işaretini nasıl yazdığına
+  `parseScoreText`'ten bakılır. Teori sayfasının "Dizek" ve "Nota değerleri" konuları bu derslere bağlantı verir.
+- [ ] **S1.5 Hocasız öğrenci dersleri: çalışma yöntemi, ısınma, akort, bakım** (O, E23, E24). Dördü de kısa,
+  ağırlıkla `read` + `soru`:
+  - `nasil-calisilir` (Başlarken, `ilk-gecis`'ten sonra): yavaş çalış, zor yeri iki notaya indir, 5 temiz tekrar
+    kuralı, 20–30 dk günlük, yorulunca bırak (dudak), kayıt dinle. Adım: `read`, `soru` ×4, bir `notes` adımı iki
+    kez (önce serbest, sonra "yarı hızda" metniyle).
+  - `isinma` (Temeller, `sag-el`'den sonra): 5 dakikalık sıra (nefes, açık Sol uzun ton, pes uzun ton, yavaş dizi).
+    Adım: `hold` 67 8 sn, `hold` 55 8 sn, `notes` Sol3–Sol4. Günlük çalışmanın ısınma turu bu dersi bitirenlerde bu
+    sırayı kullanır (`dailyPlan`).
+  - `akortlama` (Temeller sonu): klarnet ısınınca tizleşir, baril çekilir/itilir, hangi notayla akort edilir, A4
+    ayarı ve Akort ekranı. Adım: `read`, `hold` 67 6 sn (sapma gösterilir), `soru` ×3. Bilgi `sorunlar.js` "akort"
+    maddesiyle aynı dile çekilir, yeni iddia eklenmez.
+  - `bakim` (Başlarken sonu): çalış sonrası kurulama, kamış döndürme ve saklama, mantar yağı, mandal yastıkları, ne
+    zaman tamirciye. `equip.js` kamış ömrü sayacına bağlantı. Adım: `read` ×2, kontrol listesi (var olan
+    `durus-nefes` listesi kalıbı), `soru` ×3.
+- [ ] **S1.6 İlk eserler basamağı** (O, E1, E16; S0.3 gerekir). `ilk-eserler-1` ve `ilk-eserler-2` (Temeller sonu),
+  her biri arşivden 2–3 eser, `eserSteps` ile. Seçim betikle: `scripts/eser-sec.js` arşivi tarar; ölçüt: yazılı
+  aralık 52–70 içinde, en kısa süre onaltılık değil sekizlik, usul Sofyan/Düyek/Nîm-sofyan/Semâî, süre ≤ 90 sn,
+  makam Rast/Uşşak/Hüseynî/Nihâvend/Kürdî (koma perdesi olan eserlerde ders metni "Segâh'ı şimdilik Si gibi çal,
+  perdesini Makamlar'da öğreneceksin" der). Betik aday listesi basar, kimlikler elle seçilip derse yazılır. Telif:
+  yalnız `lisans-besteciler.csv`'de kamu malı görünen ya da anonim eserler.
+
+### S2 — Klarino, teknik ve nefes (Temel ve Orta aşama; ≈ 2 hafta)
+
+- [ ] **S2.1 Klarino ünitesi 2 dersten 8 derse** (B, E3). Var olan `register` ve `klarino` dersleri kalır; `klarino`
+  ünitenin toparlama dersi olur (başlığı "Klarino bölgesi: hepsi birden" yapılır, adımlar aynı).
+
+  | Yeni ders | Yeri | Notalar | Adımlar |
+  |---|---|---|---|
+  | `onikili` "On ikili: aynı parmak, iki ses" | `register`'den önce | 52→71, 53→72, 55→74 | `read`, `listen`, her çift için `notes` [pes, tiz, pes] `maxMiss:1`, `hold` 71 4 sn |
+  | `kirilma-1` "La4–Si4: kırılmayı geçmek" | `register`'den sonra | 69, 70, 71, 72 | `notes` 69–71 ×8, 70–72 ×8, `techSteps({type:"break", pair:[69,71], sub:2}, 50, 66)` |
+  | `klarino-1` "Mi5, Fa5, Sol5" | sonra | 76, 77, 79 | `listen`, `hold` her biri 4 sn `min:45`, `notes`, `quiz` |
+  | `klarino-2` "La5, Si5, Do6" | sonra | 81, 83, 84 | aynı kalıp, `hold` `min:40` |
+  | `klarino-ariza` "Klarino'da diyez ve bemoller" | sonra | 73, 75, 78, 80, 82 | S1.2 kalıbı |
+  | `ezgi-klarino` "İki bölgede ezgiler" | `klarino`'dan önce | Sol3–Do6 | `piece` `e-k1`, `e-k2`, `e-k3` (8–12 ölçü, biri kırılmayı her ölçüde geçer) |
+
+  Metinlerde on ikili ilişkisi parmak verisinden doğrulanır (`fingeringIds(n)` ile `fingeringIds(n+19)` register
+  mandalı dışında aynı mı; aynı olmayan çift derse konmaz). Roadmap `quiz1` taşı etkilenmez.
+- [ ] **S2.2 Artikülasyon 2: bağlı, kesik, aksan** (B, E7). Yeni adım türü `artik { notes, style:"legato"|
+  "staccato"|"tenuto", tempo, min }`: metronomla nota dizisi; ölçüm her vuruşta sesin sürdüğü oran (`runVoicedRatio`
+  ve `OnsetDetector` var). Legato: vuruşlar arası kesinti yok (sesli oran ≥ ≈ %95, perde değişimi var); staccato:
+  her notanın sesli oranı ≤ ≈ %50 ve her vuruşta yeni başlangıç; tenuto: arası. **Eşikler tahmin;** `testdata/iowa`
+  kayıtlarından yapay dizilerle `audio-check` benzeri bir ölçümle ayarlanır, sonuç `testdata/README.md`'ye yazılır.
+  Ders `artikulasyon-2` (Teknik, `artikulasyon`'dan sonra): `read` (Türk klarnet tavrında bağlı çalış baskındır, dil
+  hafif kullanılır; bu cümle kaynakla doğrulanamazsa "çoğu icracı" diye yumuşatılır) → `artik` legato 67–74 → staccato
+  → karışık (iki bağlı iki kesik) → `piece` `e-artik`. Hız ünitesinin `art:"legato"` adımları değişmez.
+- [ ] **S2.3 Dizi ve arpej programı** (O, E8). Hız ünitesine dört ders, `hiz-etut`'ten önce, `since:2`:
+  `hiz-kromatik` (yeni `techPattern` türü `chromatic { base, span }`; 52–71 ve 67–84; 60→88), `hiz-iki-oktav`
+  (`scale` `octaves:2`: Sol majör, Rast, Uşşak, Hicaz; 60→84), `hiz-aksak` (`groups` 9/8 ve 7/8 gruplamada vurgu:
+  `sub` yerine `group:[2,2,2,3]` parametresi; önce `techPattern`'e eklenir), `hiz-atlama` (dörtlü, beşli, oktav
+  atlamalar; yeni tür `leaps`). Yeni taş: "Kromatik dizi ♩=80 temiz" (Orta aşama).
+- [ ] **S2.4 Altissimo** (O, E4). İleri üniteye iki ders: `altissimo-1` (Do♯6–Mi6: 85–88), `altissimo-2` (Fa6–Sol6:
+  89–91). Adımlar: `read` (hava hızı, dudağı sıkmadan; ağız boşluğu) → her nota için alttaki klarino notasından
+  bağlı çıkış `notes` → `hold` 3 sn `min:35` → `quiz` `mode:"find"`. Parmaklar `FINGERINGS`'ten; ders başında "bu
+  bölgede çalgıdan çalgıya parmak değişir, alternatiflere bak" notu ve parmak kartı alternatifleri açık. Perde bulucu
+  bu bölgede denenmedi: önce `audio-check` ile 85–91 arası Iowa kayıtlarında doğruluk ölçülür; %90'ın altındaysa
+  dersler `hold` yerine yalnız "nota çıktı" (`notes`) ölçer.
+- [ ] **S2.5 Nefes 2 ve 3** (K, E25). `nefes-2` (Teknik): 4–8–12–16 vuruşluk cümleler, `hold` 12, 16, 20 sn
+  `min:50`; nefes yeri işaretleme (`piece` adımında virgül işaretli özgün etüt `e-nefes`; etüt metin biçimine nefes
+  işareti gerekiyorsa `parseScoreText`'e `'` belirteci eklenir, çizimde virgül). `nefes-3` "Sürekli nefes" (İleri,
+  isteğe bağlı, kapı değil): yalnız kaynaklı anlatım ve su bardağı–pipet alıştırması `read`, `hold` 67 30 sn
+  (ölçüm yalnız kesintisiz süre). Kaynak `KAYNAKLAR.md`'ye eklenir; kaynak bulunamazsa `nefes-3` yazılmaz.
+- [ ] **S2.6 Ton ve dinamik 2** (K). `dinamik-2` (Teknik): pp ve ff'te perde sabit kalsın (`dynamics` `shape:"mdv"`
+  52, 67, 79'da; ek ölçüt: sapma ±1 koma içinde, `dynamicsEval` çıktısında perde verisi var mı bakılır), yankı
+  çalışması (aynı cümle f sonra p: `piece` iki kez). Roadmap'e taş eklenmez.
+
+### S3 — Makam, usul ve teori derinliği (Makam aşaması; ≈ 4 hafta)
+
+- [ ] **S3.1 Etüdü olmayan 10 makama etüt** (B, E9; eski C1'in yerine). `e-bayati`, `e-karcigar`, `e-humayun`,
+  `e-uzzal`, `e-zirguleli`, `e-suzinak`, `e-hicazkar`, `e-kurdilihicazkar`, `e-mahur`, `e-acemasiran`: 8 ölçü, 4/4,
+  tempo 76–84, `level:3`, kural 5'e göre. İnici makamlarda (Hicazkâr, Kürdîli Hicazkâr, Mâhur, Acemaşîran) etüt
+  tiz durak çevresinden başlar. Ders adımına **sona** `piece` eklenir (bu on dersin adım sayısı 4'ten 5'e çıkar; eski
+  kullanıcıda ders "4/5" görünür, kabul edilir ve sürüm notuna yazılır) ya da S3.3'ün ikinci derslerine konur
+  (tercih: S3.3). Karcığar etüdü Trakya girişindeki "Karcığar öne çıkar" cümlesine bağlanır.
+- [ ] **S3.2 13 yeni makam** (B, E10; eski C2'nin yerine). Sıra arşiv sıklığına göre, iki dalga:
+  **Dalga 1:** Muhayyer (78), Bûselik (73), Muhayyer Kürdî (50), Acemkürdî (46), Evç (37), Tâhir (35).
+  **Dalga 2:** Neveser (42), Sûzidil (37), Gerdâniye (32), Nişâburek (32), Şehnaz (32), Yegâh (30),
+  Sultânîyegâh (29). Her makam için: `learn.js` `MAKAMS` kaydı (`id, name, durak, guclu, yeden, asc, desc, seyir,
+  seyirEn, seyirType, icra`); arşiv dosya adındaki makam kimliğiyle eşleme (`archive.js` `ARCH_MAKAM`
+  eşlemesine ek); `PERDES`'te eksik perde varsa eklenir (pest bölge: Yegâh, Hüseynî Aşîran; tiz: Tiz Çargâh…); ders
+  (var olan makam dersi kalıbı + etüt); `makamPool`/`makamChoices`'a ve Akort ekranı makam seçicisine eklenir;
+  `similarMakams` yeni çiftleri kendiliğinden bulur (Muhayyer–Hüseynî, Tâhir–Uşşak/Nevâ, Gerdâniye–Hüseynî:
+  "aynı dizi, farklı seyir" metni yalnız hesap bunu veriyorsa). Kaynak: her makamın TDV maddesi; `KAYNAKLAR.md`
+  bölüm 2'ye madde adı ve erişim tarihi. Yegâh ve Sultânîyegâh'ın durağı yazılı Re4 (Yegâh): klarnette rahat;
+  Sûzidil ve Acemkürdî'nin karar perdeleri kaynaktan teyit edilmeden yazılmaz.
+  *Kabul:* arşivden bu makamlardaki bir eser açılınca makam bilgisi kutusu dolu; S0.4 temiz; makam tanıma havuzu
+  yeni makamları ancak dersleri bitince sorar.
+- [ ] **S3.3 Her temel makama ikinci ders: "cümle, karar ve eser"** (B, E11). Önce 10 makam: Rast, Uşşak, Hüseynî,
+  Hicaz, Nihâvend, Kürdî, Saba, Segâh, Hüzzam, Karcığar. Kimlik `<makam>-2`, yeri o makamın dersinden hemen sonra
+  (S0.1 göçü gerekir). Kalıp, 7 adım:
+  1. `read`: makamın karar yolu (yeden, asma karar perdeleri; `MAKAMS[x].seyir` metninden) + `soru` ×3 (durak,
+     güçlü, yeden hangisi).
+  2. `notes` ×3: üç kısa karar kalıbı (4–6 nota; güçlüden durağa iniş, yedenli karar, yarım karar). Kalıplar
+     `asc/desc`'ten üretilir (`makamExercises` var; eksik kalıp türü eklenir), elle yazılmaz.
+  3. `seyir` `focus:"cesni"` 30 sn: yarım karar çeşnisinde kal.
+  4. `ear` `mode:"makam"` `pool:` o makam + `similarMakams` sonucu, `n:6, min:4`.
+  5. `piece` S3.1 etüdü ya da var olan etüt `mode:"tempo"` `min:75` (bir üst tempo).
+  6–7. `eserSteps`: arşivden o makamda bir kolay eser (S1.6 betiği, makam süzgeciyle; seviye 1–2).
+  Segâh ve Hüzzam'da icra perdesi notu (`ICRA_INFO`) derste gösterilir.
+- [ ] **S3.4 Geçki: üç ders** (B, E12). Yeni adım parametresi: `seyir { makam, via, sec, min }`: `via` makamının
+  ana makamdan **ayıran perdelerine** (`similarMakams`'ın fark hesabı) en az iki kez uğra, sonra ana makamın
+  durağında karar ver; puan `seyirAnalysis` + bu iki koşul. Dersler (Makamlar sonu, `makam-bulma`'dan sonra):
+  `gecki-1` "Çeşni değiştirmek" (`read` + `soru`; Rast'ta Nevâ üstünde Hicaz = Sûzinak rengi: `listen` iki cümle,
+  `notes`, `seyir` rast via suzinak), `gecki-2` "Aynı durakta komşu makam" (Uşşak↔Hicaz↔Kürdî Dügâh'ta; Hüseynî↔
+  Karcığar), `gecki-3` "Eserde geçkiyi bul" (arşivden geçkili 2 eser; betik arızaların ölçü ölçü değiştiği eserleri
+  aday gösterir; `listen` + "hangi ölçüde renk değişti" `soru`, sonra `eserSteps`). Yalnız uygulamadaki dizilerden
+  hesaplanabilen geçkiler anlatılır; "bu makam şuna geçer" türünden gelenek iddiası kaynaksız yazılmaz.
+- [ ] **S3.5 Şed (göçürme) ve ahenk** (B, E13). *Önce bakılacak:* `core.js` `setTuningContext`/`contextPerde` bir
+  makamı başka perdeye taşıyabiliyor mu; taşıyamıyorsa `scale`, `seyir` ve `mimic` adımlarına `shift:<koma>` (53
+  TET'te 9 = tanini, 22 = dörtlü, 31 = beşli) eklenir, hedef perdeler `mod53` ile kaydırılır. Dersler (İleri):
+  `sed-1` "Aynı makam, başka perde" (Rast'ı Do'dan ve Re'den: `scale` shift 22 ve 31; Hicaz'ı Nevâ'dan ve Rast'tan),
+  `sed-2` "Solistin perdesine uymak" (ahenk kavramı: Bolahenk, Süpürde, Mansur, Kız; yalnız yazılı–duyulan farkı
+  tablosu, kaynak TDV "Ahenk" maddesi; `soru` ×5; `piece` var olan `e-ussak` etüdü `transposeAll` ile iki farklı
+  perdede), `sed-3` "Sık kullanılan şed makamlar" (yalnız veride karşılığı olanlar: Hicazkâr = Zirgüleli Hicaz'ın
+  Rast'taki şeddi; bu bağ `learn.js` metninde zaten var). Arşiv eser sayfasına "başka perdeden çal" (transpoze)
+  düğmesi `shiftOctave`'in yanına; yazılı aralık 52–91 dışına çıkarsa uyarı (`rangeIssues`).
+- [ ] **S3.6 Formlar** (O, E14). Teori'ye 9. konu `form` ve ders `formlar` (Makamlar, `makam-bulma`'dan önce):
+  şarkı (zemin, nakarat, meyan), türkü, peşrev ve saz semâîsi (hane, teslim), longa, aranağme, taksim, ilâhi; her
+  biri 2–3 cümle + arşivden o formda süzülmüş liste bağlantısı (`archive.js` form süzgeci). Adım: `read` ×3, `soru`
+  ×6, bir saz semâîsinin teslimini `listen` + ölçüleri işaretli gösterme. Eser sayfasında form adına dokununca bu
+  konunun ilgili paragrafı alt panelde açılır. Kaynak: TDV form maddeleri, `KAYNAKLAR.md`'ye.
+- [ ] **S3.7 Usul 3 ve 4** (O, E15; B1 ile birlikte). `usul-3` (Teknik, `usul-2`'den sonra): Nîm-sofyan, Ağır
+  Aksak, Sengin Semâî; `usul-4` (Makamlar başı): Devr-i Hindî, Müsemmen ve, B1'de çözülürse, Aksak Semâî. Kalıp
+  `usul-2` ile aynı (`usultap` mem → `rhythm`), her usulün sonunda arşivden o usulde bir kolay eserin ilk 8 ölçüsü
+  (`piece` `arsiv`, `mode:"tempo"`). B4'ün dört usul etüdü bu derslere bağlanır. Yeni taş: "12 usulü ezberden vur".
+  Büyük usuller (Devr-i Kebîr 45 eser, Hafîf 28, Muhammes 25, Evfer 24) ayrı PBI: kalıpları TDV'den okununca.
+- [ ] **S3.8 Teori derslere bağlansın** (O, E6). Teori'nin 8 konusu için 8 kısa ders değil, var olan yola serpilmiş
+  `soru` adımlı 5 ders: `teori-koma` (Makamlar başı, `rast-giris`'ten önce: tanini, bakiye, mücenneb, 53 koma;
+  `ear` `abx` seviye 1), `teori-perde` (`rast`'tan sonra: perde adları iki oktav, `soru` ×8 + `quiz` perde adıyla),
+  `teori-cesni` (`hicaz`'dan sonra: dörtlü ve beşliler; `notes` her çeşni Dügâh ve Rast'tan), `teori-makam`
+  (`nihavend`'den sonra: durak, güçlü, yeden, seyir türleri; `soru` ×6), `teori-transpoz` (Temeller sonu: yazılı ve
+  duyulan ses). Metin Teori sayfasındakiyle aynı kaynaktan (`teori.js` konu nesnesi dışa aktarılır, ders ondan okur;
+  metin iki yerde yazılmaz).
+
+### S4 — Repertuvar, yöreler, fasıl, taksim (≈ 4 hafta)
+
+- [ ] **S4.1 Dereceli repertuvar merdiveni** (B, E16; S0.3 gerekir). Yeni sayfa Eserler → **"Sıradaki eserim"**
+  ve `repertuvar.js`: 6 basamak × 10 eser. Basamak ölçütleri betikle (`scripts/eser-sec.js --basamak`):
+
+  | Basamak | Aralık (yazılı) | En kısa değer | Usul | Makam | Süre |
+  |---|---|---|---|---|---|
+  | 1 | 52–70 | sekizlik | Sofyan, Düyek, Nîm-sofyan, Semâî | komasız ya da tek koma perdesi | ≤ 90 sn |
+  | 2 | 52–79 | sekizlik | + Aksak, Curcuna, Türk Aksağı | dersi bitmiş makamlar | ≤ 2 dk |
+  | 3 | 52–84 | onaltılık (az) | + Yürük Semâî, Devr-i Hindî, Ağır Aksak | 10 temel makam | ≤ 3 dk |
+  | 4 | 52–84 | onaltılık | hepsi | 20 makam, tek geçki | serbest |
+  | 5 | 52–88 | onaltılık, üçleme | + Aksak Semâî, Sengin Semâî | hepsi | saz semâîleri, peşrevler |
+  | 6 | 52–91 | otuzikilik | hepsi | hepsi | longalar, hızlı oyun havaları |
+
+  Her basamakta form dengesi: 4 şarkı, 2 türkü, 2 saz eseri, 2 oyun havası ya da ilâhi. Eser kartı: "öğren"
+  (`eserSteps`), "çalındı" ölçütü tam eser `tempoPct:100` `min:80`. Basamak, içinden 6 eser çalınınca tamamlanır.
+  Hoca kartı ünite derslerinin arasında "bu hafta bir eser" önerir (her 4 dersten sonra). Taşlar: her aşamaya
+  "basamak N'den 6 eser". Telif: S1.6 ile aynı süzgeç.
+- [ ] **S4.2 Yeni ünite: Türkü ve yöreler** (B, E17). `unit:"turku"`, kapı Register sınavı (`GATE_AFTER`),
+  rozet "Türkü yolcusu". 8 ders, içerik arşivdeki türkü (356), zeybek (19) ve Rumeli türküsü (16) kayıtlarından:
+  `turku-giris` (türkü formu, kırık hava ve uzun hava ayrımı; yalnız kırık hava çalışılır), `turku-sofyan`,
+  `turku-aksak` (5/8, 7/8, 9/8 türküler), `turku-huseyni` ve `turku-ussak` (türkülerde en sık iki dizi; sıklık
+  arşivden sayılır, sayı metne yazılır), `zeybek-2` (ağır zeybek 9/4 ve kıvrak 9/8; var olan `zeybek` usul verisiyle),
+  `rumeli-2`, `turku-susleme` (türküde çarpma ve tril: `ornament` adımları türkü cümlesinde). Her ders: usul
+  `usultap` → `eserSteps` 2 türkü. Yöre tavrı hakkında kaynaksız cümle yazılmaz; ders metni eserin künyesini
+  (yöre, kaynak kişi; SymbTr alanları) ve çalınan şeyi anlatır. Yöreye özgü usul kalıbı gerekiyorsa ve veride
+  yoksa o türkü seçilmez.
+- [ ] **S4.3 Fasıl ve eşlik pratiği** (B, E18). İleri üniteye 4 ders: `aranagme` (arşivdeki 77 aranağmeden Rast,
+  Hicaz, Nihâvend, Uşşak; aranağme nedir, nerede çalınır; `eserSteps`), `sarki-eslik` (şarkıyı solistle çalmak:
+  sözlü eserde ezgiyi sade çal, söz arasını doldur; `piece` adımı eserin sözlü ölçülerinde `mode:"free"`, söz
+  aralarında `listen`; SymbTr söz hizası notalarda var: `notes[i][3]`), `fasil-sirasi` (`read` + `soru`: peşrev,
+  beste, ağır semâî, şarkılar, yürük semâî, saz semâîsi; kaynak TDV "Fasıl"), `eslikle-calma` (Eşlik sekmesinde
+  darbuka ve bas üstünde iki eser; ölçüt `band.hist` usule oturma ≥ %70; `band` adım türü yoksa eklenir:
+  `{ type:"band", arsiv|id, min }`).
+- [ ] **S4.4 Saz eserleri** (O, E19; S3.6 ve B1 Aksak Semâî gerekir). İleri: `pesrev-1` (bir peşrevin 1. hanesi ve
+  teslimi), `sazsemaisi-1` (bir saz semâîsinin 1.–3. haneleri; Aksak Semâî 10/8), `sazsemaisi-2` (4. hane: usul
+  değişir; aynı eser), `longa-1` (hızlı 2/4; `tempoPct` 60→80→100). Eserler basamak 5–6'dan, bestecisi kamu malı.
+  Her derste hane hane `eserSteps`, sonunda tamamı.
+- [ ] **S4.5 Taksim 6–9** (B, E20). `taksim-gecki` (S3.4'ün `via` ölçütüyle 60 sn: ana makam → geçki → dönüş ve
+  karar), `taksim-tiz` (meyan bölgesi: seyir alanının üst dörtlüsüne çık, en az bir cümle orada; `seyirAnalysis`
+  ambitus çıktısı), `taksim-usullu` (Eşlik'in darbukası üstünde; ölçüt seyir puanı + cümle sonlarının usul başına
+  denk gelme oranı; `band.js` vuruş zamanları var), `taksim-uzun` (2 dakikalık plan: giriş, gelişme, meyan, karar;
+  `phraseAnalysis` dört bölümü süreyle ayırır, her bölümün ölçütü ayrı gösterilir). Taş: "2 dakikalık taksim, dört
+  bölüm de tutuyor".
+- [ ] **S4.6 Kulaktan çalma yolu** (O, E21). Üç ders: `kulak-ezgi-1` (Temeller sonu: 3–4 notalık cümleyi duy ve
+  çal, `mimic { commas | notes, len:3 }` pes bölge notalarıyla; önce `mimic`'in makamsız nota havuzu desteklediğine
+  bakılır), `kulak-ezgi-2` (Makamlar ortası: 6–8 notalık makam cümlesi, `len:6`), `kulaktan-eser` (İleri: arşivden
+  bir eserin ilk 8 ölçüsü nota gösterilmeden; `listen` → `piece` `hidden:true` → nota açılır ve farklar gösterilir;
+  `piece` adımına `hidden` seçeneği). Kulaktan çıkar aracına ders sonundan bağlantı.
+- [ ] **S4.7 Ezber ve icra hazırlığı** (O, E22). `piece` adımına `mode:"mem"` (nota 4 ölçü önden silinir, sonra
+  tümü gizli; değerlendirme aynı). Dersler (İleri sonu): `ezber` (basamak 3'ten bir eser: bölüm bölüm ezber),
+  `kayit-dinle` (bir eseri kaydet, dinle, öz değerlendirme listesi: ton, perde, ritim, cümle; her madde 1–5;
+  uygulamanın ölçtüğü `recSummary` değerleriyle yan yana; fark büyükse hoca kartı o beceriyi önerir), `program`
+  (10 dakikalık program: taksim + iki eser, arka arkaya durmadan; ölçüt her parçanın kendi eşiği).
+
+### S5 — Akış, ölçme ve bitiş (≈ 1,5 hafta; içerik PBI'larıyla birlikte)
+
+- [ ] **S5.1 Yol haritası yeniden** (O, E27). `RM_STAGES` "Hedef müfredat" tablosuna göre: yeni üniteler aşamalara
+  yazılır (`turku` → Yöreler ve fasıl aşaması, Trakya ile birlikte). Yeni taşlar: okuma (dizek testi 52–84 arası
+  %80), eser (basamak taşları), "12 usul", "kromatik ♩=80", "5 makamda karar kalıpları", "geçkili seyir puanı 65",
+  "2 dakikalık taksim". `mileStuck` deneme günü kaynaklarına yeni kayıtlar (`rep.hist`) eklenir. `roadmapPace`
+  tahmini ders sayısı artınca "36 ay" gibi caydırıcı sayı göstermesin: U-6 ile birlikte yalnız içinde bulunulan
+  aşamanın süresi gösterilir.
+- [ ] **S5.2 Seviye sınaması eşlemesi** (K, E27). `onboard.js`: nota turlarının bitmiş saydığı ders listelerine yeni
+  Temeller ve Klarino dersleri eklenir (S1.1, S1.2, S2.1); okuma sınaması 4 sorudan 8'e (ikisi süre, ikisi arıza)
+  ve `okuma-2…5`'i ayrı ayrı sayar; ezgi dersleri (`ezgi-*`, `ilk-eserler-*`) sınamayla **bitmiş sayılmaz**
+  ("istersen" önerilir). Makam turları `<makam>-2` derslerini saymaz.
+- [ ] **S5.3 Ünite sınavları** (O). Var olan sınavların adım sırası korunur, yeni adımlar sona eklenir (sınavı
+  geçmiş kullanıcıda sınav geçilmiş kalır: `examPassed` kaydı adım sayısına değil geçme kaydına bakmalı; bakmıyorsa
+  S0.1 göçünde `placed` yapılır). Eklenecekler: Temeller'e `e-t10` ve `soru` ×5 (okuma); Klarino'ya `e-k3` ve kırılma
+  `tech`; Teknik'e `artik` ve `usultap` (usul-3'ten); Makamlar'a iki `<makam>-2` karar kalıbı ve bir geçki; yeni
+  `sinav-turku`.
+- [ ] **S5.4 Terimler sözlüğü** (O, E26). `sozluk.js`: `{ id, term:{tr,en}, def:{tr,en}, see:[ders|teori|makam] }`;
+  ≈ 120 terim (çalgı parçaları, nota işaretleri, perde adları, çeşni adları, makam ve usul terimleri, formlar,
+  süslemeler). Tanımlar var olan ders ve Teori metinlerinden derlenir, yeni iddia yazılmaz. Dersler → "Sözlük"
+  segmenti; arama (`search.js`) terimleri bulur; ders metinlerinde terimin ilk geçtiği yer noktalı altı çizili,
+  dokununca alt panelde tanım (`nav.js` `openSheet`). İşaretleme elle değil: metin çizilirken sözlük terimleri eşlenir
+  (Türkçe ek almış biçimler için kök eşleme: terim + en çok 6 harf ek).
+- [ ] **S5.5 Bitirme sınavı** (O, E28). `sinav-ustalik` (İleri ünite sınavının yerine değil, ardından): 2 dakikalık
+  taksim (dört bölüm), basamak 5'ten bir saz eseri ezberden `tempoPct:100` `min:80`, bir oyun havası eşlikle, makam
+  tanıma 8'de 7, deşifre seviye 4 %70, Aksak ve Curcuna'da metronomsuz ritim. Geçince rozet "Usta yolunda" ve son
+  kademe raporu (başlangıçtan bugüne `stageGrowth`). Metin: "uygulamanın ölçebildiği her şeyi tuttun; bundan sonrası
+  dinlemek, usta icracılardan çıkarmak ve başkalarıyla çalmak" (videolar ve Kulaktan çıkar bağlantısı).
+- [ ] **S5.6 Hoca yerine öz denetim adımları** (K). Ölçülemeyen şeyler (duruş, dudak, parmak yüksekliği, omuz)
+  için `check` adımı: 4–5 maddelik liste + "ön kamerayla kendine bak" (kamera yalnız ekranda ayna, kayıt yok; izin
+  istenir, reddedilirse liste tek başına çalışır). Var olan `durus-nefes` listesi bu türe taşınmaz (adım sırası
+  korunur); yeni derslerde kullanılır: `durus-2` (Temeller ortası: bir ay sonra duruş kontrolü), `el-2` (parmaklar
+  deliklere yakın, serçeler mandal üstünde). Aralıklı tekrar bu adımları 30 günde bir getirir.
+
+### Önerilen sıra
+
+1. **S0.1, S0.2, S0.4** (altyapı; bunlar olmadan araya ders girmez).
+2. **S1.1, S1.2, S1.4, S1.5, S2.1** (sıfırdan başlayanın ilk altı ayı; en büyük eksik burada).
+3. **S0.3, S1.6, S4.1** (arşiv ders yoluna bağlanır; eser çalmak başlar).
+4. **S3.1, S3.3, S3.8, S3.7** (var olan makam ve usul içeriği derinleşir).
+5. **S2.2, S2.3, S2.5, S2.6, S4.6** (teknik ve kulak).
+6. **S3.2, S3.4, S3.6, S3.5** (yeni makamlar, geçki, form, şed).
+7. **S4.2, S4.3, S4.4, S4.5, S2.4, S4.7** (yöreler, fasıl, saz eserleri, ileri).
+8. **S5.1–S5.6** her dalganın sonunda güncellenir; S5.5 en son.
+
+Toplam kaba büyüklük: ≈ 14 hafta kod ve içerik işi. Proje sahibinden karar beklenen yer yok; yalnız iki bilgi notu:
+(1) S3.1 ve S5.3 bazı bitmiş dersleri ve sınavları "bir adım eksik" gösterebilir, bunu göçle gizlemek mümkün (S0.1);
+(2) yeni ünite "Türkü ve yöreler" Dersler listesine onuncu ünite olarak girer.
+
+Bu bölümle ilişkisi olan eski maddeler: **C1 → S3.1** (beş makamın dersi zaten var, eksik olan etüt),
+**C2 → S3.2**, **B1** (Aksak Semâî) S3.7 ve S4.4'ün ön koşulu, **B3** (ritim kalıpları) S1.4 `okuma-2` ile birlikte
+yapılır, **B4** S3.7'ye bağlanır, **D1** kural 4 gereği sürer.
+
 ## İçerik ve arayüz değerlendirmesi, iş planı (10 Kasım 2026)
 
 Proje sahibinin yönlendirmesiyle (10 Kasım) bu bölüm yalnız **içerik** ve **arayüz/kullanım** gözüyle yazıldı; ürün
