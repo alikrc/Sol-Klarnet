@@ -17,7 +17,7 @@
   // bitirir. Baştan itibaren eksiksiz geçilen grupların dersleri bitmiş sayılır. Yalnızca notanın çıkıp çıkmadığı
   // ölçülür; ses kalitesi ve akort ölçülmez (dersler ölçer).
   const CHECK = [
-    { name: () => L("Pes ve orta ses", "Low and middle register"), notes: [67, 62, 60, 55, 52], lessons: ["sol-el-1", "sol-el-2", "sag-el", "pes"] },
+    { name: () => L("Pes ve orta ses", "Low and middle register"), notes: [67, 62, 60, 55, 52], lessons: ["sol-el-1", "sol-el-2", "sag-el", "pes", "ariza-1", "ariza-2"] },
     { name: () => L("Boğaz notaları", "Throat tones"), notes: [69, 70], lessons: ["bogaz"] },
     { name: () => L("Register geçişi", "Crossing the break"), notes: [71, 72, 74], lessons: ["register"] },
     { name: () => L("Klarino", "Clarion"), notes: [79, 84], lessons: ["klarino"] }

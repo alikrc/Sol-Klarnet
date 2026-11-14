@@ -443,7 +443,7 @@ TRAINERS.lessons = function(ctx){
     hold(st, stage, done){
       const w = st.note, tp = nearestPerde((w-67)*53/12);
       const target = st.comma != null ? tgt(lessonMk(st), st.comma) : tp ? tp.comma : (w-67)*53/12;
-      const name = nn(w) + " · " + perdeName(target);
+      const pn = perdeName(target), name = nn(w) + (pn ? " · " + pn : "");   // Fa♯3 gibi notaların yakınında perde yok
       let start = null, devs = [], lastOk = 0, tqf = [];
       stage.innerHTML = `<div class="label">Çal ve tut: ${esc(name)}</div>
         <div class="ltclock lhc">0,0 <em>/ ${st.sec} sn</em></div>

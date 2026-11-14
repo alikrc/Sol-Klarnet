@@ -187,12 +187,22 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   ikisi yalnız tempoda (adım sayısı makul kalsın). Sınama bu dersleri bitmiş saymaz, göçle "istersen" yapar (S5.2'nin
   ezgi kısmı böylece karşılandı). Mikrofonlu adımlar tarayıcı panelinde çalıştırılamadı (mikrofon engelli); notaların
   çizimi, ders sırası, kilit ve göç tarayıcıda denendi. README ders sayısı dalga sonunda güncellenecek.
-- [ ] **S1.2 Arızalı notalar iki derse yayılsın** (O, E2). `pes` dersi kalır (kimlik ve adımlar aynı). Yeni:
+- [x] **S1.2 Arızalı notalar iki derse yayılsın** (O, E2). **Yapıldı (15 Kasım 2026).** `pes` dersi kalır (kimlik ve adımlar aynı). Yeni:
   `ariza-1` "Fa♯3, Sol♯3, Si♭3" (54, 56, 58) ve `ariza-2` "Do♯4, Mi♭4 ve kromatik dizi" (61, 63; sonra 52'den 67'ye
   kromatik `notes`, `maxMiss:4`). Her derste: `read` (hangi mandal; metin `describeFingering` çıktısından üretilir,
   elle parmak tarifi yazılmaz) → `soru` (parmak kartından nota bul, 4 soru) → `hold` her yeni nota 4 sn `min:45` →
   `notes` komşularıyla geçiş → `quiz` `mode:"play"`. `ariza-2`'de serçe parmağın mandaldan mandala kayması için ayrı
   `notes` adımı (Mi3–Fa3–Fa♯3–Sol♯3 ileri geri). Yer: `pes`'ten sonra, `ezgi-pes`'ten önce.
+  *Uygulanan:* `lessons.js` `// ---- S1.2 Arızalı notalar ----` bloğu, `insertLessonAfter("pes", ariza1, ariza2)`.
+  `read` adımına isteğe bağlı `fing:[yazılı nota…]` alanı eklendi (`trainers.js`): her nota için küçük parmak şeması ve
+  `describeFingering` tarifi çalışma anında çizilir, İngilizcesi sayfa çevirmeninden gelir; ders metni parmak tarif
+  etmez. `soru` sorularının seçenekleri `noteName`'den (doğru nota ve üç komşusu), 4 soru, `min:3`; `ariza-2` sorularından
+  ikisi `ariza-1` notalarını tekrar eder. `hold` 4 sn `min:45`, geçişler `maxMiss:3`, kromatik 52→67 `maxMiss:4`, serçe
+  kayması 52–53–54–56 ileri geri, `quiz` `mode:"play"` `n:10, min:7`. Seviye sınamasında iki ders "Pes ve orta ses"
+  grubuna eklendi (`onboard.js`). **Not:** o grup yalnız 52'yi çaldırıyor, arızalı notaları (54–63) hiç yoklamıyor;
+  `pes` dersi için de durum aynıydı. Sınamaya bir arızalı nota (ör. 56 ya da 61) eklenmesi S5'teki sınama
+  genişletmesinde ele alınmalı. **Düzeltme:** `hold` başlığı perdesi olmayan notada (Fa♯3) "· null" yazıyordu
+  (`lessonview.js`); perde adı artık yalnız varsa gösterilir. Tarayıcıda 375 px'te iki dilde denendi. `README.md` ders sayısına dokunulmadı (zaten eskiydi; S1.1 ile birlikte düzeltilmeli).
 - [ ] **S1.3 İlk diziler** (K). `dizi-ilk` "İlk diziler: Sol ve Do" Temeller'in sonunda, `temel-tekrar`'dan önce:
   `techSteps({ type:"scale", base:55, mode:"major", sub:1 }, 50, 66)`, aynısı `base:60` ve `{ base:57, mode:"minor" }`.
   Metin: dizi nedir, neden her gün; Türk müziğinde karşılığı (Do majör dizisi Çargâh, Sol'den majör Mâhur'a yakın;

@@ -801,6 +801,20 @@ const TRAINER_STEPS = {
       `<div class="pbar"><button class="primary small" type="button" data-read>${L("Onay", "OK")}</button></div>`;
     const count = () => { const n = stage.querySelectorAll("[data-ck]:checked").length, el = stage.querySelector(".lsckn"); if(el) el.textContent = n + "/" + st.check.length; };
     if(ck){ count(); stage.addEventListener("change", e => { const b = e.target.closest("[data-ck]"); if(!b) return; ck[b.dataset.ck] = b.checked; ck.d = dayKey(new Date()); ctx.store.set("check." + st.checkId, ck); count(); }); }
+    // Parmak kartları (st.fing: [yazılı nota…]): şema ve describeFingering tarifi; metin elle yazılmaz, İngilizcesi sayfa çevirmeninden
+    if(st.fing){
+      const box = document.createElement("div");
+      for(const w of st.fing){
+        if(!FINGERINGS[w]) continue;
+        const item = document.createElement("div"); item.className = "rvitem";
+        const mc = ctx.miniChart(); ctx.paintMini(mc, FINGERINGS[w]); item.appendChild(mc);
+        const side = document.createElement("div");
+        side.innerHTML = `<div class="label">${ctx.esc(ctx.nn(w))}</div><ul class="rvsteps">` +
+          describeFingering(FINGERINGS[w]).filter(r => r.active).map(r => `<li><b>${ctx.esc(r.part)}</b> <span>${ctx.esc(r.text)}</span></li>`).join("") + "</ul>";
+        item.appendChild(side); box.appendChild(item);
+      }
+      stage.querySelector(".pbar").before(box);
+    }
     stage.querySelector("[data-read]").addEventListener("click", () => done({ v:1 }));
     return {};
   },

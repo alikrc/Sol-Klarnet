@@ -11,7 +11,8 @@
 //   mimic   { makam | commas, len }          taklit oyununda len notalık ezgiye ulaş
 //   vibrato { note, sec }                    notada sec saniye düzenli vibrato (4–8 Hz)
 //   glide   { from, to, n }                  from'dan to'ya n kez glissando
-//   read    { title, body }                   okuma (bilgi) adımı; "Onay" ile geçilir
+//   read    { title, body, fing? }            okuma (bilgi) adımı; "Onay" ile geçilir. fing: [yazılı nota…] her nota için
+//                                             parmak şeması ve describeFingering tarifi (elle parmak tarifi yazılmaz)
 //   soru    { q, opts, ok, why } | { items:[{ q, opts, ok, why, staff?, fing? }…], min }  bilgi sorusu (mikrofonsuz):
 //                                             seçenekler karışık gelir, yanlışta why gösterilir ve soru turun sonunda yeniden
 //                                             sorulur; puan ilk denemede doğru bilinen soru sayısı, en az min (varsayılan:
@@ -1680,6 +1681,67 @@ insertLessonAfter(LESSONS.filter(l => l.unit === "temel").pop().id, { id:"temel-
   tips:[{ tr:"Uzun ezgide nefesi ölçü sonlarında al; 4. ve 8. ölçünün uzun notası en rahat yer.", en:"In a long tune, breathe at the ends of bars; the long notes in bars 4 and 8 are the easiest places." }],
   steps: ezgiSteps([55, 57, 59, 60, 62, 64, 62, 60], [55, 57, 59, 60, 62, 64, 66, 67, 69, 67, 66, 64, 62, 60, 59, 57, 55, 52, 55], ["e-t10"],
     [52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70], { maxMiss:4, freeMin:6, n:10, min:8 }) });
+
+// ---- S1.2 Arızalı notalar ----
+// pes dersindeki beş arızalı nota iki derse yayılır: önce okuma (parmak kartları describeFingering'den), parmak kartından
+// nota bulma, her yeni notayı tutma, komşularla geçiş ve çalma testi. pes dersi olduğu gibi kalır.
+{
+  const nm = LCORE.noteName;
+  // Parmak kartından nota bulma sorusu: doğru cevap 0. seçenek (seçenekler adımda karıştırılır)
+  const fingQ = (w, wrong) => ({
+    q:{ tr:"Bu parmak hangi notayı verir?", en:"Which note does this fingering give?" }, fing:w,
+    opts:[nm(w), ...wrong.map(nm)], ok:0,
+    why:{ tr:"Bu " + nm(w).tr + " parmağı. Okuma adımındaki kartlarla karşılaştır: hangi mandal basılı?",
+          en:"This is the " + nm(w).en + " fingering. Compare with the cards in the reading step: which key is pressed?" } });
+  const ariza1 = { id:"ariza-1", unit:"temel", since:2, notes:[54, 56, 58],
+    title:{ tr:"Fa♯3, Sol♯3, Si♭3", en:"F♯3, G♯3, B♭3" },
+    text:[
+      { tr:"Diyez (♯) notayı yarım ses tizleştirir, bemol (♭) yarım ses pesleştirir. Fa♯3 Fa3 ile Sol3'ün, Sol♯3 Sol3 ile La3'ün, Si♭3 La3 ile Si3'ün arasındadır.",
+        en:"A sharp (♯) raises a note by a semitone, a flat (♭) lowers it by a semitone. F♯3 lies between F3 and G3, G♯3 between G3 and A3, B♭3 between A3 and B3." },
+      { tr:"Üçü de pes bölgenin parmağına bir mandal eklenerek çalınır. Önce kartlarda hangi mandal olduğunu gör, sonra her notayı ayrı ayrı tut; en son komşu notalarla birlikte çal.",
+        en:"All three are played by adding one key to a low-register fingering. First see which key it is on the cards, then hold each note on its own; finally play it together with its neighbours." }
+    ],
+    tips:[
+      { tr:"Serçe parmakları gergin değil, mandalların üstünde gevşek dursun.", en:"Keep the pinkies relaxed just above the keys, not tense." },
+      { tr:"Mandala basarken öteki parmaklar deliklerden kalkmasın; hava kaçarsa nota cızırdar.", en:"Keep the other fingers on their holes while you press the key; a leak makes the note squeak." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Hangi mandal?", en:"Which key?" }, fing:[54, 56, 58], body:[
+        { tr:"Aşağıdaki kartlar üç notanın parmağını gösterir: basılı delik ve mandallar şemada koyu, tarifi yanında. Klarnetini eline al ve her birini kurup bak.",
+          en:"The cards below show the fingering of the three notes: pressed holes and keys are dark on the chart, the description is beside it. Take your clarinet and set up each one." } ] },
+      { type:"soru", items:[ fingQ(54, [53, 55, 56]), fingQ(56, [55, 57, 54]), fingQ(58, [57, 59, 56]), fingQ(53, [54, 52, 55]) ], min:3 },
+      { type:"hold", note:54, sec:4, min:45 },
+      { type:"hold", note:56, sec:4, min:45 },
+      { type:"hold", note:58, sec:4, min:45 },
+      { type:"notes", notes:[53, 54, 55, 56, 57, 58, 59, 58, 57, 56, 55, 54, 53], maxMiss:3 },
+      { type:"quiz", notes:[52, 53, 54, 55, 56, 57, 58, 59, 60], mode:"play", n:10, min:7 }
+    ] };
+  const ariza2 = { id:"ariza-2", unit:"temel", since:2, notes:[61, 63],
+    title:{ tr:"Do♯4, Mi♭4 ve kromatik dizi", en:"C♯4, E♭4 and the chromatic scale" },
+    text:[
+      { tr:"Do♯4 Do4 ile Re4'ün, Mi♭4 Re4 ile Mi4'ün arasındadır. Bu iki notayla Mi3'ten Sol4'e bütün yarım sesleri çalabilirsin: her notadan bir yarım ses yukarı çıkan diziye kromatik dizi denir.",
+        en:"C♯4 lies between C4 and D4, E♭4 between D4 and E4. With these two you can play every semitone from E3 to G4: a scale that climbs one semitone at a time is called the chromatic scale." },
+      { tr:"Pes bölgede Mi3, Fa3, Fa♯3 ve Sol♯3 serçe mandallarıyla çalınır; aralarında geçerken serçe parmak bir mandaldan ötekine kayar. Bunun için dersin sonunda ayrı bir alıştırma var: yavaş başla, iki notayı ayırıp tekrar et.",
+        en:"In the low register E3, F3, F♯3 and G♯3 use the pinky keys; moving between them, a pinky slides from one key to another. There is a separate drill for this at the end of the lesson: start slowly and repeat the two notes on their own." }
+    ],
+    tips:[
+      { tr:"Kromatik dizide acele etme; her notanın parmağı oturmadan sonrakine geçme.", en:"Don't rush the chromatic scale; don't move on until each fingering is settled." },
+      { tr:"Serçe parmak mandaldan kalkmadan kaysın; kaldırırsan arada başka nota duyulur.", en:"Let the pinky slide without lifting off; if you lift it, another note sneaks in." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Hangi mandal?", en:"Which key?" }, fing:[61, 63], body:[
+        { tr:"Aşağıdaki kartlar iki notanın parmağını gösterir: basılı delik ve mandallar şemada koyu, tarifi yanında. Klarnetini eline al ve her birini kurup bak.",
+          en:"The cards below show the fingering of the two notes: pressed holes and keys are dark on the chart, the description is beside it. Take your clarinet and set up each one." } ] },
+      { type:"soru", items:[ fingQ(61, [60, 62, 63]), fingQ(63, [62, 64, 61]), fingQ(54, [53, 55, 56]), fingQ(58, [57, 59, 56]) ], min:3 },
+      { type:"hold", note:61, sec:4, min:45 },
+      { type:"hold", note:63, sec:4, min:45 },
+      { type:"notes", notes:[60, 61, 62, 63, 64, 63, 62, 61, 60], maxMiss:3 },
+      { type:"notes", notes:[52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67], maxMiss:4 },
+      { type:"notes", notes:[52, 53, 54, 56, 54, 53, 52, 53, 54, 56, 54, 53, 52], maxMiss:3 },
+      { type:"quiz", notes:[57, 58, 59, 60, 61, 62, 63, 64, 65], mode:"play", n:10, min:7 }
+    ] };
+  insertLessonAfter("pes", ariza1, ariza2);
+}
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
