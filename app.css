@@ -441,6 +441,8 @@ svg.minichart.tap .hole:focus-visible circle,svg.minichart.tap .key:focus-visibl
 .lscheck{list-style:none;padding:0;margin:6px 0 10px;display:grid;gap:6px}
 .lscheck label{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.45;cursor:pointer}
 .lscheck input{margin-top:3px;flex:none}
+/* Öz denetim adımında ön kamera ayna gibi (trainers.js check) */
+.ckcam{width:100%;max-width:320px;border-radius:12px;transform:scaleX(-1);background:#000;margin:6px 0}
 .lsmore > summary{cursor:pointer;font-size:12.5px;color:var(--muted);margin:6px 0}
 .mkmore{margin:4px 0 12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .mkmore > summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--teal)}

@@ -229,6 +229,7 @@ TRAINERS.lessons = function(ctx){
       case "mimic": return r.v + " nota";
       case "vibrato": return num(r.v) + " sn";
       case "read": return L("okundu", "read");
+      case "check": return L("denetlendi", "checked");
       case "soru": return r.v + "/" + soruItems(st).length;
       case "rhythm": case "seyir": case "artik": return r.v + L(" puan", " points");
       case "hece": return st.mode === "say" ? L("söylendi", "done") : st.mode === "quiz" ? r.v + "/" + st.n : r.v + L(" puan", " points");
@@ -418,7 +419,7 @@ TRAINERS.lessons = function(ctx){
   }
 
   // ---- Adım çalıştırma ----
-  const NO_MIC = new Set(["read", "soru", "listen", "ear", "usultap", "hece", "band"]);   // band: mikrofonu Eşlik sekmesi açar
+  const NO_MIC = new Set(["read", "check", "soru", "listen", "ear", "usultap", "hece", "band"]);   // band: mikrofonu Eşlik sekmesi açar
   async function startStep(i){
     stopRun();
     const st = cur.steps[i], lesson = cur;

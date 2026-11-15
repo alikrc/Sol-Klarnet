@@ -826,6 +826,34 @@ const TRAINER_STEPS = {
       if(count >= st.n) done({ v: count });
     });
   },
+  // Öz denetim (lessons.js check, S5.6): ölçülemeyen şeyler (duruş, el) için liste; ön kamera ayna olarak açılabilir
+  // (görüntü yalnız ekranda, kayıt yok; izin verilmezse ya da kamera yoksa liste tek başına çalışır). Bütün maddeler
+  // işaretlenince "Tamam" açılır; işaretler cihazda kalır (check.<checkId>)
+  check(st, stage, done, ctx){
+    const ck = ctx.store.get("check." + st.checkId, {}), items = st.items;
+    let stream = null;
+    stage.innerHTML = `<p class="muted small">${L("Her maddeyi aynada ya da ön kamerada kendine bakarak denetle; doğru olanları işaretle.", "Check each item in a mirror or the front camera; tick the ones that are right.")}</p>
+      <div class="pbar"><button class="stopbtn small" type="button" data-cam>${L("Ön kamerayı aç", "Open the front camera")}</button></div>
+      <video class="ckcam" playsinline muted hidden></video><div class="muted small ckcamfb" aria-live="polite"></div>
+      <ul class="lscheck">${items.map((c, k) => `<li><label><input type="checkbox" data-ck="${k}"${ck[k] ? " checked" : ""}><span>${pick(c, LANG)}</span></label></li>`).join("")}</ul>
+      <div class="pbar"><button class="primary small" type="button" data-ok>${L("Tamam", "Done")}</button> <small class="lsckn"></small></div>`;
+    const okb = stage.querySelector("[data-ok]");
+    const count = () => { const n = stage.querySelectorAll("[data-ck]:checked").length; stage.querySelector(".lsckn").textContent = n + "/" + items.length; okb.disabled = n < items.length; };
+    const camOff = () => { if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } const v = stage.querySelector(".ckcam"); if(v){ v.srcObject = null; v.hidden = true; } };
+    stage.addEventListener("change", e => { const b = e.target.closest("[data-ck]"); if(!b) return; ck[b.dataset.ck] = b.checked; ck.d = dayKey(new Date()); ctx.store.set("check." + st.checkId, ck); count(); });
+    stage.querySelector("[data-cam]").addEventListener("click", async () => {
+      const fb = stage.querySelector(".ckcamfb"), v = stage.querySelector(".ckcam");
+      if(stream){ camOff(); return; }
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user" }, audio:false });
+        v.srcObject = stream; v.hidden = false; await v.play(); fb.textContent = "";
+      }catch(err){ stream = null; fb.textContent = L("Kamera açılamadı; listeyi aynaya bakarak işaretleyebilirsin.", "The camera couldn't open; you can tick the list using a mirror."); }
+    });
+    okb.addEventListener("click", () => { camOff(); done({ v:1 }); });
+    count();
+    return { stop: camOff };
+  },
+
   // Okuma adımı: metin dersleri (bakım, duruş, nota okuma); "Onay" ile geçilir, kutu kapanır
   read(st, stage, done, ctx){
     // Kontrol listesi (st.check): kendini aynada ya da videoda izleyip işaretlersin; işaretler cihazda kalır, geçmeyi engellemez

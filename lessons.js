@@ -15,6 +15,8 @@
 //                                             fing: [yazılı nota…] her nota için parmak şeması ve describeFingering tarifi
 //                                             (elle parmak tarifi yazılmaz); check: kontrol listesi (checkHint liste notu);
 //                                             links: [{ go: SK.go görünümü, el?: kaydırılacak öğe, label }]
+//   check   { title, items:[{tr,en}…], checkId }  öz denetim (mikrofonsuz): liste, isteğe bağlı ön kamera aynası; bütün
+//                                             maddeler işaretlenince geçilir (işaretler check.<checkId> kaydında)
 //   soru    { q, opts, ok, why } | { items:[{ q, opts, ok, why, staff?, fing? }…], min }  bilgi sorusu (mikrofonsuz):
 //                                             seçenekler karışık gelir, yanlışta why gösterilir ve soru turun sonunda yeniden
 //                                             sorulur; puan ilk denemede doğru bilinen soru sayısı, en az min (varsayılan:
@@ -3642,6 +3644,29 @@ insertLessonAfter("kayit-dinle", { id:"program", unit:"ileri", since:2, notes:[]
     { type:"piece", arsiv:EZBER_ID, name:EZBER_NAME, mode:"mem", hidden:true, min:75 }
   ] });
 
+// ---- S5.6 Öz denetim ----
+// Ölçülemeyen şeyler (duruş, el) için check adımı. Maddeler Başlarken'deki durus-nefes ve eller listelerinin aynısı
+// (yeni iddia yok); burada aylar sonra yeniden, ön kamera aynasıyla denetlenir
+const ckFrom = (id, i) => LESSONS.find(l => l.id === id).steps[i].check;
+insertLessonAfter("ariza-2", { id:"durus-2", unit:"temel", since:2, notes:[],
+  title:{ tr:"Duruşa yeniden bak", en:"Check your posture again" },
+  text:[{ tr:"Başlarken'de duruşu kurdun; haftalar içinde alışkanlıklar kayar. Şimdi aynı listeyi yeniden, kendine aynada ya da ön kamerada bakarak denetle. Tutmayan madde varsa birkaç gün çalarken onu düşün.",
+          en:"You set up your posture in Getting started; habits drift over the weeks. Now check the same list again, looking at yourself in a mirror or the front camera. If an item doesn't hold, think about it while you play for a few days." }],
+  tips:[{ tr:"Kendini yandan ve önden görmek için telefonu bir rafa yasla.", en:"Lean the phone on a shelf to see yourself from the side and the front." }],
+  steps:[
+    { type:"check", checkId:"durus2", title:{ tr:"Duruş", en:"Posture" }, get items(){ return ckFrom("durus-nefes", 1); } },
+    { type:"hold", note:55, sec:6, min:50 }
+  ] });
+insertLessonAfter("ezgi-pes", { id:"el-2", unit:"temel", since:2, notes:[],
+  title:{ tr:"Ellere yeniden bak", en:"Check your hands again" },
+  text:[{ tr:"Pes bölgede bütün parmaklar iş başında. Ellerin duruşunu Başlarken'deki listeyle yeniden denetle: parmaklar deliklere yakın mı, başparmak sıkıyor mu?",
+          en:"In the low register every finger is at work. Check your hands again with the list from Getting started: are the fingers close to the holes, is the thumb squeezing?" }],
+  tips:[{ tr:"Parmakların kalktığını görmek için yavaş bir geçişi kamerada çal.", en:"Play a slow passage in front of the camera to see how high your fingers lift." }],
+  steps:[
+    { type:"check", checkId:"el2", title:{ tr:"Eller", en:"Hands" }, get items(){ return ckFrom("eller", 0); } },
+    { type:"notes", notes:[55, 57, 59, 60, 62, 64, 62, 60, 59, 57, 55, 53, 52, 53, 55], maxMiss:3 }
+  ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -3809,6 +3834,7 @@ function stepTitle(step, lang = "tr"){
     case "vibrato": return (en ? "Vibrato: " : "Vibrato: ") + nn(step.note) + " · " + step.sec + (en ? " s of even vibrato" : " sn düzenli vibrato");
     case "glide": return (en ? "Glissando: " : "Glissando: ") + nn(step.from) + " → " + nn(step.to) + " · " + step.n + (en ? " times" : " kez");
     case "read": return (en ? "Read: " : "Oku: ") + pick(step.title, lang);
+    case "check": return (en ? "Self-check: " : "Öz denetim: ") + pick(step.title, lang) + " · " + step.items.length + (en ? " items" : " madde");
     case "band": return (en ? "With the band: " : "Eşlikle: ") + arsivWhat(step, lang) + " · " + (en ? "at least " + step.min + "% in the groove" : "usule oturma en az %" + step.min);
     case "soru": { const n = soruItems(step).length;
       return n === 1 ? (en ? "Question: " : "Soru: ") + pick(step.q || step.items[0].q, lang)
@@ -3869,7 +3895,7 @@ function stepOk(step, res){
   switch(step.type){
     case "listen": return true;
     case "hold": return v >= step.min && (step.quality == null || (res.q || 0) >= step.quality);
-    case "read": return v >= 1;
+    case "read": case "check": return v >= 1;
     case "soru": return v >= soruMin(step);
     case "rhythm": case "seyir": case "ear": case "sight": case "dictation": case "artik": return v >= step.min;
     case "hece": return v >= (step.mode === "say" ? 1 : step.min);

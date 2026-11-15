@@ -847,11 +847,18 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   tanıma 8'de 7, deşifre seviye 4 %70, Aksak ve Curcuna'da metronomsuz ritim. Geçince rozet "Usta yolunda" ve son
   kademe raporu (başlangıçtan bugüne `stageGrowth`). Metin: "uygulamanın ölçebildiği her şeyi tuttun; bundan sonrası
   dinlemek, usta icracılardan çıkarmak ve başkalarıyla çalmak" (videolar ve Kulaktan çıkar bağlantısı).
-- [ ] **S5.6 Hoca yerine öz denetim adımları** (K). Ölçülemeyen şeyler (duruş, dudak, parmak yüksekliği, omuz)
+- [x] **S5.6 Hoca yerine öz denetim adımları** (K). **Yapıldı (15 Kasım 2026).** Ölçülemeyen şeyler (duruş, dudak, parmak yüksekliği, omuz)
   için `check` adımı: 4–5 maddelik liste + "ön kamerayla kendine bak" (kamera yalnız ekranda ayna, kayıt yok; izin
   istenir, reddedilirse liste tek başına çalışır). Var olan `durus-nefes` listesi bu türe taşınmaz (adım sırası
   korunur); yeni derslerde kullanılır: `durus-2` (Temeller ortası: bir ay sonra duruş kontrolü), `el-2` (parmaklar
   deliklere yakın, serçeler mandal üstünde). Aralıklı tekrar bu adımları 30 günde bir getirir.
+  *Uygulanan:* `check { title, items, checkId }` adımı (`trainers.js`): liste ve "Ön kamerayı aç" (ayna gibi, yalnız
+  ekranda; açılamazsa açıklama çıkar, liste tek başına çalışır); bütün maddeler işaretlenince geçilir. `durus-2`
+  (`ariza-2`'den sonra) ve `el-2` (`ezgi-pes`'ten sonra); maddeler `durus-nefes` ve `eller` listelerinin aynısı
+  (getter'la okunur, iki yerde yazılmaz). **Kamera izni:** Android ve iOS paketlerinde kamera izni yok; eklemek mağaza
+  kaydını ve gizlilik politikasını etkilediği için eklenmedi, uygulamada liste kamerasız çalışır (proje sahibinin
+  kararı). **Tekrar:** "30 günde bir" ayrıca kurulmadı; ders aralıklı tekrara girer (1, 3, 7, 21, 60 gün) ve `check`
+  adımı tekrar adımı olarak seçilebilir. Tarayıcıda liste, kamera açılamayınca açıklama ve geçiş denendi.
 
 ### Önerilen sıra
 
