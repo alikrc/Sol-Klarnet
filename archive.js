@@ -1,7 +1,7 @@
 // Nota arşivi: SymbTr koleksiyonundan eserler (notalar/, scripts/symbtr.js üretir). Arama ve süzgeçler; eser ekranında
 // satırlara bölünmüş nota, çalma (tempo, A–B ölçü döngüsü, bölüm ve cümle döngüsü, dem, usul eşliği, melodiyi kapat),
 // mikrofonla takip ve tempolu çalma (pieces.js piecePlayer), transpoze, yakınlaştırma, tam ekran, yazdırma,
-// "Eseri öğren" adımları ve benzer eserler. Arşiv uygulamanın içindedir, internet istemez.
+// "Eseri öğren" adımları ve benzer eserler. Eser dosyaları uygulamayla birlikte gelir (notalar/).
 
 // SymbTr makam adı → uygulamanın makamı (perde hedefleri ve icra akordu için); listede olmayanlar perdesiz değerlendirilir
 const ARCH_MAKAM = { nihavent:"nihavend", beyati:"bayati", hicaz_zirgule:"zirguleli", hicaz_humayun:"humayun", hicaz_uzzal:"uzzal" };
@@ -90,8 +90,8 @@ TRAINERS.archive = function(ctx){
   const { SK, $, store, esc } = ctx;
   const P = $("pp-archive");
   P.innerHTML = `
-    <p class="pdesc">${L("SymbTr koleksiyonundan " + archTotalEl() + " eser, AEU koma işaretleriyle. Ara, süz, aç: dinle, yavaşlat, zor ölçüyü döngüye al, usul ve demle birlikte çal; mikrofonla takip ettir ya da tempolu çalıp değerlendirt. Arşiv uygulamanın içindedir, internet istemez.",
-      archTotalEl() + " pieces from the SymbTr collection, with AEU accidentals. Search, filter, open: listen, slow down, loop a hard bar, play along with the usul and the drone; let it follow you with the microphone or play in tempo and get scored. The archive is built in and works offline.")}</p>
+    <p class="pdesc">${L("SymbTr koleksiyonundan " + archTotalEl() + " eser, AEU koma işaretleriyle. Ara, süz, aç: dinle, yavaşlat, zor ölçüyü döngüye al, usul ve demle birlikte çal; mikrofonla takip ettir ya da tempolu çalıp değerlendirt.",
+      archTotalEl() + " pieces from the SymbTr collection, with AEU accidentals. Search, filter, open: listen, slow down, loop a hard bar, play along with the usul and the drone; let it follow you with the microphone or play in tempo and get scored.")}</p>
     <div class="arlist" id="arlist">
       <div class="arsearch"><input id="arq" type="search" placeholder="${L("Eser, bestekâr, makam, usul ara…", "Search pieces, composers, makams, usuls…")}" aria-label="${L("Eser ara", "Search pieces")}" autocomplete="off"></div>
       <div class="arquick" id="arquick"></div>

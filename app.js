@@ -1351,8 +1351,10 @@
   if(navigator.storage && navigator.storage.persist && !window.Capacitor)
     navigator.storage.persisted().then(p => p || navigator.storage.persist()).catch(() => {});
 
-  // Çevrimdışı kullanım (http/https üzerinden açıldığında; Android uygulamasında dosyalar zaten pakette)
-  if("serviceWorker" in navigator && location.protocol.startsWith("http") && !window.Capacitor){
-    navigator.serviceWorker.register("sw.js").catch(() => {});
-  }
+  // Çevrimdışı kullanım kaldırıldı (15 Kasım 2026): eski sürümün kurduğu service worker ve önbellekleri silinir
+  // (sw.js aynı temizliği kendisi de yapar; kaydı olmayan tarayıcıda bu satırlar bir şey yapmaz)
+  if("serviceWorker" in navigator && !window.Capacitor)
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
+  if(window.caches && !window.Capacitor)
+    caches.keys().then(ks => ks.filter(k => k.startsWith("sol-klarnet")).forEach(k => caches.delete(k))).catch(() => {});
 })();

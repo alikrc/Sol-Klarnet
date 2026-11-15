@@ -211,7 +211,8 @@ ve paketin yaklaşık karşılığıdır; gerçek APK ya da AAB ölçülmedi.
   açılır. Favori sayısı ve son açılanlar yalnız var olan eserleri sayar. Kayıtlı süzgeçteki besteci yoksa süzgeç "Hepsi"ye döner.
 - **Sayılar:** uygulamadaki eser sayısı artık dizinden gelir, bunun için dizin açılışta boşta yüklenir. `store/listing.md` ve
   `README.md` elle yazılı kalır, derleme değişirse güncellenmeli.
-- **Web önbelleği:** temiz derlemede `www/sw.js`'in önbellek adına listenin özeti eklenir; böylece web sürümünde daha önce açılmış
+- **Web önbelleği:** web sürümünün çevrimdışı önbelleği kaldırıldı (15 Kasım 2026); `www/sw.js` yalnız eski kurulumların önbelleğini
+  siler. Temiz derlemede önbellek adına listenin özeti eklenmeye devam eder; böylece web sürümünde daha önce açılmış
   eserler önbellekten silinir.
 
 **Bu seçeneğin kapsamadıkları:**

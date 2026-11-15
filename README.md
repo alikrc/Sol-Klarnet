@@ -4,7 +4,7 @@ Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için akort, parmak pozis
 uygulaması. Klarneti ilk kez eline alan birini taksim yapabilecek, Trakya ve Roman oyun havalarını eşlikle çalabilecek
 seviyeye kadar götüren 113 derslik bir müfredatı, ünite sınavları ve rozetler, aralıklı tekrar ve altı aşamalı bir yol haritası var.
 Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işlenir. İnternete yalnızca **Nota bul** çıkar
-(yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir); başka hiçbir özellik internet istemez.
+(yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir); başka hiçbir özellik dışarıya veri göndermez.
 
 ## Akort ve parmak
 
@@ -78,8 +78,8 @@ Mikrofon yalnızca `https://` ya da `localhost` üzerinden açılır:
 npm start
 ```
 
-Sonra http://localhost:8080 adresini aç. Uygulama bir kez açıldıktan sonra çevrimdışı da çalışır ve telefonda
-“Ana ekrana ekle” ile kurulabilir. Bağlantılar: `index.html#nota=52` (yazılı MIDI, 52 = Mi3 … 99 = Mi♭7),
+Sonra http://localhost:8080 adresini aç. Web sürümü çevrimdışı çalışmaz (service worker kaldırıldı; `sw.js` yalnız eski
+kurulumları temizler); telefonda “Ana ekrana ekle” ile ana ekrana eklenebilir. Bağlantılar: `index.html#nota=52` (yazılı MIDI, 52 = Mi3 … 99 = Mi♭7),
 `?tab=rhythm` (doğrudan bir sekme). Her sayfanın kendi adresi vardır ve adres çubuğu açık sayfayı gösterir:
 `?view=finger`, `?view=practice` (Çalışma ana sayfası), `?view=settings`, `?tab=lessons&ders=makam-bulma` (bir ders),
 `?tab=archive&eser=<id>` (nota arşivinde bir eser).

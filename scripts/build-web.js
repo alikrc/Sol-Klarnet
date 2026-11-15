@@ -55,7 +55,8 @@ console.log(`www/: ${FILES.length} dosya, ${DIRS.length} klasör`);
 if(drop.size){
   const pieces = index.pieces.filter(e => !drop.has(e.id));
   fs.writeFileSync(path.join(OUT, "notalar", "index.json"), JSON.stringify({ ...index, pieces }));
-  // Web sürümünde açılmış eserler önbellekte durur: önbellek adı listeye bağlanır ki eski önbellek silinsin (sw.js activate)
+  // Eski web kurulumlarında açılmış eserler önbellekte durabilir: önbellek adı listeye bağlanır ki sw.js güncellenip
+  // önbelleği silsin (çevrimdışı kullanım kaldırıldı; sw.js yalnız temizler)
   const sw = path.join(OUT, "sw.js"), tag = crypto.createHash("sha1").update([...drop].sort().join("\n")).digest("hex").slice(0, 8);
   const text = fs.readFileSync(sw, "utf8"), next = text.replace(/const CACHE = "([^"]+)";/, `const CACHE = "$1-${tag}";`);
   if(next === text) throw new Error("sw.js: önbellek adı bulunamadı");

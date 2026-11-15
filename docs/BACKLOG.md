@@ -160,6 +160,10 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   SymbTr notaları tekrarları açılmış hâldedir, ölçü numarası çalınış sırasınındır; bölüm sınırı bu yüzden kaymaz.
   **Çevrimdışı istenmiyor** (proje sahibi, 15 Kasım: "internetsiz çalışmasın, öyle bir özelliğe gerek yok"): kabul
   ölçütündeki "internet yokken ders açılır" düşürüldü, ders eserleri için eklenen önbellek listesi kaldırıldı.
+  Ardından sahibinin onayıyla web sürümünün bütün çevrimdışı önbelleği kaldırıldı: `app.js` service worker kaydetmez,
+  eski kaydı ve `sol-klarnet*` önbelleklerini siler; `sw.js` yalnız eski kurulumları temizleyen bir dosyaya döndü
+  (önbellekleri siler, kaydını kaldırır; fetch dinleyicisi yok). Tarayıcıda iki yol da denendi. Android ve iOS
+  paketleri dosyaları zaten içinde taşır, onlar değişmedi.
   `npm run mufredat` ölçü aralığının eserin içinde kaldığını denetler. Tarayıcıda üç eserle (anonim türkü, şarkı, saz
   semâîsi) ve olmayan bir eserle denendi; çalma adımları mikrofon engelli olduğu için panelde başlatılamadı, dinleme
   adımları ve "Adımı geç" çalıştı. **S1.6 için not:** dosya adındaki bestekâr ile dizindeki (`b`) ayrışabiliyor (ör.
