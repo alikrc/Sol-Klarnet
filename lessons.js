@@ -2684,6 +2684,53 @@ insertLessonAfter("kulak-2", { id:"kulaktan-eser", unit:"ileri", since:2, notes:
     { type:"piece", arsiv:"hicaz--turku--nimsofyan--bahcelerde_mor--istanbul", name:{ tr:"Bahçelerde Mor Meni", en:"Bahçelerde Mor Meni" }, from:1, to:8, mode:"tempo", min:75 }
   ] });
 
+// ---- S2.5 Nefes 2 ve 3 ----
+// nefes-2 (Teknik, uzun-ton'dan sonra): uzayan uzun tonlar ve nefes yeri işaretli etüt e-nefes (etüt metninde ' nefes yeri,
+// çizimde virgül). Bilgi nefes-cumle dersinden ve sorunlar.js "nefes" maddesinden. nefes-3 (İleri, ünitenin sonu) sürekli
+// nefes: optional, kapı değil (unlocked zinciri, ünite sınavı, nextLesson, hoca kartı ve aşama sayımı onu atlar).
+// Kaynaklar: DANSR "Circular Breathing 101" (Greg Oakes, 2017) ve Wikipedia "Circular breathing" (docs/KAYNAKLAR.md §10).
+insertLessonAfter("uzun-ton", { id:"nefes-2", unit:"teknik", since:2, notes:[],
+  title:{ tr:"Nefes 2: uzun cümleler ve nefes yeri", en:"Breath 2: long phrases and breathing spots" },
+  text:[
+    { tr:"Başlarken'deki nefes dersinin devamı. Cümleler uzadıkça nefesi plânlamak gerekir: nereden alacağını çalmadan önce seç. Nefes yeri notada dizeğin üstünde küçük bir virgülle (’) işaretlenir; genellikle uzun bir notadan sonra ya da cümle sonundadır.",
+      en:"A follow-up to the breathing lesson in Getting started. The longer the phrases, the more you need to plan your breath: choose where you will breathe before you play. A breathing spot is marked with a small comma (’) above the staff, usually after a long note or at the end of a phrase." },
+    { tr:"Önce uzun tonlar 12, 16 ve 20 saniyeye uzar. Havayı ince ve eşit ver: sesin başında hepsini harcama. Sonra etüt: dört cümlesi 4, 8, 12 ve 16 vuruş sürer, her cümlenin sonunda virgül var. Nefesin zamanını virgülden önceki son notadan al (o notayı biraz kısa kes), sonraki cümle vuruşunda başlasın; ritim kaymasın.",
+      en:"First the long tones grow to 12, 16 and 20 seconds. Blow a thin, even stream: don't spend it all at the start. Then the étude: its four phrases last 4, 8, 12 and 16 beats, each ending with a comma. Take the time for the breath from the last note before the comma (cut it a little short) so the next phrase starts on the beat; don't let the rhythm slip." }
+  ],
+  tips:[
+    { tr:"Klarnetsiz alıştırma: metronom 60'ta 4 vuruş nefes al, sonra 8, 12, 16 vuruş boyunca ince ve eşit üfle.", en:"Without the clarinet: at 60 bpm, breathe in for 4 beats, then blow a thin even stream for 8, 12, 16 beats." },
+    { tr:"Nefesi ağızdan, hızlı ve zorlamadan al; omuzlar kalkmasın, alt kaburgalar genişlesin.", en:"Breathe in through the mouth quickly and without forcing; shoulders stay down, lower ribs widen." }
+  ],
+  steps:[
+    { type:"hold", note:67, sec:12, min:50 },
+    { type:"hold", note:62, sec:16, min:50 },
+    { type:"hold", note:67, sec:20, min:50 },
+    { type:"piece", id:"e-nefes", mode:"free", min:4 },
+    { type:"piece", id:"e-nefes", mode:"tempo", min:70 }
+  ] });
+insertLessonAfter([...LESSONS].reverse().find(l => l.unit === "ileri").id, { id:"nefes-3", unit:"ileri", since:2, optional:true, notes:[],
+  title:{ tr:"Sürekli nefes", en:"Circular breathing" },
+  text:[
+    { tr:"Sürekli nefes (döngüsel nefes), bazı nefesli çalgı icracılarının sesi kesmeden çalmak için kullandığı bir tekniktir: yanaklarda biriktirilen hava ağızdan verilirken burundan nefes alınır. Zurnada çok kullanılır; klarnet de bu tekniğin kullanıldığı çalgılar arasında sayılır.",
+      en:"Circular breathing is a technique some wind players use to play without breaking the sound: you breathe in through the nose while pushing out, through the mouth, air stored in the cheeks. It is used a great deal on the zurna, and the clarinet is among the instruments it is used on." },
+    { tr:"Nasıl işler: ciğerler boşalmaya yakınken son havanın bir kısmıyla yanakları şişir. Yanakları sıkarak bu havayı verirken, ağızdaki hava bitmeden burundan hızla nefes al; sonra yeniden ciğerlerden ver ve döngüyü tekrarla.",
+      en:"How it works: when the lungs are nearly empty, puff the cheeks with part of the last air. While squeezing that air out with the cheeks, breathe in quickly through the nose before the mouth air runs out; then blow from the lungs again and repeat the cycle." },
+    { tr:"Bu ders isteğe bağlıdır: hiçbir dersi ya da sınavı kilitlemez, hoca kartı da önermez. Önce bardak ve pipetle, sonra yalnız ağızlıkla, en son klarnetle çalış.",
+      en:"This lesson is optional: it locks no lesson or test and the coach card doesn't suggest it. Practise with a glass and straw first, then on the mouthpiece alone, and only then on the clarinet." }
+  ],
+  tips:[
+    { tr:"Burundan nefes alırken yanaklardan hava vermeyi önce pipetsiz ve susuz dene; ilk denemede su çekmezsin.", en:"Try breathing in through the nose while pushing air from the cheeks without the straw and water first, so you don't draw in water on the first try." }
+  ],
+  steps:[
+    { type:"read", title:{ tr:"Bardak ve pipet", en:"Glass and straw" }, body:[
+      { tr:"Bir bardağa 2,5–5 cm su koy, pipeti daldır. 1) Normal nefesle kabarcık üfle. 2) Yanakları şişir ve yalnız yanaktaki havayı pipetten ver; ciğerlerden hava gelmesin. 3) Normal hava ile yanak havasını sırayla, arada durarak birkaç kez değiştir. 4) Aynısını durmadan yap.",
+        en:"Put 2.5–5 cm (1–2 inches) of water in a glass and dip a straw in. 1) Blow bubbles with normal air. 2) Puff the cheeks and push only the cheek air through the straw, with no air from the lungs. 3) Alternate normal air and cheek air a few times, pausing in between. 4) Do the same without pausing." },
+      { tr:"5) Yanak havasını verirken burundan nefes al (önce pipetsiz ve susuz). 6) Yanaktan verirken burundan alarak normal hava ile yanak havası arasında, önce durarak, sonra durmadan geç. Asıl adım bu: kabarcıklar hiç kesilmesin. 7) Kabarcıklar kesintisiz akınca aynı hareketi yalnız ağızlıkla (kamışlı) yap, sonra klarnetle.",
+        en:"5) Breathe in through the nose while pushing out the cheek air (first without straw and water). 6) Switch between normal air and cheek air while breathing in through the nose, first with pauses, then without. This is the key step: the bubbles never stop. 7) Once the bubbles flow without a break, do the same motion on the mouthpiece (with reed) alone, then on the clarinet." }
+    ] },
+    { type:"hold", note:67, sec:30, min:100, cont:true }
+  ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2995,10 +3042,12 @@ function unlocked(lesson, prog, all = false){
   if(lessonDone(lesson, prog)) return true;          // bitmiş ders hep açık (yeni dersler araya eklense de)
   if(LPREM().premiumUnit(lesson.unit)) return false; // premium ünite (premium.js; satış açık değilse hiçbir şey kilitlenmez)
   if(all) return true;
-  if(lesson.exam) return LESSONS.filter(l => l.unit === lesson.unit).every(l => lessonDone(l, prog));
+  if(lesson.exam) return LESSONS.filter(l => l.unit === lesson.unit && !l.optional).every(l => lessonDone(l, prog));
   if(gateFor(lesson.unit, prog).length) return false;
-  const i = LESSONS.indexOf(lesson);
+  let i = LESSONS.indexOf(lesson);
   if(i <= 0) return true;
+  // İsteğe bağlı ders (optional) zincire girmez: arkasındaki ders onun önündekine bakar
+  while(i > 1 && LESSONS[i-1].optional) i--;
   const base = () => LESSONS.filter(l => l.unit === "temel" || l.unit === "klarino").every(l => lessonDone(l, prog));
   if(lesson.unit === "teknik") return base();
   // Hız ve teknik: dil vuruşu gerekir, ünite içinde sırayla
@@ -3022,10 +3071,10 @@ function unlocked(lesson, prog, all = false){
   }
   return lessonDone(LESSONS[i-1], prog);
 }
-// Kaldığın yer: açık ve bitmemiş ilk ders
+// Kaldığın yer: açık ve bitmemiş ilk ders (isteğe bağlı dersler önerilmez)
 // Ders kalmadıysa (ya da sıradakiler kademe kapısında bekliyorsa) açık ve geçilmemiş ilk ünite sınavı
 function nextLesson(prog, all = false){
-  return LESSONS.find(l => unlocked(l, prog, all) && !lessonDone(l, prog)) ||
+  return LESSONS.find(l => !l.optional && unlocked(l, prog, all) && !lessonDone(l, prog)) ||
     EXAMS.find(e => unlocked(e, prog, all) && !lessonDone(e, prog)) || null;
 }
 // Bitirilen derslerde öğrenilen notalar (hiç ders bitmediyse açık Sol)

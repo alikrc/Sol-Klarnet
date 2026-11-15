@@ -25,8 +25,10 @@ function writtenToken(tok){
   return LETTER_PC2[m[1]] + acc + (+m[3] + 1) * 12;
 }
 // Yol işaretleri (etüt metninde ayrı sözcük; bir sonraki notanın önüne yazılır, sondakiler son notanın ardına):
-// |: tekrar başı, :| tekrar sonu, [1 [2 birinci ve ikinci dolap, % senyo, D.S. senyoya dön, D.C. baştan, Fine son
-const MARK_TOKENS = { "|:":"repStart", ":|":"repEnd", "[1":"volta1", "[2":"volta2", "%":"segno", "𝄋":"segno", "D.S.":"toSegno", "D.C.":"dc", "Fine":"fine" };
+// |: tekrar başı, :| tekrar sonu, [1 [2 birinci ve ikinci dolap, % senyo, D.S. senyoya dön, D.C. baştan, Fine son.
+// ' ya da ’ nefes yeri (önceki notanın ardından; çizimde dizeğin üstünde virgül, çalınışı etkilemez)
+const MARK_TOKENS = { "|:":"repStart", ":|":"repEnd", "[1":"volta1", "[2":"volta2", "%":"segno", "𝄋":"segno", "D.S.":"toSegno", "D.C.":"dc", "Fine":"fine",
+  "'":"breath", "’":"breath" };
 function parseScoreText(text){
   const notes = [], errors = [], marks = [];
   for(const raw of text.split(/[\s;]+/).filter(Boolean)){
@@ -380,7 +382,11 @@ const ETUDES = [
   { id:"e-mahur", name:{ tr:"Mâhur etüdü", en:"Mâhur étude" }, level:3, makam:"mahur", tempo:80, meter:[4,4],
     text:"Gerdâniye:2 Mâhûr Gerdâniye | Mâhûr Hüseynî Mâhûr Gerdâniye | Hüseynî Nevâ Hüseynî Mâhûr | Gerdâniye:4 | Mâhûr Hüseynî Nevâ Hüseynî | Nevâ Çargâh Bûselik Çargâh | Bûselik:1.5 Çargâh:0.5 Bûselik Dügâh | Rast:4" },
   { id:"e-acemasiran", name:{ tr:"Acemaşîran etüdü", en:"Acemaşîran étude" }, level:3, makam:"acemasiran", tempo:76, meter:[4,4],
-    text:"Acem:2 Hüseynî Acem | Hüseynî Nevâ Hüseynî Acem | Hüseynî Nevâ Çargâh Nevâ | Hüseynî Acem:3 | Nevâ Çargâh Kürdî Dügâh | Kürdî Çargâh:3 | Kürdî Dügâh Kürdî:0.5 Dügâh:0.5 Rast | Acem_Aşîran:4" }
+    text:"Acem:2 Hüseynî Acem | Hüseynî Nevâ Hüseynî Acem | Hüseynî Nevâ Çargâh Nevâ | Hüseynî Acem:3 | Nevâ Çargâh Kürdî Dügâh | Kürdî Çargâh:3 | Kürdî Dügâh Kürdî:0.5 Dügâh:0.5 Rast | Acem_Aşîran:4" },
+  // Nefes yeri işaretli etüt (nefes-2): 4, 8, 12 ve 16 vuruşluk dört cümle; ' nefes yeri (çalınışı etkilemez)
+  { id:"e-nefes", name:{ tr:"Uzayan cümleler", en:"Growing phrases" }, level:2, makam:null, tempo:72, meter:[4,4],
+    text:"Sol4 La4 Si4:2 ' | Do5 Si4 La4 Sol4 | Fa♯4 Sol4 La4:2 ' | Si4 Do5 Re5 Do5 | Si4 La4 Sol4 La4 | Si4:2 Sol4:2 ' | " +
+         "Mi4 Fa♯4 Sol4 La4 | Si4 Do5 Re5:2 | Do5 Si4 La4 Fa♯4 | Sol4:4" }
 ];
 // Etüdün notaları (bir kez ayrıştırılır)
 const etudeCache = new Map();
@@ -390,7 +396,9 @@ function etudeNotes(e){
 }
 // Etüdün yol işaretleri (yoksa boş) ve işaretlere göre açılmış (çalınış sırasındaki) notaları
 const etudeMarks = e => parseScoreText(e.text).marks;
-const etudePlayed = e => { const m = etudeMarks(e); return m.length ? expandRepeats(etudeNotes(e), m) : etudeNotes(e); };
+const etudePlayed = e => { const m = etudeMarks(e).filter(x => x.kind !== "breath"); return m.length ? expandRepeats(etudeNotes(e), m) : etudeNotes(e); };
+// Çalınış sırasındaki notaların üstüne çizilecek nefes işaretleri: yol işareti olan etütte açılış sırayı değiştirdiği için boş
+const etudeBreaths = e => { const m = etudeMarks(e); return m.every(x => x.kind === "breath") ? m : []; };
 const etudeById = id => ETUDES.find(e => e.id === id) || null;
 
 // ---- Düzeltme ----
@@ -576,7 +584,7 @@ function transposeAll(notes, steps, unit){
 
 if(typeof module !== "undefined") module.exports = {
   parseScoreText, scoreToText, reparseKeeping, remapMarks, textEditMarks, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
-  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeMarks, etudePlayed, etudeById, MARK_TOKENS,
+  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeMarks, etudePlayed, etudeBreaths, etudeById, MARK_TOKENS,
   naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, barsAt, meterFromBars,
   expandRepeats, rangeIssues, shiftOctave, transposeAll
 };

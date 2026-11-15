@@ -332,7 +332,7 @@
   // açılsın); ders yeniden açıldıysa sınavın placed kaydı da kalkar. Dersleri hep gerçekten çalınmış ünitenin sınavı atlanmaz.
   // Makamlar sınamayla bütünüyle ölçülmediği için sınavı hiç atlanmaz (kural: MK)
   function syncExams(prog){
-    for(const u of UNITS){ const ex = examFor(u.id), ls = LESSONS.filter(l => l.unit === u.id);
+    for(const u of UNITS){ const ex = examFor(u.id), ls = LESSONS.filter(l => l.unit === u.id && !l.optional);
       if(!ex) continue;
       if(ls.every(l => lessonDone(l, prog))){ if(u.id !== "makam" && ls.some(l => prog[l.id].placed)) markDone(prog, ex, true); }
       else if(prog[ex.id] && prog[ex.id].placed) delete prog[ex.id]; }

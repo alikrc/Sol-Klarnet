@@ -143,7 +143,8 @@ function drawScore(holder, notes, opts = {}){
   return { svg, xs };
 }
 // Yol işaretleri (repertoire.js MARK_TOKENS): signs [{ kind, i }], i işaretin önüne geldiği nota (notes.length: son).
-// Tekrar çizgileri ölçü çizgisinin üstüne, dolaplar dizeğin üstünde köşeli çizgi, senyo, D.C., D.S. ve Fine yazıyla
+// Tekrar çizgileri ölçü çizgisinin üstüne, dolaplar dizeğin üstünde köşeli çizgi, senyo, D.C., D.S. ve Fine yazıyla;
+// nefes yeri (breath) önceki notanın sağında, dizeğin üstünde virgül
 function drawSigns(svg, notes, signs, xs, bars, start, W, sy){
   const N = notes.length;
   const barX = i => {
@@ -169,6 +170,10 @@ function drawSigns(svg, notes, signs, xs, bars, start, W, sy){
       const x1 = bx + 3, x2 = barX(j) - 3;
       put("path", { class:"ornl", d:`M${x1} ${top + 10} V${top} H${x2}` + (one ? ` V${top + 10}` : "") });
       put("text", { class:"orn", x:x1 + 7, y:top + 9 }, one ? "1." : "2.");
+    }else if(m.kind === "breath"){
+      if(m.i <= 0) continue;
+      const a = xs[m.i - 1], x = m.i >= N ? a + 12 : Math.min(a + 12, (a + xs[m.i])/2 + 2);
+      put("text", { class:"breath", x, y:sy(10) + 2, "aria-label": L("nefes", "breath") }, "’");
     }else if(m.kind === "segno") put("text", { class:"orn", x:bx + 8, y:top + 10, style:"font-size:17px;font-style:normal" }, "𝄋");
     else{
       const t = { toSegno:"D.S.", dc:"D.C.", fine:"Fine" }[m.kind];
@@ -227,7 +232,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   const fingOn = () => !piece.hidden && ctx.store.get("piece.fing", true);
   let sc = null;
   // roomy: kısa notalı eserde (arşiv) perde adları ve heceler komşusuna değmesin (drawScore'un arşiv yerleşimi, base:0)
-  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm, west: ctx.store.get("piece.west", false), ...(piece.roomy ? { base:0 } : {}) }); }, cur: i => curScore(sc.svg, i, holder),
+  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm, west: ctx.store.get("piece.west", false), ...(piece.roomy ? { base:0 } : {}), ...(piece.signs ? { signs: piece.signs } : {}) }); }, cur: i => curScore(sc.svg, i, holder),
                    mark: (i, cls) => markScore(sc.svg, i, cls), el: i => sc.svg.querySelector(`g.sn[data-i="${i}"]`) };
   view.draw(names);
   let mode = null, k = 0, miss = 0, release = false, hold = null, t0 = null, run = null, playToken = null, band = null;
@@ -559,7 +564,7 @@ TRAINERS.piece = function(ctx){
   let player = null;
   const LEVEL = { 1: L("Başlangıç", "Beginner"), 2: L("Temel", "Basic"), 3: L("Makam", "Makam"), 4: L("Makam (ileri)", "Makam (advanced)"), 5: L("Usul", "Usul"), 6: L("Trakya ve Roman", "Thracian and Romani") };
   function all(){
-    return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), tempo:e.tempo, meter:e.meter, makam:e.makam, usul:e.usul, group: LEVEL[e.level] })),
+    return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), signs: etudeBreaths(e), tempo:e.tempo, meter:e.meter, makam:e.makam, usul:e.usul, group: LEVEL[e.level] })),
             ...user.map((p, i) => ({ ...p, key:"u"+i, own:true, group: L("Kendi eserlerim", "My pieces") }))];
   }
   function fillSel(keep){
@@ -736,7 +741,7 @@ TRAINER_STEPS.piece = function(st, stage, done, ctx){
   stage.innerHTML = `<div class="scorewrap"></div><div class="fb"></div>
     <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : st.mode === "ladder" ? L("Merdiveni başlat", "Start the ladder") : L("Sayımla başla", "Start with count-in")}</button></div>`;
   // Yol işaretli etüt çalınış sırasıyla açılmış hâliyle çalınır (işaretli hâli okuma dersinin soru adımlarında)
-  const p = { id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam, usul: e.usul };
+  const p = { id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), signs: etudeBreaths(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam, usul: e.usul };
   const pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
   stage.querySelector("[data-l]").addEventListener("click", () => pl.listen(1, { band: ctx.store.get("piece.band", false) }));
   stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : st.mode === "ladder" ? pl.startLadder(st.min) : pl.startTempo());

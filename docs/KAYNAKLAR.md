@@ -187,6 +187,20 @@ Kaynak listesi: [SORUNLAR-KAYNAKLAR.md](SORUNLAR-KAYNAKLAR.md). Bütün bağlant
   uygulamaya kopyalanmaz).
 - Fontlar: Google Fonts ve [Leland](https://github.com/MuseScoreFonts/Leland) (SIL Open Font License).
 
+## 10. Nefes 2 ve sürekli nefes (`lessons.js` `nefes-2`, `nefes-3`)
+
+Doğrulama 2026-11-15'te yapıldı (sayfalar açılıp okundu).
+
+| Bilgi | Uygulamada | Kaynak | Durum |
+|---|---|---|---|
+| Nefes yeri plânı, ağızdan hızlı ve zorlamadan nefes, 4 vuruş al / 8–12–16 vuruş ver alıştırması, nefesin zamanını son notadan almak | `nefes-2` metni ve ipuçları | `nefes-cumle` dersi ve `sorunlar.js` “Nefesim yetmiyor” maddesi ([SORUNLAR-KAYNAKLAR.md](SORUNLAR-KAYNAKLAR.md)); yeni iddia yok | ✅ |
+| Nefes işareti dizeğin üstünde virgül (’) | `nefes-2`, `okuma-5`, etüt metninde `'` | okuma-5 ile aynı (yaygın nota yazımı) | ✅ |
+| Sürekli nefesin tanımı ve işleyişi: ciğerler boşalırken yanaklar havayla şişirilir, yanak havası verilirken burundan nefes alınır, sonra yeniden ciğerden verilir; zurnada çok kullanılır, klarnet kullanılan çalgılar arasında | `nefes-3` metni | [Wikipedia, Circular breathing](https://en.wikipedia.org/wiki/Circular_breathing) (sayfada “daha çok kaynak gerekli” etiketi var) | ⚠️ ansiklopedi maddesi; klarnete özgü bir yöntem kitabı bulunamadı |
+| Bardak–pipet alıştırması: 1–2 inç su; normal hava, yalnız yanak havası, durarak ve durmadan değiştirme, burundan alırken yanaktan verme (önce susuz), kabarcıklar kesilmeden; sonra yalnız ağızlık | `nefes-3` `read` adımı ve ipucu | Greg Oakes, [“Circular Breathing 101”](https://www.dansr.com/resources/circular-breathing-101), DANSR (Vandoren ABD dağıtıcısı), 24 Temmuz 2017 | ✅ |
+
+Kaynaklarda **olmayan** ve bu yüzden derse yazılmayanlar: geçişte perde ya da ton kayması, baş dönmesi uyarısı,
+çalışma süresi, Türk klarnet icracılarının bu tekniği ne kadar kullandığı.
+
 ## Doğrulanamayanlar ve açık kalanlar
 
 - Halk usullerinin (karşılama, Roman havası, Rumeli, çiftetelli, kasap, sirto, zeybek) düm-tek dizileri: yöreden

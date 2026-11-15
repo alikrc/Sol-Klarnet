@@ -105,7 +105,7 @@ function roadmapStats(get){
 // Aşamaların durumu: { stage, lessons:{done,total}, miles:[{m, v, ok}], done, pct }; ilk bitmemiş aşama current
 function roadmapStatus(st, style){
   const out = stageOrder(style).map(stage => {
-    const ls = RMLESSONS.LESSONS.filter(l => stage.units.includes(l.unit));
+    const ls = RMLESSONS.LESSONS.filter(l => stage.units.includes(l.unit) && !l.optional);   // isteğe bağlı ders aşamayı bekletmez
     const done = ls.filter(l => RMLESSONS.lessonDone(l, st.prog)).length;
     const miles = stage.miles.map(m => { const v = m.get(st); return { m, v, ok: milestoneMet(m, v) }; });
     const parts = ls.length + miles.length, got = done + miles.filter(x => x.ok).length;
@@ -274,7 +274,7 @@ function coachNext(st, o = {}){
   const weak = o.lessonOnly ? null : weakSkill(st, o.today);
   if(weak) return { kind:"mile", why:"weak", ...weak };
   // Yeni ders kademe sırasıyla seçilir: hedef tarz oyun havalarıysa Trakya, Makamlar'dan önce gelir
-  const nx = status.flatMap(s => R.LESSONS.filter(l => s.stage.units.includes(l.unit))).find(l => open(l) && !done(l));
+  const nx = status.flatMap(s => R.LESSONS.filter(l => s.stage.units.includes(l.unit) && !l.optional)).find(l => open(l) && !done(l));
   const exam = R.EXAMS.find(e => open(e) && !done(e));
   const guided = o.guided && !o.all;                     // her şey açıksa sınav hiçbir şeyi açmaz
   const cur = status.find(s => s.current);

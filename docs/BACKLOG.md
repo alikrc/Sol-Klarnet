@@ -356,11 +356,27 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   bölgede çalgıdan çalgıya parmak değişir, alternatiflere bak" notu ve parmak kartı alternatifleri açık. Perde bulucu
   bu bölgede denenmedi: önce `audio-check` ile 85–91 arası Iowa kayıtlarında doğruluk ölçülür; %90'ın altındaysa
   dersler `hold` yerine yalnız "nota çıktı" (`notes`) ölçer.
-- [ ] **S2.5 Nefes 2 ve 3** (K, E25). `nefes-2` (Teknik): 4–8–12–16 vuruşluk cümleler, `hold` 12, 16, 20 sn
+- [x] **S2.5 Nefes 2 ve 3** (K, E25). **Yapıldı (15 Kasım 2026).** `nefes-2` (Teknik): 4–8–12–16 vuruşluk cümleler, `hold` 12, 16, 20 sn
   `min:50`; nefes yeri işaretleme (`piece` adımında virgül işaretli özgün etüt `e-nefes`; etüt metin biçimine nefes
   işareti gerekiyorsa `parseScoreText`'e `'` belirteci eklenir, çizimde virgül). `nefes-3` "Sürekli nefes" (İleri,
   isteğe bağlı, kapı değil): yalnız kaynaklı anlatım ve su bardağı–pipet alıştırması `read`, `hold` 67 30 sn
   (ölçüm yalnız kesintisiz süre). Kaynak `KAYNAKLAR.md`'ye eklenir; kaynak bulunamazsa `nefes-3` yazılmaz.
+  *Uygulanan:* `lessons.js` `// ---- S2.5 Nefes 2 ve 3 ----` bloğu, ikisi `since:2`. `nefes-2` Teknik'te `uzun-ton`'dan
+  sonra: `hold` 67 12 sn, 62 16 sn, 67 20 sn (`min:50`), `piece` `e-nefes` serbest (`min:4`) ve tempoda (`min:70`). Metin
+  `nefes-cumle` ve Sorunlar "Nefesim yetmiyor" maddesindeki bilgiden (yeni iddia yok); Sorunlar maddesi `nefes-2`'ye
+  bağlandı. `e-nefes` "Uzayan cümleler" (10 ölçü, ♩=72, Mi4–Re5): 4, 8, 12, 16 vuruşluk dört cümle, aralarında nefes yeri.
+  Etüt metnine nefes işareti: `'` ya da `’` ayrı sözcük olarak (`MARK_TOKENS` `breath`, önceki notanın ardından);
+  `drawScore` `signs` bunu dizeğin üstünde virgül çizer; çalınışı etkilemez (`etudePlayed` yok sayar, `expandRepeats`
+  dokunmaz). Ders adımında ve Etüt ve eserler'de çizilsin diye `etudeBreaths` (yalnız nefes işareti olan etütte; yol
+  işaretli etütte açılış sırası değiştiği için boş) `piecePlayer`'a `signs` olarak gider. `nefes-3` "Sürekli nefes"
+  İleri ünitesinin sonunda, `optional:true`: `unlocked` zincirinde arkasındaki ders onu atlar, ünite sınavı, `nextLesson`,
+  hoca kartı (`coachNext`), aşama ders sayımı (`roadmapStatus`) ve sınamanın `syncExams`'i onu saymaz; listede "isteğe
+  bağlı" yazar. Kaynaklar: Greg Oakes, "Circular Breathing 101" (DANSR, 2017; bardak–pipet adımları) ve Wikipedia
+  "Circular breathing" (tanım, işleyiş, zurna ve klarnet); `KAYNAKLAR.md` §10. Kaynaklarda olmayan (geçişte perde
+  kayması, baş dönmesi, Türk icracıların kullanımı) yazılmadı. `hold` adımına `cont:true`: puan yalnız kesintisiz süre
+  (`hold` 67 30 sn `min:100`). Tarayıcıda 375 px'te iki ders açıldı, `read` adımı çalıştı, `e-nefes` virgülleri çizildi,
+  konsolda hata yok; mikrofonlu adımlar panelde mikrofon engelli olduğu için denenmedi. Node'da: bütün dersler bitip
+  `nefes-3` kalınca hoca kartı ve `nextLesson` boş, İleri aşaması 9/9; göç iki dersi "istersen" yapar.
 - [x] **S2.6 Ton ve dinamik 2** (K). **Yapıldı (15 Kasım 2026).** `dinamik-2` (Teknik): pp ve ff'te perde sabit kalsın (`dynamics` `shape:"mdv"`
   52, 67, 79'da; ek ölçüt: sapma ±1 koma içinde, `dynamicsEval` çıktısında perde verisi var mı bakılır), yankı
   çalışması (aynı cümle f sonra p: `piece` iki kez). Roadmap'e taş eklenmez.

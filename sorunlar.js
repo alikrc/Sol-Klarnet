@@ -138,7 +138,7 @@ const SQ = [
       L("Nefes verme alıştırması: metronom 60'ta 4 vuruş nefes al, 8, 12, 16 vuruş boyunca ince ve eşit üfle.", "Exhale drill: at 60 bpm, breathe in for 4 beats, then blow a thin even stream for 8, 12, 16 beats."),
       L("Eserde nefes yerlerini nota üstüne işaretle: genellikle uzun notadan sonra ya da cümle sonunda. Nefes için son notadan biraz çal, ritmi bozma.", "Mark breathing spots in the music, usually after a long note or at the end of a phrase. Take the time from the last note, not from the beat."),
       L("Uzun ton süresini yavaş yavaş artır; nefes dayanıklılığı çalışarak gelir.", "Gradually lengthen your long tones; breath stamina comes with practice.")],
-    links:[{ lesson:"nefes-cumle" }, { tab:"long" }, { tab:"rhythm" }] },
+    links:[{ lesson:"nefes-cumle" }, { lesson:"nefes-2" }, { tab:"long" }, { tab:"rhythm" }] },
 
   { id:"dudak", cat:"nefes", emo:"👄", title:L("Dudak çabuk yoruluyor, ağız ağrıyor", "My lip tires fast or hurts"),
     keys:L("dudak yorgunluk ağrı çene ısırmak diş yara ağızlık", "lip fatigue pain jaw biting teeth embouchure"),

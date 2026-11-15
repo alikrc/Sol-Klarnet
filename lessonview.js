@@ -52,7 +52,7 @@ TRAINERS.lessons = function(ctx){
       for(const l of ls){
         const open = unlocked(l, prog, allOpen), done = lessonDone(l, prog), lp = lessonProgress(l, prog);
         items += `<button type="button" class="lsitem${done ? " done" : ""}${cur === l ? " cur" : ""}" data-id="${l.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
-          <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done && prog[l.id].mig ? L("✓ istersen", "✓ optional") : done ? "✓" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
+          <span>${esc(tx(l.title))}</span><small>${!open ? "kilitli" : done && prog[l.id].mig ? L("✓ istersen", "✓ optional") : done ? "✓" : lp.done ? lp.done + "/" + lp.total : l.optional ? L("isteğe bağlı", "optional") : ""}</small></button>`;
       }
       if(ex){
         const open = unlocked(ex, prog, allOpen), done = lessonDone(ex, prog), lp = lessonProgress(ex, prog);
@@ -469,6 +469,7 @@ TRAINERS.lessons = function(ctx){
         const durMs = start ? t - start : 0;
         if(!start || devs.length < 5){ start = null; devs = []; tqf = []; q(stage, ".lhd").textContent = "Nota tutulamadı, yeniden dene."; return; }
         const s = longToneScore(devs, durMs, st.sec*1000), tq = toneQuality(tqf);
+        if(st.cont) s.score = Math.round(Math.min(1, durMs/(st.sec*1000))*100);   // cont: puan yalnız kesintisiz süre (sürekli nefes)
         stage.innerHTML = `<div class="result"><div class="big">${s.score}</div><div>puan · ${esc(name)}</div></div>
           <div class="kv"><div><span class="label">Süre</span>${num(durMs/1000)} sn</div>
           <div><span class="label">Ortalama sapma</span>${sgn(s.mean)} koma</div>
