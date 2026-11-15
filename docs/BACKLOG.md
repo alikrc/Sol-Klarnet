@@ -901,12 +901,31 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   sürümle aynı; eski adımları geçmiş kayıtta sınav geçilmiş, rozet duruyor, rehberli kapı açık; sıfır kullanıcıda
   yalnız eski adımlar sınavı geçirmez, hepsi geçirir. Tarayıcıda 375 px'te sınav sayfaları açılıyor, yeni adımlar
   (soru dahil) çiziliyor, eski kayıtla "Sınavı geçtin" görünüyor, konsolda hata yok.
-- [ ] **S5.4 Terimler sözlüğü** (O, E26). `sozluk.js`: `{ id, term:{tr,en}, def:{tr,en}, see:[ders|teori|makam] }`;
+- [x] **S5.4 Terimler sözlüğü** (O, E26). **Yapıldı (15 Kasım 2026).** `sozluk.js`: `{ id, term:{tr,en}, def:{tr,en}, see:[ders|teori|makam] }`;
   ≈ 120 terim (çalgı parçaları, nota işaretleri, perde adları, çeşni adları, makam ve usul terimleri, formlar,
   süslemeler). Tanımlar var olan ders ve Teori metinlerinden derlenir, yeni iddia yazılmaz. Dersler → "Sözlük"
   segmenti; arama (`search.js`) terimleri bulur; ders metinlerinde terimin ilk geçtiği yer noktalı altı çizili,
   dokununca alt panelde tanım (`nav.js` `openSheet`). İşaretleme elle değil: metin çizilirken sözlük terimleri eşlenir
   (Türkçe ek almış biçimler için kök eşleme: terim + en çok 6 harf ek).
+  *Uygulanan:* `sozluk.js` 180 terim, dokuz kategori (çalgı ve teknik 41, nota yazısı 21, koma ve aralıklar 15, perde
+  adları 21, çeşniler 14, makam terimleri 15, usuller 25, formlar 17, süslemeler 11); ≈ 120 hedefini aştı, çünkü perde ve
+  usul adlarının hepsi derslerde geçiyor. Tanımlar ders metinlerinden (`klarneti-tani`, `akortlama`, `okuma-2…5`,
+  `artikulasyon-2`, süsleme ve usul dersleri, `fasil-sirasi`), Teori konularından (koma, perde, çeşni, makam, usul,
+  transpoz, form; çeşniler `thCesni` notlarından) ve Çalış yardım metinlerinden (dron) kısaltılarak alındı; yeni bilgi
+  yazılmadı. Perde kayıtlarının tanımı veriden üretilir: Teori'deki cümle + Rast'tan kaç koma + yazılı nota (`PERDES`,
+  `commaToWritten`); aynı adda makam varsa Dizi bağlantısı eklenir. Bağlantılar `see:["ders:…", "teori:…", "makam:…"]`;
+  kilitli ders soluk. Dersler kökünde Teori'den sonra segment "Sözlük" (`nav.js` `LROOTS`, `practice.js` `TABS`/`GROUPS`/`BLURB`/
+  `HELP`, `index.html`, `scripts/build-web.js`): arama kutusu ve kategori seçimi. Uygulama araması (`search.js`) "Sözlük"
+  grubunda terimleri iki dildeki adıyla bulur, dokununca tanım alt panelde. İşaretleme: `sozlukMark(el, LANG, seen)` ders
+  açılınca anlatım ve ipuçlarında (`lessonview.js`, ortak küme), okuma adımı açılınca adım metninde (`trainers.js` `read`)
+  metin düğümlerini tarar; düğme, bağlantı, etiket ve nota içine girmez, veriye dokunmaz. Desen dil başına bir kez kurulur
+  (bütün biçimler uzundan kısaya tek düzenli ifadede: "asma karar" "karar"dan önce; kelime başı ve sonu `\p{L}`); 185
+  ders ≈ 12 ms. Yanlış anlam için kayıt başına `skip` (güçlü = forte, dümdüz, hanende), genel kelimeler `mark:false`
+  (makam, aralık, akort, birlik, süsleme, Kaba/Tiz, Nim/Dik), perde adları büyük harf duyarlı ve ardından makam/çeşni
+  adı gelince (Hicaz makamı, Hicazkâr, Kürdîli) işaretlenmez. Teori'ye `SK.openTeori(id)`. `npm run mufredat` sözlüğü de
+  denetler: kimlik tekil, iki dil dolu, kategori ve bağlantılar veride. Tarayıcıda 375 px'te denendi: segment, arama,
+  ders metninde ve okuma adımında işaretli terim → alt panel → Teori bağlantısı, geri tuşu paneli kapatır; Türkçe ve
+  İngilizce; konsolda hata yok.
 - [ ] **S5.5 Bitirme sınavı** (O, E28). `sinav-ustalik` (İleri ünite sınavının yerine değil, ardından): 2 dakikalık
   taksim (dört bölüm), basamak 5'ten bir saz eseri ezberden `tempoPct:100` `min:80`, bir oyun havası eşlikle, makam
   tanıma 8'de 7, deşifre seviye 4 %70, Aksak ve Curcuna'da metronomsuz ritim. Geçince rozet "Usta yolunda" ve son

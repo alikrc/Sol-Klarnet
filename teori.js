@@ -574,6 +574,9 @@ if(typeof TRAINERS !== "undefined") TRAINERS.teori = function(ctx){
     else if(d.next !== undefined) openSub(TH_TOPICS[TH_TOPICS.indexOf(cur) + 1]);
   });
 
+  // Dışarıdan açma (sozluk.js bağlantıları): Teori segmentine geçip konuyu açar
+  SK.openTeori = id => { const t = TH_TOPICS.find(x => x.id === id); if(!t) return; ctx.selectTab("teori"); openSub(t); };
+
   // Konu ilk gösterimde çizilir (bağlantı kartları practice.js'in kurulumu bitince var olan SK.practiceTabs'ı kullanır)
   renderList();
   return {

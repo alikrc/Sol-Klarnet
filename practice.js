@@ -24,8 +24,8 @@
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hece",L("Ritim heceleri", "Rhythm syllables")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
-                ["repertuvar",L("Sıradaki eserim", "My next piece")],["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["sorun",L("Sorunlar ve çözümler", "Problems & fixes")],["progress","İlerleme"]];
-  const GROUPS = [["lessons","Dersler",["lessons","teori","roadmap","videos"]],
+                ["repertuvar",L("Sıradaki eserim", "My next piece")],["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["sozluk",L("Sözlük", "Glossary")],["sorun",L("Sorunlar ve çözümler", "Problems & fixes")],["progress","İlerleme"]];
+  const GROUPS = [["lessons","Dersler",["lessons","teori","sozluk","roadmap","videos"]],
                   ["finger",L("Parmak ve nota", "Fingers and notes"),["quiz","gorbas","staffmap","tablo","desifre"]],
                   ["ritim",L("Ritim", "Rhythm"),["hece","usul","rhythm"]],
                   ["tech",L("Ses ve teknik", "Tone and technique"),["sorun","long","hiz","susleme"]],
@@ -65,6 +65,7 @@
     videos: L("Hocalardan makam, teknik ve süsleme videoları", "Makam, technique and ornament videos by masters"),
     sorun: L("La–Si geçişi, gıcırtı, tiz notalar, perde, nefes: belirti, neden, çözüm", "The A–B break, squeaks, high notes, pitch, breath: symptom, cause, fix"),
     teori: L("Müzik teorisi: koma, perde, çeşni, makam, usul, transpozisyon", "Music theory: commas, perdes, çeşnis, makams, usuls, transposition"),
+    sozluk: L("Terimler sözlüğü: çeşni, yeden, asma karar, teslim…", "Glossary of terms: çeşni, yeden, asma karar, teslim…"),
     progress: L("Çalışma süren ve gelişimin", "Your practice time and progress")
   };
   // "Nasıl kullanılır?" notları: ne işe yarar, adım adım nasıl çalışılır. Üst çubuktaki ? ile alttan açılan panelde
@@ -355,6 +356,14 @@
       <ol><li>The topics run in order; pick one. Each has a short explanation, notation and <b>Listen</b> buttons.</li>
         <li>“Check yourself” at the end asks three questions; get them all right and the topic gets a ✓ in the list.</li>
         <li>The “Put it into practice” cards open the lessons and exercises that teach the topic by playing; ← brings you back.</li></ol>`),
+    sozluk: L(`<p><b>Ne işe yarar:</b> Derslerde geçen bir terimin (çeşni, yeden, asma karar, teslim…) ne demek olduğunu bulmak.</p>
+      <ol><li>Üstteki kutuya terimi yaz ya da konuyu seç; terimler alfabe sırasında.</li>
+        <li>Her terimin altındaki düğmeler onu anlatan dersi, Teori konusunu ya da makamın dizisini açar; kilitli ders soluk görünür.</li>
+        <li>Ders metinlerinde noktalı altı çizili kelimeye dokununca tanım alttan açılır; üstteki büyüteçle aramada da terimler çıkar.</li></ol>`,
+      `<p><b>What it's for:</b> finding out what a term used in the lessons (çeşni, yeden, asma karar, teslim…) means.</p>
+      <ol><li>Type the term in the box or pick a topic; terms are in alphabetical order.</li>
+        <li>The buttons under each term open the lesson, Theory topic or makam scale that explains it; locked lessons are greyed out.</li>
+        <li>In lesson texts, tap a word with a dotted underline to see its definition from below; the magnifier search finds terms too.</li></ol>`),
     progress: L(`<p><b>Ne işe yarar:</b> Ne kadar çalıştığını ve neyin geliştiğini görmek.</p>
       <ol><li>Üstte seri (kaç gün üst üste) ve bugünkü süre; günlük hedefi Ayarlar'dan değiştirebilirsin.</li>
         <li>Altta ritim, kulak, seyir, hız, süsleme ve eserlerdeki en iyi sonuçların ve Taklit rekorun.</li>

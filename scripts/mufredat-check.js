@@ -161,6 +161,25 @@ const bctx = (() => {
   }
 }
 
+// ---- Sözlük (sozluk.js, S5.4) ----
+// Kimlik tekil, terim ve tanım iki dilde dolu, bağlantılar (ders | teori | makam) veride var, kategori tanımlı
+const SZ = req("sozluk.js");
+{
+  const szIds = new Set(), cats = new Set(SZ.SZ_CATS.map(c => c[0]));
+  const topics = new Set(req("teori.js").thTopics((tr, en) => ({ tr, en })).map(t => t.id));
+  for(const e of SZ.SOZLUK){
+    const w = "sözlük " + e.id;
+    if(szIds.has(e.id)) err(w, "kimlik tekrar ediyor"); szIds.add(e.id);
+    if(!cats.has(e.cat)) err(w, "bilinmeyen kategori " + e.cat);
+    walkText({ term:e.term, def:e.def }, w);
+    for(const s of e.see || []){
+      const [kind, id] = s.split(":");
+      const ok = kind === "ders" ? ids.has(id) : kind === "teori" ? topics.has(id) : kind === "makam" ? makamIds.has(id) : false;
+      if(!ok) err(w, "bağlantı yok: " + s);
+    }
+  }
+}
+
 // ---- Envanter ----
 const rows = [], seen = new Set();
 let tot = { l:0, e:0, n:0 };
@@ -176,7 +195,7 @@ for(const u of LS.UNITS){
 const pad = (s, n) => String(s) + " ".repeat(Math.max(0, n - String(s).length));
 console.log(pad("Ünite", 22) + pad("Ders", 6) + pad("Etüt", 6) + pad("Yeni nota", 11) + "Sonradan eklenen");
 for(const r of rows) console.log(pad(r[0], 22) + pad(r[1], 6) + pad(r[2], 6) + pad(r[3], 11) + r[4]);
-console.log(pad("Toplam", 22) + pad(tot.l, 6) + pad(tot.e, 6) + pad(tot.n, 11) + "· " + LS.EXAMS.length + " sınav · " + REP.ETUDES.length + " etüt verisi · müfredat sürümü " + maxVer);
+console.log(pad("Toplam", 22) + pad(tot.l, 6) + pad(tot.e, 6) + pad(tot.n, 11) + "· " + LS.EXAMS.length + " sınav · " + REP.ETUDES.length + " etüt verisi · " + SZ.SOZLUK.length + " sözlük terimi · müfredat sürümü " + maxVer);
 
 if(warns.length){ console.log("\nUyarılar (" + warns.length + "):"); warns.forEach(x => console.log("  " + x)); }
 if(errors.length){ console.log("\nHatalar (" + errors.length + "):"); errors.forEach(x => console.log("  " + x)); process.exit(1); }

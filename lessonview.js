@@ -284,6 +284,8 @@ TRAINERS.lessons = function(ctx){
           <div class="stage lsstage" id="lss${i}" hidden></div>
         </li>`; }).join("")}</ol>
       <div id="lsnext"></div>`;
+    // Sözlük terimleri (sozluk.js): anlatım ve ipuçlarında her terimin ilk geçtiği yer
+    if(typeof sozlukMark === "function"){ const seen = new Set(); $("lsbody").querySelectorAll(":scope > p, :scope > .lstips").forEach(el => sozlukMark(el, LANG, seen)); }
     SK.setTempContext(l.makam || null);
     markScale(l.makam ? makamById(l.makam) : null);
     renderList(); renderNext();

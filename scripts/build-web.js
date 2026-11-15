@@ -12,7 +12,7 @@ const crypto = require("crypto");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "www");
-const FILES = ["index.html", "app.css", "app.js", "nav.js", "i18n.js", "art.js", "core.js", "learn.js", "sources.js", "premium.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "usuller.js", "sampler.js", "pieces.js", "band.js", "follow.js", "transcribe.js", "reading.js", "roadmap.js", "archive.js", "repertuvar.js", "omrtemplates.js", "omr.js", "omrworker.js", "convert.js", "drills.js", "chartsheet.js", "lessonview.js", "teori.js", "sorunlar.js", "practice.js", "equip.js", "review.js", "onboard.js", "search.js", "nowplaying.js", "pcmring.js",
+const FILES = ["index.html", "app.css", "app.js", "nav.js", "i18n.js", "art.js", "core.js", "learn.js", "sources.js", "premium.js", "lessons.js", "videos.js", "skills.js", "repertoire.js", "trainers.js", "usuller.js", "sampler.js", "pieces.js", "band.js", "follow.js", "transcribe.js", "reading.js", "roadmap.js", "archive.js", "repertuvar.js", "omrtemplates.js", "omr.js", "omrworker.js", "convert.js", "drills.js", "chartsheet.js", "lessonview.js", "teori.js", "sozluk.js", "sorunlar.js", "practice.js", "equip.js", "review.js", "onboard.js", "search.js", "nowplaying.js", "pcmring.js",
   "sw.js", "manifest.webmanifest", "icon.svg", "privacy.html"];
 const DIRS = ["icons", "img", "fonts", "notalar", "vendor", "sounds"];
 const LISTS = { "--lisans-temiz": "lisans-disla.csv", "--lisans-belirsiz": "lisans-belirsiz.csv" };

@@ -1,5 +1,5 @@
 // Uygulama geneli arama: üst çubuktaki büyüteç (ya da Ctrl/⌘+K) bir arama penceresi açar. Sayfalar, alıştırmalar,
-// dersler, makamlar, notalar ve perdeler (parmak pozisyonu), ayarlar, videolar ve nota arşivindeki eserler tek kutudan
+// dersler, makamlar, sözlük terimleri, notalar ve perdeler (parmak pozisyonu), ayarlar, videolar ve nota arşivindeki eserler tek kutudan
 // aranır; sonuca dokununca ilgili yer açılır. Türkçe harfler ve şapkalar aramada fark etmez (ş = s, â = a, ı = i).
 // Modüller açma işlevlerini window.SK üzerinden verir (practice.js, lessonview.js, drills.js, archive.js).
 (function(){
@@ -25,7 +25,7 @@
   // Her kayıt: { key, kind, title, sub, hay, go() } ya da bağlantı için href. Ayar etiketleri sayfadan okunur
   // (İngilizcede çevrilmiş haliyle), bu yüzden dizin her açılışta yeniden kurulur; arşiv bir kez yüklenir.
   const KINDS = [["page", L("Sayfalar", "Pages")], ["tab", L("Alıştırmalar", "Exercises")], ["lesson", L("Dersler", "Lessons")],
-    ["makam", "Makam"], ["note", L("Notalar ve perdeler", "Notes and perdes")], ["setting", L("Ayarlar", "Settings")],
+    ["makam", "Makam"], ["term", L("Sözlük", "Glossary")], ["note", L("Notalar ve perdeler", "Notes and perdes")], ["setting", L("Ayarlar", "Settings")],
     ["video", L("Videolar", "Videos")], ["piece", L("Nota arşivi", "Score archive")]];
   let items = [], pieces = null, piecesLoading = null;
 
@@ -52,6 +52,13 @@
 
     if(SK.openMakam) MAKAMS.forEach(m => add("makam", m.id, m.name, L("Dizi, durak ve güçlü", "Scale, tonic and dominant") + " · " + perdeName(m.durak),
       "makam dizi " + m.id, () => SK.openMakam(m.id)));
+
+    // Sözlük terimleri (sozluk.js): iki dildeki adı ve tanımı aranır; dokununca tanım alt panelde açılır
+    if(typeof SOZLUK !== "undefined" && SK.glossOpen) SOZLUK.forEach(e => {
+      const cat = SZ_CATS.find(c => c[0] === e.cat), other = LANG === "en" ? e.term.tr : e.term.en;
+      add("term", e.id, tx(e.term), [cat ? tx(cat[1]) : "", other !== tx(e.term) ? other : ""].filter(Boolean).join(" · "),
+        e.term.tr + " " + e.term.en + " sözlük terim glossary", () => SK.glossOpen(e.id));
+    });
 
     // Notalar: yazılı Mi3–Mi♭7; perde adları da o notanın kaydına yazılır (Hicaz → Sol♯4 gibi)
     const perdesOf = {};
