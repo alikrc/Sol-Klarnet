@@ -3,7 +3,7 @@
 //   ders kimlikleri tekil; her piece.id ETUDES'te, her piece.arsiv notalar/'da; makam, usul, ritim kalıbı ve hız kalıbı
 //   kimlikleri veride; etüt yalnız o derse kadar öğretilmiş notaları kullanır (makamsız etütler); makam etüdü yalnız
 //   makamın perdelerini kullanır; her { tr, en } metninin iki dili dolu; her ünitenin sınavı var; RM_STAGES bütün
-//   üniteleri kapsar; GATE_AFTER döngüsüz; since alanı CURRICULUM_VER'i aşmaz; soru adımının cevap indeksi geçerli.
+//   üniteleri kapsar; GATE_AFTER döngüsüz; since alanı CURRICULUM_VER'i aşmaz; soru adımının cevap indeksi geçerli; makamsız mimic notaları öğretilmiş.
 const fs = require("fs"), path = require("path");
 const ROOT = path.join(__dirname, "..");
 const req = f => require(path.join(ROOT, f));
@@ -31,7 +31,7 @@ function walkText(x, where){
   }
   for(const [k, v] of Object.entries(x)) walkText(v, where + "." + k);
 }
-for(const l of LS.LESSONS) walkText({ title:l.title, text:l.text, tips:l.tips, steps:l.steps }, l.id);
+for(const l of LS.LESSONS) walkText({ title:l.title, text:l.text, tips:l.tips, steps:l.steps, endLink:l.endLink }, l.id);
 for(const u of LS.UNITS) walkText({ name:u.name, badge:u.badge }, "ünite " + u.id);
 
 // ---- Adımlar ----
@@ -52,6 +52,11 @@ for(const l of LS.LESSONS){
     if(st.type === "rhythm" && st.pattern && !rhythmIds.has(st.pattern)) err(w, "bilinmeyen ritim kalıbı " + st.pattern);
     if((st.type === "tech" || (st.type === "listen" && st.pattern)) && !SK.techPattern(st.pattern)) err(w, "hız kalıbı üretilemedi " + JSON.stringify(st.pattern));
     if(st.type === "ear" && Array.isArray(st.pool)) st.pool.forEach(m => okMakam(w, m));
+    if(st.type === "mimic" && !st.makam && !st.commas){
+      const bad = (st.notes || []).filter(n => !known.has(n));
+      if(!Array.isArray(st.notes) || st.notes.length < 2) err(w, "makam, commas ya da en az iki notalık notes gerekir");
+      else if(bad.length) err(w, "öğretilmemiş nota: " + bad.map(x => noteName(x).tr).join(", "));
+    }
     if(st.type === "soru"){
       const items = LS.soruItems(st);
       items.forEach((it, j) => {

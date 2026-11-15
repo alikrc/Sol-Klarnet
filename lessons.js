@@ -8,7 +8,7 @@
 //   notes   { notes | commas, maxMiss, hint? }  notaları sırayla çal, en çok maxMiss hata; hint başlığa eklenir ("yarı hızda")
 //   quiz    { notes, mode, n, min }          n soruluk parmak testi ("play" çal / "find" bul), en az min doğru
 //   scale   { makam, min }                   makam dizisi çıkış-iniş, perdelerin en az min oranı ±1 koma temiz
-//   mimic   { makam | commas, len }          taklit oyununda len notalık ezgiye ulaş
+//   mimic   { makam | commas | notes, len }  taklit oyununda len notalık ezgiye ulaş (notes: makamsız yazılı notalar)
 //   vibrato { note, sec }                    notada sec saniye düzenli vibrato (4–8 Hz)
 //   glide   { from, to, n }                  from'dan to'ya n kez glissando
 //   read    { title, body, fing?, check?, checkId?, checkHint?, links? }  okuma (bilgi) adımı; "Onay" ile geçilir.
@@ -1231,7 +1231,8 @@ function eserSteps(arsiv, name, parts = [], o = {}){
 const arsivWhat = (st, lang) => { const en = lang === "en";
   return pick(st.name, lang) + (st.from || st.to ? (en ? " · bars " : " · ölçü ") + (st.from || 1) + "–" + (st.to || "") : "") +
     (st.tempoPct && st.tempoPct !== 100 ? (en ? " · " + st.tempoPct + "% tempo" : " · %" + st.tempoPct + " tempo") : "") +
-    (st.oct ? (en ? " · an octave " + (st.oct < 0 ? "lower" : "higher") : " · bir oktav " + (st.oct < 0 ? "pes" : "tiz")) : ""); };
+    (st.oct ? (en ? " · an octave " + (st.oct < 0 ? "lower" : "higher") : " · bir oktav " + (st.oct < 0 ? "pes" : "tiz")) : "") +
+    (st.hidden ? (en ? " · score hidden" : " · nota gizli") : ""); };
 const techSteps = (pattern, start, target) => [{ type:"listen", pattern, tempo:target }, { type:"tech", pattern, start, target }];
 const HIZ = [
   { id:"hiz-metronom", unit:"hiz", notes:[],
@@ -2629,6 +2630,60 @@ insertLessonAfter("ses-kalitesi", { id:"dinamik-2", unit:"teknik", since:2, note
     { type:"piece", id:"e-iki-el", mode:"free", min:4, cue:{ tr:"yankı, hafif (p)", en:"echo, soft (p)" } }
   ] });
 
+// ---- S4.6 Kulaktan çalma ----
+// Üç basamak: Temeller sonunda makamsız taklit (mimic notes, pes bölge), Makamlar ortasında makam cümlesi (len:6), İleri'de
+// arşivden bir eserin ilk 8 ölçüsü nota gizli (listen hidden → piece hidden; çalış bitince nota açılır, farklar işaretli).
+// Ders sonu Kulaktan çıkar aracına bağlanır (endLink; lessonview.js renderNext).
+const KULAK_LINK = { tab:"kulaktan", label:{ tr:"Kulaktan çıkar aracını aç", en:"Open the Learn by ear tool" },
+  text:{ tr:"Sıradaki adım: sevdiğin bir kaydı Kulaktan çıkar'da yavaşlat, bir cümleyi döngüye al ve aynı yoldan çıkar.",
+         en:"Next: slow down a recording you like in Learn by ear, loop one phrase and work it out the same way." } };
+insertLessonAfter("ilk-eserler-2", { id:"kulak-ezgi-1", unit:"temel", since:2, notes:[], endLink:KULAK_LINK,
+  title:{ tr:"Kulaktan çalma 1: duy ve çal", en:"Playing by ear 1: hear it, play it" },
+  text:[
+    { tr:"Türk müziği yüzyıllarca kulaktan öğrenildi: usta çalar, çırak dinler ve aynısını çalar. Bu derste uygulama pes bölgeden 3–4 notalık kısa bir cümle çalar; notası görünmez, sen duyduğunu klarnetle çalarsın. Doğru çaldıkça cümle bir nota uzar.",
+      en:"Turkish music was learned by ear for centuries: the master plays, the apprentice listens and plays it back. In this lesson the app plays a short 3–4 note phrase in the low register; you don't see the notes, you play what you hear on the clarinet. Each time you get it right, the phrase grows by one note." },
+    { tr:"Önce ilk notayı bul: ilk nota çoğu zaman Sol, La ya da Si'dir. Sonra her notanın bir öncekinden ince mi kalın mı olduğunu dinle; cümleler çoğunlukla komşu notalara adım adım gider.",
+      en:"Find the first note first: it's usually G, A or B. Then listen whether each note is higher or lower than the one before; the phrases mostly move step by step to neighbouring notes." }
+  ],
+  tips:[
+    { tr:"Çalmadan önce cümleyi içinden ya da sesli söyle; söyleyebildiğin cümleyi çalmak kolaydır.", en:"Sing the phrase in your head or out loud before you play; a phrase you can sing is easy to play." },
+    { tr:"Yanlış nota da bilgi verir: uygulama doğrusunu gösterir, yeni cümlede aynı aralığa dikkat et.", en:"A wrong note teaches too: the app shows the right one; watch for the same interval in the next phrase." }
+  ],
+  steps:[
+    { type:"listen", notes:[55, 57, 59, 60, 59, 57, 55] },
+    { type:"mimic", notes:[55, 57, 59, 60], len:3 },
+    { type:"mimic", notes:[52, 53, 55, 57, 59, 60], len:4 }
+  ] });
+insertLessonAfter("nihavend-2", { id:"kulak-ezgi-2", unit:"makam", since:2, notes:[], endLink:KULAK_LINK,
+  title:{ tr:"Kulaktan çalma 2: makam cümlesi", en:"Playing by ear 2: a makam phrase" },
+  text:[
+    { tr:"Artık beş makamın dizisini biliyorsun. Bu derste uygulama Rast, Hicaz ve Nihâvend dizilerinden cümleler çalar ve cümle 6 notaya kadar uzar. Cümlenin hangi makamdan olduğunu bildiğin için perdeler de belli: hangi koma perdesini çalacağını ayrıca düşünmezsin, dizinin perdeleri yeter.",
+      en:"You now know the scales of five makams. In this lesson the app plays phrases from the Rast, Hicaz and Nihâvend scales, and they grow up to 6 notes. Since you know which makam the phrase is in, the perdes are fixed too: you don't have to work out which comma perde to play, the scale's perdes are enough." },
+    { tr:"Uzun cümlede hepsini birden aklında tutmaya çalışma: iki parçaya böl, önce ilk üç notayı, sonra kalanını düşün. Takılırsan Tekrar dinle'ye bas.",
+      en:"Don't try to hold a long phrase all at once: split it in two, think of the first three notes, then the rest. If you get stuck, press Listen again." }
+  ],
+  tips:[{ tr:"Cümle başlamadan durağı dron yapmak kulağını makama oturtur; cümleyi o sese göre duyarsın.", en:"Setting the tonic as a drone before the phrase settles your ear in the makam; you hear the phrase against that note." }],
+  steps:[
+    { type:"listen", makam:"rast", commas:[0, 9, 17, 22, 31, 22, 17, 9, 0] },
+    { type:"mimic", makam:"rast", len:6 },
+    { type:"mimic", makam:"hicaz", len:6 },
+    { type:"mimic", makam:"nihavend", len:6 }
+  ] });
+insertLessonAfter("kulak-2", { id:"kulaktan-eser", unit:"ileri", since:2, notes:[], endLink:KULAK_LINK,
+  title:{ tr:"Kulaktan eser: notasız ilk sekiz ölçü", en:"A piece by ear: the first eight bars without the score" },
+  text:[
+    { tr:"Bu derste arşivden bir eserin ilk 8 ölçüsünü notasına bakmadan öğreneceksin. Eser anonim bir Hicaz türküsü: Bahçelerde Mor Meni. Önce dinle (nota gizli), sonra kulağınla çal. Çalış bitince nota açılır: yeşil doğru, kırmızı yanlış perde, soluk olanlar kaçırdığın notalar.",
+      en:"In this lesson you learn the first 8 bars of a piece from the archive without looking at the score. The piece is an anonymous Hicaz türkü: Bahçelerde Mor Meni. Listen first (score hidden), then play it by ear. When you finish the score opens: green is right, red a wrong pitch, faded notes are the ones you missed." },
+    { tr:"Dinlerken üç şeyi yakala: ezginin başladığı perde, cümlenin çıktığı en tiz perde ve karar perdesi. Hicaz Dügâh'ta karar verir; arada Dik Kürdî ile Nim Hicaz arasındaki geniş aralığın rengini duyacaksın. Son adımda aynı ölçüleri nota açık, kendi temposunda çalıp farkları düzeltirsin.",
+      en:"While listening, catch three things: the perde where the tune starts, the highest perde of the phrase and the final perde. Hicaz cadences on Dügâh; in between you'll hear the colour of the wide step between Dik Kürdî and Nim Hicaz. In the last step you play the same bars with the score open at full tempo and fix the differences." }
+  ],
+  tips:[{ tr:"İlk dinlemede çalma; ikinci dinlemede parmaklarını sessizce hareket ettir.", en:"Don't play on the first listen; on the second, move your fingers silently." }],
+  steps:[
+    { type:"listen", arsiv:"hicaz--turku--nimsofyan--bahcelerde_mor--istanbul", name:{ tr:"Bahçelerde Mor Meni", en:"Bahçelerde Mor Meni" }, from:1, to:8, hidden:true },
+    { type:"piece", arsiv:"hicaz--turku--nimsofyan--bahcelerde_mor--istanbul", name:{ tr:"Bahçelerde Mor Meni", en:"Bahçelerde Mor Meni" }, from:1, to:8, tempoPct:80, hidden:true, mode:"tempo", min:60 },
+    { type:"piece", arsiv:"hicaz--turku--nimsofyan--bahcelerde_mor--istanbul", name:{ tr:"Bahçelerde Mor Meni", en:"Bahçelerde Mor Meni" }, from:1, to:8, mode:"tempo", min:75 }
+  ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2772,7 +2827,7 @@ function stepTitle(step, lang = "tr"){
       step.notes.map(nn).join(" ") + " · " + (en ? step.min + "/" + step.n + " correct" : step.min + "/" + step.n + " doğru");
     case "scale": return (en ? "Scale up and down: " : "Dizi çıkış ve iniş: ") + mk + " · " +
       (en ? "at least " + Math.round(step.min*100) + "% of perdes clean" : "perdelerin en az %" + Math.round(step.min*100) + "'i temiz");
-    case "mimic": return (en ? "Imitate: " : "Taklit: ") + (mk || step.commas.map(LLEARN.perdeName).join(" ")) +
+    case "mimic": return (en ? "Imitate: " : "Taklit: ") + (mk || (step.commas ? step.commas.map(LLEARN.perdeName) : step.notes.map(nn)).join(" ")) +
       " · " + (en ? "reach a " + step.len + "-note phrase" : step.len + " notalık ezgiye ulaş");
     case "vibrato": return (en ? "Vibrato: " : "Vibrato: ") + nn(step.note) + " · " + step.sec + (en ? " s of even vibrato" : " sn düzenli vibrato");
     case "glide": return (en ? "Glissando: " : "Glissando: ") + nn(step.from) + " → " + nn(step.to) + " · " + step.n + (en ? " times" : " kez");

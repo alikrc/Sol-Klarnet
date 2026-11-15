@@ -556,11 +556,25 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   denk gelme oranı; `band.js` vuruş zamanları var), `taksim-uzun` (2 dakikalık plan: giriş, gelişme, meyan, karar;
   `phraseAnalysis` dört bölümü süreyle ayırır, her bölümün ölçütü ayrı gösterilir). Taş: "2 dakikalık taksim, dört
   bölüm de tutuyor".
-- [ ] **S4.6 Kulaktan çalma yolu** (O, E21). Üç ders: `kulak-ezgi-1` (Temeller sonu: 3–4 notalık cümleyi duy ve
+- [x] **S4.6 Kulaktan çalma yolu** (O, E21). **Yapıldı (15 Kasım 2026).** Üç ders: `kulak-ezgi-1` (Temeller sonu: 3–4 notalık cümleyi duy ve
   çal, `mimic { commas | notes, len:3 }` pes bölge notalarıyla; önce `mimic`'in makamsız nota havuzu desteklediğine
   bakılır), `kulak-ezgi-2` (Makamlar ortası: 6–8 notalık makam cümlesi, `len:6`), `kulaktan-eser` (İleri: arşivden
   bir eserin ilk 8 ölçüsü nota gösterilmeden; `listen` → `piece` `hidden:true` → nota açılır ve farklar gösterilir;
   `piece` adımına `hidden` seçeneği). Kulaktan çıkar aracına ders sonundan bağlantı.
+  *Uygulanan:* `mimic` adımı makamsız nota havuzunu desteklemiyordu (`makam` ya da `commas`); `notes:[midi…]` eklendi
+  (`lessonview.js`: eşit aralıklı çalar, çiplerde ve geri bildirimde nota adı). `npm run mufredat` makamsız `mimic`
+  notalarının o derse kadar öğretildiğini de denetler. `piece`/`listen` arşiv adımına `hidden:true` (`pieces.js`
+  `archivePieceStep`): nota çizilir ama görünmez (`.scorehid`; perde adları, parmak kartı ve "Eseri arşivde aç" de
+  gizli), tempolu çalış bitince nota açılır ve `alignPerformance` işaretleri (doğru, yanlış perde, kaçan) üstünde kalır;
+  dinleme adımında nota hiç açılmaz. Ders sonu bağlantısı için ders alanı `endLink:{ tab, label, text }`
+  (`lessonview.js` `renderNext`). Dersler `lessons.js` `// ---- S4.6 Kulaktan çalma ----` bloğu, üçü `since:2`:
+  `kulak-ezgi-1` `ilk-eserler-2`'den sonra (Temeller'in son dersi; `listen` + `mimic notes:[55,57,59,60] len:3` +
+  `mimic notes:[52,53,55,57,59,60] len:4`), `kulak-ezgi-2` `nihavend-2`'den sonra (beş makamdan sonra, Makamlar'ın
+  ortası; Rast, Hicaz, Nihâvend `mimic len:6`), `kulaktan-eser` `kulak-2`'den sonra: Bahçelerde Mor Meni (anonim Hicaz
+  türkü, `eser-sec.js --basamak 2`) ölçü 1–8, `listen hidden` → `piece hidden` %80 tempo `min:60` → nota açık %100
+  `min:75`. Üçünün sonunda "Kulaktan çıkar aracını aç". Tarayıcıda 375 px'te üç ders açıldı; gizli dinleme ve gizli
+  çalma (mikrofon sessiz akışla taklit edildi) denendi, nota çalış bitince işaretli açıldı; konsolda hata yok. Gerçek
+  mikrofonla denenmedi.
 - [ ] **S4.7 Ezber ve icra hazırlığı** (O, E22). `piece` adımına `mode:"mem"` (nota 4 ölçü önden silinir, sonra
   tümü gizli; değerlendirme aynı). Dersler (İleri sonu): `ezber` (basamak 3'ten bir eser: bölüm bölüm ezber),
   `kayit-dinle` (bir eseri kaydet, dinle, öz değerlendirme listesi: ton, perde, ritim, cümle; her madde 1–5;

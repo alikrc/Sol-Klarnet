@@ -282,7 +282,9 @@ TRAINERS.lessons = function(ctx){
       return;
     }
     const nx = nextUp();
-    el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>` + summaryHtml(cur);
+    el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Ders tamamlandı.</strong> ${nx ? `<button class="primary small" type="button" data-act="goto" data-id="${nx.id}">Sonraki ders: ${esc(tx(nx.title))} →</button>` : "Bütün dersleri bitirdin!"}</div>` +
+      // endLink: ders sonundan bir araca geçiş ({ tab, label, text })
+      (cur.endLink ? `<div class="lsdone"><span>${esc(tx(cur.endLink.text))}</span> <button class="stopbtn small" type="button" data-act="tab" data-tab="${cur.endLink.tab}">${esc(tx(cur.endLink.label))} →</button></div>` : "") + summaryHtml(cur);
   }
   // Ders sonu özeti: her ölçülen adımın en iyi sonucu ve geçme koşulu. Koşulu en az farkla geçilen adım tekrar için
   // önerilir (oran: sonucun hedefe göre fazlası; hata sayısında azı iyidir)
@@ -655,7 +657,10 @@ TRAINERS.lessons = function(ctx){
     },
 
     mimic(st, stage, done){
-      const pool = st.makam ? [...makamById(st.makam).asc] : st.commas, hold = holder();
+      // Havuz: makam dizisi, komalar ya da makamsız yazılı notalar (notes; eşit aralıklı çalınır)
+      const byNote = !st.makam && !st.commas && Array.isArray(st.notes);
+      const pool = st.makam ? [...makamById(st.makam).asc] : byNote ? st.notes : st.commas, hold = holder();
+      const wantOf = x => byNote ? x : commaToWritten(x), nameOf = x => byNote ? nn(x) : perdeName(x);
       let len = 3, motif = null, idx = 0, listening = false, alive = true, timer = null;
       function draw(){
         stage.innerHTML = `<div class="qcount">Uzunluk ${len} · hedef ${st.len}</div>
@@ -666,7 +671,7 @@ TRAINERS.lessons = function(ctx){
       }
       async function playMotif(){
         listening = false;
-        const ok = await playSeq(fromCommas(motif, st));
+        const ok = await playSeq(byNote ? fromNotes(motif) : fromCommas(motif, st));
         if(!ok || !alive) return;
         listening = true; idx = 0; hold.reset();
         const fb = q(stage, ".lmf"); fb.className = "fb lmf"; fb.textContent = "Şimdi sen çal.";
@@ -678,7 +683,7 @@ TRAINERS.lessons = function(ctx){
       function reveal(k, ok){
         const el = stage.querySelectorAll(".pchip")[k]; if(!el) return;
         el.classList.remove("blank"); el.classList.add(ok ? "good" : "off");
-        el.querySelector("b").textContent = perdeName(motif[k]);
+        el.querySelector("b").textContent = nameOf(motif[k]);
       }
       round();
       return {
@@ -687,7 +692,7 @@ TRAINERS.lessons = function(ctx){
           const h = hold.push(r.written, t);
           if(h.fired || h.ms < 150) return;
           hold.fire();
-          const want = commaToWritten(motif[idx]), fb = q(stage, ".lmf");
+          const want = wantOf(motif[idx]), fb = q(stage, ".lmf");
           if(r.written === want){
             reveal(idx, true); idx++;
             if(idx < motif.length) return;
@@ -701,7 +706,7 @@ TRAINERS.lessons = function(ctx){
             motif.forEach((_, k) => { if(k > idx) reveal(k, true); });
             reveal(idx, false);
             fb.className = "fb lmf bad";
-            fb.textContent = nn(r.written) + " çaldın; beklenen " + perdeName(motif[idx]) + " (yazılı " + nn(want) + "). Yeni ezgi geliyor.";
+            fb.textContent = nn(r.written) + " çaldın; beklenen " + nameOf(motif[idx]) + (byNote ? "" : " (yazılı " + nn(want) + ")") + ". Yeni ezgi geliyor.";
             len = Math.max(3, len-1); timer = setTimeout(round, 2600);
           }
         },

@@ -223,6 +223,8 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   const notes = piece.notes, mk = piece.makam ? makamById(piece.makam) : null;
   const playable = notes.map((n, i) => n.rest ? null : i).filter(i => i !== null);
   let names = ctx.store.get("piece.names", true);
+  // Gizli nota (kulaktan çalma): parmak kartı da sıradaki notayı göstermesin
+  const fingOn = () => !piece.hidden && ctx.store.get("piece.fing", true);
   let sc = null;
   // roomy: kısa notalı eserde (arşiv) perde adları ve heceler komşusuna değmesin (drawScore'un arşiv yerleşimi, base:0)
   view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm, west: ctx.store.get("piece.west", false), ...(piece.roomy ? { base:0 } : {}) }); }, cur: i => curScore(sc.svg, i, holder),
@@ -250,7 +252,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     stop(); mode = "free"; k = 0; miss = 0; release = false; t0 = null; hold = { w:null, since:0, fired:false };
     redraw(); view.cur(playable[0]);
     say("", L("Sıradaki notayı çal; doğru çalınca ilerler.", "Play the next note; it moves on when correct."));
-    if(ctx.store.get("piece.fing", true)) SK.showNote(notes[playable[0]].w);
+    if(fingOn()) SK.showNote(notes[playable[0]].w);
   }
   function freeNote(r, t){
     if(k >= playable.length || !r.inRange) return;
@@ -268,7 +270,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
         mode = null; if(onDone) onDone({ v: miss, mode:"free" }); return;
       }
       view.cur(playable[k]); say("", "");
-      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(notes[playable[k]].w, notes[playable[k-1]].w);
+      if(fingOn() && !SK.playing()) SK.showNote(notes[playable[k]].w, notes[playable[k-1]].w);
     }else if(r.written !== want && ms >= 400){
       hold.fired = true; miss++;
       say("bad", ctx.nn(r.written) + L(" çaldın; sıradaki ", " played; next is ") + ctx.nn(want) + ".");
@@ -362,7 +364,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     const advance = () => {
       if(fol.done) return;
       view.cur(list[fol.k].i);
-      if(ctx.store.get("piece.fing", true) && !SK.playing()) SK.showNote(list[fol.k].w, fol.k > 0 ? list[fol.k-1].w : null);
+      if(fingOn() && !SK.playing()) SK.showNote(list[fol.k].w, fol.k > 0 ? list[fol.k-1].w : null);
     };
     const dog = setInterval(() => {
       if(st.paused || fol.done) return;
@@ -377,7 +379,7 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
     }, 50);
     view.cur(list[0].i);
     say("", L("İlk notayı çal; grup seninle girer ve senin temponu izler.", "Play the first note; the band comes in with you and follows your tempo."));
-    if(ctx.store.get("piece.fing", true)) SK.showNote(list[0].w);
+    if(fingOn()) SK.showNote(list[0].w);
     function onNote(r, t){
       snd = { w: r.written, t };
       const s0 = starts.note(t, r.written);
@@ -743,20 +745,34 @@ TRAINER_STEPS.piece = function(st, stage, done, ctx){
 // Arşiv eseri adımı: { arsiv, from?, to? (ölçü, 1 tabanlı, dahil), tempoPct?, mode:"tempo"|"free"|"listen", min }.
 // Eser archive.js archLessonPiece ile yüklenir. listen kipi dinleme adımıdır (lessonview listen'i buraya yollar), çalınınca
 // biter. Eser açılamazsa (arşivden kalkmış, dosya yok) adım "geç" düğmesiyle geçilebilir: ders çıkmaza girmez
+// hidden:true (kulaktan çalma): nota, perde adları ve parmak kartı görünmez; çalış bitince nota açılır ve doğru, yanlış
+// ve kaçan notalar işaretli görünür. Dinleme kipinde nota hiç açılmaz. Değerlendirme aynı (alignPerformance).
 function archivePieceStep(st, stage, done, ctx){
-  const listenOnly = st.mode === "listen";
+  const listenOnly = st.mode === "listen", hid = !!st.hidden;
   let pl = null, gone = false;
   stage.innerHTML = `<p class="muted">${L("Nota açılıyor…", "Opening the score…")}</p>`;
   archLessonPiece(st).then(p => {
     if(gone) return;
     const where = (p.from > 1 || p.to < p.bars ? L("Ölçü " + p.from + "–" + p.to + " / " + p.bars, "Bars " + p.from + "–" + p.to + " of " + p.bars) : L("Tamamı · " + p.bars + " ölçü", "Whole piece · " + p.bars + " bars")) +
       " · ♩=" + p.tempo + (p.oct ? L(" · bir oktav " + (p.oct < 0 ? "pes" : "tiz"), " · an octave " + (p.oct < 0 ? "lower" : "higher")) : "") + (p.e.b ? " · " + p.e.b : "") + (p.e.fn ? " · " + p.e.fn : "") + (p.e.un ? " · " + p.e.un : "");
-    stage.innerHTML = `<div class="label">${ctx.esc(p.name)}</div><div class="muted small">${ctx.esc(where)}</div><div class="scorewrap"></div><div class="fb"></div>
+    stage.innerHTML = `<div class="label">${ctx.esc(p.name)}</div><div class="muted small">${ctx.esc(where)}</div>${hid ? `<p class="muted small" data-hidnote>${listenOnly
+        ? L("Nota gizli: yalnız dinle, ezgiyi aklında tut.", "The score is hidden: just listen and keep the tune in your head.")
+        : L("Nota gizli: duyduğunu kulaktan çal. Çalış bitince nota açılır, farkları görürsün.", "The score is hidden: play what you heard by ear. When you finish, the score opens and you see the differences.")}</p>` : ""}<div class="scorewrap${hid ? " scorehid" : ""}"></div><div class="fb"></div>
       <div class="pbar"><button class="${listenOnly ? "primary small" : "stopbtn"}" type="button" data-l>${L("Dinle", "Listen")}</button>${listenOnly ? "" :
         `<button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : L("Sayımla başla", "Start with count-in")}</button>`}
-        <button class="linkbtn small" type="button" data-arch>${L("Eseri arşivde aç", "Open in the archive")}</button></div>`;
+        <button class="linkbtn small" type="button" data-arch${hid ? " hidden" : ""}>${L("Eseri arşivde aç", "Open in the archive")}</button></div>`;
     if(p.makam) ctx.SK.setTempContext(p.makam);
-    pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
+    const wrap = stage.querySelector(".scorewrap");
+    if(hid) p.hidden = true;
+    // Gizli notada çalış bitince nota açılır: işaretler (ok, bad, miss) çizimin üstünde kalır
+    const reveal = () => {
+      if(!hid || listenOnly) return;
+      wrap.classList.remove("scorehid"); wrap.scrollLeft = 0;
+      const h = stage.querySelector("[data-hidnote]");
+      if(h) h.textContent = L("Nota açıldı: yeşil doğru, kırmızı yanlış perde, soluk olanlar kaçan notalar.", "The score is open: green is right, red a wrong pitch, faded notes were missed.");
+      const a = stage.querySelector("[data-arch]"); if(a) a.hidden = false;
+    };
+    pl = piecePlayer(ctx, p, wrap, stage.querySelector(".fb"), res => { reveal(); done({ v: res.v }); });
     stage.querySelector("[data-l]").addEventListener("click", async () => {
       await pl.listen(1, { band: ctx.store.get("piece.band", false) });
       if(listenOnly && !gone) done({ v:1 });
