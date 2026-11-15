@@ -104,7 +104,8 @@ function toneQuality(frames){
 // ---- Dinamik ----
 // frames: [{ t, rms, comma }]. shape: "cresc" (artan), "dim" (azalan), "messa" (artıp azalan).
 // Ses düzeyi dB'ye çevrilir; aralık (dB), şekle uyum (korelasyon) ve perdenin kayması (koma) ölçülür.
-function dynamicsEval(frames, shape){
+// maxDrift: perdenin en çok kayması (en yüksek − en düşük, koma; 2 = ±1 koma)
+function dynamicsEval(frames, shape, maxDrift = 2){
   if(frames.length < 10) return null;
   const db = frames.map(f => 20*Math.log10(Math.max(f.rms, 1e-6)));
   const t0 = frames[0].t, T = frames[frames.length-1].t - t0 || 1;
@@ -123,7 +124,7 @@ function dynamicsEval(frames, shape){
   const fit = corr(db, ideal);
   // Perdenin ses gücüyle birlikte kayması (klarnette ses açılınca perde tizleşir/pesleşir)
   const pitchCorr = commas.length === db.length ? corr(db, commas) : 0;
-  return { range, fit, drift, pitchCorr, ok: range >= 10 && fit >= 0.7 && drift <= 2 };
+  return { range, fit, drift, pitchCorr, ok: range >= 10 && fit >= 0.7 && drift <= maxDrift };
 }
 
 // ---- Seyir analizi ----

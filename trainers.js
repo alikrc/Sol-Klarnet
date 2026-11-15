@@ -921,12 +921,12 @@ const TRAINER_STEPS = {
     }
     function end(t){
       if(ended) return; ended = true;
-      const r = dynamicsEval(frames, st.shape);
+      const maxDrift = st.drift != null ? st.drift : 2, r = dynamicsEval(frames, st.shape, maxDrift);
       if(!r){ ended = false; frames = []; start = null; stage.querySelector(".ldm").textContent = L("Nota tutulamadı, yeniden dene.", "The note wasn't held, try again."); return; }
       stage.querySelector(".ldm").innerHTML = `${L("Ses aralığı ", "Range ")}<strong>${Math.round(r.range)} dB</strong> · ${L("şekle uyum ", "shape fit ")}<strong>%${Math.round(Math.max(0, r.fit)*100)}</strong> · ${L("perde kayması ", "pitch drift ")}<strong>${ctx.num(r.drift)} ${L("koma", "commas")}</strong><br>` +
         (r.range < 10 ? L("Ses gücünü daha geniş değiştir (en az 10 dB). ", "Change the volume more (at least 10 dB). ") : "") +
         (r.fit < 0.7 ? L("Değişim düzgün olsun: yavaş ve sürekli. ", "Make the change smooth: slow and continuous. ") : "") +
-        (r.drift > 2 ? L("Ses açılırken perde kaydı: dudak ve hava ile perdeyi sabit tut. ", "The pitch drifted with the volume: keep it steady with lips and air. ") : "") +
+        (r.drift > maxDrift ? L("Ses açılırken perde kaydı: dudak ve hava ile perdeyi sabit tut. ", "The pitch drifted with the volume: keep it steady with lips and air. ") : "") +
         (r.ok ? L("Güzel!", "Nice!") : "");
       done({ v: r.ok ? 1 : 0 });
     }

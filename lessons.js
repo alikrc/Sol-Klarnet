@@ -25,11 +25,12 @@
 //   usultap { usul, mode: "listen"|"tap"|"mem", tempo?, min }  usulu elle vur (klarnetsiz): dinle ve say, Düm/Tek düğmeleriyle vur,
 //                                             ezberden vur; puanı en az min (usuller.js, ilerleme Usuller sayfasıyla ortak)
 //   hece    { mode: "say"|"tap"|"quiz", lv, n?, min? }  ritim hecesi (klarnetsiz): ölçüyü heceleriyle söyle, vur ya da üç notadan bul
-//   dynamics{ note, sec, shape }              crescendo / decrescendo / messa di voce
+//   dynamics{ note, sec, shape, drift? }      crescendo / decrescendo / messa di voce; drift: perdenin en çok kayması
+//                                             (en yüksek − en düşük, koma; varsayılan 2 = ±1 koma)
 //   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim
 //                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
-//   piece   { id, mode: "tempo"|"free", min } etüt çal: tempoda en az min % doğru nota, serbestte en çok min hata
+//   piece   { id, mode: "tempo"|"free", min, cue? } etüt çal (cue: başlıkta yönerge, ör. "güçlü (f)"; ölçülmez): tempoda en az min % doğru nota, serbestte en çok min hata
 //   piece   { arsiv, name, from?, to?, tempoPct?, oct?, mode, min }  nota arşivinden eser (ölçü aralığı, temponun yüzdesi,
 //                                             oktav kaydırma);
 //                                             listen { arsiv, … } aynı eseri dinletir. Kalıp: eserSteps
@@ -2604,6 +2605,30 @@ for(const mk of ["bayati", "humayun", "uzzal", "zirguleli", "suzinak", "hicazkar
 { const t = LESSONS.find(x => x.id === "trakya-giris");
   if(t) t.tips.push({ tr:"Karcığar'ın etüdü Makamlar'daki “Karcığar: cümle, karar ve eser” dersinde.", en:"The Karcığar étude is in the Makams lesson “Karcığar: phrase, cadence and piece”." }); }
 
+// ---- S2.6 Ton ve dinamik 2 ----
+// Hafif ve güçlüde perde sabit kalsın: messa di voce üç bölgede, perde ±1 koma (dynamicsEval). Yankı çalışması ses
+// gücünü ölçmez (uygulama bir cümlenin ses gücünü değerlendirmiyor); yönergeli serbest takiptir
+insertLessonAfter("ses-kalitesi", { id:"dinamik-2", unit:"teknik", since:2, notes:[],
+  title:{ tr:"Dinamik 2: hafifte ve güçlüde perde", en:"Dynamics 2: pitch when soft and loud" },
+  text:[
+    { tr:"Klarnette ses açıldıkça ya da kısıldıkça perde kayar. Bu derste aynı notayı hafiften güçlüye ve yeniden hafife götürürken perdeyi ±1 koma içinde tutacaksın: pes Mi3'te, orta Sol4'te ve klarino Sol5'te.",
+      en:"On the clarinet the pitch drifts as the sound grows or fades. In this lesson you take one note from soft to loud and back while keeping the pitch within ±1 comma: on low E3, middle G4 and clarion G5." },
+    { tr:"Ses güçlenirken dudağı sıkma, havayı artır; hafiflerken havayı kesme, yalnız azalt. Akort ekranında sapmayı izleyerek de çalışabilirsin.",
+      en:"As the sound grows, don't bite: add air. As it fades, don't cut the air, just reduce it. You can also practise watching the deviation on the tuner." }
+  ],
+  tips:[{ tr:"Perde kayıyorsa önce aralığı daralt: daha az güçlen, daha az hafifle; sonra yavaş yavaş genişlet.", en:"If the pitch drifts, narrow the range first: less loud, less soft; then widen it gradually." }],
+  steps:[
+    { type:"dynamics", note:67, sec:8, shape:"messa", drift:2 },
+    { type:"dynamics", note:52, sec:8, shape:"messa", drift:2 },
+    { type:"dynamics", note:79, sec:8, shape:"messa", drift:2 },
+    { type:"read", title:{ tr:"Yankı", en:"Echo" }, body:[
+      { tr:"Aynı ezgiyi önce güçlü (f), sonra yankı gibi hafif (p) çal. Uygulama burada ses gücünü ölçmez, notaları takip eder; farkı kendi kulağınla, istersen kaydedip dinleyerek değerlendir.",
+        en:"Play the same tune first loud (f), then softly like an echo (p). Here the app doesn't measure loudness, it follows the notes; judge the difference by ear, or record yourself and listen." }
+    ] },
+    { type:"piece", id:"e-iki-el", mode:"free", min:4, cue:{ tr:"güçlü (f)", en:"loud (f)" } },
+    { type:"piece", id:"e-iki-el", mode:"free", min:4, cue:{ tr:"yankı, hafif (p)", en:"echo, soft (p)" } }
+  ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2758,9 +2783,9 @@ function stepTitle(step, lang = "tr"){
     case "piece": { if(step.arsiv) return (en ? "Piece: " : "Eser: ") + arsivWhat(step, lang) + " · " +
         (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
                               : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru"));
-      const e = LREP().etudeById(step.id);
+      const e = LREP().etudeById(step.id), cue = step.cue ? " · " + pick(step.cue, lang) : "";
       if(step.mode === "ladder") return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + (en ? " · tempo ladder · up to " + step.min + "%" : " · tempo merdiveni · %" + step.min + "'e kadar");
-      return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
+      return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + cue + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
         : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru")); }
     case "rhythm": {
       const what = step.usul ? "Usul " + LLEARN.USULS.find(u => u.id === step.usul).name : pick(RHYTHM_NAMES[step.pattern], lang);
@@ -2775,7 +2800,8 @@ function stepTitle(step, lang = "tr"){
       if(step.mode === "say") return (en ? "Rhythm syllables: say the bar" : "Ritim heceleri: ölçüyü heceleriyle söyle") + lv;
       if(step.mode === "quiz") return (en ? "Rhythm syllables: which bar?" : "Ritim heceleri: hangi ölçü?") + lv + " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");
       return (en ? "Rhythm syllables: tap the bar" : "Ritim heceleri: ölçüyü vur") + lv + " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan"); }
-    case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn");
+    case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn") +
+      (step.drift != null ? (en ? " · pitch within ±" : " · perde ±") + (step.drift/2).toString().replace(".", en ? "." : ",") + (en ? " comma" : " koma") : "");
     case "seyir": if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
         return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
       return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");

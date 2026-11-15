@@ -361,9 +361,14 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   işareti gerekiyorsa `parseScoreText`'e `'` belirteci eklenir, çizimde virgül). `nefes-3` "Sürekli nefes" (İleri,
   isteğe bağlı, kapı değil): yalnız kaynaklı anlatım ve su bardağı–pipet alıştırması `read`, `hold` 67 30 sn
   (ölçüm yalnız kesintisiz süre). Kaynak `KAYNAKLAR.md`'ye eklenir; kaynak bulunamazsa `nefes-3` yazılmaz.
-- [ ] **S2.6 Ton ve dinamik 2** (K). `dinamik-2` (Teknik): pp ve ff'te perde sabit kalsın (`dynamics` `shape:"mdv"`
+- [x] **S2.6 Ton ve dinamik 2** (K). **Yapıldı (15 Kasım 2026).** `dinamik-2` (Teknik): pp ve ff'te perde sabit kalsın (`dynamics` `shape:"mdv"`
   52, 67, 79'da; ek ölçüt: sapma ±1 koma içinde, `dynamicsEval` çıktısında perde verisi var mı bakılır), yankı
   çalışması (aynı cümle f sonra p: `piece` iki kez). Roadmap'e taş eklenmez.
+  *Uygulanan:* `dynamicsEval` perde kaymasını zaten ölçüyordu (en yüksek − en düşük ≤ 2 koma, yani ±1); eşik adımda
+  `drift` parametresi oldu ve başlıkta "perde ±1 koma" yazar. Ders `dinamik-2` (`ses-kalitesi`'nden sonra): messa di voce
+  Sol4, Mi3, Sol5. **Yankı ölçülmüyor:** uygulama bir cümlenin ses gücünü değerlendirmiyor; çalışma okuma + iki serbest
+  takip (`piece` adımına `cue`: başlıkta "güçlü (f)", "yankı, hafif (p)") olarak kondu, metin bunu açıkça söyler.
+  Cümle ses gücü ölçümü ileride `artik` adımının ölçümüyle (S2.2) birlikte düşünülebilir.
 
 ### S3 — Makam, usul ve teori derinliği (Makam aşaması; ≈ 4 hafta)
 
