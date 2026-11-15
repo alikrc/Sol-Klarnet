@@ -3681,12 +3681,42 @@ const EXAM_STEPS = 6;
 const gatedStep = st => st.type !== "listen" && st.type !== "read" && st.type !== "selfrate" && !(st.type === "piece" && st.mode === "ladder");
 // Adımı dersinden kopyalar: makam dersinin adımı makamını yanında taşır (günlük planda ve sınavda ders bağlamı yok)
 const stepFrom = (l, st) => ({ ...st, ...(l.makam && !st.makam ? { makam: l.makam } : {}) });
+// S5.3: sonradan eklenen derslerin sınav adımları. Eski ünitelerin sınavına SONA ve sabit sırayla eklenir: eski adımların
+// indeksi kaymaz; sınavı önceden geçmiş kullanıcıda geçme kaydı (p.d) durur (lessonDone, sınav). since'li ünite (turku)
+// bütün derslerinden kurulduğu için burada yok. Adımlar dersinden kopyalanır (stepFrom: makam bağlamı).
+const exLesson = id => { const l = LESSONS.find(x => x.id === id); if(!l) throw new Error("sınav: ders yok " + id); return l; };
+const exLast = (id, ok) => { const l = exLesson(id), g = l.steps.filter(ok); if(!g.length) throw new Error("sınav: adım yok " + id); return stepFrom(l, g[g.length - 1]); };
+const exType = t => st => st.type === t;
+const exSoru = (picks, min) => ({ type:"soru", min,
+  items: picks.map(([id, j, k]) => exLesson(id).steps.filter(exType("soru"))[j].items[k]) });
+const EXAM_EXTRA = {
+  temel: () => [
+    exLast("temel-tekrar", st => st.type === "piece" && st.id === "e-t10" && st.mode === "tempo"),
+    // Okuma: süre (S1.4 okuma-2), donanım (okuma-3), dolap ve D.C. (okuma-4), ek çizgi (okuma-5)
+    exSoru([["okuma-2", 0, 1], ["okuma-3", 0, 4], ["okuma-4", 0, 1], ["okuma-4", 0, 4], ["okuma-5", 0, 1]], 4)
+  ],
+  klarino: () => [
+    exLast("ezgi-klarino", st => st.type === "piece" && st.id === "e-k3"),
+    exLast("kirilma-1", exType("tech"))
+  ],
+  teknik: () => [
+    exLast("artikulasyon-2", exType("artik")),
+    exLast("usul-3", exType("usultap"))
+  ],
+  makam: () => [
+    exLast("ussak-2", st => st.type === "notes" && st.hint && st.hint.tr === "yedenli karar"),
+    exLast("kurdi-2", st => st.type === "notes" && st.hint && st.hint.tr === "güçlüden durağa iniş"),
+    exLast("gecki-2", st => st.type === "seyir" && st.via)
+  ]
+};
+const examExtra = unitId => EXAM_EXTRA[unitId] ? EXAM_EXTRA[unitId]() : [];
 function makeExam(u){
   const ls = LESSONS.filter(l => l.unit === u.id && (u.since || !l.since) && l.steps.some(gatedStep));
   const n = Math.min(EXAM_STEPS, ls.length), idx = [...new Set(Array.from({ length:n }, (_, k) => n < 2 ? 0 : Math.round(k*(ls.length - 1)/(n - 1))))];
   const rng = seeded("sinav-" + u.id);
   const steps = idx.map(i => { const l = ls[i], g = l.steps.filter(gatedStep); return stepFrom(l, g[g.length - 1]); })
     .map(st => ({ st, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.st);
+  if(!u.since) steps.push(...examExtra(u.id));
   return { id:"sinav-" + u.id, unit:u.id, exam:true, notes:[],
     title:{ tr:"Ünite sınavı: " + u.name.tr, en:"Unit test: " + u.name.en },
     text:[{ tr:"Ünitenin derslerinden karışık adımlar. Hepsini geçersen “" + u.badge.tr + "” rozetini kazanırsın. Rehberli ilerlemede sonraki ünite bu sınavla açılır; rehberli ilerleme kapalıysa sınav hiçbir dersi kilitlemez.",
@@ -3939,6 +3969,9 @@ function recordStep(prog, lesson, idx, res, day){
 function lessonDone(lesson, prog){
   const p = prog[lesson.id];
   if(!p) return false;
+  // Sınav bir kez geçildiyse geçilmiş kalır: geçme kaydı p.d (rozet de ona bakar, roadmap.js badgeList). S5.3 sınavların
+  // sonuna adım ekledi; eski kullanıcının yeni adımları geçilmemiş olsa da sınavı, rozeti ve rehberli kapısı durur.
+  if(lesson.exam && p.d) return true;
   return lesson.steps.every((st, i) => st.type === "listen" || (p.s[i] && p.s[i].ok));
 }
 function lessonProgress(lesson, prog){

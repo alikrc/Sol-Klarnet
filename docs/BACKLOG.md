@@ -831,11 +831,27 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Temeller ve Klarino dersleri eklenir (S1.1, S1.2, S2.1); okuma sınaması 4 sorudan 8'e (ikisi süre, ikisi arıza)
   ve `okuma-2…5`'i ayrı ayrı sayar; ezgi dersleri (`ezgi-*`, `ilk-eserler-*`) sınamayla **bitmiş sayılmaz**
   ("istersen" önerilir). Makam turları `<makam>-2` derslerini saymaz.
-- [ ] **S5.3 Ünite sınavları** (O). Var olan sınavların adım sırası korunur, yeni adımlar sona eklenir (sınavı
+- [x] **S5.3 Ünite sınavları** (O). **Yapıldı (15 Kasım 2026).** Var olan sınavların adım sırası korunur, yeni adımlar sona eklenir (sınavı
   geçmiş kullanıcıda sınav geçilmiş kalır: `examPassed` kaydı adım sayısına değil geçme kaydına bakmalı; bakmıyorsa
   S0.1 göçünde `placed` yapılır). Eklenecekler: Temeller'e `e-t10` ve `soru` ×5 (okuma); Klarino'ya `e-k3` ve kırılma
   `tech`; Teknik'e `artik` ve `usultap` (usul-3'ten); Makamlar'a iki `<makam>-2` karar kalıbı ve bir geçki; yeni
   `sinav-turku`.
+  *Uygulanan:* **Karar: göç değil, geçme kaydı.** `lessonDone` bütün adımlara bakıyordu (sona adım eklenince geçilmiş
+  sınav geçilmemiş görünürdü); artık sınavda (`lesson.exam`) `p.d` varsa geçilmiş sayılır. `p.d` sınavın bütün adımları
+  ilk kez geçildiğinde (`recordStep`) ya da sınamayla (`onboard.js` `markDone`) yazılır, rozet zaten ona bakıyordu
+  (`roadmap.js` `badgeList`); böylece `examPassed`, rehberli kapı (`gateFor`), rozet ve göçün "sınav geçilmiş" ölçütü
+  aynı kayda bakar. Göç gerekmedi: kayıt değişmez, yalnız okunuşu değişir; eski kullanıcı yeni adımları isterse çalar
+  (sınav sayfasında geçilmemiş görünürler, sınav "geçtin" kalır). `lessons.js` `EXAM_EXTRA`: `since`'siz ünitelerin
+  sınavına, karışık eski adımlardan **sonra** sabit sırayla eklenir (`stepFrom` ile dersinden kopya; ders ya da adım
+  yoksa yükleme hatası): Temeller `temel-tekrar` e-t10 tempolu + `soru` ×5 (`okuma-2` noktalı ikilik, `okuma-3`
+  donanım, `okuma-4` dolap ve tekrar + D.C., `okuma-5` ek çizgi; en az 4); Klarino `ezgi-klarino` e-k3 + `kirilma-1`
+  register geçişi `tech`; Teknik `artikulasyon-2` son `artik` + `usul-3` son `usultap` (Sengin Semâî, ezberden);
+  Makamlar `ussak-2` yedenli karar + `kurdi-2` güçlüden durağa iniş (`notes`, makam bağlamıyla) + `gecki-2` son `via`'lı
+  seyir (Hüseynî → Karcığar). Türkü sınavı S4.2'de ünite `since`'iyle bütün derslerinden kuruluyordu, değişmedi.
+  Sınav adımları: Temeller 5→7, Klarino 2→4, Teknik 6→8, Makamlar 6→9. Node'da: eski adımların sırası ve içeriği önceki
+  sürümle aynı; eski adımları geçmiş kayıtta sınav geçilmiş, rozet duruyor, rehberli kapı açık; sıfır kullanıcıda
+  yalnız eski adımlar sınavı geçirmez, hepsi geçirir. Tarayıcıda 375 px'te sınav sayfaları açılıyor, yeni adımlar
+  (soru dahil) çiziliyor, eski kayıtla "Sınavı geçtin" görünüyor, konsolda hata yok.
 - [ ] **S5.4 Terimler sözlüğü** (O, E26). `sozluk.js`: `{ id, term:{tr,en}, def:{tr,en}, see:[ders|teori|makam] }`;
   ≈ 120 terim (çalgı parçaları, nota işaretleri, perde adları, çeşni adları, makam ve usul terimleri, formlar,
   süslemeler). Tanımlar var olan ders ve Teori metinlerinden derlenir, yeni iddia yazılmaz. Dersler → "Sözlük"
