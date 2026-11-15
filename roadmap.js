@@ -58,6 +58,14 @@ const RM_STAGES = [
       { id:"sight4", tab:"desifre", title:{ tr:"Deşifre seviye 4", en:"Sight-reading level 4" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[4] || null, tried: histDays("sight", x => +x.lv === 4) }
     ] }
 ];
+// Repertuvar merdiveni taşları (S4.1, repertuvar.js): her aşamaya bir basamak, o basamaktan 6 eser çalınmış olmalı.
+// soft: hoca kartı bu taşı sıradaki dersin önüne koymaz, yalnız yan öneri yapar (taş sonradan eklendi; dersleri bitmiş
+// kullanıcı eser çalmadan yeni derse geçebilsin). repertuvar.js tarayıcıda bu dosyadan sonra yüklenir: sayım çağrı anında
+const RMREP = () => typeof module !== "undefined" ? require("./repertuvar.js") : (typeof repCounts === "function" ? { repCounts } : null);
+const REP_STAGE = { baslangic:1, temel:2, orta:3, makam:4, trakya:5, ileri:6 };
+for(const s of RM_STAGES){ const n = REP_STAGE[s.id]; if(!n) continue;
+  s.miles.push({ id:"rep" + n, tab:"repertuvar", soft:true, title:{ tr:"Repertuvar: basamak " + n + "'den 6 eser", en:"Repertoire: 6 pieces from step " + n },
+    unit:{ tr:" eser", en:" pieces" }, target:6, get: st => (st.repCounts || {})[n] || null }); }
 // Hedef tarz: "dance" oyun havalarını makam aşamasından önceye alır
 function stageOrder(style){
   const ids = RM_STAGES.map(s => s.id);
@@ -83,6 +91,7 @@ function roadmapStats(get){
     techBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
     seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length,
     usulMem: Object.values(get("usul.prog", {})).filter(p => p && p.mem >= 70).length, usulQuiz: get("usul.quiz.best", 0),
+    repCounts: (() => { const R = RMREP(); return R ? R.repCounts(get("rep.played", {})) : {}; })(),
     pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,
     hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []), quiz: get("quiz.rounds", []),
       sight: get("sight.hist", []), dict: get("dict.hist", []), band, tech: Object.values(tb).flat().map(x => ({ d: x.day })),
@@ -271,7 +280,7 @@ function coachNext(st, o = {}){
   if(!o.lessonOnly && cur) for(const s of status.slice(status.indexOf(cur))){
     if(wait || s.lessons.done < s.lessons.total) break;
     for(const x of s.miles.filter(y => !y.ok)){
-      if(!mileStuck(st, s, x)){ wait = mile(s, x); break; }
+      if(!x.m.soft && !mileStuck(st, s, x)){ wait = mile(s, x); break; }
       side = side || mile(s, x);
     }
   }

@@ -155,7 +155,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.repertuvar = function(ctx){
         <p class="muted small">${L("Basamak ", "Step ")}${nx.b.n} · ${esc(tx(nx.b.title))}</p>
         <button type="button" class="primary small" data-rp="${esc(nx.id)}" data-oct="${nx.b.oct || 0}">${L("Öğrenmeye başla", "Start learning")} →</button></section>`
         : `<p class="muted">${st.every(x => x.done) ? L("Bütün basamakları bitirdin.", "You've finished every step.") : L("Sıradaki basamak, önerildiği ders bitince açılır; istersen aşağıdan şimdi de başlayabilirsin.", "The next step opens after its lesson; you can start below now if you like.")}</p>`}
-      ${st.map(x => `<details class="rpstep"${x === cur ? " open" : ""}><summary><b>${L("Basamak ", "Step ")}${x.b.n} · ${esc(tx(x.b.title))}</b>
+      ${st.map(x => `<details class="rpstep"${x === (cur || st.find(y => !y.done)) ? " open" : ""}><summary><b>${L("Basamak ", "Step ")}${x.b.n} · ${esc(tx(x.b.title))}</b>
           <small>${x.done ? "✓ " : ""}${x.played}/${x.need} ${L("çalındı", "played")}${x.open ? "" : " · " + L("önerildiği ders: ", "suggested after: ") + esc(lessonById(x.b.after) ? tx(lessonById(x.b.after).title) : x.b.after)}</small></summary>
         <p class="muted small">${esc(tx(x.b.desc))}</p>
         <ul class="rplist">${x.b.pieces.map(([id, name]) => card(x.b, id, name, played, learn)).join("")}</ul></details>`).join("")}`;

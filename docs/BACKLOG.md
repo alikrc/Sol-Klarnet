@@ -434,12 +434,18 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S4 — Repertuvar, yöreler, fasıl, taksim (≈ 4 hafta)
 
-- [ ] **S4.1 Dereceli repertuvar merdiveni** (B, E16; S0.3 gerekir). **Kısmen yapıldı (15 Kasım 2026):** `repertuvar.js` (6 basamak,
-  `eser-sec.js --basamak N --sec` çıktısı; basamak 1: 9, basamak 2: 8 telifsiz eser bulundu), Eserler → "Sıradaki
-  eserim" sekmesi, "Öğren" eseri arşivin yedi adımıyla açar (basamak 1 bir oktav pes), arşivde tamamı %100 tempoda
-  %80+ çalınınca `rep.played`. **Kalan:** yol haritası taşları (her aşamaya "basamak N'den 6 eser"; hoca kartını
-  kilitlemesin diye `soft` taş önerisi: `coachNext` bekleme döngüsünde yalnız yan öneri), hoca kartında "her 4 dersten
-  sonra bir eser" önerisi (`SK.repNext` hazır), tarayıcıda deneme. Yeni sayfa Eserler → **"Sıradaki eserim"**
+- [x] **S4.1 Dereceli repertuvar merdiveni** (B, E16; S0.3 gerekir). **Yapıldı (15 Kasım 2026).**
+  *Uygulanan:* `repertuvar.js` (6 basamak; liste `scripts/eser-sec.js --basamak N --sec` çıktısı, basamaklar sırayla ve
+  alt basamakların eserleri `--haric` ile; her basamak önce bir alttakinin ölçütünü geçemeyen eserleri alır; form
+  dengesi 4/2/2/2; seyir örneği, taksim, etüt alınmaz). Telifsiz uygun eser az olduğu için basamak 1'de 9, basamak 2'de
+  8 eser var (gerekli sayı `min(6, eser sayısı)`). "En kısa değer" ölçütü süreyle (`--ms`), basamak 1 bir oktav pes
+  (S1.6 gibi). Eserler → **Sıradaki eserim**: sıradaki eser, basamak kartları, çalınma ve öğrenme durumu. **Sapma:**
+  "öğren" `eserSteps` değil, arşivin yedi adımlı "Eseri öğren" akışını açar (aynı kayıt, ikinci akış yazılmadı).
+  "Çalındı": arşivde eserin tamamı %100 tempoda tempolu, en az %80 (`rep.played`). Yol haritasında her aşamaya
+  "basamak N'den 6 eser" taşı; `soft` işaretli: hoca kartı bu taşı sıradaki dersin önüne koymaz, yalnız yan öneri
+  yapar (sonradan eklenen taş dersleri bitmiş kullanıcıyı durdurmasın). Hoca kartı: son çalınan eserden bu yana gerçekten
+  çalınıp biten 4 dersten sonra "Bu hafta bir eser". Tarayıcıda sekme, kayıt, "Öğren"in oktav kaydırması denendi;
+  tempolu çalma mikrofon engelli olduğu için denenmedi. Yeni sayfa Eserler → **"Sıradaki eserim"**
   ve `repertuvar.js`: 6 basamak × 10 eser. Basamak ölçütleri betikle (`scripts/eser-sec.js --basamak`):
 
   | Basamak | Aralık (yazılı) | En kısa değer | Usul | Makam | Süre |

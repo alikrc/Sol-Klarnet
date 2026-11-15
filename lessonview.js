@@ -81,7 +81,7 @@ TRAINERS.lessons = function(ctx){
   const nextUp = () => { const id = coachLesson(coachSt(), coachOpts()); return id ? lessonById(id) : nextLesson(prog, allOpen); };
   function renderCoach(){
     const day = dayKey(new Date());
-    pickOptNew();
+    pickOptNew(); pickRepTip();
     coach = coachNext(coachSt(), { ...coachOpts(), dailyDone: store.get("lesson.dailyDone", []).includes(day) || dailySettled(daily, day),
       due: srsDue(store.get("lesson.srs", {}), day).length, reported: store.get("rm.reported", []) });
     const c = coach, names = xs => xs.map(tx).join(", ");
@@ -126,7 +126,19 @@ TRAINERS.lessons = function(ctx){
       ${c.side ? `<p>${esc(L("Yan öneri: ", "On the side: ") + tx(c.side.title) + " (" + mileNow(c.side) + "). " + L("Bu ölçüm henüz tutmadı; dersler onu beklemez, araya kısa turlar koy.", "This measurement hasn't reached its goal yet; the lessons won't wait for it, so fit in short rounds."))}</p>
       <button class="stopbtn small" type="button" data-coach="side">${esc(L("Alıştırmaya git", "Go to the exercise"))}</button>` : ""}
       ${optNew ? `<p>${esc(L("İstersen çal: ", "Optional: ") + tx(optNew.title) + ". " + L("Bu dersin ötesine geçtiğin için bitmiş sayıldı; pekiştirmek istersen aç.", "You're already past this lesson, so it counts as done; open it if you want the extra practice."))}</p>
-      <button class="stopbtn small" type="button" data-coach="opt">${esc(L("Derse bak", "Open the lesson"))}</button>` : ""}`;
+      <button class="stopbtn small" type="button" data-coach="opt">${esc(L("Derse bak", "Open the lesson"))}</button>` : ""}
+      ${repTip ? `<p>${esc(L("Bu hafta bir eser: ", "A piece this week: ") + repTip.name + L(" (repertuvar basamağı ", " (repertoire step ") + repTip.b.n + "). " + L("Son eserinden bu yana " + repTip.k + " ders bitirdin; öğrendiklerini bir eserde çal.", "You've finished " + repTip.k + " lessons since your last piece; use what you've learned in a piece."))}</p>
+      <button class="stopbtn small" type="button" data-coach="rep">${esc(L("Sıradaki eserim", "My next piece"))}</button>` : ""}`;
+  }
+  // Repertuvar önerisi (repertuvar.js, S4.1): son "çalındı" eserden (hiç yoksa baştan) bu yana gerçekten çalınıp biten ders
+  // sayısı 4'ü bulunca ve açık bir basamakta çalınmamış eser varsa kart bir eser önerir
+  let repTip = null;
+  function pickRepTip(){
+    repTip = null;
+    const nx = SK.repNext && SK.repNext(); if(!nx) return;
+    const last = Object.values(store.get("rep.played", {})).reduce((a, p) => p.d > a ? p.d : a, "");
+    const k = LESSONS.filter(l => prog[l.id] && !prog[l.id].placed && prog[l.id].d && prog[l.id].d > last && lessonDone(l, prog)).length;
+    if(k >= 4) repTip = { ...nx, k };
   }
   // Göçle bitmiş sayılan (lessons.js migrateCurriculum) ve henüz açılmamış ilk yeni ders: kart bir kez önerir
   let optNew = null;
@@ -139,6 +151,7 @@ TRAINERS.lessons = function(ctx){
     const b = e.target.closest("[data-coach]"); if(!b || !coach) return;
     if(b.dataset.coach === "side"){ ctx.selectTab(coach.side.tab); return; }
     if(b.dataset.coach === "opt"){ if(optNew) openSub(optNew); return; }
+    if(b.dataset.coach === "rep"){ ctx.selectTab("repertuvar"); return; }
     // Eski kayıtlar korunur: yeniden ölçmede geri açılıp tekrar biten kademenin raporu ikinci kez gelmesin
     if(coach.kind === "report"){ store.set("rm.reported", [...new Set([...store.get("rm.reported", []), ...coach.all])]); renderCoach(); return; }
     if(coach.kind === "lesson") openSub(lessonById(coach.id));
