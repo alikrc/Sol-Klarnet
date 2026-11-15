@@ -158,8 +158,9 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   ve %100 (`min:75`); bölüm verilmezse önce tamamı dinlenir. Adım üstünde eser künyesi (ölçü aralığı, tempo, bestekâr,
   form, usul) ve "Eseri arşivde aç". Eser açılamazsa "Adımı geç" (kayıtta `skip`). **Tekrar işaretleri:** arşivdeki
   SymbTr notaları tekrarları açılmış hâldedir, ölçü numarası çalınış sırasınındır; bölüm sınırı bu yüzden kaymaz.
-  **Çevrimdışı:** `sw.js` `LESSON_NOTALAR` listesi kurulumda önbelleğe alınır; `npm run mufredat` derslerdeki her eserin
-  orada olduğunu ve ölçü aralığının eserin içinde kaldığını denetler. Tarayıcıda üç eserle (anonim türkü, şarkı, saz
+  **Çevrimdışı istenmiyor** (proje sahibi, 15 Kasım: "internetsiz çalışmasın, öyle bir özelliğe gerek yok"): kabul
+  ölçütündeki "internet yokken ders açılır" düşürüldü, ders eserleri için eklenen önbellek listesi kaldırıldı.
+  `npm run mufredat` ölçü aralığının eserin içinde kaldığını denetler. Tarayıcıda üç eserle (anonim türkü, şarkı, saz
   semâîsi) ve olmayan bir eserle denendi; çalma adımları mikrofon engelli olduğu için panelde başlatılamadı, dinleme
   adımları ve "Adımı geç" çalıştı. **S1.6 için not:** dosya adındaki bestekâr ile dizindeki (`b`) ayrışabiliyor (ör.
   `saba--sarki--sofyan--asikina_eylemez--numan_aga` dizinde Yesârî Âsım Arsoy); telif süzgeci dizindeki `b` alanına
@@ -286,7 +287,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   ilk bölümler %60 tempoda serbest takiple. Dersler `ilk-eserler-1` (Sabahın Seher Vaktinde, anonim Hüseynî türkü;
   Sanma Uşşâk'ın Hemân, Ahmet Avni Konuk) ve `ilk-eserler-2` (Nihâvend Kasaphavası, anonim; Yâ Men Yuhibbu, Tanburî
   Ali Efendi), Temeller'in sonunda `temel-tekrar`'dan sonra. `npm run mufredat` arşiv adımlarında da "yalnız öğretilmiş
-  nota" ölçütünü (oktav kaydırılmış hâl) ve `sw.js` `LESSON_NOTALAR` listesini denetler. Ders adımındaki uzun nota satırı
+  nota" ölçütünü (oktav kaydırılmış hâl) denetler. Ders adımındaki uzun nota satırı
   sayfayı genişletiyordu (`.lsbody` `min-width`), arşiv eserinde perde adları üst üste biniyordu (geniş yerleşim);
   ikisi düzeltildi. Çalma adımları mikrofonla denenmedi.
 

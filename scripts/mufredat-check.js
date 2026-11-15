@@ -126,18 +126,15 @@ const bctx = (() => {
 })();
 
 // ---- Arşiv eserli adımlar ----
-// Ölçü aralığı eserin içinde mi; eser sw.js'in çevrimdışı listesinde (LESSON_NOTALAR) mi (ders internetsiz açılsın);
+// Ölçü aralığı eserin içinde mi;
 // eserin (oktav kaydırılmış) notaları o derse kadar öğretilmiş mi (koma perdeleri yakın yazılı notayla sayılır)
 {
-  const swText = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
-  const swList = (swText.match(/const LESSON_NOTALAR = \[([\s\S]*?)\];/) || ["", ""])[1];
   const taught = new Set();
   for(const l of LS.LESSONS){
     l.notes.forEach(x => taught.add(x));
     l.steps.forEach((st, k) => {
       if(!st.arsiv || !notalar.has(st.arsiv)) return;
       const w = l.id + " adım " + (k + 1) + " (" + st.type + ")";
-      if(!swList.includes('"' + st.arsiv + '"')) err(w, "eser sw.js LESSON_NOTALAR listesinde yok: " + st.arsiv);
       if(!st.name) err(w, "arşiv adımında name yok");
       if(!bctx) return;
       const raw = JSON.parse(fs.readFileSync(path.join(ROOT, "notalar", st.arsiv + ".json"), "utf8"));
