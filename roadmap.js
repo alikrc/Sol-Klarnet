@@ -32,6 +32,7 @@ const RM_STAGES = [
     goal:{ tr:"Gam ve arpejleri metronomla hızlanarak, çarpma, mordan, tril ve kayışları ölçülü çalarsın.", en:"Scales and arpeggios speeding up with the metronome; grace notes, mordents, trills and slides, measured." },
     miles:[
       { id:"tech", tab:"hiz", title:{ tr:"Hız: en iyi temiz tempo", en:"Speed: best clean tempo" }, unit:{ tr:" ♩", en:" ♩" }, target:100, get: st => st.techBest || null, tried: histDays("tech") },
+      { id:"chrom", tab:"hiz", title:{ tr:"Kromatik dizi ♩=80 temiz", en:"Chromatic scale clean at ♩=80" }, unit:{ tr:" ♩", en:" ♩" }, target:80, get: st => st.chromBest || null, tried: histDays("chrom") },
       { id:"tril", tab:"susleme", title:{ tr:"Tril hızı", en:"Trill speed" }, unit:{ tr:" dönüş/sn", en:" turns/s" }, target:6, get: st => st.trilBest || null, tried: histDays("orn", x => x.kind === "tril") },
       { id:"carpma", tab:"susleme", title:{ tr:"Çarpma başarısı (son 20)", en:"Grace notes (last 20)" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.carpmaRate, tried: histDays("orn", x => x.kind === "carpma") }
     ] },
@@ -79,6 +80,9 @@ function roadmapStats(get){
   const longBest = {}; for(const [w, b] of Object.entries(get("long.best", {}))) longBest[w] = b.score;
   const tb = get("tech.best", {}); let techBest = 0;
   for(const l of Object.values(tb)) for(const x of l) techBest = Math.max(techBest, x.tempo);
+  // Kromatik dizi taşı: herhangi bir kromatik kalıbın (skills.js patternKey "chromatic:…") en iyi temiz temposu
+  const chrom = Object.entries(tb).filter(([k]) => k.startsWith("chromatic:")).flatMap(([, l]) => l);
+  const chromBest = chrom.reduce((a, x) => Math.max(a, x.tempo), 0);
   const c = get("orn.hist", []).filter(h => h.kind === "carpma").slice(-20);
   const sy = get("seyir.hist", []), syBy = {};
   sy.forEach(x => { syBy[x.mk] = Math.max(syBy[x.mk] || 0, x.score); });
@@ -88,13 +92,13 @@ function roadmapStats(get){
     longBest, quizRegions: RMLEARN.unlockedLevels(get("quiz.recent", {})),
     rhythmBest: get("rhythm.best", 0), earPitch: ear.pitch != null ? ear.pitch : null, earMakam: ear.makam || 0,
     sightBest: get("sight.best", {}), dictBest: get("dict.best", {}),
-    techBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
+    techBest, chromBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
     seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length,
     usulMem: Object.values(get("usul.prog", {})).filter(p => p && p.mem >= 70).length, usulQuiz: get("usul.quiz.best", 0),
     repCounts: (() => { const R = RMREP(); return R ? R.repCounts(get("rep.played", {})) : {}; })(),
     pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,
     hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []), quiz: get("quiz.rounds", []),
-      sight: get("sight.hist", []), dict: get("dict.hist", []), band, tech: Object.values(tb).flat().map(x => ({ d: x.day })),
+      sight: get("sight.hist", []), dict: get("dict.hist", []), band, tech: Object.values(tb).flat().map(x => ({ d: x.day })), chrom: chrom.map(x => ({ d: x.day })),
       orn: get("orn.hist", []).map(h => ({ kind: h.kind, d: RMLEARN.dayKey(new Date(h.t)) })) }
   };
 }

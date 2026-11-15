@@ -619,7 +619,9 @@ function techRun(ctx, spec, holder, opts){
     const startC = a.currentTime + 0.3, t0 = ctxToPerf(a, startC);
     const { times, beats } = noteTimes(pat.notes, t0 + 4*beatMs, beatMs);
     metro = a.createGain(); metro.connect(a.destination);   // Durdur'da önceden planlanmış tıklar susar
-    for(let i=0;i<4 + Math.ceil(beats);i++) ctx.hit(a, i % 4 === 0 ? "D" : "T", startC + i*beatMs/1000, i < 4 ? 1 : 0.55, metro);
+    // Sayım dört dörtlük; kalıbın kendi tıkları varsa (aksak gruplar) çalışta onlar, yoksa her dörtlük
+    for(let i=0;i<(pat.ticks ? 4 : 4 + Math.ceil(beats));i++) ctx.hit(a, i % 4 === 0 ? "D" : "T", startC + i*beatMs/1000, i < 4 ? 1 : 0.55, metro);
+    if(pat.ticks) pat.ticks.forEach(k => ctx.hit(a, k.strong ? "D" : "T", startC + (4 + k.b)*beatMs/1000, 0.55, metro));
     const now = () => performance.now();
     times.forEach(e => timers.push(setTimeout(() => curScore(sc.svg, e.i, wrap), Math.max(0, e.t - now()))));
     timers.push(setTimeout(() => { cap = SK.pcmCapture(); say("", L("Çal!", "Play!")); }, Math.max(0, t0 + 3*beatMs - now())));
@@ -680,8 +682,11 @@ TRAINERS.hiz = function(ctx){
   const { $, store, nn } = ctx;
   const P = $("pp-hiz");
   const KINDS = [["mscale", L("Makam dizisi", "Makam scale")], ["wscale", L("Gam", "Scale")], ["arp", L("Arpej", "Arpeggio")],
-                 ["thirds", L("Üçlü atlamalar", "Thirds")], ["groups", L("Dörtlü gruplar", "Four-note groups")], ["break", L("Register geçişi", "Register crossing")]];
+                 ["thirds", L("Üçlü atlamalar", "Thirds")], ["groups", L("Dörtlü gruplar", "Four-note groups")], ["break", L("Register geçişi", "Register crossing")],
+                 ["chromatic", L("Kromatik dizi", "Chromatic scale")], ["aksak", L("Aksak gruplar", "Aksak groups")], ["leaps", L("Atlamalar", "Leaps")]];
   const TONES = [55, 57, 60, 62, 64, 65, 67, 69], PAIRS = [[69, 71], [70, 72], [67, 74]];
+  // Kromatik aralıklar [başlangıç, yarım ses], aksak gruplamalar (sekizlik), atlama aralıkları
+  const CHROMS = [[52, 19], [67, 17], [60, 12], [52, 32]], GROUPS = [[2,2,2,3], [2,2,3], [3,2,2], [2,3,2,2]], IVS = [4, 5, 8];
   const opt = (v, t) => `<option value="${v}">${t}</option>`;
   P.innerHTML = `
     <p class="pdesc">${L("Bir kalıp seç ve metronomla çal. Temiz çalınca tempo artar, iki kez üst üste zorlanırsan iner. Kalıp başına en iyi tempon kaydedilir.",
@@ -692,6 +697,9 @@ TRAINERS.hiz = function(ctx){
       <select id="hztone" aria-label="${L("Ton", "Key")}">${TONES.map(w => opt(w, nn(w))).join("")}</select>
       <select id="hzmode" aria-label="${L("Majör/minör", "Major/minor")}">${opt("major", L("majör", "major"))}${opt("minor", L("minör", "minor"))}</select>
       <select id="hzpair" aria-label="${L("Geçiş", "Crossing")}">${PAIRS.map((p, i) => opt(i, nn(p[0]) + "–" + nn(p[1]))).join("")}</select>
+      <select id="hzchr" aria-label="${L("Aralık", "Range")}">${CHROMS.map(([b, n], i) => opt(i, nn(b) + "–" + nn(b + n))).join("")}</select>
+      <select id="hzgrp" aria-label="${L("Gruplama", "Grouping")}">${GROUPS.map((g, i) => opt(i, g.reduce((a, b) => a + b, 0) + "/8 (" + g.join("+") + ")")).join("")}</select>
+      <select id="hziv" aria-label="${L("Atlama", "Leap")}">${IVS.map(v => opt(v, v === 8 ? L("oktav", "octave") : v === 4 ? L("dörtlü", "fourth") : L("beşli", "fifth"))).join("")}</select>
     </div>
     <div class="pbar">
       <select id="hzsub" aria-label="${L("Nota değeri", "Note value")}">${opt(2, L("sekizlik", "eighths"))}${opt(3, L("triole", "triplets"))}${opt(4, L("on altılık", "sixteenths"))}</select>
@@ -702,7 +710,7 @@ TRAINERS.hiz = function(ctx){
     <div class="fb" id="hzmsg"></div>
     <svg class="hzchart" id="hzchart" viewBox="0 0 300 70" preserveAspectRatio="none" role="img" aria-label="${L("Son 14 günün en iyi temposu", "Best tempo over the last 14 days")}"></svg>
     <div id="hzstage"></div>`;
-  const el = id => $(id), st = store.get("tech.opts", { kind:"mscale", mk:"rast", tone:60, mode:"major", pair:0, sub:2, art:"legato", oct:1 });
+  const el = id => $(id), st = { kind:"mscale", mk:"rast", tone:60, mode:"major", pair:0, sub:2, art:"legato", oct:1, chr:0, grp:0, iv:4, ...store.get("tech.opts", {}) };
   let run = null;
   function spec(){
     const k = st.kind, base = { sub:+st.sub, art:st.art, octaves:+st.oct };
@@ -710,6 +718,9 @@ TRAINERS.hiz = function(ctx){
     if(k === "wscale") return { type:"scale", base:+st.tone, mode:st.mode, ...base };
     if(k === "arp") return { type:"arp", base:+st.tone, mode:st.mode, ...base };
     if(k === "break") return { type:"break", pair:PAIRS[+st.pair], sub:+st.sub, art:st.art };
+    if(k === "chromatic"){ const [b, n] = CHROMS[+st.chr] || CHROMS[0]; return { type:"chromatic", base:b, span:n, sub:+st.sub, art:st.art }; }
+    if(k === "aksak") return { ...(st.mk ? { makam:st.mk } : { base:+st.tone, mode:st.mode }), type:"groups", group:GROUPS[+st.grp] || GROUPS[0], art:st.art, octaves:+st.oct };
+    if(k === "leaps") return { ...(st.mk ? { makam:st.mk } : { base:+st.tone, mode:st.mode }), type:"leaps", iv:+st.iv, ...base };
     // Üçlü ve dörtlü gruplar makam dizisinden ya da Batı gamından (ton + majör/minör)
     return st.mk ? { type:k, makam:st.mk, ...base } : { type:k, base:+st.tone, mode:st.mode, ...base };
   }
@@ -722,19 +733,25 @@ TRAINERS.hiz = function(ctx){
     svg.innerHTML = `<polyline class="pl" points="${pts}"/>`;
   }
   function sync(){
-    ["kind","mk","tone","mode","pair","sub","art","oct"].forEach(k => { st[k] = el("hz" + k).value; });
+    ["kind","mk","tone","mode","pair","sub","art","oct","chr","grp","iv"].forEach(k => { st[k] = el("hz" + k).value; });
     store.set("tech.opts", st);
     const k = st.kind;
     // Makam dizisinde Batı gamı seçeneği yok
     el("hzmk").querySelector('option[value=""]').hidden = k === "mscale";
     if(k === "mscale" && !st.mk){ st.mk = el("hzmk").value = "rast"; store.set("tech.opts", st); }
-    const western = ["wscale","arp"].includes(k) || (["thirds","groups"].includes(k) && !st.mk);
-    el("hzmk").hidden = !["mscale","thirds","groups"].includes(k);
+    const fromScale = ["mscale","thirds","groups","aksak","leaps"].includes(k);
+    const western = ["wscale","arp"].includes(k) || (fromScale && k !== "mscale" && !st.mk);
+    el("hzmk").hidden = !fromScale;
     el("hztone").hidden = el("hzmode").hidden = !western;
     el("hzpair").hidden = k !== "break";
-    // Makam dizileri iki oktavda klarnetin aralığına sığmıyor; seçenek yalnızca Batı kalıplarında
-    el("hzoct").hidden = !western;
-    if(!western && st.oct !== "1"){ st.oct = el("hzoct").value = "1"; store.set("tech.opts", st); }
+    el("hzchr").hidden = k !== "chromatic";
+    el("hzgrp").hidden = k !== "aksak";
+    el("hziv").hidden = k !== "leaps";
+    el("hzsub").hidden = k === "aksak";            // aksak gruplar hep sekizlik
+    // İki oktav: makam dizisi asıl yerinde sığmazsa bir oktav pes çalınır (Rast, Uşşak, Hicaz); kromatik ve register geçişinde yok
+    const octOk = !["break","chromatic"].includes(k);
+    el("hzoct").hidden = !octOk;
+    if(!octOk && st.oct !== "1"){ st.oct = el("hzoct").value = "1"; store.set("tech.opts", st); }
     build();
   }
   function build(){
@@ -748,7 +765,7 @@ TRAINERS.hiz = function(ctx){
     chart(key);
     run = techRun(ctx, s, stage, { start: t, onRun: () => chart(key) });
   }
-  ["kind","mk","tone","mode","pair","sub","art","oct"].forEach(k => { el("hz" + k).value = st[k]; el("hz" + k).addEventListener("change", () => { el("hztempo").value = ""; sync(); }); });
+  ["kind","mk","tone","mode","pair","sub","art","oct","chr","grp","iv"].forEach(k => { el("hz" + k).value = st[k]; el("hz" + k).addEventListener("change", () => { el("hztempo").value = ""; sync(); }); });
   el("hztempo").addEventListener("change", build);
   sync();
   return { leave(){ if(run) run.stop(); } };

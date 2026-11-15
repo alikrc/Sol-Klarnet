@@ -691,26 +691,37 @@ function ornamentScanFeedback(scan, lang = "tr"){
   return out;
 }
 // ---- Hız ve teknik ----
-// Teknik kalıpları kurallarla üretilir: makam dizisi ya da Batı gamı, arpej, üçlü atlama, dörtlü grup, register geçişi.
-// spec: { type, makam?, base? (yazılı), mode?: "major"|"minor", octaves?: 1|2, sub: 2|3|4, art: "legato"|"tongue", pair?: [w,w] }
-// Dönen: { notes:[{ w, c, d }], meter, label:{ tr, en } } ya da kalıp yazılı Mi3–Do6 dışına taşarsa null.
+// Teknik kalıpları kurallarla üretilir: makam dizisi ya da Batı gamı, arpej, üçlü atlama, dörtlü grup, register geçişi,
+// kromatik dizi, aksak gruplama, dörtlü/beşli/oktav atlama.
+// spec: { type, makam?, base? (yazılı), mode?: "major"|"minor", octaves?: 1|2, sub: 2|3|4, art: "legato"|"tongue", pair?: [w,w],
+//         span? (chromatic: yarım ses sayısı), group? (groups: aksak gruplama, sekizlik; ör. [2,2,2,3] 9/8), iv? (leaps: 4|5|8) }
+// Dönen: { notes:[{ w, c, d, acc? }], meter, ticks?, label:{ tr, en } } ya da kalıp yazılı Mi3–Do6 dışına taşarsa null.
+// Makam kalıbı asıl yerinde sığmazsa bir oktav pes denenir (iki oktav Rast: Kaba Rast–Rast–Gerdaniye).
 const TECH_LOW = 52, TECH_HIGH = 84;
 const SCALE_STEPS = { major:[2,2,1,2,2,2,1], minor:[2,1,2,2,1,2,2] };
 const SUB_NAMES = { 2:{ tr:"sekizlik", en:"eighths" }, 3:{ tr:"triole", en:"triplets" }, 4:{ tr:"on altılık", en:"sixteenths" } };
+const LEAP_NAMES = { 4:{ tr:"dörtlü atlamalar", en:"leaps of a fourth" }, 5:{ tr:"beşli atlamalar", en:"leaps of a fifth" }, 8:{ tr:"oktav atlamaları", en:"octave leaps" } };
+const bar8 = g => g.reduce((a, b) => a + b, 0) + "/8";
 function techPattern(spec){
-  const oct = spec.octaves || 1, d = 1/spec.sub;
+  const p = techPatternAt(spec, 0);
+  return p || !spec.makam ? p : techPatternAt(spec, -53);
+}
+function techPatternAt(spec, shift){
+  const oct = spec.octaves || 1, grp = spec.type === "groups" && Array.isArray(spec.group) ? spec.group : null;
+  const d = grp ? 1/2 : 1/spec.sub;
   const mk = spec.makam ? SLEARN.makamById(spec.makam) : null;
   const W = w => ({ w, c:null }), C = c => ({ w: SLEARN.commaToWritten(c), c });
-  // Dizi basamakları (artan sırada): çıkış ve iniş ayrı (makamlarda inişte farklı perde olabilir)
-  const stepsOf = list => { const out = [...list]; for(let k=1;k<oct;k++) out.push(...list.slice(1).map(c => c + 53*k)); return out; };
+  // Dizi basamakları (artan sırada): çıkış ve iniş ayrı (makamlarda inişte farklı perde olabilir); oktav atlamada bir oktav fazla
+  const n8 = oct + (spec.type === "leaps" && +spec.iv === 8 ? 1 : 0);
+  const stepsOf = list => { const out = list.map(c => c + shift); for(let k=1;k<n8;k++) out.push(...list.slice(1).map(c => c + 53*k + shift)); return out; };
   let up, dn;
   if(mk){ up = stepsOf(mk.asc).map(C); dn = stepsOf(mk.desc).map(C); }
   else if(spec.base != null){
     const st = SCALE_STEPS[spec.mode || "major"], ws = [spec.base];
-    for(let k=0;k<7*oct;k++) ws.push(ws[ws.length-1] + st[k % 7]);
+    for(let k=0;k<7*n8;k++) ws.push(ws[ws.length-1] + st[k % 7]);
     up = dn = ws.map(W);
   }
-  if(!up && spec.type !== "arp" && spec.type !== "break") return null;   // dizi kaynağı yok (makam ya da ton verilmemiş)
+  if(!up && !["arp", "break", "chromatic"].includes(spec.type)) return null;   // dizi kaynağı yok (makam ya da ton verilmemiş)
   const rev = a => [...a].reverse();
   let seq = [];
   switch(spec.type){
@@ -725,8 +736,21 @@ function techPattern(spec){
       for(let i=0;i+2<up.length;i++) seq.push(up[i], up[i+2]);
       for(let i=dn.length-1;i-2>=0;i--) seq.push(dn[i], dn[i-2]);
       break;
+    case "leaps": {
+      const k = { 4:3, 5:4, 8:7 }[spec.iv];
+      if(!k) return null;
+      for(let i=0;i+k<up.length;i++) seq.push(up[i], up[i+k]);
+      for(let i=dn.length-1;i-k>=0;i--) seq.push(dn[i], dn[i-k]);
+      break;
+    }
     case "groups":
-      for(let i=0;i+3<up.length;i++) seq.push(...up.slice(i, i+4));   // son grup tepede biter
+      if(grp) seq = [...up, ...rev(dn).slice(1)];                      // aksak: dizi çıkıp iner, gruplar ölçüyü böler
+      else for(let i=0;i+3<up.length;i++) seq.push(...up.slice(i, i+4));   // son grup tepede biter
+      break;
+    case "chromatic":
+      if(spec.base == null || !(spec.span > 0)) return null;
+      for(let k=0;k<=spec.span;k++) seq.push(W(spec.base + k));
+      for(let k=spec.span-1;k>=0;k--) seq.push(W(spec.base + k));
       break;
     case "break":
       for(let k=0;k<4;k++) seq.push(W(spec.pair[0]), W(spec.pair[1]));
@@ -736,16 +760,31 @@ function techPattern(spec){
   if(!seq.length || seq.some(n => !(n.w >= TECH_LOW && n.w <= TECH_HIGH))) return null;
   const tone = lang => SCORE.noteName(spec.base)[lang].replace(/-?\d+$/, "");
   const key = { major:{ tr:"majör", en:"major" }, minor:{ tr:"minör", en:"minor" } }[spec.mode || "major"];
+  const of = (tr, en) => mk ? { tr: mk.name + " " + tr, en: mk.name + " " + en } : { tr: tone("tr") + " " + key.tr + " " + tr, en: tone("en") + " " + key.en + " " + en };
   const what = {
     scale: () => mk ? { tr: mk.name + " dizisi", en: mk.name + " scale" } : { tr: tone("tr") + " " + key.tr + " gamı", en: tone("en") + " " + key.en + " scale" },
     arp: () => ({ tr: tone("tr") + " " + key.tr + " arpej", en: tone("en") + " " + key.en + " arpeggio" }),
-    thirds: () => mk ? { tr: mk.name + " üçlü atlamalar", en: mk.name + " in thirds" } : { tr: tone("tr") + " " + key.tr + " üçlü atlamalar", en: tone("en") + " " + key.en + " in thirds" },
-    groups: () => mk ? { tr: mk.name + " dörtlü gruplar", en: mk.name + " four-note groups" } : { tr: tone("tr") + " " + key.tr + " dörtlü gruplar", en: tone("en") + " " + key.en + " four-note groups" },
+    thirds: () => of("üçlü atlamalar", "in thirds"),
+    leaps: () => of(LEAP_NAMES[spec.iv].tr, LEAP_NAMES[spec.iv].en),
+    groups: () => grp ? of("aksak gruplar", "in aksak groups") : of("dörtlü gruplar", "four-note groups"),
+    chromatic: () => ({ tr: "Kromatik dizi " + SCORE.noteName(spec.base).tr + "–" + SCORE.noteName(spec.base + spec.span).tr,
+                        en: "Chromatic scale " + SCORE.noteName(spec.base).en + "–" + SCORE.noteName(spec.base + spec.span).en }),
     break: () => spec.pair ? { tr: "Register geçişi " + SCORE.noteName(spec.pair[0]).tr + "–" + SCORE.noteName(spec.pair[1]).tr, en: "Register crossing " + SCORE.noteName(spec.pair[0]).en + "–" + SCORE.noteName(spec.pair[1]).en } : null
   }[spec.type]();
   const extra = lang => (oct === 2 ? (lang === "tr" ? " · 2 oktav" : " · 2 octaves") : "") + (spec.art === "tongue" ? (lang === "tr" ? " · dille" : " · tongued") : "");
-  return { notes: seq.map(n => ({ ...n, d })), meter:[4,4],
-           label:{ tr: what.tr + " · " + SUB_NAMES[spec.sub].tr + extra("tr"), en: what.en + " · " + SUB_NAMES[spec.sub].en + extra("en") } };
+  const notes = seq.map(n => ({ ...n, d }));
+  let meter = [4,4], ticks = null;
+  if(grp){
+    // Aksak: her grubun ilk sekizliği vurgulu (acc), metronom grup başlarında (ölçü başı kuvvetli); son nota ölçüyü doldurur
+    const bar = grp.reduce((a, b) => a + b, 0), slots = Math.ceil(notes.length/bar)*bar;
+    ticks = [];
+    for(let s=0, k=0; s<slots; k++){ if(s < notes.length) notes[s].acc = true; ticks.push({ b: s/2, strong: s % bar === 0 }); s += grp[k % grp.length]; }
+    notes[notes.length-1].d = (slots - notes.length + 1)/2;
+    meter = [bar, 8];
+  }
+  const val = grp ? { tr: bar8(grp) + " (" + grp.join("+") + ")", en: bar8(grp) + " (" + grp.join("+") + ")" } : SUB_NAMES[spec.sub];
+  return { notes, meter, ...(ticks ? { ticks } : {}),
+           label:{ tr: what.tr + " · " + val.tr + extra("tr"), en: what.en + " · " + val.en + extra("en") } };
 }
 // Çalıştaki notalar (5 ms'lik iz): bağlı çalışta perde değişimi, dille çalışta perdesiz ya da sesi düşen aralık nota
 // sınırıdır. Aynı perdeye, sesi düşmeden kısa bir kesintiyle dönen parçalar (metronom tıkı) birleştirilir.
@@ -1012,15 +1051,21 @@ function ladderLoop(ladder, play, judge, opts = {}){
 }
 // patternKey'in tersi (İlerleme satırı kalıbın adını gösterebilsin)
 function patternFromKey(key){
-  const [type, who, mode, oct, sub, art] = String(key).split(":");
-  const spec = { type, sub:+sub, art, octaves:+oct || 1 };
+  const [type, who, mode, oct, sub, art, x] = String(key).split(":");
+  const spec = { type, art, octaves:+oct || 1 };
+  if(/-/.test(sub)) spec.group = sub.split("-").map(Number); else spec.sub = +sub;
+  if(x && type === "chromatic") spec.span = +x;
+  if(x && type === "leaps") spec.iv = +x;
   if(mode) spec.mode = mode;
   if(type === "break") spec.pair = who.split("-").map(Number);
   else if(/^\d+$/.test(who)) spec.base = +who;
   else spec.makam = who;
   return spec;
 }
-const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1, spec.sub, spec.art].join(":");
+// Ek alan (chromatic span, leaps iv) yalnız bu türlerde yedinci alan olur; aksak gruplama nota değeri alanında "2-2-2-3"
+const patternKey = spec => [spec.type, spec.makam || (spec.pair ? spec.pair.join("-") : spec.base), spec.mode || "", spec.octaves || 1,
+  spec.type === "groups" && Array.isArray(spec.group) ? spec.group.join("-") : spec.sub, spec.art,
+  ...(spec.type === "chromatic" ? [spec.span] : spec.type === "leaps" ? [spec.iv] : [])].join(":");
 
 // Eserde işaretli süslemelerden kaçı duyuldu; ölçülemeyenler paydadan düşer
 function ornamentScore(results){

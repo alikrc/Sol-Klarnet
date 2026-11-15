@@ -107,6 +107,8 @@ function drawScore(holder, notes, opts = {}){
       }
     }
     if(dotted(n.d)) g.appendChild(scoreEl("circle", { class:"head", cx:nx+9, cy:y - (p.step % 2 === 0 ? 2 : 0), r:1.6 }));
+    // Vurgu (>): sapın karşı yanında, nota başının dışında (aksak gruplarda grup başı)
+    if(n.acc === true){ const ay = up ? Math.max(y + 9, sy(-1)) : Math.min(y - 9, sy(9)); g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-4} ${ay-3} L${nx+4} ${ay} L${nx-4} ${ay+3}` })); }
     // İşaret: AEU koma işareti (♭ + koma sayısı) ya da tampere ♯/♭
     const ta = n.c !== null ? turkishAccidental(n.c, n.w) : null;
     if(ta && ta.k){

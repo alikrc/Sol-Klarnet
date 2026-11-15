@@ -330,11 +330,26 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Ders `artikulasyon-2` (Teknik, `artikulasyon`'dan sonra): `read` (Türk klarnet tavrında bağlı çalış baskındır, dil
   hafif kullanılır; bu cümle kaynakla doğrulanamazsa "çoğu icracı" diye yumuşatılır) → `artik` legato 67–74 → staccato
   → karışık (iki bağlı iki kesik) → `piece` `e-artik`. Hız ünitesinin `art:"legato"` adımları değişmez.
-- [ ] **S2.3 Dizi ve arpej programı** (O, E8). Hız ünitesine dört ders, `hiz-etut`'ten önce, `since:2`:
+- [x] **S2.3 Dizi ve arpej programı** (O, E8). **Yapıldı (15 Kasım 2026).** Hız ünitesine dört ders, `hiz-etut`'ten önce, `since:2`:
   `hiz-kromatik` (yeni `techPattern` türü `chromatic { base, span }`; 52–71 ve 67–84; 60→88), `hiz-iki-oktav`
   (`scale` `octaves:2`: Sol majör, Rast, Uşşak, Hicaz; 60→84), `hiz-aksak` (`groups` 9/8 ve 7/8 gruplamada vurgu:
   `sub` yerine `group:[2,2,2,3]` parametresi; önce `techPattern`'e eklenir), `hiz-atlama` (dörtlü, beşli, oktav
   atlamalar; yeni tür `leaps`). Yeni taş: "Kromatik dizi ♩=80 temiz" (Orta aşama).
+  *Uygulanan:* `lessons.js` `// ---- S2.3 Dizi ve arpej ----` bloğu, `insertLessonAfter("hiz-makam", …)`, dördü `since:2`;
+  Hız ünitesi zinciri `hiz-makam → hiz-kromatik → hiz-iki-oktav → hiz-aksak → hiz-atlama → hiz-etut`. `skills.js`
+  `techPattern` yeni türler: `chromatic { base, span }` (52–71 ve 67–84, 60→88), `leaps { iv:4|5|8 }` (oktavda dizi bir
+  oktav uzatılır), `groups` + `group:[…]` (sekizlik, ölçü `[toplam, 8]`, grup başı `acc`, son nota ölçüyü doldurur;
+  `ticks` ile metronom yalnız grup başlarında, ölçü başı kuvvetli; sayım yine dört dörtlük). **Sapma:** makam dizileri iki
+  oktavda asıl yerinden Do6'yı aşıyor (Rast 67–91, Uşşak/Hicaz 69–93; `TECH_HIGH` 84); makam kalıbı sığmazsa bir oktav
+  pes denenir: Rast Kaba Rast–Gerdâniye (55–79), Uşşak ve Hicaz Kaba Dügâh–Muhayyer (57–81). Bu, önceden `null` dönen
+  (kullanılamayan) makam kalıplarını açar, var olanları değiştirmez. `patternKey` eski anahtarlarda aynı; aksak gruplama
+  nota değeri alanında ("2-2-2-3"), `span`/`iv` yedinci alan; `patternFromKey` gidiş-dönüşü denendi. 7/8'i Rumeli (2+2+3),
+  9/8'i Karşılama (2+2+2+3) gruplaması olarak anlatır (`learn.js` `USULS` verisi). `drawScore` vurgu (>) çizer; ders
+  dinleme adımı kalıbın ölçüsünü kullanır (önce hep 4/4). Hız sekmesine Kromatik dizi, Aksak gruplar, Atlamalar türleri;
+  makam dizilerinde 2 oktav seçeneği açıldı. Taş `roadmap.js` orta aşama `chrom`: `tech.best`'te `chromatic:` ile başlayan
+  kalıpların en iyi temiz temposu, hedef 80. Tarayıcıda 375 px'te dersler, dinleme adımı (9/8 çizim ve vurgular), Hız
+  sekmesinde yeni türler ve yol haritası taşı denendi, konsolda hata yok; mikrofonlu `tech` adımları panelde mikrofon
+  kapalı olduğu için başlatılamadı, telefonda denenmeli.
 - [ ] **S2.4 Altissimo** (O, E4). İleri üniteye iki ders: `altissimo-1` (Do♯6–Mi6: 85–88), `altissimo-2` (Fa6–Sol6:
   89–91). Adımlar: `read` (hava hızı, dudağı sıkmadan; ağız boşluğu) → her nota için alttaki klarino notasından
   bağlı çıkış `notes` → `hold` 3 sn `min:35` → `quiz` `mode:"find"`. Parmaklar `FINGERINGS`'ten; ders başında "bu

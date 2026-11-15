@@ -2438,6 +2438,76 @@ insertLessonAfter("okuma-5", thLesson("teori-transpoz", "transpoz", { unit:"teme
     thSoruStep("transpoz")
   ] }));
 
+// ---- S2.3 Dizi ve arpej ----
+// Hız ünitesine, hızlı etütten önce dört ders: kromatik dizi, iki oktav dizi, aksak gruplama, atlamalar (skills.js techPattern
+// chromatic, scale octaves:2, groups group:[…], leaps). İki oktav makam dizileri bir oktav pesten başlar (Do6'nın üstüne çıkmasın).
+insertLessonAfter("hiz-makam",
+  { id:"hiz-kromatik", unit:"hiz", since:2, notes:[],
+    title:{ tr:"Kromatik dizi", en:"The chromatic scale" },
+    text:[
+      { tr:"Kromatik dizi yarım ses yarım ses çıkar ve iner: aradaki bütün arızalı notalar dahil. Her parmak geçişini, mandalları ve serçe parmak kaymalarını tek kalıpta çalıştırır; bu yüzden klarnetçilerin günlük ısınmasında yer alır.",
+        en:"The chromatic scale climbs and descends in half steps, every sharp and flat in between included. It drills every finger change, the keys and the little-finger slides in one pattern, which is why clarinettists use it as a daily warm-up." },
+      { tr:"Önce pes bölgede Mi3'ten Si4'e, sonra klarino bölgesinde Sol4'ten Do6'ya. İkincisinde register geçişi de var: Si♭4'ten Si4'e geçerken parmaklar birlikte kapansın.",
+        en:"First in the low register from E3 to B4, then in the clarion register from G4 to C6. The second includes the break: going from B♭4 to B4, close the fingers together." }
+    ],
+    tips:[
+      { tr:"Hangi notanın hangi mandalla çalındığını unuttuysan Parmaklar ekranına bak; kalıbı yavaş tempoda ezberle.", en:"If you forget which key a note uses, check the Fingerings screen; learn the pattern slowly first." },
+      { tr:"Arızalı notalarda parmağı kaldırmadan mandala kaydır; el pozisyonu bozulmasın.", en:"On sharps and flats slide onto the key without lifting; keep the hand position steady." }
+    ],
+    steps:[
+      ...techSteps({ type:"chromatic", base:52, span:19, sub:2, art:"legato" }, 60, 88),
+      ...techSteps({ type:"chromatic", base:67, span:17, sub:2, art:"legato" }, 60, 88)
+    ] },
+  { id:"hiz-iki-oktav", unit:"hiz", since:2, notes:[],
+    title:{ tr:"İki oktav diziler", en:"Two-octave scales" },
+    text:[
+      { tr:"İki oktav dizi pes bölgeden klarino bölgesine kesintisiz geçer; register geçişini hızın içinde çalıştırır. Sol majör gamı Sol3'ten Sol5'e çıkar.",
+        en:"A two-octave scale runs from the low register into the clarion without a break; it trains the register crossing at speed. The G major scale climbs from G3 to G5." },
+      { tr:"Makam dizilerinde iki oktav asıl yerinden başlarsa klarnetin rahat aralığını aşar; bu yüzden bir oktav pesten başlar: Rast, Kaba Rast'tan Gerdâniye'ye; Uşşak ve Hicaz Kaba Dügâh'tan Muhayyer'e. Dizilerin perdeleri makam derslerindekiyle aynıdır, yalnız pes oktavdan başlar.",
+        en:"Starting at their usual place, two-octave makam scales would go beyond the clarinet's comfortable range, so they start an octave lower: Rast from Kaba Rast to Gerdâniye, Uşşak and Hicaz from Kaba Dügâh to Muhayyer. The perdes are the same as in the makam lessons, just starting from the lower octave." }
+    ],
+    tips:[
+      { tr:"Nefesi dizinin başında al; iki oktav tek nefeste çalınamıyorsa tempoyu yükselt değil, nefesi tazele ve yeniden başla.", en:"Breathe before the scale; if two octaves don't fit in one breath, take a fresh breath and start again rather than rushing." }
+    ],
+    steps:[
+      ...techSteps({ type:"scale", base:55, mode:"major", octaves:2, sub:2, art:"legato" }, 60, 84),
+      ...techSteps({ type:"scale", makam:"rast", octaves:2, sub:2, art:"legato" }, 60, 84),
+      ...techSteps({ type:"scale", makam:"ussak", octaves:2, sub:2, art:"legato" }, 60, 84),
+      ...techSteps({ type:"scale", makam:"hicaz", octaves:2, sub:2, art:"legato" }, 60, 84)
+    ] },
+  { id:"hiz-aksak", unit:"hiz", since:2, notes:[],
+    title:{ tr:"Aksak gruplar: 9/8 ve 7/8", en:"Aksak groups: 9/8 and 7/8" },
+    text:[
+      { tr:"Aksak ölçülerde vuruşlar eşit değildir: 9/8 sekizlikleri 2+2+2+3, 7/8 ise 2+2+3 diye gruplanır (Karşılama ve Rumeli usullerindeki gibi). Bu derste dizi sekizliklerle çıkıp iner, her grubun ilk notası vurgulu (>) ve metronom yalnız grup başlarında tıklar.",
+        en:"In aksak metres the beats are unequal: 9/8 groups its eighths 2+2+2+3, 7/8 groups them 2+2+3 (as in the Karşılama and Rumeli usuls). In this lesson the scale goes up and down in eighths, the first note of each group is accented (>) and the metronome clicks only on group starts." },
+      { tr:"Vurguyu dille ya da hava ile hafifçe ver; uzun grubu (üçlü) acele etme. Son nota ölçünün sonuna kadar uzar.",
+        en:"Give the accent lightly with the tongue or the air; don't rush the long group (of three). The last note is held to the end of the bar." }
+    ],
+    tips:[
+      { tr:"Önce Usul ekranında Karşılama ve Rumeli'yi vur; sayışı elinde hissedince diziye geç.", en:"Tap Karşılama and Rumeli in the Usul screen first; move to the scale once you feel the count in your hand." }
+    ],
+    steps:[
+      ...techSteps({ type:"groups", makam:"rast", group:[2,2,2,3], art:"legato" }, 50, 72),
+      ...techSteps({ type:"groups", makam:"hicaz", group:[2,2,2,3], art:"legato" }, 50, 72),
+      ...techSteps({ type:"groups", base:60, mode:"major", group:[2,2,3], art:"legato" }, 50, 72)
+    ] },
+  { id:"hiz-atlama", unit:"hiz", since:2, notes:[],
+    title:{ tr:"Dörtlü, beşli ve oktav atlamalar", en:"Leaps of a fourth, fifth and octave" },
+    text:[
+      { tr:"Üçlülerden sonra daha geniş atlamalar: dizinin her basamağından dörtlüye, beşliye ya da oktava sıçrayıp sonraki basamağa dönersin. Atlamalar parmakların birlikte inip kalkmasını ve havanın her iki notayı da taşımasını ister.",
+        en:"After thirds come wider leaps: from every step of the scale you jump a fourth, a fifth or an octave and come back to the next step. Leaps demand that the fingers move together and that the air carries both notes." },
+      { tr:"Oktav atlamalarında pes bölgeden klarino bölgesine geçersin: register mandalı ile başparmak birlikte, dudak sıkmadan.",
+        en:"In octave leaps you cross from the low register into the clarion: register key and thumb together, without pinching." }
+    ],
+    tips:[
+      { tr:"Üst notayı \"yakalamaya\" çalışma; havayı hızlandır, ağız aynı kalsın.", en:"Don't \"grab\" the top note; speed up the air and keep the mouth the same." }
+    ],
+    steps:[
+      ...techSteps({ type:"leaps", base:60, mode:"major", iv:4, sub:2, art:"legato" }, 60, 80),
+      ...techSteps({ type:"leaps", base:60, mode:"major", iv:5, sub:2, art:"legato" }, 60, 80),
+      ...techSteps({ type:"leaps", base:55, mode:"major", iv:8, sub:2, art:"legato" }, 50, 72)
+    ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
