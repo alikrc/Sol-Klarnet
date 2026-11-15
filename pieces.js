@@ -109,6 +109,11 @@ function drawScore(holder, notes, opts = {}){
     if(dotted(n.d)) g.appendChild(scoreEl("circle", { class:"head", cx:nx+9, cy:y - (p.step % 2 === 0 ? 2 : 0), r:1.6 }));
     // Vurgu (>): sapın karşı yanında, nota başının dışında (aksak gruplarda grup başı)
     if(n.acc === true){ const ay = up ? Math.max(y + 9, sy(-1)) : Math.min(y - 9, sy(9)); g.appendChild(scoreEl("path", { class:"ornl", d:`M${nx-4} ${ay-3} L${nx+4} ${ay} L${nx-4} ${ay+3}` })); }
+    // Artikülasyon (ders artik adımı): kesik nokta, tenuto çizgi; nota başının sapsız yanında. Bağ yayı aşağıda
+    if(n.art === "staccato" || n.art === "tenuto"){
+      const ay = up ? y + 8 : y - 8;
+      g.appendChild(n.art === "staccato" ? scoreEl("circle", { class:"head", cx:nx, cy:ay, r:1.5 }) : scoreEl("line", { class:"ornl", x1:nx-4, x2:nx+4, y1:ay, y2:ay }));
+    }
     // İşaret: AEU koma işareti (♭ + koma sayısı) ya da tampere ♯/♭
     const ta = n.c !== null ? turkishAccidental(n.c, n.w) : null;
     if(ta && ta.k){
@@ -137,6 +142,14 @@ function drawScore(holder, notes, opts = {}){
     if(opts.lyrics && n.syl) g.appendChild(scoreEl("text", { class:"syl", x:nx, y:H - 4 }, n.syl.trim()));
     svg.appendChild(g);
   });
+  // Bağ yayı: art:"legato" notadan sonrakine; art arda bağlı notalar tek yay. Notaların üstünde
+  for(let i=0;i<notes.length;i++){
+    if(notes[i].art !== "legato" || notes[i].rest || (i > 0 && notes[i-1].art === "legato")) continue;
+    let j = i; while(j + 1 < notes.length && notes[j].art === "legato") j++;
+    if(j === i || notes[j].rest) continue;
+    const top = Math.min(...notes.slice(i, j + 1).map(n => { const st = staffPos(n.w).step; return sy(st) - (st < 4 && n.d < 4 ? 27 : 0); })), ay = Math.max(14, Math.min(top - 6, sy(9)));
+    svg.appendChild(scoreEl("path", { class:"ornl", d:`M${xs[i]} ${ay} Q${(xs[i] + xs[j])/2} ${ay - Math.min(18, 7 + 2*(j - i))} ${xs[j]} ${ay}` }));
+  }
   if(opts.signs && opts.signs.length) drawSigns(svg, notes, opts.signs, xs, bars, start, W, sy);
   holder.replaceChildren(svg);
   holder._xs = xs;

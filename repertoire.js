@@ -386,7 +386,13 @@ const ETUDES = [
   // Nefes yeri işaretli etüt (nefes-2): 4, 8, 12 ve 16 vuruşluk dört cümle; ' nefes yeri (çalınışı etkilemez)
   { id:"e-nefes", name:{ tr:"Uzayan cümleler", en:"Growing phrases" }, level:2, makam:null, tempo:72, meter:[4,4],
     text:"Sol4 La4 Si4:2 ' | Do5 Si4 La4 Sol4 | Fa♯4 Sol4 La4:2 ' | Si4 Do5 Re5 Do5 | Si4 La4 Sol4 La4 | Si4:2 Sol4:2 ' | " +
-         "Mi4 Fa♯4 Sol4 La4 | Si4 Do5 Re5:2 | Do5 Si4 La4 Fa♯4 | Sol4:4" }
+         "Mi4 Fa♯4 Sol4 La4 | Si4 Do5 Re5:2 | Do5 Si4 La4 Fa♯4 | Sol4:4" },
+  // ---- S2.2 Artikülasyon 2 (artikulasyon-2 dersi; docs/BACKLOG.md S2.2) ----
+  // Bağlı ölçüler dörtlüklerle; kesik ölçüler yazılı kesik: sekizlik nota + sekizlik sus (metin biçiminde kesik işareti yok).
+  // Yalnız Temeller ve Klarino'da öğretilmiş notalar (Fa♯4–Mi5)
+  { id:"e-artik", name:{ tr:"Bağlı ve kesik", en:"Slurred and detached" }, level:2, makam:null, tempo:72, meter:[4,4],
+    text:"Sol4 La4 Si4 Do5 | Re5:0.5 -:0.5 Re5:0.5 -:0.5 Si4:0.5 -:0.5 Sol4:0.5 -:0.5 | La4 Si4 Do5 Re5 | Mi5:0.5 -:0.5 Re5:0.5 -:0.5 Do5:2 | " +
+         "Si4 Do5 Re5 Si4 | La4:0.5 -:0.5 Si4:0.5 -:0.5 La4:0.5 -:0.5 Fa♯4:0.5 -:0.5 | Sol4 La4 Si4 La4 | Sol4:4" }
 ];
 // Etüdün notaları (bir kez ayrıştırılır)
 const etudeCache = new Map();

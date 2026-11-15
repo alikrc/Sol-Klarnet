@@ -216,7 +216,7 @@ TRAINERS.lessons = function(ctx){
       case "vibrato": return num(r.v) + " sn";
       case "read": return L("okundu", "read");
       case "soru": return r.v + "/" + soruItems(st).length;
-      case "rhythm": case "seyir": return r.v + L(" puan", " points");
+      case "rhythm": case "seyir": case "artik": return r.v + L(" puan", " points");
       case "hece": return st.mode === "say" ? L("söylendi", "done") : st.mode === "quiz" ? r.v + "/" + st.n : r.v + L(" puan", " points");
       case "usultap": return st.mode === "listen" ? L("dinlendi", "done") : r.v + L(" puan", " points");
       case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
@@ -228,7 +228,7 @@ TRAINERS.lessons = function(ctx){
     }
     return "";
   }
-  const canHear = st => ["notes", "scale", "hold", "vibrato", "ornament", "tech"].includes(st.type);
+  const canHear = st => ["notes", "scale", "hold", "vibrato", "ornament", "tech", "artik"].includes(st.type);
   function stepHead(st, i, r){
     return `<span class="lsnum">${r && r.ok ? "✓" : i+1}</span><span class="lsname">${esc(stepTitle(st, LANG))}</span>` +
       (r ? `<span class="lsres">${r.ok ? resText(st, r) : "en iyi: " + resText(st, r)}</span>` : "");
@@ -298,7 +298,7 @@ TRAINERS.lessons = function(ctx){
       case "glide": return { goal:st.n };
       case "tech": return { goal:st.target, unit:" ♩" };
       case "ornament": return { goal:st.kind === "tril" ? st.rate : st.n };
-      case "hold": case "rhythm": case "seyir": return { goal:st.min, unit:L(" puan", " points") };
+      case "hold": case "rhythm": case "seyir": case "artik": return { goal:st.min, unit:L(" puan", " points") };
       case "hece": return st.mode === "say" ? null : st.mode === "quiz" ? { goal:st.min, unit:"/" + st.n } : { goal:st.min, unit:L(" puan", " points") };
       case "usultap": return st.mode === "listen" ? null : { goal:st.min, unit:L(" puan", " points") };
       case "ear": case "sight": case "dictation": case "quiz": return { goal:st.min, unit: st.type === "sight" ? "%" : "/" + st.n };
@@ -376,7 +376,22 @@ TRAINERS.lessons = function(ctx){
     SK.stopSound();
     return playToken === token;
   }
+  // Artikülasyon örneği: her vuruşta bir nota; bağlıda ses kesilmez, tenutoda kısa, kesikte uzun sessizlik
+  async function playArtik(st){
+    const token = {}, beat = 60000/st.tempo, styles = artikStyles(st.style, st.notes.length), on = { legato:1, tenuto:0.9, staccato:0.4 };
+    playToken = token;
+    for(let k=0;k<st.notes.length;k++){
+      if(playToken !== token) return false;
+      const f = on[styles[k]] || 0.9;
+      SK.play(st.notes[k]); await sleep(beat*f);
+      if(playToken !== token) return false;
+      if(f < 1){ SK.stopSound(); await sleep(beat*(1 - f)); }
+    }
+    SK.stopSound();
+    return playToken === token;
+  }
   async function hear(st){
+    if(st.type === "artik") return playArtik(st);
     if(st.pattern) return playPattern(st);
     if(st.type === "ornament" || st.orn){ playToken = null; return playOrn(st); }
     const items = itemsOf(st);

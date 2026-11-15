@@ -27,6 +27,9 @@
 //   hece    { mode: "say"|"tap"|"quiz", lv, n?, min? }  ritim hecesi (klarnetsiz): ölçüyü heceleriyle söyle, vur ya da üç notadan bul
 //   dynamics{ note, sec, shape, drift? }      crescendo / decrescendo / messa di voce; drift: perdenin en çok kayması
 //                                             (en yüksek − en düşük, koma; varsayılan 2 = ±1 koma)
+//   artik   { notes, style, tempo, min }       metronomla her vuruşta bir nota; style "legato" (bağlı) | "staccato" (kesik) |
+//                                             "tenuto" ya da notalara sırayla uygulanan dizi (null: serbest). Puan (0–100):
+//                                             %40 doğru nota, %60 çalışı tutan nota (skills.js artikEval); en az min
 //   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim
 //                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
@@ -2731,6 +2734,35 @@ insertLessonAfter([...LESSONS].reverse().find(l => l.unit === "ileri").id, { id:
     { type:"hold", note:67, sec:30, min:100, cont:true }
   ] });
 
+// ---- S2.2 Artikülasyon 2 ----
+// Bağlı, kesik ve tenuto çalış (artik adımı, skills.js artikEval). Dizi Sol4–Re5 çıkış ve iniş, her vuruşta bir nota.
+// "Türk klarnet tavrında bağlı çalış baskındır" cümlesi kaynakla doğrulanamadı (KAYNAKLAR.md'de yok): metne konmadı.
+{ const SEQ = [67, 69, 71, 72, 74, 72, 71, 69, 67];
+  insertLessonAfter("artikulasyon", { id:"artikulasyon-2", unit:"teknik", since:2, notes:[],
+    title:{ tr:"Artikülasyon 2: bağlı, kesik, tenuto", en:"Articulation 2: slurred, staccato, tenuto" },
+    text:[
+      { tr:"Dil vuruşu notayı başlatır; artikülasyon ise notaların birbirine nasıl bağlandığıdır. Bağlı (legato) çalışta yalnız ilk nota dille başlar, sonrakilere hava kesilmeden yalnız parmaklar geçer. Kesik (staccato) çalışta her nota dille başlar ve kısa kesilir: notanın ardından sessizlik kalır. Tenuto'da her nota dille başlar ama tam süresince tutulur.",
+        en:"Tonguing starts a note; articulation is how notes join. Slurred (legato): only the first note is tongued and the fingers move on without stopping the air. Staccato: every note is tongued and stopped short, leaving a silence after it. Tenuto: every note is tongued but held for its full length." },
+      { tr:"Notada bağ yayı (notaların üstünde eğri) bağlı, nota başının yanındaki nokta kesik, kısa yatay çizgi tenuto demektir. Bu uygulamada hız dizileri ve süslemeler bağlı çalınır; dille ayırma notaları belirginleştirir. Hangisinin nerede kullanılacağı esere ve icracıya göre değişir: dinlediğin kayıtlarda bağlı ve kesik yerleri ayırt etmeye çalış.",
+        en:"In notation a slur (a curve over the notes) means slurred, a dot by the note head staccato, a short horizontal line tenuto. In this app the speed scales and ornaments are slurred; tonguing makes notes stand out. Where to use which depends on the piece and the player: try to hear the slurred and detached places in the recordings you listen to." },
+      { tr:"Uygulama her notanın vuruşunun ne kadarında ses olduğunu ve notalar arasında sesin kesilip kesilmediğini ölçer. Bağlıda ses vuruşun en az %85'inde sürmeli ve notalar arasında kopmamalı; kesikte vuruşun en çok %60'ında ses olmalı ve her notadan sonra sessizlik kalmalı. Puanın %40'ı doğru nota, %60'ı çalışı tutan nota. Ölçüm yankılı odada zorlaşır: kesik çalışta notanın kuyruğu odada uzar.",
+        en:"The app measures how much of each beat is sounding and whether the sound breaks between notes. Slurred: sound for at least 85% of the beat with no break between notes; staccato: sound for at most 60% of the beat with a silence after every note. 40% of the score is correct notes, 60% notes with the right articulation. Echoing rooms make it harder: in staccato the room stretches each note's tail." }
+    ],
+    tips:[
+      { tr:"Kesikte havayı durdurma: hava dilin arkasında hazır beklesin, dil kamışa dokunarak sesi kessin (\"tut\").", en:"In staccato don't stop the air: keep it ready behind the tongue and stop the sound by touching the reed (\"tut\")." },
+      { tr:"Bağlıda parmaklar birlikte ve tam zamanında insin; geç kalan parmak araya istenmeyen bir nota sokar.", en:"When slurring, move the fingers together and on time; a late finger slips an unwanted note in between." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Bağlı, kesik, tenuto", en:"Slurred, staccato, tenuto" },
+        body:[{ tr:"Önce \"Örneği dinle\" ile her adımın örneğini dinle: bağlıda sesler birbirine akar, kesikte notalar arasında sessizlik duyulur. Sayımdan sonra her vuruşta bir nota çal. Kesik çalışta notayı nefesle değil dille kes.",
+               en:"Listen to each step with \"Hear example\" first: in legato the sounds flow into each other, in staccato you hear silence between the notes. After the count-in play one note per beat. In staccato stop the note with the tongue, not the breath." }] },
+      { type:"artik", notes:SEQ, style:"legato", tempo:60, min:70 },
+      { type:"artik", notes:SEQ, style:"staccato", tempo:60, min:70 },
+      { type:"artik", notes:SEQ.slice(0, 8), style:["legato", null, "staccato", "staccato"], tempo:60, min:70 },
+      { type:"piece", id:"e-artik", mode:"tempo", min:65 }
+    ] });
+}
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2834,6 +2866,20 @@ const RHYTHM_NAMES = {
 const DYN_NAMES = { cresc:{ tr:"crescendo (hafiften güçlüye)", en:"crescendo" }, dim:{ tr:"decrescendo (güçlüden hafife)", en:"decrescendo" },
   messa:{ tr:"messa di voce (hafif-güçlü-hafif)", en:"messa di voce" } };
 
+// Artikülasyon adı ve nasıl çalınacağı (adım başlığı ve adım ekranı)
+const ARTIK_NAMES = {
+  legato:{ name:{ tr:"Bağlı (legato)", en:"Slurred (legato)" }, how:{ tr:"Bağlı: yalnız ilk notayı dille başlat; hava hiç kesilmesin, notalar arasında ses kopmasın.", en:"Slurred: tongue only the first note; keep the air going so the sound never breaks between notes." } },
+  staccato:{ name:{ tr:"Kesik (staccato)", en:"Detached (staccato)" }, how:{ tr:"Kesik: her notayı dille başlat ve kısa kes; notanın ardından vuruşun en az yarısı sessiz kalsın.", en:"Staccato: start every note with the tongue and stop it short; leave at least half of each beat silent." } },
+  tenuto:{ name:{ tr:"Tenuto (tam süre)", en:"Tenuto (full length)" }, how:{ tr:"Tenuto: her notayı tam süresince tut, yalnız dil kısa bir an ayırsın.", en:"Tenuto: hold every note for its full length; only the tongue separates them for a moment." } } };
+const artikName = style => Array.isArray(style) ? { tr:"Karışık: bağlı ve kesik", en:"Mixed: slurred and staccato" } : ARTIK_NAMES[style].name;
+function artikHow(style){
+  if(!Array.isArray(style)) return ARTIK_NAMES[style].how;
+  const word = { legato:["bağlı", "slurred"], staccato:["kesik", "staccato"], tenuto:["tenuto", "tenuto"] };
+  const seq = style.map(s => s ? word[s] : ["serbest", "free"]);
+  return { tr:"Karışık: sırayla " + seq.map(x => x[0]).join(", ") + ". Yaylı notalar bağlı, noktalılar kesik; bağın son notası serbest.",
+           en:"Mixed: in turn " + seq.map(x => x[1]).join(", ") + ". Notes under a slur are slurred, dotted ones staccato; the last note of a slur is free." };
+}
+
 const ORN_NAMES = {
   carpma:{ up:{ tr:"üstten çarpma", en:"upper grace note" }, down:{ tr:"alttan çarpma", en:"lower grace note" } },
   tekrar:{ tr:"çarpmalı tekrar", en:"repeated note split by grace notes" },
@@ -2902,6 +2948,7 @@ function stepTitle(step, lang = "tr"){
       if(step.mode === "say") return (en ? "Rhythm syllables: say the bar" : "Ritim heceleri: ölçüyü heceleriyle söyle") + lv;
       if(step.mode === "quiz") return (en ? "Rhythm syllables: which bar?" : "Ritim heceleri: hangi ölçü?") + lv + " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");
       return (en ? "Rhythm syllables: tap the bar" : "Ritim heceleri: ölçüyü vur") + lv + " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan"); }
+    case "artik": return pick(artikName(step.style), lang) + ": " + seq() + " · ♩=" + step.tempo + " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan");
     case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn") +
       (step.drift != null ? (en ? " · pitch within ±" : " · perde ±") + (step.drift/2).toString().replace(".", en ? "." : ",") + (en ? " comma" : " koma") : "");
     case "seyir": if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
@@ -2930,7 +2977,7 @@ function stepOk(step, res){
     case "hold": return v >= step.min && (step.quality == null || (res.q || 0) >= step.quality);
     case "read": return v >= 1;
     case "soru": return v >= soruMin(step);
-    case "rhythm": case "seyir": case "ear": case "sight": case "dictation": return v >= step.min;
+    case "rhythm": case "seyir": case "ear": case "sight": case "dictation": case "artik": return v >= step.min;
     case "hece": return v >= (step.mode === "say" ? 1 : step.min);
     case "usultap": return v >= (step.mode === "listen" ? 1 : step.min);
     case "dynamics": return v >= 1;
@@ -3218,7 +3265,7 @@ function dailySettled(daily, day){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
+  UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, ARTIK_NAMES, artikName, artikHow, recordStep, lessonDone, lessonProgress,
   unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed,
   eserSteps, CURRICULUM_VER, migrateCurriculum, sinceIds, placeLesson, soruItems, soruMin, GATE_AFTER, insertLessonAfter
 };

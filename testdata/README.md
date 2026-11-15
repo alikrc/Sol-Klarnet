@@ -37,6 +37,38 @@ değil, çalınan perdedir. `sol+telefon+nefes+sonus` birleşiminde 134/139: yin
 duyulmaz kılması ve yukarıdaki Sol♯6'nın pesleştirilmiş hâli. Benzetimler gerçek çalışın yerini tutmaz: Türk tavrındaki
 geniş glissando, dil vuruşu ve nefes gerçek Sol klarnet kayıtlarıyla ayrıca denenmeli.
 
+## Artikülasyon (bağlı, kesik, tenuto)
+
+```bash
+npm run artik-check
+```
+
+Dersteki `artik` adımının eşikleri (`skills.js` `ARTIK`) bununla ayarlandı (15 Kasım 2026). Gerçek bağlı ya da kesik çalış
+kaydı yok; Iowa'nın mf kromatik kayıtlarından (C4B4, C5B5) duyulan Sol4–Re5 notaları kesilip yapay diziler kuruldu: dokuz
+nota çıkış-iniş, her vuruşta bir nota. **Bağlı**: notalar 15 ms örtüşerek birbirine geçer (atak yalnız ilk notada). **Tenuto**:
+her nota kendi atağıyla başlar, sonunda 20, 40 ya da 70 ms sessizlik (dil arası). **Kesik**: notanın vuruşun yalnız %30, %45
+ya da %60'ı kadar çalar; sınamak için bir de %75. Her dizi `audio-check`'in koşullarından geçirildi (temiz, yankı, gürültü 20
+ve 10 dB, telefon, nefes, Sol klarnet + telefon + gürültü), ♩=60 ve ♩=90; uygulamadaki iz (`ornamentTrack`, 5 ms) ve
+`artikEval` ile değerlendirildi.
+
+Ölçütler, nota başına: **doluluk** (notanın başından sonrakinin başına kadar perdesi bulunan ve sesi çalışın 90. yüzdelik
+düzeyinin %20'sinden güçlü ölçümlerin oranı), **boşluk** (sonraki notaya geçerken en uzun sessizlik, ≥ 25 ms ayrık) ve
+**çukur** (geçişte sesin notanın ortasındaki düzeye oranı, ≤ %45 ayrık). Bağlı: doluluk ≥ %85 ve ayrık değil; kesik: doluluk
+≤ %60 ve ayrık; tenuto: doluluk ≥ %70 ve ayrık. Puan %40 doğru nota + %60 çalışı tutan nota, geçme 70.
+
+Sonuç: bağlı, üç tenuto ve kesik %30 / %45 dizileri 7 koşul × 2 tempoda **84/84** durumda yalnız istenen çalış olarak geçti.
+Ölçülen aralıklar: bağlıda doluluk %97–100, boşluk ≤ 10 ms, çukur ≥ %41 (en düşüğü nefes dalgalanmasında); tenutoda doluluk
+%77–100, yankısız koşullarda boşluk 30–170 ms; kesik %45'te doluluk %28–54. Yankı olmadan çukur ölçütü gerekmiyordu; yankıda (RT60 0,6 sn) dil
+arası sessizliği kuyruk dolduruyor (boşluk 0–40 ms), tenuto ancak çukurla (%15–54) ayrışıyor. Çukur eşiği %50 olunca nefes
+dalgalanmalı bağlı dizide bir nota "ayrık" sayıldı; %40 ile %45 aynı sonucu verdi, %45 seçildi.
+
+Sınır durumlar: kesik %60 yalnız yankıda (iki tempoda da) hiçbir çalış olarak geçmiyor (kuyruk doluluğu %60'ın üstüne
+taşıyor); uzun %75 tenuto olarak geçiyor (tenuto eşiği %70). Ders metni kesikte "vuruşun en çok %60'ı" der.
+
+**Ayarlanamayanlar:** gerçek dil vuruşunun ve parmak geçişinin sesi (bağlı geçişte araya giren kısa ara ses, kamışın dille
+durdurulması), Türk tavrındaki glissandolu bağlı geçişler ve Sol klarnet tınısı benzetimde yok. Eşikler gerçek kayıtla
+(`<nota>_bagli-60.wav`, `<nota>_kesik-60.wav` gibi, metronomla çalınmış dizi) yeniden denenmeli.
+
 ## Dosya adı
 
 `<yazılı nota>_<açıklama>.wav`. Örnekler:

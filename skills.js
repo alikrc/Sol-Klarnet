@@ -1020,6 +1020,68 @@ function runVoicedRatio(track, fromMs, toMs){
   const fr = track.filter(f => f.t >= fromMs && f.t <= toMs);
   return fr.length ? fr.filter(f => f.comma !== null).length/fr.length : 0;
 }
+// ---- Artikülasyon: bağlı (legato), kesik (staccato), tenuto ----
+// Eşikler tahmin: Iowa Si♭ klarnet kayıtlarından kurulan yapay dizilerle ayarlandı (scripts/artik-check.js,
+// testdata/README.md "Artikülasyon"); gerçek Sol klarnet kaydıyla denenmedi.
+const ARTIK = {
+  rel: 0.2,        // ölçümün sesi çalışın güçlü yerlerinin (90. yüzdelik) bu oranının altındaysa "ses yok" (yankı kuyruğu, dil arası)
+  gapMs: 25,       // nota içinde ya da sonraki notaya geçerken en az bu kadar sessizlik: notalar ayrık
+  dip: 0.45,        // ya da geçişte ses notanın ortasındaki düzeyin bu oranına iner (yankıda dil arası): notalar ayrık
+  legFill: 0.85,   // bağlı: notanın süresinin en az bu oranı sesli ve sonrakine boşluksuz geçer
+  stacFill: 0.6,   // kesik: notanın süresinin en çok bu oranı sesli, sonra sessizlik
+  tenFill: 0.7     // tenuto: en az bu oranı sesli ama notalar dille ayrık
+};
+// Her notanın istenen çalışı: style tek değer ya da notalara sırayla uygulanan dizi ("legato" | "staccato" | "tenuto" | null)
+const artikStyles = (style, n) => { const a = Array.isArray(style) ? style : [style]; return Array.from({ length:n }, (_, i) => a[i % a.length] || null); };
+// track: ornamentTrack izi; expected: [{ t (iz zamanı ms), w, ms (notanın vuruş süresi) }]. Notanın süresi kendi başından
+// (çalınan başlangıç, bulunamazsa beklenen) sonrakinin başına kadardır; son notada vuruş süresi.
+// Dönen: { measured, pitch (doğru nota oranı), art (çalışı tutan nota oranı), score (0–100), notes:[{ fill, gap, ok }], tips }
+function artikEval(track, expected, style, opts = {}){
+  const P = { ...ARTIK, ...opts };
+  const n = expected.length, styles = artikStyles(style, n);
+  const hop = track.length > 1 ? track[1].t - track[0].t : 5;
+  const t0 = expected[0].t - expected[0].ms/2, t1 = expected[n-1].t + expected[n-1].ms + 100;
+  const win = track.filter(f => f.t >= t0 && f.t <= t1);
+  const lv = win.filter(f => f.comma !== null).map(f => f.rms).sort((a, b) => a - b);
+  if(lv.length < 5) return { measured:false, pitch:0, art:0, score:0, notes:[], tips:[otip("Duyamadım: biraz daha güçlü ya da mikrofona yakın çal.", "I couldn't hear it: play a little louder or closer to the microphone.")] };
+  const floor = P.rel*lv[Math.floor(lv.length*0.9)];
+  const on = f => f.comma !== null && f.rms >= floor;
+  const al = alignRun(expected, runNotes(track).map(p => ({ t:p.t, w: Math.round(67 + p.comma*12/53) })));
+  if(al.correct < 0.3) return { measured:false, pitch:al.correct, art:0, score:0, notes:[], tips:[otip("Notaları çoğunlukla bulamadım: nota sırasını ve tempoyu dinleyip yeniden dene.", "I mostly couldn't find the notes: listen to the order and tempo, then try again.")] };
+  const start = k => al.notes[k].state === "ok" || al.notes[k].state === "pitch" ? Math.min(al.notes[k].got, expected[k].t + expected[k].ms/2) : expected[k].t;
+  const notes = [];
+  for(let k=0;k<n;k++){
+    const a = start(k), b = k < n-1 ? Math.max(a + 2*hop, start(k+1)) : a + expected[k].ms;
+    const fr = track.filter(f => f.t >= a && f.t < b), fill = fr.length ? fr.filter(on).length/fr.length : 0;
+    // En uzun sessizlik: notanın içinde ve sonraki notanın başına 30 ms taşarak (geç yakalanan başlangıç)
+    let gap = 0, run = 0;
+    for(const f of track) if(f.t >= a + 2*hop && f.t < b + 30){ run = on(f) ? 0 : run + hop; gap = Math.max(gap, run); }
+    // Çukur: sonraki notaya geçişte sesin (15 ms ortalama) notanın ortasındaki düzeyine oranı. Yankılı odada dil arası
+    // sessizliği kuyruk doldurur ama ses yine düşer; bağlı geçişte düşmez
+    let dip = 1;
+    if(k < n-1){
+      const mid = fr.filter(f => on(f) && f.t >= a + 0.15*(b - a) && f.t < a + 0.6*(b - a)).map(f => f.rms);
+      const ref = mid.length ? median(mid) : 0, near = track.filter(f => f.t >= b - 0.35*(b - a) && f.t < b + 40);
+      if(ref > 0) for(let i=1;i+1<near.length;i++) dip = Math.min(dip, (near[i-1].rms + near[i].rms + near[i+1].rms)/3/ref);
+    }
+    const sep = gap >= P.gapMs || dip <= P.dip, s = styles[k];
+    const ok = s === "legato" ? (k === n-1 ? fill >= P.legFill : fill >= P.legFill && !sep)
+             : s === "staccato" ? fill <= P.stacFill && (k === n-1 || sep)
+             : s === "tenuto" ? fill >= P.tenFill && (k === n-1 || sep) : null;
+    notes.push({ fill, gap, dip, sep, ok, style:s, state: al.notes[k].state });
+  }
+  const judged = notes.filter(x => x.ok !== null), art = judged.length ? judged.filter(x => x.ok).length/judged.length : 1;
+  const score = Math.round(100*(0.4*al.correct + 0.6*art));
+  const tips = [], bad = s => notes.filter(x => x.style === s && x.ok === false);
+  const L = bad("legato"), S = bad("staccato"), T = bad("tenuto");
+  if(L.length) tips.push(otip("Bağlı notalar arasında ses kesiliyor: havayı sürdür, dil dokunmasın; yalnız parmaklar değişsin.", "The sound breaks between slurred notes: keep the air going and don't tongue; only the fingers move."));
+  if(S.some(x => x.fill > P.stacFill)) tips.push(otip("Kesik notalar uzun kaldı: notayı dille kısa kes, ardından sessizlik kalsın.", "The staccato notes are too long: stop each one short with the tongue and leave a silence after it."));
+  else if(S.length) tips.push(otip("Kesik notalar birbirine değiyor: her notadan sonra kısa bir sessizlik bırak.", "The staccato notes run together: leave a short silence after each one."));
+  if(T.some(x => x.fill < P.tenFill)) tips.push(otip("Tenuto notaları tam süre tut; yalnız dil ayırsın, ses erken bitmesin.", "Hold the tenuto notes for their full length; only the tongue separates them."));
+  else if(T.length) tips.push(otip("Tenuto notalar bağlı çıktı: her notayı dille yeniden başlat.", "The tenuto notes came out slurred: restart each note with the tongue."));
+  if(al.correct < 0.9) tips.push(otip("Bazı notalar yanlış ya da eksik: önce yavaş, perdeleri doğru çal.", "Some notes are wrong or missing: play slowly and get the notes right first."));
+  return { measured:true, pitch: al.correct, art, score, notes, tips };
+}
 // Gecikme kalibrasyonu (ham ses yolu): 2,5 ms'lik bloklarda ses düzeyi taban gürültünün 6 katını aşınca bir başlangıç;
 // iki başlangıç arası en az minGapMs. t0: ilk örneğin performance.now() zamanı. Dönen: başlangıç zamanları (ms).
 function pcmRises(data, sampleRate, t0, minGapMs = 300){
@@ -1245,7 +1307,7 @@ if(typeof module !== "undefined") module.exports = {
   recSummary, recCompare, recBaseline, thinTrace,
   INTON, INTON_ERRORS, firstIndexAt, cleanTrace, intonationIssues, intonationSummary,
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentScan, ornamentScanFeedback, ORN_SCAN_NAMES, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
-  techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises,
+  techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises, ARTIK, artikStyles, artikEval,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
   toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, phraseAnalysis, phraseFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

@@ -162,7 +162,7 @@ const SQ = [
       L("Önce uzun bir nota çal, sonra havayı kesmeden dille dörtlüklere böl: hava bir musluk gibi açık, dil yalnızca dokunur.", "Start a long note, then split it into quarters with the tongue without stopping the air: air is an open tap, the tongue only touches."),
       L("Metronomla 60'tan başla: dörtlük, sekizlik, üçleme, on altılık. Temizse 4 artır.", "Start at 60 with the metronome: quarters, eighths, triplets, sixteenths. Add 4 when it's clean."),
       L("Hızlı oyun havalarında ikili dil (“tu-ku”) de denenir; önce yavaş ve eşit çalış.", "For fast dance tunes double tonguing (“too-koo”) is an option; practise it slowly and evenly first.")],
-    links:[{ lesson:"artikulasyon" }, { tab:"rhythm" }, { lesson:"hiz-artik" }, { tab:"hiz" }] },
+    links:[{ lesson:"artikulasyon" }, { lesson:"artikulasyon-2" }, { tab:"rhythm" }, { lesson:"hiz-artik" }, { tab:"hiz" }] },
 
   { id:"parmak", cat:"parmak", emo:"🖐️", title:L("Hızlı pasajlarda parmaklar karışıyor", "Fingers tangle in fast passages"),
     keys:L("parmak hız koordinasyon çeviklik karışıyor geç kalıyor hızlı pasaj", "finger speed coordination dexterity fast passage"),

@@ -887,6 +887,58 @@ const TRAINER_STEPS = {
     return { stop(){ stage.onclick = null; cur = null; } };
   },
 
+  // Artikülasyon: metronomla nota dizisi (her nota bir vuruş) bağlı, kesik ya da tenuto. Kayıt sonunda her notanın sesli
+  // süresi ve sonrakine geçişteki boşluk ölçülür (skills.js artikEval); v = puan (0–100)
+  artik(st, stage, done, ctx){
+    const { SK, store } = ctx, styles = artikStyles(st.style, st.notes.length);
+    const notes = st.notes.map((w, k) => ({ w, c:null, d:1, rest:false, art: styles[k] }));
+    stage.innerHTML = `<div class="muted small">${ctx.esc(pick(artikHow(st.style), LANG))}</div><div class="scorewrap"></div>
+      <div class="fb laf" aria-live="polite"></div><div class="lar"></div>
+      <div class="pbar"><button class="primary small lago" type="button" hidden>${L("Yeniden dene", "Try again")}</button></div>`;
+    const q = s => stage.querySelector(s), wrap = q(".scorewrap"), fb = q(".laf"), again = q(".lago");
+    const say = (cls, t) => { fb.className = "fb laf " + cls; fb.textContent = t; };
+    let sc = null, timers = [], cap = null, metro = null, alive = true;
+    const clear = () => { timers.forEach(clearTimeout); timers = []; };
+    function go(){
+      again.hidden = true; q(".lar").innerHTML = "";
+      sc = drawScore(wrap, notes, { meter:[4, 4] }); say("", L("Sayım…", "Count-in…"));
+      const a = SK.audioCtx(), beatMs = 60000/st.tempo, startC = a.currentTime + 0.3, t0 = ctxToPerf(a, startC);
+      const { times, beats } = noteTimes(notes, t0 + 4*beatMs, beatMs);
+      metro = a.createGain(); metro.connect(a.destination);
+      // Çalış sırasında metronom hafif: tıkı kesik notaların arasındaki sessizliği doldurmasın
+      for(let i=0;i<4 + beats;i++) ctx.hit(a, i % 4 === 0 ? "D" : "T", startC + i*beatMs/1000, i < 4 ? 1 : 0.35, metro);
+      const now = () => performance.now();
+      times.forEach(e => timers.push(setTimeout(() => curScore(sc.svg, e.i, wrap), Math.max(0, e.t - now()))));
+      timers.push(setTimeout(() => { cap = SK.pcmCapture(); say("", L("Çal!", "Play!")); }, Math.max(0, t0 + 3*beatMs - now())));
+      timers.push(setTimeout(() => finish(times, beatMs), Math.max(0, t0 + (4 + beats)*beatMs + 700 - now())));
+    }
+    function retry(msg){ say("bad", msg); again.hidden = false; }
+    function finish(times, beatMs){
+      const rec = cap ? cap.stop() : null; cap = null; clear();
+      if(metro){ metro.disconnect(); metro = null; }
+      if(!alive) return;
+      if(!rec) return retry(L("Kayıt alınamadı: mikrofon açık mı?", "Nothing was recorded: is the microphone on?"));
+      if(rec.busy.length) return retry(L("Dron ya da örnek ses çalarken çalışı ölçemem: dronu kapatıp yeniden dene.", "I can't measure while the drone or an example plays: turn the drone off and try again."));
+      say("", L("Çözümleniyor…", "Analysing…"));
+      setTimeout(() => {
+        if(!alive) return;
+        const lat = store.get("tech.lat", store.get("rhythm.lat", 0)), pr = SK.pitchRange(), mid = st.notes[Math.floor(st.notes.length/2)];
+        const tr = ornamentTrack(rec.data, rec.sampleRate, { T: SK.T, expectHz: ctx.commaFreq((mid - 67)*53/12), minRms: SK.minRms(), minHz: pr.min, maxHz: pr.max });
+        const expected = times.map(e => ({ t: e.t - rec.t0 + lat, w: e.w, ms: beatMs }));
+        const r = artikEval(tr, expected, st.style);
+        if(!r.measured) return retry(pick(r.tips[0], LANG));
+        r.notes.forEach((x, k) => markScore(sc.svg, k, x.state !== "ok" ? "bad" : x.ok === false ? "miss" : "ok"));
+        say(r.score >= st.min ? "good" : "bad", r.tips.length ? pick(r.tips[0], LANG) : L("Güzel: çalış istenen gibi.", "Nice: the articulation is as asked."));
+        q(".lar").innerHTML = `<div class="result"><div class="big">${r.score}</div><div>${L("puan", "points")} · ${L("doğru nota %", "correct notes ") + Math.round(r.pitch*100) + L("", "%")} · ${L("çalışı tutan %", "articulation ") + Math.round(r.art*100) + L("", "%")}</div></div>
+          <p class="muted small">${L("Yeşil: nota ve çalış doğru. Gri: nota doğru, çalış istenen gibi değil. Kırmızı: yanlış ya da eksik nota.", "Green: note and articulation right. Grey: right note, articulation not as asked. Red: wrong or missing note.")}</p>`;
+        done({ v: r.score });
+      }, 0);
+    }
+    again.addEventListener("click", go);
+    go();
+    return { stop(){ alive = false; clear(); if(cap){ cap.stop(); cap = null; } if(metro){ metro.disconnect(); metro = null; } } };
+  },
+
   rhythm(st, stage, done, ctx){
     const pattern = st.usul ? (() => { const s = usulSlots(USULS.find(u => u.id === st.usul)); return { beats:s.length, at:usulStrokeTimes(s), accents:s }; })()
                             : RHYTHM_PATTERNS.find(p => p.id === st.pattern);

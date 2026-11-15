@@ -322,7 +322,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   "Klarino" `klarino-1`, `klarino-2`, `klarino-ariza`, `klarino` (`ezgi-klarino` yok, S5.2). Tarayıcıda 375 px'te
   dersler açıldı, `read`, `soru`, `listen` ve hız `listen` adımları çalıştı; mikrofonlu adımlar tarayıcı panosunda
   mikrofon kapalı olduğu için başlatılamadı, telefonda denenmeli.
-- [ ] **S2.2 Artikülasyon 2: bağlı, kesik, aksan** (B, E7). Yeni adım türü `artik { notes, style:"legato"|
+- [x] **S2.2 Artikülasyon 2: bağlı, kesik, aksan** (B, E7). **Yapıldı (15 Kasım 2026).** Yeni adım türü `artik { notes, style:"legato"|
   "staccato"|"tenuto", tempo, min }`: metronomla nota dizisi; ölçüm her vuruşta sesin sürdüğü oran (`runVoicedRatio`
   ve `OnsetDetector` var). Legato: vuruşlar arası kesinti yok (sesli oran ≥ ≈ %95, perde değişimi var); staccato:
   her notanın sesli oranı ≤ ≈ %50 ve her vuruşta yeni başlangıç; tenuto: arası. **Eşikler tahmin;** `testdata/iowa`
@@ -330,6 +330,29 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Ders `artikulasyon-2` (Teknik, `artikulasyon`'dan sonra): `read` (Türk klarnet tavrında bağlı çalış baskındır, dil
   hafif kullanılır; bu cümle kaynakla doğrulanamazsa "çoğu icracı" diye yumuşatılır) → `artik` legato 67–74 → staccato
   → karışık (iki bağlı iki kesik) → `piece` `e-artik`. Hız ünitesinin `art:"legato"` adımları değişmez.
+  *Uygulanan:* `skills.js` `ARTIK` eşikleri ve `artikEval(track, expected, style)`: nota başına **doluluk** (notanın
+  başından sonrakinin başına kadar perdeli ve çalışın 90. yüzdelik düzeyinin %20'sinden güçlü ölçüm oranı), **boşluk**
+  (geçişte en uzun sessizlik, ≥ 25 ms ayrık) ve **çukur** (geçişte ses / notanın orta düzeyi, ≤ %45 ayrık; yankıda dil
+  arasını kuyruk doldurduğu için gerekti). Bağlı: doluluk ≥ %85 ve ayrık değil; kesik: ≤ %60 ve ayrık; tenuto: ≥ %70 ve
+  ayrık. Puan %40 doğru nota (`alignRun`) + %60 çalışı tutan nota. `runVoicedRatio` ve `OnsetDetector` kullanılmadı: ilki
+  bütün çalışın tek oranı (nota başına değil), ikincisi canlı 40 ms ölçümle çalışır; adım `tech` gibi ham sesi kaydedip
+  5 ms izle (`ornamentTrack`) çözer. `style` dizi de olabilir (notalara sırayla, `null` serbest): karışık adım
+  `["legato", null, "staccato", "staccato"]`. **Eşikler tahmin:** `scripts/artik-check.js` (`npm run artik-check`) Iowa
+  notalarından yapay bağlı, tenuto ve kesik diziler kurar, `audio-check` koşullarından geçirir; 7 koşul × ♩=60/90'da 84/84
+  ayrışma. Sınır: kesik %60 yankıda geçmiyor, uzun %75 tenuto sayılıyor. Gerçek dil ve parmak geçişi sesi benzetimde yok;
+  gerçek Sol klarnet kaydıyla denenmeli (ayrıntı `testdata/README.md` "Artikülasyon"). `trainers.js` `TRAINER_STEPS.artik`:
+  dört vuruş sayım, çalışta hafif metronom (0,35), kayıt, sonuçta notalar yeşil / gri (çalış tutmadı) / kırmızı, ipucu;
+  ölçülemezse "Yeniden dene". `pieces.js` `drawScore` `n.art`: kesik nokta, tenuto çizgi, art arda bağlı notalara tek yay.
+  `lessons.js` `ARTIK_NAMES`, `artikName`, `artikHow`, `stepTitle`/`stepOk`; `lessonview.js` `resText`, `stepGoal`, "Örneği
+  dinle" (`playArtik`: bağlı kesintisiz, tenuto %90, kesik %40). Ders `// ---- S2.2 Artikülasyon 2 ----` bloğu,
+  `insertLessonAfter("artikulasyon", …)`, `since:2`: `read` → bağlı → kesik → karışık (♩=60, `min:70`) → `piece` `e-artik`
+  (`min:65`). **"Türk klarnet tavrında bağlı çalış baskındır" cümlesi kaynakla doğrulanamadı ve "çoğu icracı" diye
+  yumuşatılması da doğrulanmamış bir genelleme olacağı için metne hiç konmadı;** metin yalnız tekniği ve nota işaretlerini
+  anlatır, hangisinin nerede kullanılacağını "esere ve icracıya göre değişir" diye bırakır. Etüt `e-artik` (8 ölçü, ♩=72,
+  Fa♯4–Mi5): etüt metninde kesik işareti olmadığından kesik ölçüler sekizlik + sekizlik sus diye yazıldı. `sorunlar.js`
+  "dil" sorununa ders bağlantısı. `sw.js`'e dokunulmadı. Tarayıcıda 375 px'te ders açıldı, okuma adımı, "Örneği dinle"
+  ve nota çizimi (yay, nokta) denendi; mikrofon panelde kapalı olduğu için adım, sentetik kayıtla (kesik ses: kesik
+  adımında 100, bağlı adımında 40 puan) doğrudan çalıştırıldı, konsolda hata yok. Gerçek klarnetle telefonda denenmeli.
 - [x] **S2.3 Dizi ve arpej programı** (O, E8). **Yapıldı (15 Kasım 2026).** Hız ünitesine dört ders, `hiz-etut`'ten önce, `since:2`:
   `hiz-kromatik` (yeni `techPattern` türü `chromatic { base, span }`; 52–71 ve 67–84; 60→88), `hiz-iki-oktav`
   (`scale` `octaves:2`: Sol majör, Rast, Uşşak, Hicaz; 60→84), `hiz-aksak` (`groups` 9/8 ve 7/8 gruplamada vurgu:

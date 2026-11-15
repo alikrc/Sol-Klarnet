@@ -20,6 +20,7 @@
     "ios:sync:temiz": "npm run build:web:temiz && npx cap sync ios",
     "ios:open": "npx cap open ios",
     "audio-check": "node scripts/audio-check.js",
+    "artik-check": "node scripts/artik-check.js",
     "mufredat": "node scripts/mufredat-check.js",
     "eser-sec": "node scripts/eser-sec.js",
     "omr-templates": "node scripts/omr-templates.js",
