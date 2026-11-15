@@ -269,12 +269,26 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   yapar (`nasil-calisilir`), arkası boş kalan `bakim` açık kalır. Sorunlar'da "akort" → `akortlama`, "kamis" ve "su" →
   `bakim` bağlantısı. Var olan kontrol listesi notunda ve `klarneti-tani` bakım adımında "hocana göster" sözü duruyor
   (adım metni değişmediği için dokunulmadı).
-- [ ] **S1.6 İlk eserler basamağı** (O, E1, E16; S0.3 gerekir). `ilk-eserler-1` ve `ilk-eserler-2` (Temeller sonu),
+- [x] **S1.6 İlk eserler basamağı** (O, E1, E16; S0.3 gerekir). **Yapıldı (15 Kasım 2026).** `ilk-eserler-1` ve `ilk-eserler-2` (Temeller sonu),
   her biri arşivden 2–3 eser, `eserSteps` ile. Seçim betikle: `scripts/eser-sec.js` arşivi tarar; ölçüt: yazılı
   aralık 52–70 içinde, en kısa süre onaltılık değil sekizlik, usul Sofyan/Düyek/Nîm-sofyan/Semâî, süre ≤ 90 sn,
   makam Rast/Uşşak/Hüseynî/Nihâvend/Kürdî (koma perdesi olan eserlerde ders metni "Segâh'ı şimdilik Si gibi çal,
   perdesini Makamlar'da öğreneceksin" der). Betik aday listesi basar, kimlikler elle seçilip derse yazılır. Telif:
   yalnız `lisans-besteciler.csv`'de kamu malı görünen ya da anonim eserler.
+  *Uygulanan:* `scripts/eser-sec.js` (`npm run eser-sec`; makam, usul, form, aralık, değer, süre, koma ve süs
+  ölçütleri parametreli). Telif süzgeci `lisans-disla.csv`, `lisans-belirsiz.csv` ve güfte yazarı bulunamamış
+  `lisans-guftesiz.csv` kayıtlarını dışarıda bırakır (dizindeki bestekâra göre, dosya adına değil). **Ölçüt iki yerde
+  sapmak zorunda kaldı:** (1) arşivde bu makam ve usullerin hiçbir eseri Si♭4'ün altında kalmıyor (ezgiler Re5–Do6'ya
+  çıkıyor); eserler bir oktav pes çalınıyor (adımda `oct:-1`; perde adları pes oktavın adları olur: Hüseynî Aşîran,
+  Yegâh, Irak). Ders metni bunu söyler ve klarino ünitesinden sonra arşivde asıl yerinde çalmayı önerir. (2) "En kısa
+  değer sekizlik" ölçütüyle telifsiz yalnız bir eser kalıyordu (SymbTr kısa süslemeleri onaltılıkla yazıyor ve tempolar
+  yavaş); seçimde gerçek süreye bakıldı: en kısa nota %100 tempoda ≈ 200–300 ms (Temeller etütlerinde ≈ 375–420 ms),
+  ilk bölümler %60 tempoda serbest takiple. Dersler `ilk-eserler-1` (Sabahın Seher Vaktinde, anonim Hüseynî türkü;
+  Sanma Uşşâk'ın Hemân, Ahmet Avni Konuk) ve `ilk-eserler-2` (Nihâvend Kasaphavası, anonim; Yâ Men Yuhibbu, Tanburî
+  Ali Efendi), Temeller'in sonunda `temel-tekrar`'dan sonra. `npm run mufredat` arşiv adımlarında da "yalnız öğretilmiş
+  nota" ölçütünü (oktav kaydırılmış hâl) ve `sw.js` `LESSON_NOTALAR` listesini denetler. Ders adımındaki uzun nota satırı
+  sayfayı genişletiyordu (`.lsbody` `min-width`), arşiv eserinde perde adları üst üste biniyordu (geniş yerleşim);
+  ikisi düzeltildi. Çalma adımları mikrofonla denenmedi.
 
 ### S2 — Klarino, teknik ve nefes (Temel ve Orta aşama; ≈ 2 hafta)
 

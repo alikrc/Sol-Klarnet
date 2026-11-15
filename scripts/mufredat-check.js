@@ -126,19 +126,30 @@ const bctx = (() => {
 })();
 
 // ---- Arşiv eserli adımlar ----
-// Ölçü aralığı eserin içinde mi; eser sw.js'in çevrimdışı listesinde mi (ders internetsiz açılsın)
+// Ölçü aralığı eserin içinde mi; eser sw.js'in çevrimdışı listesinde (LESSON_NOTALAR) mi (ders internetsiz açılsın);
+// eserin (oktav kaydırılmış) notaları o derse kadar öğretilmiş mi (koma perdeleri yakın yazılı notayla sayılır)
 {
-  const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
-  for(const l of LS.LESSONS) l.steps.forEach((st, k) => {
-    if(!st.arsiv || !notalar.has(st.arsiv)) return;
-    const w = l.id + " adım " + (k + 1) + " (" + st.type + ")";
-    if(!sw.includes('"notalar/' + st.arsiv + '.json"')) err(w, "eser sw.js önbellek listesinde yok: " + st.arsiv);
-    if(!st.name) err(w, "arşiv adımında name yok");
-    if(!bctx || (st.from == null && st.to == null)) return;
-    const raw = JSON.parse(fs.readFileSync(path.join(ROOT, "notalar", st.arsiv + ".json"), "utf8"));
-    const s = bctx.archSlice(raw, st.from, st.to);
-    if((st.from || 1) !== s.from || (st.to != null && st.to !== s.to)) err(w, "ölçü aralığı " + (st.from || 1) + "–" + st.to + " eserde yok (" + s.bars + " ölçü)");
-  });
+  const swText = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
+  const swList = (swText.match(/const LESSON_NOTALAR = \[([\s\S]*?)\];/) || ["", ""])[1];
+  const taught = new Set();
+  for(const l of LS.LESSONS){
+    l.notes.forEach(x => taught.add(x));
+    l.steps.forEach((st, k) => {
+      if(!st.arsiv || !notalar.has(st.arsiv)) return;
+      const w = l.id + " adım " + (k + 1) + " (" + st.type + ")";
+      if(!swList.includes('"' + st.arsiv + '"')) err(w, "eser sw.js LESSON_NOTALAR listesinde yok: " + st.arsiv);
+      if(!st.name) err(w, "arşiv adımında name yok");
+      if(!bctx) return;
+      const raw = JSON.parse(fs.readFileSync(path.join(ROOT, "notalar", st.arsiv + ".json"), "utf8"));
+      const s = bctx.archSlice(raw, st.from, st.to, st.oct || 0);
+      if((st.from != null || st.to != null) && ((st.from || 1) !== s.from || (st.to != null && st.to !== s.to)))
+        err(w, "ölçü aralığı " + (st.from || 1) + "–" + st.to + " eserde yok (" + s.bars + " ölçü)");
+      if(st.type === "piece"){
+        const bad = [...new Set(s.notes.filter(n => !n.rest && !taught.has(n.w)).map(n => n.w))].sort((a, b) => a - b);
+        if(bad.length) err(w, "öğretilmemiş nota: " + bad.map(x => noteName(x).tr).join(", "));
+      }
+    });
+  }
 }
 
 // ---- Envanter ----

@@ -532,6 +532,8 @@ canvas.curve{height:200px;touch-action:pan-y;margin:0 0 12px;cursor:pointer}
 .vfilt{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .vfilt select,.vfilt input{flex:1 1 140px;min-width:0}
 .lssteps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+/* Uzun nota satırı (arşiv eseri) adımı ve ders gövdesini genişletmesin; satır kendi kutusunda kayar */
+.lsbody,.lssteps > li{min-width:0}
 .lsstep{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .lsstep.active{border-color:var(--accent)}
 .lsstep.ok{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}

@@ -222,7 +222,8 @@ function piecePlayer(ctx, piece, holder, info, onDone, view){
   const playable = notes.map((n, i) => n.rest ? null : i).filter(i => i !== null);
   let names = ctx.store.get("piece.names", true);
   let sc = null;
-  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm, west: ctx.store.get("piece.west", false) }); }, cur: i => curScore(sc.svg, i, holder),
+  // roomy: kısa notalı eserde (arşiv) perde adları ve heceler komşusuna değmesin (drawScore'un arşiv yerleşimi, base:0)
+  view = view || { draw: nm => { sc = drawScore(holder, notes, { meter: piece.meter, names: nm, west: ctx.store.get("piece.west", false), ...(piece.roomy ? { base:0 } : {}) }); }, cur: i => curScore(sc.svg, i, holder),
                    mark: (i, cls) => markScore(sc.svg, i, cls), el: i => sc.svg.querySelector(`g.sn[data-i="${i}"]`) };
   view.draw(names);
   let mode = null, k = 0, miss = 0, release = false, hold = null, t0 = null, run = null, playToken = null, band = null;
@@ -747,7 +748,7 @@ function archivePieceStep(st, stage, done, ctx){
   archLessonPiece(st).then(p => {
     if(gone) return;
     const where = (p.from > 1 || p.to < p.bars ? L("Ölçü " + p.from + "–" + p.to + " / " + p.bars, "Bars " + p.from + "–" + p.to + " of " + p.bars) : L("Tamamı · " + p.bars + " ölçü", "Whole piece · " + p.bars + " bars")) +
-      " · ♩=" + p.tempo + (p.e.b ? " · " + p.e.b : "") + (p.e.fn ? " · " + p.e.fn : "") + (p.e.un ? " · " + p.e.un : "");
+      " · ♩=" + p.tempo + (p.oct ? L(" · bir oktav " + (p.oct < 0 ? "pes" : "tiz"), " · an octave " + (p.oct < 0 ? "lower" : "higher")) : "") + (p.e.b ? " · " + p.e.b : "") + (p.e.fn ? " · " + p.e.fn : "") + (p.e.un ? " · " + p.e.un : "");
     stage.innerHTML = `<div class="label">${ctx.esc(p.name)}</div><div class="muted small">${ctx.esc(where)}</div><div class="scorewrap"></div><div class="fb"></div>
       <div class="pbar"><button class="${listenOnly ? "primary small" : "stopbtn"}" type="button" data-l>${L("Dinle", "Listen")}</button>${listenOnly ? "" :
         `<button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : L("Sayımla başla", "Start with count-in")}</button>`}

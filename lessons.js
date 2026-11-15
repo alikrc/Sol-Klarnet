@@ -30,7 +30,8 @@
 //                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
 //   piece   { id, mode: "tempo"|"free", min } etüt çal: tempoda en az min % doğru nota, serbestte en çok min hata
-//   piece   { arsiv, name, from?, to?, tempoPct?, mode, min }  nota arşivinden eser (ölçü aralığı, temponun yüzdesi);
+//   piece   { arsiv, name, from?, to?, tempoPct?, oct?, mode, min }  nota arşivinden eser (ölçü aralığı, temponun yüzdesi,
+//                                             oktav kaydırma);
 //                                             listen { arsiv, … } aynı eseri dinletir. Kalıp: eserSteps
 //   hold'a quality eklenirse ses temizliği de en az o kadar olmalı
 
@@ -1215,8 +1216,9 @@ const SUSLEME = [
 // Arşiv eserinden ders adımları ("eser dersi" kalıbı; docs/BACKLOG.md S0.3): her bölüm önce dinlenir, sonra %60 tempoda
 // serbest takiple çalınır; en sonda eserin tamamı %80 ve %100 tempoda. parts: [[from, to] ölçü aralıkları…] (1 tabanlı,
 // dahil; boşsa yalnız tamamı), name: eserin adı (adım başlığında; dizin derste yüklenmeden okunmaz)
+// o.oct: bütün adımlarda oktav kaydırma (−1: bir oktav pes)
 function eserSteps(arsiv, name, parts = [], o = {}){
-  const base = { arsiv, name };
+  const base = { arsiv, name, ...(o.oct ? { oct:o.oct } : {}) };
   return [
     ...parts.flatMap(([from, to]) => [{ type:"listen", ...base, from, to, tempoPct:60 }, { type:"piece", ...base, from, to, tempoPct:60, mode:"free", min: o.freeMin || 4 }]),
     ...(parts.length ? [] : [{ type:"listen", ...base, tempoPct:80 }]),
@@ -1227,7 +1229,8 @@ function eserSteps(arsiv, name, parts = [], o = {}){
 // Arşiv adımının başlığı: "Eserin adı · ölçü 1–8 · %60 tempo"
 const arsivWhat = (st, lang) => { const en = lang === "en";
   return pick(st.name, lang) + (st.from || st.to ? (en ? " · bars " : " · ölçü ") + (st.from || 1) + "–" + (st.to || "") : "") +
-    (st.tempoPct && st.tempoPct !== 100 ? (en ? " · " + st.tempoPct + "% tempo" : " · %" + st.tempoPct + " tempo") : ""); };
+    (st.tempoPct && st.tempoPct !== 100 ? (en ? " · " + st.tempoPct + "% tempo" : " · %" + st.tempoPct + " tempo") : "") +
+    (st.oct ? (en ? " · an octave " + (st.oct < 0 ? "lower" : "higher") : " · bir oktav " + (st.oct < 0 ? "pes" : "tiz")) : ""); };
 const techSteps = (pattern, start, target) => [{ type:"listen", pattern, tempo:target }, { type:"tech", pattern, start, target }];
 const HIZ = [
   { id:"hiz-metronom", unit:"hiz", notes:[],
@@ -2252,6 +2255,43 @@ insertLessonAfter((() => { const t = LESSONS.filter(l => l.unit === "temel"), k 
     ] },
     { type:"quiz", notes:[52, 53, 55, 57, 59, 60], mode:"staff", n:8, min:6 },
     { type:"sight", level:1, min:60 }
+  ] });
+
+// ---- S1.6 İlk eserler ----
+// Temeller'in sonunda nota arşivinden ilk eserler (scripts/eser-sec.js; telifsiz: anonim ya da bestekârı kamu malı).
+// Arşivde bu makam ve usullerin hiçbir eseri Si♭4'ün altında kalmadığı için eserler bir oktav pes çalınır (oct:-1)
+const ILK_ESER_TEXT = {
+  oct:{ tr:"Bu eserler nota arşivinden, gerçek besteler. Asıl yerleri klarino bölgesi; sen henüz pes bölgedesin, bu yüzden bir oktav pes çalıyorsun. Register ve klarino ünitesinden sonra aynısını arşivde asıl yerinde çalabilirsin.",
+        en:"These pieces come from the score archive: real compositions. They belong in the clarion register; you're still in the low register, so you play them an octave lower. After the register and clarion unit you can play the same pieces at their real pitch in the archive." },
+  how:{ tr:"Her eser bölüm bölüm gelir: önce dinle, sonra yavaş tempoda serbest takiple çal (uygulama seni bekler). En sonda eserin tamamı önce %80, sonra kendi temposunda. Takılırsan zor ölçüyü arşivde açıp döngüye al.",
+        en:"Each piece comes section by section: listen first, then play it slowly in follow mode (the app waits for you). At the end the whole piece, first at 80% and then at its own tempo. If you get stuck, open the piece in the archive and loop the hard bar." }
+};
+insertLessonAfter("temel-tekrar", { id:"ilk-eserler-1", unit:"temel", since:2, notes:[],
+  title:{ tr:"İlk eserler: bir türkü ve bir küpe", en:"First pieces: a türkü and a küpe" },
+  text:[
+    ILK_ESER_TEXT.oct,
+    { tr:"Birincisi Hüseynî makamında anonim bir türkü, ikincisi Ahmet Avni Konuk'un Uşşak makamında bir küpesi. İkisinde de Segâh perdesi var; şimdilik Si gibi çal, gerçek perdesini Makamlar'da öğreneceksin. Türküde Irak perdesi de geçer (Eviç'in bir oktav pesi): onu da şimdilik Fa♯ gibi çal.",
+      en:"The first is an anonymous türkü in makam Hüseynî, the second a küpe in makam Uşşak by Ahmet Avni Konuk. Both use the Segâh perde; for now play it like B, you'll learn its real pitch in Makams. The türkü also has the Irak perde (Eviç an octave lower): play it like F♯ for now." },
+    ILK_ESER_TEXT.how
+  ],
+  tips:[{ tr:"Notanın altındaki perde adları sana yardım eder; Ayarlar'da batı adlarını da açabilirsin.", en:"The perde names under the notes help you; you can also turn on Western names in Settings." }],
+  steps:[
+    ...eserSteps("huseyni--turku--sofyan--sabahin_seher--", { tr:"Sabahın Seher Vaktinde", en:"Sabahın Seher Vaktinde" }, [[1, 6], [7, 11]], { oct:-1 }),
+    ...eserSteps("ussak--kupe--duyek--sanma_ussakin--ahmet_avni_konuk", { tr:"Sanma Uşşâk'ın Hemân", en:"Sanma Uşşâk'ın Hemân" }, [[1, 4], [5, 8]], { oct:-1 })
+  ] });
+
+insertLessonAfter("ilk-eserler-1", { id:"ilk-eserler-2", unit:"temel", since:2, notes:[],
+  title:{ tr:"İlk eserler: bir kasap havası ve bir şugul", en:"First pieces: a kasap dance and a şugul" },
+  text:[
+    ILK_ESER_TEXT.oct,
+    { tr:"Birincisi Nihâvend makamında anonim bir kasap havası: oyun havası olduğu için tempoya iyi otur. İkincisi Tanburî Ali Efendi'nin Rast makamında bir şugulü. Kasap havasında Irak'ı (Eviç'in bir oktav pesi) şimdilik Fa♯ gibi, şugulde Segâh'ı Si gibi çal.",
+      en:"The first is an anonymous kasap dance in makam Nihâvend: it's a dance tune, so settle firmly into the tempo. The second is a şugul in makam Rast by Tanburî Ali Efendi. For now play Irak (Eviç an octave lower) like F♯ in the dance and Segâh like B in the şugul." },
+    ILK_ESER_TEXT.how
+  ],
+  tips:[{ tr:"Kasap havasını Eşlik'in darbukasıyla da çalabilirsin: eser sayfasında usul ve dem düğmeleri var.", en:"You can play the kasap dance with the band's darbuka too: the piece page has usul and drone buttons." }],
+  steps:[
+    ...eserSteps("nihavent--kasaphavasi--duyek----", { tr:"Kasaphavası (Nihâvend)", en:"Kasap dance (Nihâvend)" }, [[1, 8], [9, 16]], { oct:-1 }),
+    ...eserSteps("rast--sugul--duyek--ya_men--tanburi_ali_efendi", { tr:"Yâ Men Yuhibbu", en:"Yâ Men Yuhibbu" }, [[1, 4], [5, 8]], { oct:-1 })
   ] });
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
