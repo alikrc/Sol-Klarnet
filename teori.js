@@ -27,7 +27,7 @@ const TH_TOPICS = [
       { notes:[57, 60, 62, 79, 81, 84].map(w => thW(w)), names:true, beat:420,
         cap:L("Ek çizgiler: La3, Do4, Re4 aşağıda; Sol5, La5, Do6 yukarıda", "Ledger lines: A3, C4, D4 below; G5, A5, C6 above") }
     ],
-    links:[{ lesson:"nota-okuma" }, { tab:"staffmap" }, { tab:"gorbas" }],
+    links:[{ lesson:"nota-okuma" }, { lesson:"okuma-5" }, { lesson:"okuma-4" }, { tab:"staffmap" }, { tab:"gorbas" }],
     quiz:[
       { q:L("Sol anahtarı hangi çizgiye Sol adını verir?", "Which line does the treble clef name G?"),
         a:[L("Birinci", "First"), L("İkinci", "Second"), L("Üçüncü", "Third")], ok:1,
@@ -55,7 +55,7 @@ const TH_TOPICS = [
       { notes:[thW(67, 3), thW(69), thW(71, 1.5), thW(69, 0.5), thW(67), thR(1), thW(67), thR(1), thW(74, 2), thR(2)], meter:[4, 4], beat:500,
         cap:L("Noktalı ikilik, noktalı dörtlük, dörtlük ve ikilik suslar", "Dotted half, dotted quarter, quarter and half rests") }
     ],
-    links:[{ tab:"hece" }, { tab:"rhythm" }, { lesson:"ritim-temel" }],
+    links:[{ lesson:"okuma-2" }, { tab:"hece" }, { tab:"rhythm" }, { lesson:"ritim-temel" }],
     quiz:[
       { q:L("Bir ikilik kaç dörtlük eder?", "How many quarter notes make a half note?"), a:["1", "2", "4"], ok:1,
         why:L("İkilik iki vuruş, dörtlük bir vuruş sürer.", "A half lasts two beats, a quarter one.") },
@@ -82,7 +82,7 @@ const TH_TOPICS = [
       { notes:[0, 13, 14, 17, 26, 27, 48].map(c => thP(c)), names:true, beat:520,
         cap:L("Rast, Kürdî ♭5, Dik Kürdî ♭4, Segâh ♭1, Nim Hicaz ♯4, Hicaz ♯5, Evç ♯4", "Rast, Kürdî ♭5, Dik Kürdî ♭4, Segâh ♭1, Nim Hicaz ♯4, Hicaz ♯5, Evç ♯4") }
     ],
-    links:[{ tab:"ear" }, { lesson:"rast-giris" }, { lesson:"kulak-1" }],
+    links:[{ lesson:"okuma-3" }, { tab:"ear" }, { lesson:"rast-giris" }, { lesson:"kulak-1" }],
     quiz:[
       { q:L("Tam ses (tanini) kaç komadır?", "How many commas is a whole tone (tanini)?"), a:["8", "9", "12"], ok:1,
         why:L("AEU'da tam ses 9 koma, oktav 53 komadır.", "In AEU a whole tone is 9 commas, an octave 53.") },

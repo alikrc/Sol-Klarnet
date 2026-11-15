@@ -208,7 +208,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Metin: dizi nedir, neden her gün; Türk müziğinde karşılığı (Do majör dizisi Çargâh, Sol'den majör Mâhur'a yakın;
   "yakın" sözü kalır, eşitlik iddia edilmez). Önce `techPattern`'in `sub:1` (dörtlük) desteklediğine bakılır,
   desteklemiyorsa eklenir.
-- [ ] **S1.4 Nota okuma 2–5** (B, E5). Dört yeni ders, `unit:"baslangic"` yerine **Temeller**'e dağıtılır (okuma,
+- [x] **S1.4 Nota okuma 2–5** (B, E5). **Yapıldı (15 Kasım 2026).** Dört yeni ders, `unit:"baslangic"` yerine **Temeller**'e dağıtılır (okuma,
   çalınan notayla birlikte ilerlesin):
 
   | Ders | Yeri | İçerik | Adımlar |
@@ -220,6 +220,18 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
   `okuma-4` için `expandRepeats`'in dolap desteği var; etüt metin biçiminin tekrar işaretini nasıl yazdığına
   `parseScoreText`'ten bakılır. Teori sayfasının "Dizek" ve "Nota değerleri" konuları bu derslere bağlantı verir.
+  *Uygulanan:* `lessons.js` "S1.4 Nota okuma 2–5" bloğu; sıra `sol-el-2 → okuma-2 → ezgi-sol-el`, `pes → okuma-3 →
+  ariza-1`, `ezgi-pes → okuma-4 → bogaz`, `akortlama → okuma-5 → temel-tekrar`. **Backlog'daki varsayım yanlıştı:**
+  `expandRepeats`'te dolap yoktu, etüt metni tekrar işareti yazamıyordu, nota çizimi de işaret çizmiyordu (yalnız
+  Çevir aracı işaretleri tutuyordu). Eklenenler: etüt metninde yol işareti sözcükleri (`|:` `:|` `[1` `[2` `%` `D.S.`
+  `D.C.` `Fine`, `repertoire.js` `MARK_TOKENS`), `expandRepeats`'e dolap, D.C. ve Fine (D.C./D.S. dönüşünde tekrar
+  yapılmaz, birinci dolap atlanır), `drawScore`'a `signs` (tekrar çizgileri, dolap köşeleri, senyo, D.C., D.S., Fine),
+  `soru` adımına `score` alanı. `e-t7b` dolaplı etüt; çalınırken açılmış sırasıyla gösterilir (`etudePlayed`), işaretli
+  hâli soru adımında. Yol işareti sorularının doğru seçeneği elle değil `expandRepeats`'le üretilir. Koda (⊕) yalnız
+  metinde anlatılıyor, çizilmiyor ve açılmıyor. Teori: "Dizek" → okuma-5, okuma-4; "Nota değerleri" → okuma-2; "Aralıklar
+  ve koma" → okuma-3. Seviye sınaması bu dersleri şimdilik göçle "istersen" geçer; ayrı ayrı sayılması S5.2'de.
+  **Denetime eklendi:** ders verisi tarayıcıdaki `index.html` sırasıyla da yüklenir (`vm`); ilk yazımda yol işareti
+  soruları `repertoire.js`'i yüklenmeden çağırıyordu, Node'da çalışıp tarayıcıda bütün uygulamayı durduruyordu.
 - [x] **S1.5 Hocasız öğrenci dersleri: çalışma yöntemi, ısınma, akort, bakım** (O, E23, E24). **Yapıldı (15 Kasım 2026).** Dördü de kısa,
   ağırlıkla `read` + `soru`:
   - `nasil-calisilir` (Başlarken, `ilk-gecis`'ten sonra): yavaş çalış, zor yeri iki notaya indir, 5 temiz tekrar

@@ -19,6 +19,7 @@
 //                                             seçenekler karışık gelir, yanlışta why gösterilir ve soru turun sonunda yeniden
 //                                             sorulur; puan ilk denemede doğru bilinen soru sayısı, en az min (varsayılan:
 //                                             tek soruda 1, çok soruda %70). staff: [yazılı nota | { w, d }…] dizek çizer,
+//                                             score: "<etüt metni>" (meter?) yol işaretleriyle nota çizer,
 //                                             fing: <yazılı nota> parmak şemasını gösterir
 //   rhythm  { pattern | usul, tempo, bars, silent, min }  metronomla çal, en az min ritim puanı
 //   usultap { usul, mode: "listen"|"tap"|"mem", tempo?, min }  usulu elle vur (klarnetsiz): dinle ve say, Düm/Tek düğmeleriyle vur,
@@ -33,7 +34,7 @@
 
 const LCORE = typeof module !== "undefined" ? require("./core.js") : { noteName, nearestPerde };
 // Etütler repertoire.js'te; Node'da gerektiğinde yüklenir (tarayıcıda repertoire.js lessons.js'ten sonra gelir)
-const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : { etudeById };
+const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : { etudeById, parseScoreText, expandRepeats };
 const LSK = () => typeof module !== "undefined" ? require("./skills.js") : { techPattern, patternKey };
 const LPREM = () => typeof module !== "undefined" ? require("./premium.js") : { premiumUnit };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
@@ -2069,6 +2070,170 @@ insertLessonAfter(LESSONS.filter(l => l.unit === "baslangic").pop().id, { id:"ba
               { tr:"Daha çok ıslatırım", en:"Wet it more" }], ok:0,
         why:{ tr:"Ucu çatlak ya da dalgalı kamış kullanılmaz; değiştir.", en:"A chipped or wavy reed shouldn't be used; replace it." } }
     ] }
+  ] });
+
+// ---- S1.4 Nota okuma 2–5 ----
+// Okuma çalınan notayla birlikte ilerler: süreler Temeller'in ilk ezgisinden önce, arızalar arızalı notalardan önce, yol
+// işaretleri pes ezgilerinden sonra, ek çizgiler ve terimler ünitenin toparlamasından önce
+const okSt = (w, d = 1) => w == null ? { w:null, c:null, d, rest:true } : { w, d };
+// Yol işareti sorusu: doğru seçenek nota metninden (repertoire.js) açılarak üretilir, yanlışlar nota sıra numaralarıyla.
+// Seçenekler ilk okunduğunda hesaplanır: tarayıcıda repertoire.js bu dosyadan sonra yüklenir
+function yolSoru(score, meter, wrong, why){
+  let opts = null;
+  const build = () => {
+    const R = LREP(), r = R.parseScoreText(score);
+    const names = (ns, k) => ns.map(n => LCORE.noteName(n.w)[k].replace(/\d/, "")).join(" ");
+    const opt = ns => ({ tr:names(ns, "tr"), en:names(ns, "en") });
+    return [opt(R.expandRepeats(r.notes, r.marks)), ...wrong.map(ix => opt(ix.map(i => r.notes[i])))];
+  };
+  return { q:{ tr:"Bu satır hangi sırayla çalınır?", en:"In what order is this line played?" }, score, meter, ok:0, why,
+    get opts(){ return opts || (opts = build()); } };
+}
+insertLessonAfter("sol-el-2", { id:"okuma-2", unit:"temel", since:2, notes:[],
+  title:{ tr:"Süreler: sus, nokta, bağ", en:"Durations: rests, dots, ties" },
+  text:[
+    { tr:"Sıradaki derste ilk ezgileri çalacaksın. Önce notaların ne kadar sürdüğünü okumayı öğren: dörtlük bir vuruş, ikilik iki, birlik dört, sekizlik yarım vuruştur. Her sürenin bir susu vardır: o kadar süre çalmadan beklenir.",
+      en:"In the next lesson you'll play your first tunes. First learn to read how long notes last: a quarter is one beat, a half two, a whole four and an eighth half a beat. Every value has a rest: you wait that long without playing." }
+  ],
+  tips:[{ tr:"Nota değerlerinin dizekte nasıl göründüğü Teori sayfasının “Nota değerleri ve ölçü” konusunda; orada dinleyerek de karşılaştırabilirsin.", en:"How the values look on the staff is in the Theory page under “Note values and time signatures”; you can listen to them there too." }],
+  steps:[
+    { type:"read", title:{ tr:"Nokta ve bağ", en:"Dots and ties" }, body:[
+      { tr:"Nota başının sağındaki nokta, notanın süresine yarısını ekler: noktalı ikilik üç vuruş, noktalı dörtlük bir buçuk vuruş sürer.",
+        en:"A dot to the right of the note head adds half the note's value: a dotted half lasts three beats, a dotted quarter one and a half." },
+      { tr:"Aynı yükseklikteki iki notayı birleştiren yay uzatma bağıdır: ikinci nota yeniden başlatılmaz, süreler toplanır. Farklı yükseklikteki notaları birleştiren yay ise ifade bağıdır: notalar kesintisiz, bağlı çalınır; dil yalnız ilk notada kullanılır.",
+        en:"A curve joining two notes of the same pitch is a tie: the second note is not restarted, the values add up. A curve over notes of different pitches is a slur: the notes are played smoothly connected, tonguing only the first." }
+    ] },
+    { type:"soru", items:[
+      { q:{ tr:"İlk nota kaç vuruş sürer?", en:"How many beats does the first note last?" }, staff:[okSt(67, 2), okSt(64), okSt(62)], meter:[4, 4],
+        opts:[{ tr:"2", en:"2" }, { tr:"1", en:"1" }, { tr:"4", en:"4" }], ok:0,
+        why:{ tr:"İçi boş, saplı nota ikiliktir: iki vuruş.", en:"A hollow head with a stem is a half note: two beats." } },
+      { q:{ tr:"Noktalı ikilik kaç vuruş sürer?", en:"How many beats does the dotted half last?" }, staff:[okSt(67, 3), okSt(64)], meter:[4, 4],
+        opts:[{ tr:"3", en:"3" }, { tr:"2", en:"2" }, { tr:"2½", en:"2½" }], ok:0,
+        why:{ tr:"Nokta yarısını ekler: 2 + 1 = 3.", en:"The dot adds half: 2 + 1 = 3." } },
+      { q:{ tr:"İkinci vuruşta ne yapılır?", en:"What happens on the second beat?" }, staff:[okSt(67), okSt(null), okSt(64, 2)], meter:[4, 4],
+        opts:[{ tr:"Susulur (dörtlük sus)", en:"Rest (quarter rest)" }, { tr:"Sol4 uzatılır", en:"G4 is held on" }, { tr:"Mi4 erken başlar", en:"E4 starts early" }], ok:0,
+        why:{ tr:"Dörtlük sus bir vuruş boyunca sessizliktir.", en:"A quarter rest is one beat of silence." } },
+      { q:{ tr:"İlk iki nota birlikte kaç vuruş eder?", en:"How many beats do the first two notes make together?" }, staff:[okSt(60, 0.5), okSt(62, 0.5), okSt(64), okSt(65, 2)], meter:[4, 4],
+        opts:[{ tr:"1", en:"1" }, { tr:"2", en:"2" }, { tr:"½", en:"½" }], ok:0,
+        why:{ tr:"Sekizlik yarım vuruştur; iki sekizlik bir vuruş eder.", en:"An eighth is half a beat; two eighths make one beat." } },
+      { q:{ tr:"Aynı yükseklikteki iki ikilik uzatma bağıyla bağlı. Nasıl çalınır?", en:"Two half notes of the same pitch are tied. How are they played?" },
+        opts:[{ tr:"Tek ses, dört vuruş; ikinci nota yeniden başlatılmaz", en:"One sound, four beats; the second note is not restarted" },
+              { tr:"İki ayrı ses, her biri iki vuruş", en:"Two separate sounds, two beats each" },
+              { tr:"İkinci nota daha güçlü çalınır", en:"The second note is played louder" }], ok:0,
+        why:{ tr:"Uzatma bağı süreleri toplar: 2 + 2 = 4 vuruş, tek ses.", en:"A tie adds the values: 2 + 2 = 4 beats, one sound." } }
+    ] },
+    { type:"hece", mode:"tap", lv:2, min:70 },
+    { type:"rhythm", pattern:"dotted", tempo:60, bars:4, min:55 }
+  ] });
+
+insertLessonAfter("pes", { id:"okuma-3", unit:"temel", since:2, notes:[],
+  title:{ tr:"Diyez, bemol, natürel ve donanım", en:"Sharps, flats, naturals and key signatures" },
+  text:[
+    { tr:"Pes bölge dersinde beş arızalı nota gördün. Şimdi arızaların yazıda nasıl okunduğunu öğren; sonraki iki derste bu notaları tek tek çalışacaksın.",
+      en:"In the low-register lesson you met five notes with accidentals. Now learn how accidentals are read; the next two lessons practise those notes one by one." }
+  ],
+  tips:[{ tr:"Koma işaretlerinin hepsi Teori sayfasının “Aralıklar ve koma” konusunda, sesleriyle birlikte.", en:"All the comma signs are in the Theory page under “Intervals and the comma”, with their sounds." }],
+  steps:[
+    { type:"read", title:{ tr:"Diyez, bemol, natürel", en:"Sharp, flat, natural" }, body:[
+      { tr:"Diyez (♯) notayı tizleştirir, bemol (♭) pesleştirir, natürel (♮) önceki arızayı bozar. Bir ölçüde yazılan arıza, o ölçünün sonuna kadar aynı yerdeki notaya geçerlidir; ölçü çizgisi onu siler.",
+        en:"A sharp (♯) raises a note, a flat (♭) lowers it and a natural (♮) cancels an earlier accidental. An accidental lasts to the end of its bar for notes in the same place; the bar line cancels it." },
+      { tr:"Donanım, anahtarın hemen yanına yazılan arızalardır ve eserin her yerinde geçerlidir: donanımda Fa♯ varsa arızasız yazılan her Fa, diyezli çalınır.",
+        en:"The key signature is the set of accidentals written right after the clef and it holds throughout the piece: with F♯ in the key signature every F written without an accidental is played sharp." }
+    ] },
+    { type:"read", title:{ tr:"Türk müziği arızaları", en:"Turkish accidentals" }, body:[
+      { tr:"Türk müziğinde (AEU yazımı) arızalar koma sayısıyla ayrılır: koma (1), bakiye (4), küçük mücenneb (5), büyük mücenneb (8). Düz diyez bakiye diyezidir (+4 koma), düz bemol küçük mücenneb bemolüdür (−5); çizgili bemol bakiye bemolüdür (−4). Basılı notalarda her birinin ayrı biçimi vardır.",
+        en:"In Turkish music (AEU notation) accidentals differ by comma count: koma (1), bakiye (4), small mücenneb (5), large mücenneb (8). The plain sharp is the bakiye sharp (+4 commas), the plain flat the small-mücenneb flat (−5); the slashed flat is the bakiye flat (−4). In print each has its own shape." },
+      { tr:"Bu uygulamanın notalarında Türk müziği arızasının yanında küçük bir sayı durur: kaç koma olduğunu söyler (♭5, ♯4, ♭1). Pes bölgede şimdilik yarım sesleri çalıyorsun; koma perdeleri Makamlar ünitesinde gelir.",
+        en:"In this app's scores a small number sits next to a Turkish accidental: it tells how many commas (♭5, ♯4, ♭1). In the low register you're playing semitones for now; the comma perdes come in the Makams unit." }
+    ] },
+    { type:"soru", items:[
+      { q:{ tr:"Bu nota hangisi?", en:"Which note is this?" }, staff:[66], opts:[{ tr:"Fa♯4", en:"F♯4" }, { tr:"Fa4", en:"F4" }, { tr:"Sol4", en:"G4" }], ok:0,
+        why:{ tr:"Fa aralığında diyezli nota: Fa♯4.", en:"The F space with a sharp: F♯4." } },
+      { q:{ tr:"Bu nota hangisi?", en:"Which note is this?" }, staff:[58], opts:[{ tr:"Si♭3", en:"B♭3" }, { tr:"Si3", en:"B3" }, { tr:"La3", en:"A3" }], ok:0,
+        why:{ tr:"Si yerinde bemol: Si♭3.", en:"A flat on B: B♭3." } },
+      { q:{ tr:"Ölçünün başında Fa♯4 yazılı. Aynı ölçüde arızasız yazılan Fa4 nasıl çalınır?", en:"F♯4 is written at the start of a bar. How is an F4 later in the same bar, written without an accidental, played?" },
+        opts:[{ tr:"Fa♯4 (arıza ölçü sonuna kadar geçerli)", en:"F♯4 (the accidental lasts to the end of the bar)" }, { tr:"Fa4", en:"F4" }, { tr:"Sol4", en:"G4" }], ok:0,
+        why:{ tr:"Arıza ölçü çizgisine kadar geçerlidir.", en:"An accidental holds until the bar line." } },
+      { q:{ tr:"Natürel (♮) ne yapar?", en:"What does a natural (♮) do?" },
+        opts:[{ tr:"Önceki arızayı ya da donanımı o nota için bozar", en:"Cancels an earlier accidental or the key signature for that note" },
+              { tr:"Notayı yarım ses tizleştirir", en:"Raises the note a semitone" }, { tr:"Notayı uzatır", en:"Lengthens the note" }], ok:0,
+        why:{ tr:"Natürel, notayı doğal hâline döndürür.", en:"A natural returns the note to its plain form." } },
+      { q:{ tr:"Donanımda Fa♯ var. Eserde arızasız yazılan Fa nasıl çalınır?", en:"The key signature has F♯. How is an F written without an accidental played?" },
+        opts:[{ tr:"Fa♯", en:"F♯" }, { tr:"Fa", en:"F" }, { tr:"Mi", en:"E" }], ok:0,
+        why:{ tr:"Donanım eserin her yerinde geçerlidir.", en:"The key signature holds throughout the piece." } },
+      { q:{ tr:"Notanın yanındaki ♭5 ne demek?", en:"What does ♭5 next to a note mean?" },
+        opts:[{ tr:"5 koma pes (küçük mücenneb bemolü)", en:"5 commas lower (small-mücenneb flat)" }, { tr:"5 vuruş sürer", en:"It lasts 5 beats" }, { tr:"5. parmakla çalınır", en:"Played with the 5th finger" }], ok:0,
+        why:{ tr:"Sayı koma sayısıdır; düz bemol 5 koma pesleştirir.", en:"The number is the comma count; the plain flat lowers by 5 commas." } }
+    ] },
+    { type:"quiz", notes:[54, 56, 58, 61, 63, 66], mode:"staff", n:8, min:6 }
+  ] });
+
+insertLessonAfter("ezgi-pes", { id:"okuma-4", unit:"temel", since:2, notes:[],
+  title:{ tr:"Yol işaretleri: tekrar, dolap, D.C., Fine", en:"Road signs: repeats, endings, D.C., Fine" },
+  text:[
+    { tr:"Eserler çoğu zaman yazıldığı sırayla çalınmaz: tekrar çizgileri, dolaplar ve D.C., D.S., Fine işaretleri yolu gösterir. Nota arşivindeki eserlerde bunlarla sık karşılaşacaksın.",
+      en:"Pieces are often not played in the order they're written: repeat bars, endings and D.C., D.S. and Fine show the way. You'll meet them often in the score archive." }
+  ],
+  tips:[{ tr:"Çalmadan önce eserin yolunu parmağınla izle: tekrar nereden başlıyor, hangi dolap, nerede bitiyor.", en:"Before playing, trace the route with your finger: where the repeat starts, which ending, where it stops." }],
+  steps:[
+    { type:"read", title:{ tr:"İşaretler", en:"The signs" }, body:[
+      { tr:"‖: ile :‖ arasındaki bölüm iki kez çalınır; yalnız :‖ varsa baştan tekrarlanır. Tekrarın sonunda “1.” ve “2.” yazan köşeli çizgiler dolaptır: ilk geçişte birinci dolap, tekrarda birinci atlanıp ikinci dolap çalınır.",
+        en:"The section between ‖: and :‖ is played twice; if there is only :‖ it repeats from the start. Brackets marked “1.” and “2.” at the end of a repeat are endings: the first time play the first ending, on the repeat skip it and play the second." },
+      { tr:"D.C. (da capo) baştan, D.S. (dal segno) 𝄋 işaretinden yeniden çalmak demektir; Fine yazan yerde eser biter. D.C. ve D.S.'den sonraki dönüşte tekrarlar yeniden çalınmaz; yaygın kural budur, eserde aksi yazıyorsa ona uyulur. Koda işareti (⊕) görürsen dönüşte oradan koda bölümüne atlanır.",
+        en:"D.C. (da capo) means play again from the start, D.S. (dal segno) from the 𝄋 sign; the piece ends where Fine is written. On the return after D.C. or D.S. the repeats are not played again; that is the usual rule, unless the piece says otherwise. If you see a coda sign (⊕), on the return you jump from there to the coda." }
+    ] },
+    { type:"soru", items:[
+      yolSoru("|: Sol3 La3 Si3 Do4 :| Re4:4", [4, 4], [[0, 1, 2, 3, 4], [0, 1, 2, 3, 4, 0, 1, 2, 3]],
+        { tr:"Tekrar çizgileri arasındaki dört nota iki kez, sonra Re.", en:"The four notes between the repeat bars twice, then D." }),
+      yolSoru("|: Sol3 La3 [1 Si3:2 :| [2 Do4:2", [2, 4], [[0, 1, 2, 0, 1, 2, 3], [0, 1, 2, 3]],
+        { tr:"İlk geçişte birinci dolap (Si), tekrarda ikinci dolap (Do).", en:"First time the first ending (B), on the repeat the second ending (C)." }),
+      yolSoru("Sol3 La3 Fine Si3 Do4 D.C.", [2, 4], [[0, 1, 2, 3, 0, 1, 2, 3], [0, 1, 2, 3]],
+        { tr:"D.C. ile baştan dönülür, Fine'da biter.", en:"D.C. returns to the start and the piece ends at Fine." }),
+      yolSoru("Sol3:2 % La3 Si3 Fine Do4 Re4 D.S.", [2, 4], [[0, 1, 2, 3, 4, 0, 1, 2], [0, 1, 2, 3, 4]],
+        { tr:"D.S. senyo işaretine (𝄋) döner: La'dan yeniden başlar, Fine'da (Si'den sonra) biter.", en:"D.S. returns to the sign (𝄋): it starts again from A and ends at Fine (after B)." }),
+      yolSoru("|: Sol3 La3 :| Si3 Do4 Fine Re4 Mi4 D.C.", [2, 4], [[0, 1, 0, 1, 2, 3, 4, 5, 0, 1, 0, 1, 2, 3], [0, 1, 2, 3, 4, 5, 0, 1, 2, 3]],
+        { tr:"Önce tekrar (Sol La iki kez), sonra D.C. ile baştan; dönüşte tekrar yapılmaz, Fine'da biter.", en:"First the repeat (G A twice), then D.C. from the start; no repeat on the return, it ends at Fine." })
+    ] },
+    { type:"soru", items:[
+      { q:{ tr:"Bu ezgide birinci dolap kaç kez çalınır?", en:"How many times is the first ending played in this tune?" },
+        score:"|: Sol3 La3 Si3 Do4 | Re4:2 Si3:2 | Do4 Si3 La3 Si3 | [1 Sol3:2 La3:2 :| [2 Sol3:4 | La3 Si3 Do4 Si3 | La3:2 Fa♯3:2 | Sol3:4",
+        opts:[{ tr:"Bir kez", en:"Once" }, { tr:"İki kez", en:"Twice" }, { tr:"Hiç", en:"Never" }], ok:0,
+        why:{ tr:"Birinci dolap yalnız ilk geçişte; tekrarda ikinci dolaba geçilir. Şimdi bu ezgiyi çal: uygulama notayı çalınış sırasıyla açılmış gösterir.", en:"The first ending only on the first time through; the repeat goes to the second. Now play the tune: the app shows it written out in playing order." } }
+    ] },
+    { type:"piece", id:"e-t7b", mode:"free", min:4 },
+    { type:"piece", id:"e-t7b", mode:"tempo", min:70 }
+  ] });
+
+// Toparlama dersinden hemen önce
+insertLessonAfter((() => { const t = LESSONS.filter(l => l.unit === "temel"), k = t.findIndex(l => l.id === "temel-tekrar"); return t[k - 1].id; })(),
+  { id:"okuma-5", unit:"temel", since:2, notes:[],
+  title:{ tr:"Ek çizgiler, tempo ve nüans", en:"Ledger lines, tempo and dynamics" },
+  text:[
+    { tr:"Pes notalar dizeğin altına ek çizgilerle yazılır; eserin başındaki tempo ve dizeğin altındaki nüans işaretleri de nasıl çalınacağını söyler.",
+      en:"Low notes are written below the staff on ledger lines; the tempo at the top of a piece and the dynamics under the staff tell you how to play it." }
+  ],
+  tips:[{ tr:"Ek çizgileri saymak yerine iki işaret notası ezberle: Do4 birinci ek çizgide, La3 ikincide.", en:"Instead of counting ledger lines, memorise two landmarks: C4 on the first ledger line, A3 on the second." }],
+  steps:[
+    { type:"read", title:{ tr:"Ek çizgiler, tempo, nüans", en:"Ledger lines, tempo, dynamics" }, body:[
+      { tr:"Dizeğin en alt çizgisi Mi4'tür. Altındaki aralık Re4, birinci ek çizgi Do4, onun altı Si3, ikinci ek çizgi La3, altı Sol3, üçüncü ek çizgi Fa3, altı Mi3.",
+        en:"The bottom line of the staff is E4. The space below is D4, the first ledger line C4, below it B3, the second ledger line A3, below it G3, the third ledger line F3 and below it E3." },
+      { tr:"♩ = 72, dakikada 72 dörtlük demektir. Türk müziğinde tempo çoğu zaman sözle yazılır: ağır, ağırca, orta, yürük, çok yürük. Nüans: p (piyano) hafif, mf yarı güçlü, f (forte) güçlü; cresc. giderek güçlenerek, dim. giderek hafifleyerek. Dizeğin üstündeki virgül (’) nefes yeridir.",
+        en:"♩ = 72 means 72 quarter notes a minute. Turkish music often writes tempo in words: ağır (slow), ağırca, orta (moderate), yürük (fast), çok yürük. Dynamics: p (piano) soft, mf moderately loud, f (forte) loud; cresc. getting louder, dim. getting softer. A comma (’) above the staff marks a breath." }
+    ] },
+    { type:"soru", items:[
+      { q:{ tr:"Bu nota hangisi?", en:"Which note is this?" }, staff:[57], opts:[{ tr:"La3", en:"A3" }, { tr:"Do4", en:"C4" }, { tr:"Fa3", en:"F3" }], ok:0,
+        why:{ tr:"İkinci ek çizgi La3.", en:"The second ledger line is A3." } },
+      { q:{ tr:"Bu nota hangisi?", en:"Which note is this?" }, staff:[53], opts:[{ tr:"Fa3", en:"F3" }, { tr:"Sol3", en:"G3" }, { tr:"Mi3", en:"E3" }], ok:0,
+        why:{ tr:"Üçüncü ek çizgi Fa3.", en:"The third ledger line is F3." } },
+      { q:{ tr:"♩ = 60 ne demek?", en:"What does ♩ = 60 mean?" },
+        opts:[{ tr:"Dakikada 60 dörtlük, saniyede bir vuruş", en:"60 quarter notes a minute, one beat per second" }, { tr:"60 ölçü", en:"60 bars" }, { tr:"60 saniye sürer", en:"It lasts 60 seconds" }], ok:0,
+        why:{ tr:"Sayı, dakikadaki dörtlük sayısıdır.", en:"The number is quarter notes per minute." } },
+      { q:{ tr:"Dizeğin altında “p” yazıyor. Nasıl çalınır?", en:"“p” is written under the staff. How do you play?" },
+        opts:[{ tr:"Hafif", en:"Softly" }, { tr:"Güçlü", en:"Loudly" }, { tr:"Hızlı", en:"Fast" }], ok:0,
+        why:{ tr:"p (piyano) hafif demektir; f (forte) güçlü.", en:"p (piano) means soft; f (forte) loud." } }
+    ] },
+    { type:"quiz", notes:[52, 53, 55, 57, 59, 60], mode:"staff", n:8, min:6 },
+    { type:"sight", level:1, min:60 }
   ] });
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);

@@ -135,9 +135,44 @@ function drawScore(holder, notes, opts = {}){
     if(opts.lyrics && n.syl) g.appendChild(scoreEl("text", { class:"syl", x:nx, y:H - 4 }, n.syl.trim()));
     svg.appendChild(g);
   });
+  if(opts.signs && opts.signs.length) drawSigns(svg, notes, opts.signs, xs, bars, start, W, sy);
   holder.replaceChildren(svg);
   holder._xs = xs;
   return { svg, xs };
+}
+// Yol işaretleri (repertoire.js MARK_TOKENS): signs [{ kind, i }], i işaretin önüne geldiği nota (notes.length: son).
+// Tekrar çizgileri ölçü çizgisinin üstüne, dolaplar dizeğin üstünde köşeli çizgi, senyo, D.C., D.S. ve Fine yazıyla
+function drawSigns(svg, notes, signs, xs, bars, start, W, sy){
+  const N = notes.length;
+  const barX = i => {
+    if(i <= 0) return start - 8;
+    if(i >= N) return W - 6;
+    return bars.find(b => b > xs[i - 1] && b < xs[i]) ?? (xs[i - 1] + xs[i])/2;
+  };
+  const top = 18, dur = (a, b) => notes.slice(a, b).reduce((s, n) => s + n.d, 0);
+  const put = (tag, at, txt) => svg.appendChild(scoreEl(tag, at, txt));
+  for(const m of signs){
+    const bx = barX(m.i);
+    if(m.kind === "repStart" || m.kind === "repEnd"){
+      const s = m.kind === "repStart" ? 1 : -1, x0 = m.i <= 0 ? bx + 6 : bx;
+      put("line", { class:"barl end", x1:x0, x2:x0, y1:sy(8), y2:sy(0) });
+      put("line", { class:"barl", x1:x0 + 4*s, x2:x0 + 4*s, y1:sy(8), y2:sy(0) });
+      for(const st of [3, 5]) put("circle", { class:"head", cx:x0 + 8*s, cy:sy(st), r:1.7 });
+    }else if(m.kind === "volta1" || m.kind === "volta2"){
+      const one = m.kind === "volta1";
+      let j;
+      if(one){ const e = signs.find(x => x.kind === "repEnd" && x.i > m.i); j = e ? e.i : N; }
+      else{ const v1 = signs.find(x => x.kind === "volta1" && x.i < m.i), e = v1 && signs.find(x => x.kind === "repEnd" && x.i > v1.i);
+        const len = v1 && e ? dur(v1.i, e.i) : 1; let t = 0; j = m.i; while(j < N && t < len - 1e-6) t += notes[j++].d; }
+      const x1 = bx + 3, x2 = barX(j) - 3;
+      put("path", { class:"ornl", d:`M${x1} ${top + 10} V${top} H${x2}` + (one ? ` V${top + 10}` : "") });
+      put("text", { class:"orn", x:x1 + 7, y:top + 9 }, one ? "1." : "2.");
+    }else if(m.kind === "segno") put("text", { class:"orn", x:bx + 8, y:top + 10, style:"font-size:17px;font-style:normal" }, "𝄋");
+    else{
+      const t = { toSegno:"D.S.", dc:"D.C.", fine:"Fine" }[m.kind];
+      if(t) put("text", { class:"orn", x:bx - 2, y:top + 8, style:"text-anchor:end" }, t);
+    }
+  }
 }
 function markScore(svg, i, cls){ const g = svg.querySelector(`.sn[data-i="${i}"]`); if(g) g.classList.add(cls); }
 function curScore(svg, i, holder){
@@ -519,7 +554,7 @@ TRAINERS.piece = function(ctx){
   let player = null;
   const LEVEL = { 1: L("Başlangıç", "Beginner"), 2: L("Temel", "Basic"), 3: L("Makam", "Makam"), 4: L("Makam (ileri)", "Makam (advanced)"), 5: L("Usul", "Usul"), 6: L("Trakya ve Roman", "Thracian and Romani") };
   function all(){
-    return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo:e.tempo, meter:e.meter, makam:e.makam, usul:e.usul, group: LEVEL[e.level] })),
+    return [...ETUDES.map(e => ({ key:e.id, id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), tempo:e.tempo, meter:e.meter, makam:e.makam, usul:e.usul, group: LEVEL[e.level] })),
             ...user.map((p, i) => ({ ...p, key:"u"+i, own:true, group: L("Kendi eserlerim", "My pieces") }))];
   }
   function fillSel(keep){
@@ -694,7 +729,8 @@ TRAINER_STEPS.piece = function(st, stage, done, ctx){
   const e = etudeById(st.id);
   stage.innerHTML = `<div class="scorewrap"></div><div class="fb"></div>
     <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : st.mode === "ladder" ? L("Merdiveni başlat", "Start the ladder") : L("Sayımla başla", "Start with count-in")}</button></div>`;
-  const p = { id:e.id, name: pick(e.name, LANG), notes: etudeNotes(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam, usul: e.usul };
+  // Yol işaretli etüt çalınış sırasıyla açılmış hâliyle çalınır (işaretli hâli okuma dersinin soru adımlarında)
+  const p = { id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam, usul: e.usul };
   const pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
   stage.querySelector("[data-l]").addEventListener("click", () => pl.listen(1, { band: ctx.store.get("piece.band", false) }));
   stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : st.mode === "ladder" ? pl.startLadder(st.min) : pl.startTempo());

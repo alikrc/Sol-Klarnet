@@ -841,7 +841,11 @@ const TRAINER_STEPS = {
         <div class="sqopts" role="group" aria-label="${L("Seçenekler", "Options")}">${order.map(j => `<button type="button" class="opt sqopt" data-j="${j}">${esc(pick(it.opts[j], LANG))}</button>`).join("")}</div>
         <div class="sqfb" aria-live="polite"></div>`;
       const fig = stage.querySelector(".sqfig");
-      if(it.staff && it.staff.length){
+      if(it.score){                                     // etüt metni biçiminde, yol işaretleriyle (repertoire.js parseScoreText)
+        const r = parseScoreText(it.score);
+        drawScore(fig, r.notes, { meter: it.meter || [4, 4], signs: r.marks });
+        fig.style.overflowX = "auto";
+      }else if(it.staff && it.staff.length){
         const notes = it.staff.map(n => typeof n === "number" ? { w:n, d:1 } : n);
         if(notes.length === 1 && notes[0].d === 1){ const sv = ctx.staffSvg(); ctx.SK.drawStaffInto(sv, notes[0].w); fig.appendChild(sv); }
         else drawScore(fig, notes, it.meter ? { meter:it.meter } : {});

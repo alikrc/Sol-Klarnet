@@ -57,6 +57,7 @@ for(const l of LS.LESSONS){
       items.forEach((it, j) => {
         if(!Array.isArray(it.opts) || it.opts.length < 2) err(w, "soru " + (j + 1) + ": en az iki seçenek gerekir");
         else if(!(Number.isInteger(it.ok) && it.ok >= 0 && it.ok < it.opts.length)) err(w, "soru " + (j + 1) + ": ok indeksi geçersiz");
+        if(it.score){ const r = REP.parseScoreText(it.score); if(r.errors.length) err(w, "soru " + (j + 1) + ": nota metni okunamadı: " + r.errors.join(" ")); }
       });
       if(LS.soruMin(st) > items.length) err(w, "min soru sayısından büyük");
     }
@@ -97,6 +98,27 @@ for(const s of RM.RM_STAGES) for(const u of s.units) if(!units.has(u)) err("RM_S
     state[u] = 1; (G[u] || []).forEach(v => { if(!units.has(v)) err("GATE_AFTER " + u, "bilinmeyen ünite " + v); visit(v, [...trail, u]); }); state[u] = 2;
   };
   Object.keys(G).forEach(u => visit(u, []));
+}
+
+// ---- Tarayıcı yükleme sırası ----
+// Node'da her dosya require ile istendiği an yüklenir; tarayıcıda index.html sırasıyla. lessons.js yüklenirken sonra
+// gelen dosyaların (repertoire.js, skills.js) işlevini çağıran ders verisi Node'da çalışır, tarayıcıda uygulamayı durdurur.
+// Bu yüzden ders verisinin dosyaları index.html sırasıyla, modül sistemi olmadan bir kez daha yüklenir
+{
+  const vm = require("vm"), html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  const order = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
+  const upto = order.slice(0, order.indexOf("repertoire.js") + 1);
+  const noop = () => {}, any = new Proxy(function(){}, { get: (t, k) => k === Symbol.toPrimitive ? () => "" : any, apply: () => any, construct: () => any });
+  const ctx = { console, setTimeout, clearTimeout, navigator:{ language:"tr" }, document:any, location:{ search:"", protocol:"http:" },
+    localStorage:{ getItem: () => null, setItem:noop, removeItem:noop, key: () => null, length:0 }, addEventListener:noop,
+    matchMedia: () => ({ matches:false, addEventListener:noop }) };
+  ctx.window = ctx; ctx.self = ctx; vm.createContext(ctx);
+  const NL = String.fromCharCode(10);
+  let code = upto.map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join(NL + ";" + NL);
+  // Denetimin kendisini sınamak için: MUFREDAT_INJECT='LREP().parseScoreText("Do4");' hatayı yakalamalı
+  if(process.env.MUFREDAT_INJECT) code = code.replace("const pick = (x, lang)", process.env.MUFREDAT_INJECT + NL + "const pick = (x, lang)");
+  try{ vm.runInContext(code, ctx, { filename:"tarayici-sirasi" }); }
+  catch(e){ err("tarayıcı yükleme sırası (" + upto.join(", ") + ")", e.message); }
 }
 
 // ---- Envanter ----

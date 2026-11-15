@@ -24,10 +24,14 @@ function writtenToken(tok){
   const acc = !m[2] ? 0 : /[♯#]/.test(m[2]) ? 1 : -1;
   return LETTER_PC2[m[1]] + acc + (+m[3] + 1) * 12;
 }
+// Yol işaretleri (etüt metninde ayrı sözcük; bir sonraki notanın önüne yazılır, sondakiler son notanın ardına):
+// |: tekrar başı, :| tekrar sonu, [1 [2 birinci ve ikinci dolap, % senyo, D.S. senyoya dön, D.C. baştan, Fine son
+const MARK_TOKENS = { "|:":"repStart", ":|":"repEnd", "[1":"volta1", "[2":"volta2", "%":"segno", "𝄋":"segno", "D.S.":"toSegno", "D.C.":"dc", "Fine":"fine" };
 function parseScoreText(text){
-  const notes = [], errors = [];
+  const notes = [], errors = [], marks = [];
   for(const raw of text.split(/[\s;]+/).filter(Boolean)){
     if(raw === "|") continue;
+    if(MARK_TOKENS[raw]){ marks.push({ kind: MARK_TOKENS[raw], i: notes.length }); continue; }
     const [name, ds, os] = raw.split(":");
     const d = ds === undefined || ds === "" ? 1 : parseFloat(ds.replace(",", "."));
     if(!(d > 0 && d <= 16)){ errors.push(raw); continue; }
@@ -42,7 +46,7 @@ function parseScoreText(text){
     const p = RCORE.nearestPerde((w - 67)*53/12);
     notes.push(withOrn({ w, c: p ? p.comma : null, d, rest:false }));
   }
-  return { notes, errors };
+  return { notes, errors, marks };
 }
 // Notaları metne çevirir (perde adı varsa perde adıyla; adı olmayan komada yazılı adla)
 function scoreToText(notes){
@@ -55,7 +59,7 @@ function scoreToText(notes){
 // a, b: baştan ve sondan korunan nota sayısı (işaretleri kaydırmak için). Okunamayan parça (yazılırken "N", "Ne") atılmaz,
 // yer tutar: o sıradaki eski nota (yoksa güvensiz bir sus) kalır, nota sayısı yazarken değişmez
 function reparseKeeping(text, prev){
-  const toks = text.split(/[\s;]+/).filter(t => t && t !== "|"), errors = [], items = [];
+  const toks = text.split(/[\s;]+/).filter(t => t && t !== "|" && !MARK_TOKENS[t]), errors = [], items = [];
   for(const t of toks){ const r = parseScoreText(t); if(r.errors.length){ errors.push(t); items.push({ t, n: null }); } else items.push({ t, n: r.notes[0] }); }
   const old = prev.map(n => scoreToText([n]));
   let a = 0; while(a < items.length && a < prev.length && items[a].t === old[a]) a++;
@@ -271,6 +275,9 @@ const ETUDES = [
   { id:"e-k3", name:{ tr:"İki bölge ezgisi", en:"Two-register tune" }, level:2, makam:null, tempo:66, meter:[4,4],
     text:"Sol3 La3 Si3 Do4 | Re4:2 Sol4:2 | La4 Si4 Do5 Re5 | Mi5:4 | Fa5 Sol5 La5 Sol5 | Fa5:2 Mi5:2 | " +
          "Re5 Mi5 Fa5 Sol5 | La5 Si5 Do6:2 | Si5 La5 Sol5 Fa5 | Mi5 Re5 Do5 Si4 | La4 Sol4 Re4 Si3 | Sol3:4" },
+  // Yol işaretli etüt (okuma-4): tekrar ve iki dolap; çalınırken açılmış sırasıyla (etudePlayed)
+  { id:"e-t7b", name:{ tr:"Dolaplı ezgi", en:"Tune with first and second endings" }, level:1, makam:null, tempo:76, meter:[4,4],
+    text:"|: Sol3 La3 Si3 Do4 | Re4:2 Si3:2 | Do4 Si3 La3 Si3 | [1 Sol3:2 La3:2 :| [2 Sol3:4 | La3 Si3 Do4 Si3 | La3:2 Fa♯3:2 | Sol3:4" },
   { id:"e-rast", name:{ tr:"Rast etüdü", en:"Rast étude" }, level:3, makam:"rast", tempo:80, meter:[4,4],
     text:"Rast Dügâh Segâh Çargâh | Nevâ:2 Hüseynî Nevâ | Çargâh Segâh Dügâh Segâh | Nevâ:4 | Hüseynî Evç Gerdâniye:2 | Acem Hüseynî Nevâ:2 | Çargâh Segâh Dügâh Irak | Rast:4" },
   { id:"e-ussak", name:{ tr:"Uşşak etüdü", en:"Uşşak étude" }, level:3, makam:"ussak", tempo:80, meter:[4,4],
@@ -356,6 +363,9 @@ function etudeNotes(e){
   if(!etudeCache.has(e.id)) etudeCache.set(e.id, parseScoreText(e.text).notes);
   return etudeCache.get(e.id);
 }
+// Etüdün yol işaretleri (yoksa boş) ve işaretlere göre açılmış (çalınış sırasındaki) notaları
+const etudeMarks = e => parseScoreText(e.text).marks;
+const etudePlayed = e => { const m = etudeMarks(e); return m.length ? expandRepeats(etudeNotes(e), m) : etudeNotes(e); };
 const etudeById = id => ETUDES.find(e => e.id === id) || null;
 
 // ---- Düzeltme ----
@@ -471,24 +481,34 @@ function expandRepeats(notes, marks){
   const at = new Map();
   for(const m of marks || []){ if(!at.has(m.i)) at.set(m.i, []); at.get(m.i).push(m); }
   const segnos = (marks || []).filter(m => m.kind === "segno"), done = new Set();
+  const fines = (marks || []).filter(m => m.kind === "fine").map(m => m.i);
+  const volta2After = i => { const v = (marks || []).filter(m => m.kind === "volta2" && m.i > i).sort((a, b) => a.i - b.i)[0]; return v ? v.i : null; };
   const out = [];
-  let p = 0, lastStart = 0, back = false, post = false, stopI = Infinity;
+  let p = 0, lastStart = 0, back = false, post = false, stopI = Infinity, again = null;   // again: ikinci geçişteki tekrarın sonu
   for(let guard = 0; guard < 100000; guard++){
     if(post && p === stopI) break;
     let jumped = false;
     const wasBack = back; back = false;
     for(const m of at.get(p) || []){
       if(m.kind === "repStart"){ if(!wasBack) lastStart = p; }
-      else if(m.kind === "repEnd" && !post && !done.has(m)){ done.add(m); p = lastStart; lastStart = m.i; back = true; jumped = true; break; }
+      // Birinci dolap ikinci geçişte (ve D.C./D.S. sonrasında) atlanır, ikinci dolaba geçilir
+      else if(m.kind === "volta1" && (again !== null || post) && volta2After(m.i) !== null){ p = volta2After(m.i); again = null; jumped = true; break; }
+      else if(m.kind === "repEnd" && !post && !done.has(m)){ done.add(m); p = lastStart; lastStart = m.i; back = true; again = m.i; jumped = true; break; }
+      else if(m.kind === "dc" && !post && !done.has(m)){
+        done.add(m); post = true; p = 0; jumped = true;
+        if(fines.length) stopI = Math.min(...fines);
+        break;
+      }
       else if(m.kind === "toSegno" && !post && !done.has(m) && segnos.length){
         done.add(m); const s = segnos[segnos.length - 1].i;
         post = true; p = s; jumped = true;
-        for(const e of marks) if((e.kind === "repEnd" || e.kind === "sectionEnd") && e.i > s && e.i < stopI) stopI = e.i;
+        for(const e of marks) if((e.kind === "repEnd" || e.kind === "sectionEnd" || e.kind === "fine") && e.i > s && e.i < stopI) stopI = e.i;
         break;
       }
     }
     if(jumped) continue;
     if(p >= notes.length) break;
+    if(again !== null && p >= again) again = null;
     out.push({ ...notes[p] }); p++;
   }
   return out;
@@ -531,7 +551,7 @@ function transposeAll(notes, steps, unit){
 
 if(typeof module !== "undefined") module.exports = {
   parseScoreText, scoreToText, reparseKeeping, remapMarks, textEditMarks, writtenToken, turkishAccidental, parseMusicXML, unzipFirstScore, concertToWritten,
-  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeById,
+  alignPerformance, noteTimes, pieceClean, ETUDES, etudeNotes, etudeMarks, etudePlayed, etudeById, MARK_TOKENS,
   naturalOf, stepNote, withAccidental, ACC_CYCLE, scaleDur, toggleDot, toRest, mergeNext, barCheck, barsAt, meterFromBars,
   expandRepeats, rangeIssues, shiftOctave, transposeAll
 };
