@@ -55,6 +55,8 @@ const UNITS = [
   { id:"hiz", name:{ tr:"Hız ve teknik", en:"Speed and technique" }, badge:{ tr:"Hızlı parmaklar", en:"Fast fingers" } },
   { id:"susleme", name:{ tr:"Süsleme", en:"Ornaments" }, badge:{ tr:"Süsleme ustası", en:"Ornament master" } },
   { id:"makam",  name:{ tr:"Makamlar", en:"Makams" }, badge:{ tr:"Makam yolcusu", en:"Makam traveller" } },
+  // since: ünitenin kendisi sonradan eklendi; sınavı bütün (since'li) derslerinden kurulur (makeExam)
+  { id:"turku", since:2, name:{ tr:"Türkü ve yöreler", en:"Türküs and regions" }, badge:{ tr:"Türkü yolcusu", en:"Türkü traveller" } },
   { id:"trakya", name:{ tr:"Trakya ve Roman", en:"Thracian and Romani" }, badge:{ tr:"Trakya ve Roman ustası", en:"Thracian and Romani master" } },
   { id:"ileri",  name:{ tr:"İleri seviye", en:"Advanced" }, badge:{ tr:"Taksimci", en:"Taksim player" } }
 ];
@@ -3166,11 +3168,210 @@ insertLessonAfter("sed-3",
     ] }
 );
 
+// ---- S4.2 Türkü ve yöreler ----
+// Yeni ünite (UNITS "turku", since: sınavı bütün derslerinden). Her ders: usul usultap → arşivden iki türkü (eserSteps).
+// Eserler scripts/eser-sec.js ile (--form turku,rumeliturkusu,zeybek --makam hepsi --usul hepsi --oktav 0 --aralik 52-88
+// --sn 300 --ms 110; telifsiz, derslerde kullanılmamış). Künye SymbTr'den: yöre dosya adının son alanı, kişi dizindeki `b`
+// (bütün seçilenlerde Anonim). Yöre tavrı yazılmaz. Usulü uygulamanın verisinde olmayan türküler (Devr-i Turan) seçilmedi.
+// Sayılar arşivden (notalar/index.json, form "turku" 356 eser): Hicaz 40, Hüseynî 34, Segâh 33, Uşşak 30; usul Sofyan 94,
+// Aksak 60, Nîm-sofyan 47; zeybek 19 (Ağır Aksak 8, Aksak 8), Rumeli türküsü 16 (Aksak 5, Sofyan 4).
+// Ünite Trakya'dan önce durur (ders dizisinde de): ilk dersi unlocked'ta kendi kuralıyla açılır, Trakya'nın ilk dersi de;
+// ünite başka bir dersi kilitlemez.
+const TK = (arsiv, tr) => ({ arsiv, name:{ tr, en:tr } });
+const tkEser = (e, parts, o) => eserSteps(e.arsiv, e.name, parts, o);
+const TK_KOMA = { tr:"Si koma perdesini (Segâh) Makamlar'da öğrenmediysen şimdilik notada yazıldığı gibi çal.",
+  en:"If you haven't learned the comma perde B (Segâh) in Makams yet, play it as written for now." };
+const TK_E = {
+  uskudar: TK("nihavent--turku--nimsofyan--uskudara_gider--", "Üsküdar'a Gider İken"),
+  pencere: TK("hicaz--turku--nimsofyan--pencereden_kus--", "Pencereden Kuş Uçtu"),
+  sandal: TK("hicaz--turku--sofyan--sandalim_geliyor--", "Sandalım Geliyor Varda"),
+  yemeni: TK("mahur--turku--sofyan--yemenimde_hare_var--", "Yemenimde Hâre Var"),
+  mayadag: TK("hicaz--turku--turkaksagi--mayadagdan_kalkan--", "Mayadağ'dan Kalkan Kazlar"),
+  karanfil: TK("hicaz--turku--aksak--karanfil_oylum_oylum--", "Karanfil Oylum Oylum"),
+  fadime: TK("huseyni--turku--aksak--a_fadimem--", "A Fadimem"),
+  bursa: TK("huseyni--turku--aksak--bursanin_ufak--bursa", "Bursa'nın Ufak Tefek Taşları"),
+  dereboyu: TK("ussak--turku--sofyan--dereboyu_kavaklar--giresun", "Dereboyu Kavaklar"),
+  kale: TK("ussak--turku--sofyan--kalenin_burcu_muyam--", "Kalenin Burcu Muyam"),
+  kordon: TK("rast--zeybek--agiraksak--kordon_zeybegi--", "Kordon Zeybeği"),
+  izmir: TK("hicaz--zeybek--aksak--izmir_zeybegi--izmir", "İzmir Zeybeği"),
+  gemi: TK("hicaz--rumeliturkusu--sofyan--gemi_kalkar--rumeli", "Gemi Kalkar Suları Akar"),
+  akzade: TK("huseyni--rumeliturkusu--aksak--akzadeler_giyer--rumeli", "Akzâdeler Giyer"),
+  findikli: TK("ussak--turku--aksak--findikli_bizim--", "Fındıklı Bizim Yolumuz"),
+  cikayim: TK("huseyni--turku--sofyan--cikayim_gideyim--", "Çıkayım Gideyim Urumeline")
+};
+const TURKU = [
+  { id:"turku-giris", unit:"turku", since:2, notes:[],
+    title:{ tr:"Türkü: kırık hava ve uzun hava", en:"The türkü: kırık hava and uzun hava" },
+    text:[
+      { tr:"Bu ünitede arşivdeki türkülerden çalacaksın: 356 türkü, 19 zeybek ve 16 Rumeli türküsü. Yalnız usullü türküler (kırık hava) çalışılır; usulsüz uzun havada ezgi serbest akar, notası ve ölçüsü ders adımıyla izlenemez.",
+        en:"In this unit you play türküs from the archive: 356 türküs, 19 zeybeks and 16 Rumeli türküsü. Only türküs with a usul (kırık hava) are practised; in the free-rhythm uzun hava the melody flows freely and can't be followed bar by bar in a lesson step." },
+      { tr:"Her derste eserin künyesi yazılı: SymbTr notasındaki yöre ve kişi. Bu ünitenin türkülerinin hepsinde kişi alanı “Anonim”dir; yöre yalnız notada yazılıysa verilir.",
+        en:"Each lesson gives the piece's details as they are in the SymbTr score: region and person. In every türkü of this unit the person field is “Anonim” (anonymous); the region is given only when the score names it." },
+      { tr:"İlk iki türkü Nîm-sofyan'dır (2/4, düm tek): Üsküdar'a Gider İken (Nihâvent, ♩=84) ve Pencereden Kuş Uçtu (Hicaz, ♩=66). İkisinde de yöre yazılı değil.",
+        en:"The first two türküs are in Nîm-sofyan (2/4, düm tek): Üsküdar'a Gider İken (Nihâvent, ♩=84) and Pencereden Kuş Uçtu (Hicaz, ♩=66). Neither score names a region." }
+    ],
+    tips:[
+      { tr:"Notadaki ARANAĞME işaretli ölçüler sözsüz giriş nağmesidir, SAZ işaretliler söz aralarındaki saz bölümü; ezgiyi bu bölümlere göre bölerek çalış.", en:"Bars marked ARANAĞME in the score are the wordless introduction, those marked SAZ the instrumental part between the words; split your practice along these sections." }
+    ],
+    steps:[
+      thRead("form", [["text", 1]]),
+      { type:"read", title:{ tr:"Arşivde türkü notası", en:"A türkü score in the archive" }, body:[
+        { tr:"Arşivdeki türkü notalarında bölümler işaretlidir: ARANAĞME (sözsüz giriş) ve SAZ (söz aralarındaki saz bölümü). Sözler notanın altında hece hece yazılıdır; tekrarlar açılmıştır, ölçü numarası çalınış sırasınındır.",
+          en:"Sections are marked in the archive's türkü scores: ARANAĞME (wordless introduction) and SAZ (instrumental part between the words). The words are written under the notes syllable by syllable; repeats are written out and bar numbers follow the order of playing." },
+        { tr:"Derslerde önce bir bölümü yavaş tempoda dinleyip çalarsın, sonra türkünün ilk kıtasını %80 ve kendi temposunda.",
+          en:"In the lessons you first listen to and play one section at a slow tempo, then the türkü's first verse at 80% and at its own tempo." } ] },
+      { type:"soru", items:[
+        { q:{ tr:"Usullü türkülere ne denir?", en:"What are türküs with a usul called?" },
+          opts:[{ tr:"Kırık hava", en:"Kırık hava" }, { tr:"Uzun hava", en:"Uzun hava" }, { tr:"Peşrev", en:"Peşrev" }], ok:0,
+          why:{ tr:"Usulsüz olanlar uzun hava, usullü olanlar kırık hava (oyun havası, oturak havası).", en:"Those without a usul are uzun hava; those with one are kırık hava (dance tunes, oturak havası)." } },
+        { q:{ tr:"Türkünün bölümleri nelerdir?", en:"What are the parts of a türkü?" },
+          opts:[{ tr:"Bent ve kavuştak", en:"Bent and kavuştak" }, { tr:"Hane ve teslim", en:"Hane and teslim" }, { tr:"Zemin ve meyan", en:"Zemin and meyan" }], ok:0,
+          why:{ tr:"Bent ve kavuştak türkünün; hane ve teslim peşrevin; zemin ve meyan şarkının bölümleridir.", en:"Bent and kavuştak belong to the türkü; hane and teslim to the peşrev; zemin and meyan to the şarkı." } },
+        { q:{ tr:"Arşiv notasında ARANAĞME işaretli ölçüler nedir?", en:"What are the bars marked ARANAĞME in an archive score?" },
+          opts:[{ tr:"Sözsüz giriş nağmesi", en:"The wordless introduction" }, { tr:"Türkünün sözlü ilk dizesi", en:"The first sung line" }, { tr:"Usulsüz bir taksim", en:"An unmetered taksim" }], ok:0,
+          why:{ tr:"ARANAĞME sözsüz giriştir; sözler ondan sonra başlar.", en:"ARANAĞME is the wordless introduction; the words start after it." } }
+      ] },
+      { type:"usultap", usul:"nimsofyan", mode:"tap", min:70 },
+      ...tkEser(TK_E.uskudar, [[1, 8], [9, 16]]),
+      ...tkEser(TK_E.pencere, [[1, 8]])
+    ] },
+  { id:"turku-sofyan", unit:"turku", since:2, notes:[],
+    title:{ tr:"Sofyan türküleri", en:"Türküs in Sofyan" },
+    text:[
+      { tr:"Arşivdeki 356 türküden 94'ü Sofyan'dır (4/4: düm iki zaman, sonra iki tek); en sık türkü usulü budur.",
+        en:"Of the 356 türküs in the archive, 94 are in Sofyan (4/4: a two-beat düm, then two teks); it is the most common türkü usul." },
+      { tr:"Sandalım Geliyor Varda (Hicaz, ♩=90) ve Yemenimde Hâre Var (Mâhur, ♩=90); ikisinde de yöre yazılı değil. İki türkü de iki kıtadır, derste ilk kıtası çalınır (ölçü 1–24 ve 1–30). Yemenimde Hâre Var'da koma perdesi yok; Hicaz türküsünde Si♭ ve Do♯ yazılıdır.",
+        en:"Sandalım Geliyor Varda (Hicaz, ♩=90) and Yemenimde Hâre Var (Mâhur, ♩=90); neither score names a region. Both have two verses; the lesson plays the first (bars 1–24 and 1–30). Yemenimde Hâre Var has no comma perde; the Hicaz türkü is written with B♭ and C♯." }
+    ],
+    tips:[
+      { tr:"Sofyan'da düm iki zaman sürer: ölçünün başındaki uzun notayı kısaltma.", en:"In Sofyan the düm lasts two beats: don't cut short the long note at the start of the bar." }
+    ],
+    steps:[
+      { type:"usultap", usul:"sofyan", mode:"mem", min:70 },
+      { type:"rhythm", usul:"sofyan", tempo:90, bars:4, min:60 },
+      ...tkEser(TK_E.sandal, [[1, 8], [9, 16]], { to:24 }),
+      ...tkEser(TK_E.yemeni, [[1, 10]], { to:30 })
+    ] },
+  { id:"turku-aksak", unit:"turku", since:2, notes:[],
+    title:{ tr:"Aksak türküler: 5/8, 7/8, 9/8", en:"Limping türküs: 5/8, 7/8, 9/8" },
+    text:[
+      { tr:"Türkülerde aksak usuller çoktur: arşivde 60 türkü Aksak (9/8: 2+2+2+3), 13 türkü Türk Aksağı (5/8: 2+3). Yedi zamanlılar (7/8) çoğunlukla Devr-i Hindî ya da Devr-i Turan ile yazılıdır; Devr-i Turan'ın kalıbı uygulamada yok, bu yüzden 7/8'i yalnız usul olarak vuracaksın.",
+        en:"Limping usuls are common in türküs: in the archive 60 türküs are in Aksak (9/8: 2+2+2+3) and 13 in Türk Aksağı (5/8: 2+3). The seven-beat ones (7/8) are mostly written in Devr-i Hindî or Devr-i Turan; Devr-i Turan's pattern isn't in the app, so you'll tap 7/8 only as an usul." },
+      { tr:"Mayadağ'dan Kalkan Kazlar (Hicaz, Türk Aksağı, ♩=102; ilk kıta ölçü 1–57) ve Karanfil Oylum Oylum (Hicaz, Aksak, ♩=72). İkisinde de yöre yazılı değil.",
+        en:"Mayadağ'dan Kalkan Kazlar (Hicaz, Türk Aksağı, ♩=102; first verse bars 1–57) and Karanfil Oylum Oylum (Hicaz, Aksak, ♩=72). Neither score names a region." }
+    ],
+    tips:[
+      { tr:"Aksak usulde uzun vuruş hep sondadır: 5/8'i 2+3, 7/8'i 3+2+2 (Devr-i Hindî), 9/8'i 2+2+2+3 diye say.", en:"In a limping usul the long beat is always last: count 5/8 as 2+3, 7/8 as 3+2+2 (Devr-i Hindî), 9/8 as 2+2+2+3." }
+    ],
+    steps:[
+      { type:"usultap", usul:"turkaksagi", mode:"mem", min:70 },
+      { type:"usultap", usul:"devrihindi", mode:"tap", min:70 },
+      { type:"usultap", usul:"aksak", mode:"mem", min:70 },
+      ...tkEser(TK_E.mayadag, [[1, 8], [9, 21]], { to:57 }),
+      ...tkEser(TK_E.karanfil, [[1, 4]])
+    ] },
+  { id:"turku-huseyni", unit:"turku", since:2, notes:[], makam:"huseyni",
+    title:{ tr:"Hüseynî türküleri", en:"Türküs in Hüseynî" },
+    text:[
+      { tr:"Arşivdeki 356 türküden 34'ü Hüseynî'dir; Hicaz'dan (40) sonra en sık ikinci makam. Hüseynî'nin durağı Dügâh (La4), güçlüsü Hüseynî (Mi5); dizide Segâh (Si koma) ve çıkarken Evç (Fa♯5) kullanılır.",
+        en:"Of the 356 türküs in the archive, 34 are in Hüseynî; after Hicaz (40) it is the second most common makam. Hüseynî's final is Dügâh (A4) and its dominant Hüseynî (E5); the scale uses Segâh (comma B) and Evç (F♯5) going up." },
+      { tr:"A Fadimem (♩=99; yöre yazılı değil; ilk kıta ölçü 1–28) ve Bursa'nın Ufak Tefek Taşları (♩=90; yöre: Bursa; ilk kıta ölçü 1–32). İkisi de Aksak (9/8).",
+        en:"A Fadimem (♩=99; no region named; first verse bars 1–28) and Bursa'nın Ufak Tefek Taşları (♩=90; region: Bursa; first verse bars 1–32). Both are in Aksak (9/8)." },
+      TK_KOMA
+    ],
+    tips:[
+      { tr:"Cümle sonlarında Dügâh'a (La4) inişi dinle: türkü orada karar verir.", en:"Listen for the descent to Dügâh (A4) at the phrase ends: that is where the türkü cadences." }
+    ],
+    steps:[
+      { type:"usultap", usul:"aksak", mode:"mem", min:70 },
+      { type:"rhythm", usul:"aksak", tempo:180, bars:3, min:55 },
+      ...tkEser(TK_E.fadime, [[1, 8]], { to:28 }),
+      ...tkEser(TK_E.bursa, [[1, 9]], { to:32 })
+    ] },
+  { id:"turku-ussak", unit:"turku", since:2, notes:[], makam:"ussak",
+    title:{ tr:"Uşşak türküleri", en:"Türküs in Uşşak" },
+    text:[
+      { tr:"Arşivdeki 356 türküden 30'u Uşşak'tır (Hicaz 40, Hüseynî 34 ve Segâh 33'ten sonra). Uşşak'ın durağı da Dügâh'tır (La4), güçlüsü Nevâ (Re5); Segâh (Si koma) dizinin ikinci perdesidir.",
+        en:"Of the 356 türküs in the archive, 30 are in Uşşak (after Hicaz 40, Hüseynî 34 and Segâh 33). Uşşak's final is also Dügâh (A4) and its dominant Nevâ (D5); Segâh (comma B) is the second degree." },
+      { tr:"Dereboyu Kavaklar (♩=90; yöre: Giresun) ve Kalenin Burcu Muyam (♩=90; yöre yazılı değil; ilk kıta ölçü 1–24). İkisi de Sofyan.",
+        en:"Dereboyu Kavaklar (♩=90; region: Giresun) and Kalenin Burcu Muyam (♩=90; no region named; first verse bars 1–24). Both are in Sofyan." },
+      TK_KOMA
+    ],
+    tips:[
+      { tr:"Hüseynî ile Uşşak'ın durağı aynı: farkı güçlüde ara (Mi5 ya da Re5).", en:"Hüseynî and Uşşak share the final: look for the difference in the dominant (E5 or D5)." }
+    ],
+    steps:[
+      { type:"usultap", usul:"sofyan", mode:"mem", min:70 },
+      ...tkEser(TK_E.dereboyu, [[1, 4]]),
+      ...tkEser(TK_E.kale, [[1, 8]], { to:24 })
+    ] },
+  { id:"zeybek-2", unit:"turku", since:2, notes:[],
+    title:{ tr:"Zeybek: 9/4 ve 9/8", en:"Zeybek: 9/4 and 9/8" },
+    text:[
+      { tr:"Arşivdeki 19 zeybekten 8'i Ağır Aksak (9/4), 8'i Aksak (9/8) ile yazılıdır. İkisinin vuruşları aynıdır (2+2+2+3), yalnız mertebe farklıdır; uygulamanın Zeybek usulü de Ağır Aksak'ın vuruşlarıdır.",
+        en:"Of the 19 zeybeks in the archive, 8 are written in Ağır Aksak (9/4) and 8 in Aksak (9/8). Their strokes are the same (2+2+2+3), only the note value differs; the app's Zeybek usul uses Ağır Aksak's strokes too." },
+      { tr:"Kordon Zeybeği (Rast, Ağır Aksak, ♩=114; yöre yazılı değil) ve İzmir Zeybeği (Hicaz, Aksak, ♩=54; yöre: İzmir). İzmir Zeybeği 9/8 yazılı olsa da temposu yavaştır: dörtlük 54. İkisi de sözsüzdür ve notada bölüm işareti yok.",
+        en:"Kordon Zeybeği (Rast, Ağır Aksak, ♩=114; no region named) and İzmir Zeybeği (Hicaz, Aksak, ♩=54; region: İzmir). Although İzmir Zeybeği is written in 9/8 its tempo is slow: quarter = 54. Both are instrumental and the scores have no section marks." }
+    ],
+    tips:[
+      { tr:"9/8 yazılı yavaş bir eserde sekizlikleri say, dörtlükleri değil: 2+2+2+3 sekizlik.", en:"In a slow piece written in 9/8, count the eighths, not the quarters: 2+2+2+3 eighths." }
+    ],
+    steps:[
+      { type:"usultap", usul:"zeybek", mode:"mem", min:70 },
+      ...tkEser(TK_E.kordon, [[1, 8]]),
+      { type:"usultap", usul:"aksak", mode:"mem", min:70 },
+      ...tkEser(TK_E.izmir, [[1, 8]])
+    ] },
+  { id:"rumeli-2", unit:"turku", since:2, notes:[],
+    title:{ tr:"Rumeli türküleri", en:"Rumeli türküsü" },
+    text:[
+      { tr:"Arşivde 16 eserin formu Rumeli türküsüdür; usulleri çoğunlukla Aksak (5) ve Sofyan (4). Trakya ünitesindeki Rumeli havası (7/8) bir oyun havası etüdüydü; burada notası arşivde olan iki türkü var.",
+        en:"In the archive 16 pieces have the form Rumeli türküsü; their usuls are mostly Aksak (5) and Sofyan (4). The Rumeli tune (7/8) in the Thrace unit was a dance étude; here are two türküs whose scores are in the archive." },
+      { tr:"Gemi Kalkar Suları Akar (Hicaz, Sofyan, ♩=78) ve Akzâdeler Giyer (Hüseynî, Aksak, ♩=102; ilk kıta ölçü 1–38). İkisinin de notasında yöre “Rumeli” yazılı.",
+        en:"Gemi Kalkar Suları Akar (Hicaz, Sofyan, ♩=78) and Akzâdeler Giyer (Hüseynî, Aksak, ♩=102; first verse bars 1–38). Both scores give the region as “Rumeli”." },
+      TK_KOMA
+    ],
+    tips:[
+      { tr:"Akzâdeler Giyer'in aranağmesi 16 ölçüdür: söz 17. ölçüde başlar.", en:"Akzâdeler Giyer has a 16-bar aranağme: the words start in bar 17." }
+    ],
+    steps:[
+      { type:"usultap", usul:"sofyan", mode:"mem", min:70 },
+      ...tkEser(TK_E.gemi, [[1, 8]]),
+      { type:"usultap", usul:"aksak", mode:"mem", min:70 },
+      ...tkEser(TK_E.akzade, [[1, 16]], { to:38 })
+    ] },
+  { id:"turku-susleme", unit:"turku", since:2, notes:[], makam:"ussak",
+    title:{ tr:"Türküde süsleme: çarpma ve tril", en:"Ornaments in the türkü: grace notes and trills" },
+    text:[
+      { tr:"Arşiv notalarında süsleme işaretlidir. Fındıklı Bizim Yolumuz'da (Uşşak, Aksak, ♩=108; yöre yazılı değil) ilk kıtada (ölçü 1–26) çarpma Çargâh (Do5), Gerdâniye (Sol5) ve Evç'te, tril Hüseynî (Mi5) ve Çargâh'tadır. Çıkayım Gideyim Urumeline'de (Hüseynî, Sofyan, ♩=72; yöre yazılı değil) çarpma Nevâ (Re5) ve Segâh'tadır (Si koma).",
+        en:"Ornaments are marked in the archive scores. In Fındıklı Bizim Yolumuz (Uşşak, Aksak, ♩=108; no region named), in the first verse (bars 1–26), grace notes fall on Çargâh (C5), Gerdâniye (G5) and Evç, trills on Hüseynî (E5) and Çargâh. In Çıkayım Gideyim Urumeline (Hüseynî, Sofyan, ♩=72; no region named) grace notes fall on Nevâ (D5) and Segâh (comma B)." },
+      { tr:"Önce süslemeyi tek notada çalış, sonra türküde notadaki yerinde çal.",
+        en:"First practise the ornament on a single note, then play it in the türkü where the score marks it." },
+      TK_KOMA
+    ],
+    tips:[
+      { tr:"Süsleme ana notanın süresinden çalınır: ana nota yine ölçüde yerinde başlar ve en uzun o kalır.", en:"The ornament takes its time from the main note: the main note still starts in its place in the bar and stays the longest." }
+    ],
+    steps:[
+      { type:"listen", notes:[72], orn:{ kind:"carpma", dir:"up" } },
+      { type:"ornament", kind:"carpma", dir:"up", note:72, makam:"ussak", comma:22, n:4 },
+      { type:"listen", notes:[76], orn:{ kind:"tril", dir:"up" } },
+      { type:"ornament", kind:"tril", dir:"up", note:76, makam:"ussak", comma:40, rate:5, sec:2 },
+      { type:"usultap", usul:"aksak", mode:"mem", min:70 },
+      ...tkEser(TK_E.findikli, [[1, 6]], { to:26 }),
+      { type:"ornament", kind:"carpma", dir:"up", note:74, makam:"huseyni", comma:31, n:4 },
+      { type:"usultap", usul:"sofyan", mode:"mem", min:70 },
+      ...tkEser(TK_E.cikayim, [[1, 12]])
+    ] }
+];
+LESSONS.splice(LESSONS.findIndex(l => l.id === "trakya-giris"), 0, ...TURKU);
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
 // Sınav yalnız ilk müfredatın (since alanı olmayan) derslerinden kurulur: sonradan ünitelere eklenen dersler sınavın
 // adımlarını kaydırmasın (geçilmiş sınav, adım indeksine bağlı kayıtla geçilmiş kalsın). Yeni adımlar sınava elle eklenir.
+// Ünitenin kendisi sonradan eklendiyse (UNITS kaydında since) sınav onun bütün derslerinden kurulur: geçilmiş eski sınav yok.
 // Her ünitenin sonunda karışık bir sınav: ünitenin derslerinden eşit aralıkla seçilen en çok altı dersin son (en zor)
 // adımı, ünite kimliğinden türeyen sırayla karışık. Sınav ders zincirine girmez (sonraki dersleri kilitlemez);
 // ünitenin bütün dersleri bitince açılır, geçilince ünitenin rozeti kazanılır (roadmap.js badgeList).
@@ -3179,7 +3380,7 @@ const gatedStep = st => st.type !== "listen" && st.type !== "read" && !(st.type 
 // Adımı dersinden kopyalar: makam dersinin adımı makamını yanında taşır (günlük planda ve sınavda ders bağlamı yok)
 const stepFrom = (l, st) => ({ ...st, ...(l.makam && !st.makam ? { makam: l.makam } : {}) });
 function makeExam(u){
-  const ls = LESSONS.filter(l => l.unit === u.id && !l.since && l.steps.some(gatedStep));
+  const ls = LESSONS.filter(l => l.unit === u.id && (u.since || !l.since) && l.steps.some(gatedStep));
   const n = Math.min(EXAM_STEPS, ls.length), idx = [...new Set(Array.from({ length:n }, (_, k) => n < 2 ? 0 : Math.round(k*(ls.length - 1)/(n - 1))))];
   const rng = seeded("sinav-" + u.id);
   const steps = idx.map(i => { const l = ls[i], g = l.steps.filter(gatedStep); return stepFrom(l, g[g.length - 1]); })
@@ -3483,7 +3684,7 @@ function migrateCurriculum(prog, seen, day){
 // ünite bitince sınavla pekiştirip öyle geçirir. Kapı, kullanıcı o üniteden daha önce ders bitirdiyse uygulanmaz
 // (eski ilerleme bozulmasın). Tarayıcıda practice.js açar (Ayarlar: lesson.guided), Node'da kapalı.
 const GATE_AFTER = { temel:["baslangic"], klarino:["temel"], teknik:["klarino"], hiz:["klarino"], susleme:["klarino"],
-  makam:["klarino"], trakya:["klarino"], ileri:["makam"] };
+  makam:["klarino"], turku:["klarino"], trakya:["klarino"], ileri:["makam"] };
 let GUIDED = false;
 function setGuided(on){ GUIDED = !!on; }
 const examPassed = (unitId, prog) => { const e = examFor(unitId); return !e || lessonDone(e, prog); };
@@ -3520,6 +3721,12 @@ function unlocked(lesson, prog, all = false){
     return open && (lesson.id !== "sus-makam" || (d("ussak") && d("hicaz")));
   }
   if(lesson.unit === "makam") return LESSONS[i-1].unit === "makam" ? lessonDone(LESSONS[i-1], prog) : base();
+  // Türkü ve yöreler: Trakya gibi (temeller ve usul dersi), ünite içinde sırayla
+  if(lesson.unit === "turku"){
+    if(LESSONS[i-1].unit === "turku") return lessonDone(LESSONS[i-1], prog);
+    const us = lessonById("usul");
+    return base() && !!us && lessonDone(us, prog);
+  }
   // Trakya ve Roman: temeller ve usul dersi yeter (makam ünitesini bitirmek gerekmez), ünite içinde sırayla
   if(lesson.unit === "trakya"){
     if(LESSONS[i-1].unit === "trakya") return lessonDone(LESSONS[i-1], prog);

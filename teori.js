@@ -283,7 +283,7 @@ function thTopics(L){ return [
       L("Taksim: bir usule bağlı kalmadan, icracının o anki ilhamıyla bir ya da birkaç makamda yaptığı doğaçlama seyirdir; giriş, ara ve geçiş taksimi gibi türleri vardır. İlâhi: dinî-tasavvufî sözlü eserlerin genel adıdır; en çok sofyan, düyek, evfer, devr-i hindî gibi usullerle bestelenir.",
         "Taksim: an improvised melodic journey in one or more makams, without a usul, from the player's inspiration of the moment; there are opening, middle and transition taksims. İlâhi: the general name for sung works with religious-mystical texts; most often in usuls such as sofyan, düyek, evfer and devr-i hindî.")
     ],
-    links:[{ lesson:"formlar" }, { arch:"sarki", name:L("Şarkılar", "Şarkıs") }, { arch:"pesrev", name:L("Peşrevler", "Peşrevs") },
+    links:[{ lesson:"formlar" }, { lesson:"turku-giris" }, { arch:"sarki", name:L("Şarkılar", "Şarkıs") }, { arch:"pesrev", name:L("Peşrevler", "Peşrevs") },
       { arch:"sazsemaisi", name:L("Saz semâîleri", "Saz semâîs") }, { arch:"turku", name:L("Türküler", "Türküs") }, { arch:"aranagme", name:L("Aranağmeler", "Aranağmes") }],
     ek:[
       { q:L("Şarkıda başka makamlara geçilen bölüm hangisidir?", "Which part of a şarkı visits other makams?"),

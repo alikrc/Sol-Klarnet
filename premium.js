@@ -4,7 +4,7 @@
 // Ayrım şimdilik backlog'daki öneri: Başlarken, Temeller ve Register ücretsiz; sonraki üniteler ve aşağıdaki sekmeler premium.
 const FREEMIUM = {
   enabled: false,
-  units: ["teknik", "hiz", "susleme", "makam", "trakya", "ileri"],
+  units: ["teknik", "hiz", "susleme", "makam", "turku", "trakya", "ileri"],
   tabs: ["band", "kulaktan", "convert", "rec", "seyir"]
 };
 // Satın alma hakkı: ödeme eklenince mağazanın doğruladığı hak buraya yazılır (şimdilik yalnız deneme için)

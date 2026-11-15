@@ -35,7 +35,7 @@
     play:     `<circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l5.5-3.5z"/>`
   };
   // Ünite emojileri (Dersler listesi ve yol haritası)
-  const UNIT_EMOJI = { baslangic:"🌱", temel:"🎵", klarino:"⛰️", teknik:"🎚️", hiz:"⚡", susleme:"✨", makam:"🎼", trakya:"💃", ileri:"🏆" };
+  const UNIT_EMOJI = { baslangic:"🌱", temel:"🎵", klarino:"⛰️", teknik:"🎚️", hiz:"⚡", susleme:"✨", makam:"🎼", turku:"🪕", trakya:"💃", ileri:"🏆" };
   // Ana sayfa grup başlıkları
   const GROUP_EMOJI = { finger:"🖐️", ritim:"🥁", tech:"🛠️", makam:"🎼", pieces:"🧰", progress:"📈" };
   const PHOTO = {

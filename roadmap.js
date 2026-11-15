@@ -44,8 +44,8 @@ const RM_STAGES = [
       { id:"usul12", tab:"usul", title:{ tr:"12 usulü ezberden vur", en:"Tap 12 usuls from memory" }, unit:{ tr:" usul", en:" usuls" }, target:12, get: st => st.usulMem || null },
       { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null, tried: histDays("dict", x => x.m === "melody" && +x.lv === 2) }
     ] },
-  { id:"trakya", units:["trakya"], title:{ tr:"Oyun havaları: Trakya ve Roman", en:"Dance tunes: Thracian and Romani" },
-    goal:{ tr:"Kasap, karşılama, Roman havası, çiftetelli ve Rumeli havalarını usule oturarak, üslubuyla ve eşlikle çalarsın.", en:"You play kasap, karşılama, Roman havası, çiftetelli and Rumeli tunes in the groove, in style and with a band." },
+  { id:"trakya", units:["turku", "trakya"], title:{ tr:"Türküler ve oyun havaları", en:"Türküs and dance tunes" },
+    goal:{ tr:"Arşivden türküleri ve zeybekleri usulüyle çalar; kasap, karşılama, Roman havası, çiftetelli ve Rumeli havalarını usule oturarak, üslubuyla ve eşlikle çalarsın.", en:"You play türküs and zeybeks from the archive in their usul; and kasap, karşılama, Roman havası, çiftetelli and Rumeli tunes in the groove, in style and with a band." },
     miles:[
       { id:"roman", tab:"piece", title:{ tr:"Roman havası etüdü (tempolu)", en:"Roman havası étude (in tempo)" }, unit:{ tr:"%", en:"%" }, target:80, get: st => st.pieceBest["e-roman"] || null },
       { id:"karsilama", tab:"piece", title:{ tr:"Karşılama etüdü (tempolu)", en:"Karşılama étude (in tempo)" }, unit:{ tr:"%", en:"%" }, target:80, get: st => st.pieceBest["e-karsilama"] || null },

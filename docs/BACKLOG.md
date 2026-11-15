@@ -645,7 +645,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   (`eserSteps`), "çalındı" ölçütü tam eser `tempoPct:100` `min:80`. Basamak, içinden 6 eser çalınınca tamamlanır.
   Hoca kartı ünite derslerinin arasında "bu hafta bir eser" önerir (her 4 dersten sonra). Taşlar: her aşamaya
   "basamak N'den 6 eser". Telif: S1.6 ile aynı süzgeç.
-- [ ] **S4.2 Yeni ünite: Türkü ve yöreler** (B, E17). `unit:"turku"`, kapı Register sınavı (`GATE_AFTER`),
+- [x] **S4.2 Yeni ünite: Türkü ve yöreler** (B, E17). **Yapıldı (15 Kasım 2026).** `unit:"turku"`, kapı Register sınavı (`GATE_AFTER`),
   rozet "Türkü yolcusu". 8 ders, içerik arşivdeki türkü (356), zeybek (19) ve Rumeli türküsü (16) kayıtlarından:
   `turku-giris` (türkü formu, kırık hava ve uzun hava ayrımı; yalnız kırık hava çalışılır), `turku-sofyan`,
   `turku-aksak` (5/8, 7/8, 9/8 türküler), `turku-huseyni` ve `turku-ussak` (türkülerde en sık iki dizi; sıklık
@@ -654,6 +654,31 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   `usultap` → `eserSteps` 2 türkü. Yöre tavrı hakkında kaynaksız cümle yazılmaz; ders metni eserin künyesini
   (yöre, kaynak kişi; SymbTr alanları) ve çalınan şeyi anlatır. Yöreye özgü usul kalıbı gerekiyorsa ve veride
   yoksa o türkü seçilmez.
+  *Uygulanan:* `lessons.js` `// ---- S4.2 Türkü ve yöreler ----` bloğu; ünite `turku` ("Türkü ve yöreler", rozet "Türkü
+  yolcusu") `UNITS`'te ve ders dizisinde Trakya'dan önce. `GATE_AFTER.turku = ["klarino"]` (Register sınavı); `unlocked`
+  Trakya'nın kuralı: ilk ders temeller + `usul`, sonra sırayla. Ünite ders dizisinde başka bir dersin önünde durmaz
+  (Trakya'nın ilk dersi kendi kuralıyla açılır), hiçbir dersi kilitlemez. **Sınav:** ünite kaydına `since:2`; `makeExam`
+  `since`'li ünitenin sınavını bütün derslerinden kurar (`u.since || !l.since`); eski üniteler değişmez. Yol haritası:
+  `trakya` aşaması `units:["turku","trakya"]`, başlığı "Türküler ve oyun havaları". `premium.js` ve `art.js` (🪕) eklendi;
+  Teori "form" konusunun bağlantılarına `turku-giris`. 8 ders (`since:2`): `turku-giris` (Teori form türkü paragrafı, arşiv
+  notasında ARANAĞME/SAZ, `soru` ×3; Nîm-sofyan: Üsküdar'a Gider İken, Pencereden Kuş Uçtu), `turku-sofyan` (Sandalım
+  Geliyor Varda, Yemenimde Hâre Var), `turku-aksak` (Türk Aksağı, Devr-i Hindî ve Aksak vurulur; Mayadağ'dan Kalkan Kazlar
+  5/8, Karanfil Oylum Oylum 9/8), `turku-huseyni` (A Fadimem; Bursa'nın Ufak Tefek Taşları, Bursa), `turku-ussak`
+  (Dereboyu Kavaklar, Giresun; Kalenin Burcu Muyam), `zeybek-2` (Kordon Zeybeği 9/4; İzmir Zeybeği 9/8, İzmir),
+  `rumeli-2` (Gemi Kalkar Suları Akar, Akzâdeler Giyer; ikisi Rumeli), `turku-susleme` (Uşşak'ta çarpma Çargâh, tril
+  Hüseynî; Fındıklı Bizim Yolumuz ve Çıkayım Gideyim Urumeline, notada işaretli süslemeleriyle). Her ders: `usultap` →
+  2 türkü `eserSteps` (bölüm %60, ilk kıta `to` ile %80 ve %100). Seçim `scripts/eser-sec.js --form
+  turku,rumeliturkusu,zeybek --makam hepsi --usul hepsi --oktav 0 --aralik 52-88 --sn 300 --ms 110`, telifsiz ve derslerde
+  kullanılmamış. **Sayılar arşivden** (form `turku`, 356): Hicaz 40, Hüseynî 34, Segâh 33, Uşşak 30; usul Sofyan 94, Aksak
+  60, Nîm-sofyan 47, Türk Aksağı 13; zeybek 19 (Ağır Aksak 8, Aksak 8); Rumeli türküsü 16 (Aksak 5, Sofyan 4). Hüseynî ve
+  Uşşak "en sık iki" değil, 2. ve 4. sırada: metin sayıyı olduğu gibi yazar. **Künye:** telifsiz türkülerin hepsinde
+  SymbTr kişi alanı "Anonim"; yöre yalnız dosya adında yazılıysa verilir (Bursa, Giresun, İzmir, Rumeli), yöre tavrı
+  yazılmadı. **Sapmalar:** 7/8 türkü çalınmıyor: telifsiz 7 zamanlı türküler Devr-i Turan ile yazılı ve bu usulün kalıbı
+  veride yok (kural gereği seçilmedi); Devr-i Hindî yalnız vurulur. İzmir Zeybeği 9/8 yazılı ama ♩=54 (yavaş); "kıvrak"
+  denmedi. Göç: bütün eski dersleri bitmiş kayıtta hiçbir ders kilitlenmez (Node ve tarayıcı), ünite dersleri
+  "istersen" olur; sıfır kullanıcıda ilk ders aynı. Tarayıcıda 375 px'te ünite listesi, okuma, soru, usul, dinleme
+  adımları, 70 arşiv adımının hepsinin yüklenmesi, yol haritası ve rozet denendi, konsolda hata yok; mikrofonlu adımlar
+  (çalma, süsleme) denenmedi.
 - [ ] **S4.3 Fasıl ve eşlik pratiği** (B, E18). İleri üniteye 4 ders: `aranagme` (arşivdeki 77 aranağmeden Rast,
   Hicaz, Nihâvend, Uşşak; aranağme nedir, nerede çalınır; `eserSteps`), `sarki-eslik` (şarkıyı solistle çalmak:
   sözlü eserde ezgiyi sade çal, söz arasını doldur; `piece` adımı eserin sözlü ölçülerinde `mode:"free"`, söz
