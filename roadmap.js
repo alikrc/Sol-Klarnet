@@ -56,7 +56,10 @@ const RM_STAGES = [
     miles:[
       { id:"ear1", tab:"ear", title:{ tr:"Kulak eşiği 1 koma", en:"Ear threshold 1 comma" }, unit:{ tr:" koma", en:" commas" }, target:1, lower:true, get: st => st.earPitch },
       { id:"seyir3", tab:"seyir", title:{ tr:"Üç makamda seyir puanı 75", en:"Seyir 75 in three makams" }, unit:{ tr:" makam", en:" makams" }, target:3, get: st => st.seyirMakams75, tried: histDays("seyir") },
-      { id:"sight4", tab:"desifre", title:{ tr:"Deşifre seviye 4", en:"Sight-reading level 4" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[4] || null, tried: histDays("sight", x => +x.lv === 4) }
+      { id:"sight4", tab:"desifre", title:{ tr:"Deşifre seviye 4", en:"Sight-reading level 4" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.sightBest[4] || null, tried: histDays("sight", x => +x.lv === 4) },
+      // S4.5: taksim-uzun dersinin kaydı (seyir.hist parts); soft: sonradan eklendi, dersleri bitmiş kullanıcıyı durdurmaz
+      { id:"taksim4", tab:"lessons", soft:true, title:{ tr:"2 dakikalık taksim, dört bölüm de tutuyor", en:"A 2-minute taksim with all four parts holding" }, unit:{ tr:" bölüm", en:" parts" }, target:4,
+        get: st => st.taksimParts, tried: histDays("seyir", x => Array.isArray(x.parts)) }
     ] }
 ];
 // Repertuvar merdiveni taşları (S4.1, repertuvar.js): her aşamaya bir basamak, o basamaktan 6 eser çalınmış olmalı.
@@ -86,6 +89,8 @@ function roadmapStats(get){
   const c = get("orn.hist", []).filter(h => h.kind === "carpma").slice(-20);
   const sy = get("seyir.hist", []), syBy = {};
   sy.forEach(x => { syBy[x.mk] = Math.max(syBy[x.mk] || 0, x.score); });
+  // Uzun taksim (S4.5, lessons.js taksim-uzun): en az 115 sn çalınmış denemelerde tutan (≥ 60, skills.js TAKSIM_PART_OK) bölüm sayısının en iyisi
+  const uz = sy.filter(x => Array.isArray(x.parts) && x.sec >= 115), taksimParts = uz.length ? Math.max(...uz.map(x => x.parts.filter(v => v >= 60).length)) : null;
   const ear = get("ear.best", {}), band = get("band.hist", []).filter(x => x.grid != null && x.bars >= 8);
   return {
     prog: get("lesson.prog", {}), days: get("days", {}), goalMin: get("goal.min", 15), dailyDone: get("lesson.dailyDone", []),
@@ -93,7 +98,7 @@ function roadmapStats(get){
     rhythmBest: get("rhythm.best", 0), earPitch: ear.pitch != null ? ear.pitch : null, earMakam: ear.makam || 0,
     sightBest: get("sight.best", {}), dictBest: get("dict.best", {}),
     techBest, chromBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
-    seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length,
+    seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length, taksimParts,
     usulMem: Object.values(get("usul.prog", {})).filter(p => p && p.mem >= 70).length, usulQuiz: get("usul.quiz.best", 0),
     repCounts: (() => { const R = RMREP(); return R ? R.repCounts(get("rep.played", {})) : {}; })(),
     pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,

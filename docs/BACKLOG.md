@@ -709,12 +709,34 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   çizilir (puanlama nota zamanlarıyla, etkilenmez). Tarayıcıda 375 px'te dört ders açıldı; okuma, usul vurma ve bütün
   dinleme adımları başlatıldı, 32 arşiv adımının ölçü aralığı `archLessonPiece` ile yüklendi (4. hane 6/4 açılıyor);
   mikrofon engelliyken çalma adımı izin uyarısı verdi, konsolda hata yok. Çalma puanlanmadı. Müfredat 166 ders (S2.4 ile).
-- [ ] **S4.5 Taksim 6–9** (B, E20). `taksim-gecki` (S3.4'ün `via` ölçütüyle 60 sn: ana makam → geçki → dönüş ve
+- [x] **S4.5 Taksim 6–9** (B, E20). **Yapıldı (15 Kasım 2026).** `taksim-gecki` (S3.4'ün `via` ölçütüyle 60 sn: ana makam → geçki → dönüş ve
   karar), `taksim-tiz` (meyan bölgesi: seyir alanının üst dörtlüsüne çık, en az bir cümle orada; `seyirAnalysis`
   ambitus çıktısı), `taksim-usullu` (Eşlik'in darbukası üstünde; ölçüt seyir puanı + cümle sonlarının usul başına
   denk gelme oranı; `band.js` vuruş zamanları var), `taksim-uzun` (2 dakikalık plan: giriş, gelişme, meyan, karar;
   `phraseAnalysis` dört bölümü süreyle ayırır, her bölümün ölçütü ayrı gösterilir). Taş: "2 dakikalık taksim, dört
   bölüm de tutuyor".
+  *Uygulanan:* `lessons.js` `// ---- S4.5 Taksim 6–9 ----` bloğu, `insertLessonAfter("taksim-2", …)` (S3.5 şed dersleri
+  bunlardan sonra), dördü `since:2`; perde adları ve farkları `learn.js`'ten (`makamDiff`, dizinin en tizi). `taksim-gecki`:
+  `seyir` rast via suzinak ve huseyni via karcigar, 60 sn, `min:60` (S3.4 ölçütü değişmedi). `taksim-tiz`: yeni `focus:"tiz"`
+  (`skills.js` `tizAnalysis`): seyir alanı = makamın uygulamadaki dizisi, üst dörtlü = en tiz perdeden 22 koma aşağısı (Rast
+  Nevâ–Gerdâniye, Hicaz Hüseynî–Muhayyer); tiz cümle = en az iki uzun notalı ve uzun notalarının süresinin ≥ %60'ı bu bölgede
+  (2 koma pay); ambitus `seyirAnalysis` `low/high`. Puan %50 seyir + %35 en az bir tiz cümle + %15 dizinin en tizine ulaşmak.
+  `taksim-usullu`: yeni adım parametresi `seyir { usul, tempo }`: `trainers.js` `taksimDrum` Eşlik'in darbuka kalıbını
+  (`band.js` `bandStyle`/`bandDrum`/`bandBarEvents`/`bandPlay`; bas ve ud yok) adım boyunca sabit tempoda kurar, usul başları
+  `ctxToPerf` ile tutulur; `skills.js` `usulTaksimAnalysis`: cümle sonu = cümlenin ≥ 300 ms tutulan son notasının başladığı an
+  (`rhythm.lat` gecikmesi eklenir), usul birimin yarısı (en çok 300 ms) içinde bir usul başına düşüyorsa denk; puan %60 seyir
+  + %40 oran. Adımlar: `usultap` dinle → Rast Sofyan 72, Hicaz Düyek 144, 60 sn `min:55`. Metin "taksim usule bağlı değildir"
+  (TDV, Teori → Formlar) der ve bunu bir alıştırma olarak sunar. `taksim-uzun`: yeni `focus:"uzun"` (`uzunAnalysis`): çalınan
+  süre dört eşit parçaya bölünür, cümle ortası hangi parçadaysa oraya; giriş = açılış seyre uygun (`openingOk`) + dizide + ≥ 2
+  cümle, gelişme = `phraseAnalysis` çeşni puanı, meyan = üst dörtlüde cümle (%70) + en tize ulaşma (%30), karar =
+  `phraseAnalysis` karar puanı; bölüm "tutuyor" ≥ 60 (`TAKSIM_PART_OK`), puan dördünün ortalaması; sonuçta dört satır. Rast ve
+  Hicaz, 120 sn, `min:60`. `phraseAnalysis`'in cümle bölme kısmı `splitPhrases` olarak ayrıldı. `stepTitle` "Usullü taksim",
+  "Taksim (meyan, tiz bölge)", "Taksim (dört bölüm)". Uzun taksim kaydı `seyir.hist`'e `parts` ve `sec` ile yazılır;
+  `roadmapStats.taksimParts` (≥ 115 sn denemelerde tutan bölüm sayısının en iyisi), İleri aşamasına `taksim4` taşı (hedef 4
+  bölüm, `soft`, sekme Dersler). **Bütün eşikler (%60, 300 ms, ağırlıklar, eşit dörde bölme, 60) tahmin**, gerçek çalışla
+  ayarlanmadı. Tarayıcıda 375 px'te dört ders açıldı; mikrofon engelli olduğu için adımlar `SK.stepTry` ile sahte notalarla
+  çalıştırıldı (darbuka kuruldu, usul başına hizalı kalışlar %100, tiz ve dört bölüm puanları göründü, kayıt ve taş sayımı
+  doğru), konsolda hata yok. Gerçek klarnet ve hoparlör/mikrofonla denenmedi. Müfredat 178 ders (S2.4, S4.2, S4.4 ile).
 - [x] **S4.6 Kulaktan çalma yolu** (O, E21). **Yapıldı (15 Kasım 2026).** Üç ders: `kulak-ezgi-1` (Temeller sonu: 3–4 notalık cümleyi duy ve
   çal, `mimic { commas | notes, len:3 }` pes bölge notalarıyla; önce `mimic`'in makamsız nota havuzu desteklediğine
   bakılır), `kulak-ezgi-2` (Makamlar ortası: 6–8 notalık makam cümlesi, `len:6`), `kulaktan-eser` (İleri: arşivden

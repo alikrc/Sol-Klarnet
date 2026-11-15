@@ -218,8 +218,8 @@ function geckiFeedback(g, mk, lang = "tr"){
 //  cumle: en az 4 cümle, cümle süresi 1,5–10 sn, kalışın en az 300 ms ve dizideki bir perdede olması
 //  cesni: durak ile güçlü arasındaki perdelerin (makamın ilk çeşnisi, çıkış dizisinden) gezilmesi ve güçlüde biten cümle
 //  karar: son cümlenin durakta bitmesi, son notanın en az 800 ms tutulması, durağa üstten ya da yedenden gelinmesi
-function phraseAnalysis(notes, mk, gapMs = 350){
-  if(notes.length < 4) return null;
+function splitPhrases(notes, gapMs = 350){
+  if(!notes.length) return [];
   const phrases = [];
   let cur = [notes[0]];
   for(let i = 1; i < notes.length; i++){
@@ -227,6 +227,11 @@ function phraseAnalysis(notes, mk, gapMs = 350){
     cur.push(notes[i]);
   }
   phrases.push(cur);
+  return phrases;
+}
+function phraseAnalysis(notes, mk, gapMs = 350){
+  if(notes.length < 4) return null;
+  const phrases = splitPhrases(notes, gapMs);
   const m53 = c => ((c % 53) + 53) % 53, same = (a, b) => a !== null && m53(a) === m53(b);
   const info = phrases.map(ph => {
     const last = ph[ph.length-1], dur = last.end - ph[0].start;
@@ -276,6 +281,96 @@ function phraseFeedback(ph, mk, focus, lang = "tr"){
     ph.onDurak && !ph.approach ? (en ? "Approach the final from above or from the leading tone (" + pn(mk.yeden) + ")." : "Durağa üstten ya da yedenden (" + pn(mk.yeden) + ") gel.")
       : ph.onDurak ? (en ? "You approached the final from above or from the leading tone." : "Durağa üstten ya da yedenden geldin.") : ""
   ].filter(Boolean);
+}
+// ---- Taksim 6–9 (docs/BACKLOG.md S4.5) ----
+// Seyir alanının üst dörtlüsü: makamın uygulamadaki dizisinin (asc ∪ desc) en tiz perdesinden 22 koma (tam dörtlü)
+// aşağısına kadar (Rast'ta Nevâ–Gerdâniye, Hicaz'da Hüseynî–Muhayyer). Bir cümle "tiz cümle" sayılır: en az iki uzun
+// (≥ 120 ms) notası var ve uzun notalarının süresinin en az %60'ı bu bölgede (2 koma pay). Ambitus seyirAnalysis'ten
+// (low, high). Puan: %50 seyir puanı, %35 en az bir tiz cümle, %15 dizinin en tiz perdesine ulaşmak. Eşikler (%60, ağırlıklar)
+// tahmindir; gerçek çalışla ayarlanmadı.
+function tizZone(mk){ const top = Math.max(...mk.asc, ...mk.desc); return { lo: top - 22, top }; }
+function isTizPhrase(ph, z){
+  const long = ph.filter(n => n.end - n.start >= 120);
+  if(long.length < 2) return false;
+  const all = long.reduce((a, n) => a + n.end - n.start, 0), hi = long.filter(n => n.comma >= z.lo - 2).reduce((a, n) => a + n.end - n.start, 0);
+  return all > 0 && hi/all >= 0.6;
+}
+function tizAnalysis(notes, mk){
+  const res = seyirAnalysis(notes, mk);
+  if(!res) return null;
+  const z = tizZone(mk), phrases = splitPhrases(notes), tiz = phrases.filter(ph => isTizPhrase(ph, z)).length;
+  const reach = res.high >= z.top - 2;
+  const score = Math.round(0.5*res.score + (tiz >= 1 ? 35 : 0) + (reach ? 15 : 0));
+  return { seyir:res, zone:z, n:phrases.length, tiz, low:res.low, high:res.high, reach, score, ok: tiz >= 1 && res.finalOk };
+}
+function tizFeedback(t, mk, lang = "tr"){
+  const en = lang === "en", pn = c => SLEARN.perdeName(c) || "?", zone = pn(t.zone.lo) + "–" + pn(t.zone.top);
+  const hp = mapToScale(t.high, mk), hiName = hp !== null ? pn(hp) : "?";
+  return [
+    t.tiz ? (en ? t.tiz + " of " + t.n + " phrases stayed in the upper fourth (" + zone + ")." : t.n + " cümlenin " + t.tiz + " tanesi üst dörtlüde (" + zone + ") kaldı.")
+      : (en ? "No phrase stayed in the upper fourth (" + zone + "); climb there and play a whole phrase around those perdes." : "Hiçbir cümle üst dörtlüde (" + zone + ") kalmadı; oraya çık ve bütün bir cümleyi o perdelerde çal."),
+    t.reach ? (en ? "You reached the top of the scale (" + pn(t.zone.top) + ")." : "Dizinin en tizine (" + pn(t.zone.top) + ") ulaştın.")
+      : (en ? "Your highest note was " + hiName + "; the scale goes up to " + pn(t.zone.top) + "." : "En tiz notan " + hiName + "; dizi " + pn(t.zone.top) + " perdesine kadar çıkıyor.")
+  ];
+}
+// Usullü taksim (seyir + usul): darbuka usulü çalarken serbest çal; cümle sonu, cümlenin son (kalış) notasının başladığı an.
+// Yalnız en az 300 ms tutulan kalışlar sayılır. bars: usul başlarının (ölçü başı) zamanları, notalarla aynı saatte (ms;
+// çağıran mikrofon gecikmesini ekler). tolMs içinde bir usul başına düşen kalış "denk gelir". Puan: %60 seyir puanı,
+// %40 denk gelme oranı. Eşik (tolMs; trainers.js'te usul biriminin yarısı, en çok 300 ms) tahmindir.
+function usulTaksimAnalysis(notes, mk, bars, tolMs){
+  const res = seyirAnalysis(notes, mk);
+  if(!res) return null;
+  const ends = splitPhrases(notes).map(ph => ph[ph.length-1]).filter(n => n.end - n.start >= 300);
+  const near = t => bars.reduce((b, x) => Math.min(b, Math.abs(t - x)), Infinity);
+  const hit = ends.filter(n => near(n.start) <= tolMs).length, ratio = ends.length ? hit/ends.length : 0;
+  return { seyir:res, ends:ends.length, hit, ratio, score: Math.round(0.6*res.score + 40*ratio), ok: ends.length >= 3 && ratio >= 0.5 };
+}
+function usulTaksimFeedback(u, lang = "tr"){
+  const en = lang === "en", pct = Math.round(u.ratio*100);
+  if(!u.ends) return [en ? "No phrase ended on a held note; end each phrase by holding a perde." : "Hiçbir cümle tutulan bir notayla bitmedi; her cümleyi bir perdede tutarak bitir."];
+  return [
+    en ? u.hit + " of " + u.ends + " phrase endings (" + pct + "%) landed on the start of the usul cycle (the first düm)." : u.ends + " cümle sonunun " + u.hit + " tanesi (%" + pct + ") usulün başına (ilk düm) denk geldi.",
+    u.ratio < 0.5 ? (en ? "Count the cycle while you play: start the last note of the phrase together with the first düm." : "Çalarken döngüyü say: cümlenin son notasını ilk dümle birlikte başlat.") : ""
+  ].filter(Boolean);
+}
+// Uzun taksim (seyir + focus "uzun"): çalınan süre dört eşit parçaya bölünür; cümle ortası hangi parçadaysa o bölüme
+// girer. Bölüm ölçütleri (0–100) bu dersin planıdır: giriş = açılış makamın seyrine uygun (seyirAnalysis openingOk) ve
+// dizide; gelişme = phraseAnalysis çeşni puanı (durak–güçlü perdeleri, güçlüde yarım karar); meyan = üst dörtlüde en az
+// bir cümle (tizAnalysis'teki gibi); karar = phraseAnalysis karar puanı. Bölüm "tutuyor": puanı en az TAKSIM_PART_OK.
+// Toplam puan dört bölümün ortalaması. Eşit dörtte bölme ve eşik tahmindir.
+const TAKSIM_PARTS = ["giris", "gelisme", "meyan", "karar"], TAKSIM_PART_OK = 60;
+function uzunAnalysis(notes, mk){
+  const res = seyirAnalysis(notes, mk);
+  if(!res) return null;
+  const t0 = notes[0].start, T = Math.max(1, notes[notes.length-1].end - t0), z = tizZone(mk);
+  const parts = [[], [], [], []];
+  for(const ph of splitPhrases(notes)) parts[Math.min(3, Math.floor(((ph[0].start + ph[ph.length-1].end)/2 - t0)/T*4))].push(ph);
+  const flat = k => parts[k].flat();
+  const giris = (() => { const s = seyirAnalysis(flat(0), mk); return s ? Math.round(100*(0.5*(s.openingOk ? 1 : 0) + 0.3*s.inScale + 0.2*Math.min(1, parts[0].length/2))) : 0; })();
+  const gp = phraseAnalysis(flat(1), mk), gelisme = gp ? gp.cesni : 0;
+  const mt = parts[2].filter(ph => isTizPhrase(ph, z)).length, mh = flat(2).reduce((a, n) => Math.max(a, n.comma), -1e9);
+  const meyan = parts[2].length ? Math.round(70*(mt >= 1 ? 1 : 0) + 30*(mh >= z.top - 2 ? 1 : 0)) : 0;
+  const kp = phraseAnalysis(flat(3), mk), karar = kp ? kp.karar : 0;
+  const sc = [giris, gelisme, meyan, karar];
+  return { seyir:res, parts: sc, phrases: parts.map(p => p.length), held: sc.filter(v => v >= TAKSIM_PART_OK).length, zone:z,
+    score: Math.round(sc.reduce((a, v) => a + v, 0)/4), sec: T/1000 };
+}
+function uzunFeedback(u, mk, lang = "tr"){
+  const en = lang === "en", pn = c => SLEARN.perdeName(c) || "?";
+  const names = en ? ["Opening", "Development", "Meyan", "Cadence"] : ["Giriş", "Gelişme", "Meyan", "Karar"];
+  const want = en ? [
+    "the opening follows the makam's seyir and stays in the scale",
+    "visit the perdes from " + pn(mk.durak) + " to " + pn(mk.guclu) + " and rest on " + pn(mk.guclu),
+    "at least one phrase in the upper fourth (" + pn(u.zone.lo) + "–" + pn(u.zone.top) + ")",
+    "the last phrase comes to " + pn(mk.durak) + " and holds it"
+  ] : [
+    "açılış makamın seyrine uygun ve dizide",
+    pn(mk.durak) + "–" + pn(mk.guclu) + " perdelerini gez, " + pn(mk.guclu) + " perdesinde dinlen",
+    "en az bir cümle üst dörtlüde (" + pn(u.zone.lo) + "–" + pn(u.zone.top) + ")",
+    "son cümle " + pn(mk.durak) + " perdesine gelip orada kalır"
+  ];
+  return u.parts.map((v, i) => (v >= TAKSIM_PART_OK ? "✓ " : "○ ") + names[i] + " · " + v + (en ? " pts · " : " puan · ") + want[i] +
+    (u.phrases[i] ? "" : en ? " (no phrase in this quarter)" : " (bu çeyrekte cümle yok)"));
 }
 // Benzer makama kayma: dizisi en çok iki perdeyle ayrılan makamların (learn.js similarMakams) ayırt edici perdelerinde
 // geçen süre. Ötekinin perdeleri bu makamınkilerden belirgin uzun çalındıysa (sürenin en az %8'i ve iki katı) o makam
@@ -1348,5 +1443,6 @@ if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentScan, ornamentScanFeedback, ORN_SCAN_NAMES, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises, ARTIK, artikStyles, artikEval,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
-  toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, geckiAnalysis, geckiFeedback, phraseAnalysis, phraseFeedback, Staircase, perdePairs, makamChoices, makamPhrase
+  toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, geckiAnalysis, geckiFeedback, phraseAnalysis, phraseFeedback,
+  splitPhrases, tizZone, tizAnalysis, tizFeedback, usulTaksimAnalysis, usulTaksimFeedback, TAKSIM_PARTS, TAKSIM_PART_OK, uzunAnalysis, uzunFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

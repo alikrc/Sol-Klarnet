@@ -31,7 +31,9 @@
 //                                             "tenuto" ya da notalara sırayla uygulanan dizi (null: serbest). Puan (0–100):
 //                                             %40 doğru nota, %60 çalışı tutan nota (skills.js artikEval); en az min
 //   seyir   { makam, sec, min, focus? }       serbest çalma (taksim), en az min seyir puanı; focus verilirse taksim
-//                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
+//                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis;
+//                                             "tiz": tizAnalysis, "uzun": uzunAnalysis dört bölüm); usul (+ tempo) verilirse
+//                                             darbuka o usulü çalar, puan usulTaksimAnalysis (cümle sonları usul başında)
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
 //   piece   { id, mode: "tempo"|"free", min, cue? } etüt çal (cue: başlıkta yönerge, ör. "güçlü (f)"; ölçülmez): tempoda en az min % doğru nota, serbestte en çok min hata
 //   piece   { arsiv, name, from?, to?, tempoPct?, oct?, mode, min }  nota arşivinden eser (ölçü aralığı, temponun yüzdesi,
@@ -3365,6 +3367,91 @@ const TURKU = [
     ] }
 ];
 LESSONS.splice(LESSONS.findIndex(l => l.id === "trakya-giris"), 0, ...TURKU);
+// ---- S4.5 Taksim 6–9 ----
+// İleri ünitesinde taksim-2'den sonra dört ders (S3.5 şed dersleri bunlardan sonra gelir). Ölçütler skills.js'te: geçki
+// seyir { via } (S3.4 geckiAnalysis), tiz seyir { focus:"tiz" } (tizAnalysis: seyir alanının üst dörtlüsünde cümle),
+// usullü seyir { usul, tempo } (usulTaksimAnalysis: darbuka band.js kalıbıyla çalar, cümle sonları usul başında mı),
+// uzun seyir { focus:"uzun" } (uzunAnalysis: süre dörde bölünür, giriş/gelişme/meyan/karar ayrı puanlanır). Taksim tanımı
+// ve türleri TDV "Taksim (Mûsiki)" (Teori → Formlar, docs/KAYNAKLAR.md §11); usul üstünde taksim ve dört bölümlü plan bu
+// derslerin alıştırmasıdır, gelenek bilgisi olarak anlatılmaz. Perde adları ve farkları learn.js dizilerinden hesaplanır.
+{ const P = c => LLEARN.perdeName(c), M = id => LLEARN.makamById(id);
+  const names = cs => cs.map(P).join(", ");
+  const top = mk => Math.max(...M(mk).asc, ...M(mk).desc), zone = mk => P(top(mk) - 22) + "–" + P(top(mk));
+  const rs = LLEARN.makamDiff(M("rast"), M("suzinak")), hk = LLEARN.makamDiff(M("huseyni"), M("karcigar"));
+  insertLessonAfter("taksim-2",
+  { id:"taksim-gecki", unit:"ileri", since:2, notes:[], makam:"rast",
+    title:{ tr:"Taksim 6: geçkili taksim", en:"Taksim 6: a taksim with a geçki" },
+    text:[
+      { tr:"Taksim bir ya da birkaç makamda yapılan doğaçlama seyirdir (Teori → Formlar). Geçki derslerinde bir ezginin başka bir makamın perdelerine gidip döndüğünü gördün; şimdi bunu taksimde yapacaksın: ana makamla başla, geçilen makamın perdelerine uğra, ana makama dön ve onun durağında karar ver.",
+        en:"A taksim is an improvised seyir in one or more makams (Theory → Forms). In the geçki lessons you saw a melody go to another makam's perdes and come back; now you do it in a taksim: start in the main makam, visit the other makam's perdes, return to the main makam and resolve on its final." },
+      { tr:"Rast'tan Sûzinak rengine geçişte değişen perdeler: Rast'ta " + names(rs.only) + ", Sûzinak'ta " + names(rs.other) + ". Hüseynî'den Karcığar rengine: Hüseynî'de " + names(hk.only) + ", Karcığar'da " + names(hk.other) + ".",
+        en:"Going from Rast into Sûzinak's colour the perdes that change are: Rast " + names(rs.only) + ", Sûzinak " + names(rs.other) + ". From Hüseynî into Karcığar's colour: Hüseynî " + names(hk.only) + ", Karcığar " + names(hk.other) + "." },
+      { tr:"Ölçülen: ana makamın seyir puanı, geçilen makamın ayıran perdelerine en az iki ayrı uğrayış ve sonunda ana makamın durağında karar (Geçki derslerindeki ölçüt).",
+        en:"What is measured: the main makam's seyir score, at least two separate visits to the perdes that set the other makam apart, and a final cadence on the main makam's final (the measure from the Geçki lessons)." }
+    ],
+    tips:[
+      { tr:"Önce ana makamı birkaç cümleyle kur; geçkiye ancak makam yerleşince gir.", en:"First set up the main makam with a few phrases; only go into the geçki once the makam is established." },
+      { tr:"Geçkiden çıkarken ana makamın değişen perdesini açıkça çal: dönüş onunla duyulur.", en:"Coming out of the geçki, play the main makam's changed perde clearly: that is how the return is heard." }
+    ],
+    steps:[
+      { type:"seyir", makam:"rast", via:"suzinak", sec:60, min:60 },
+      { type:"seyir", makam:"huseyni", via:"karcigar", sec:60, min:60 }
+    ] },
+  { id:"taksim-tiz", unit:"ileri", since:2, notes:[], makam:"rast",
+    title:{ tr:"Taksim 7: meyan ve tiz bölge", en:"Taksim 7: meyan and the upper register" },
+    text:[
+      { tr:"Şarkıda meyan, ezginin başka perdelere ve makamlara gittiği bölümdür (Teori → Formlar). Bu derslerde taksimin ortasında tiz bölgede gezinilen kısma da meyan diyoruz: taksim pes ve orta bölgede kurulduktan sonra seyir alanının üst ucuna çıkar, orada en az bir cümle söyler ve yeniden durağa iner.",
+        en:"In a şarkı the meyan is the section where the melody goes to other perdes and makams (Theory → Forms). In these lessons we also call meyan the middle part of a taksim that moves in the upper register: once the taksim is set up low and in the middle, it climbs to the top of the seyir range, says at least one phrase there and comes back down to the final." },
+      { tr:"Seyir alanı burada makamın uygulamadaki dizisidir; üst dörtlüsü en tiz perdeden bir tam dörtlü (22 koma) aşağısına kadar uzanır: Rast'ta " + zone("rast") + ", Hicaz'da " + zone("hicaz") + ".",
+        en:"Here the seyir range is the makam's scale in the app; its upper fourth runs from the highest perde down a perfect fourth (22 commas): " + zone("rast") + " in Rast, " + zone("hicaz") + " in Hicaz." },
+      { tr:"Ölçülen: seyir puanı, en az bir cümlenin (uzun notalarının çoğu) üst dörtlüde kalması ve dizinin en tiz perdesine ulaşman.",
+        en:"What is measured: the seyir score, at least one phrase staying (most of its long notes) in the upper fourth, and reaching the top perde of the scale." }
+    ],
+    tips:[
+      { tr:"Tiz bölgeye birden sıçrama; güçlüden adım adım çık. Klarino bölgesinde nefes desteğini artır.", en:"Don't jump to the top; climb step by step from the dominant. Give more breath support in the clarion register." },
+      { tr:"Tizde kısa bir cümle yeter; sonra inişi acele etme.", en:"A short phrase up high is enough; then don't rush the descent." }
+    ],
+    steps:[
+      { type:"seyir", makam:"rast", sec:60, min:60, focus:"tiz" },
+      { type:"seyir", makam:"hicaz", sec:60, min:60, focus:"tiz" }
+    ] },
+  { id:"taksim-usullu", unit:"ileri", since:2, notes:[], makam:"rast",
+    title:{ tr:"Taksim 8: usul üstünde taksim", en:"Taksim 8: a taksim over a usul" },
+    text:[
+      { tr:"Taksim bir usule bağlı kalmadan yapılır (Teori → Formlar). Bu derste ise bir alıştırma yapacaksın: Eşlik'in darbukası bir usulü sabit tempoda çalarken sen serbestçe, notaya bağlı olmadan çalacaksın. Ezginin içi serbest kalır; yalnız cümlelerin son notası usulün başına, ilk düme denk gelmeli.",
+        en:"A taksim is played without being tied to a usul (Theory → Forms). In this lesson you do an exercise: while the Play-along darbuka plays a usul at a steady tempo, you play freely, without a score. Inside the phrase you are free; only the last note of each phrase should land on the start of the usul, the first düm." },
+      { tr:"Önce usulü dinleyip say. Sonra iki adımda çal: Rast'ta Sofyan (4/4), Hicaz'da Düyek (8/8). Ölçülen: seyir puanı ve cümle sonlarının (en az 300 ms tutulan son nota) kaçta kaçının usul başına denk geldiği.",
+        en:"First listen to the usul and count it. Then play in two steps: Rast over Sofyan (4/4), Hicaz over Düyek (8/8). What is measured: the seyir score and how many phrase endings (a last note held at least 300 ms) land on the start of the usul." }
+    ],
+    tips:[
+      { tr:"Bir döngüyü dinleyerek başla; ilk cümleni ikinci döngünün başına doğru bitir.", en:"Start by listening to one cycle; aim to end your first phrase at the start of the second cycle." },
+      { tr:"Cümle erken biterse kalış notasını uzat, geç kalacaksa bir notayı atla: darbuka seni beklemez.", en:"If a phrase ends early, hold the resting note longer; if it will be late, drop a note: the darbuka doesn't wait for you." }
+    ],
+    steps:[
+      { type:"usultap", usul:"sofyan", mode:"listen" },
+      { type:"seyir", makam:"rast", usul:"sofyan", tempo:72, sec:60, min:55 },
+      { type:"usultap", usul:"duyek", mode:"listen" },
+      { type:"seyir", makam:"hicaz", usul:"duyek", tempo:144, sec:60, min:55 }
+    ] },
+  { id:"taksim-uzun", unit:"ileri", since:2, notes:[], makam:"rast",
+    title:{ tr:"Taksim 9: iki dakikalık taksim", en:"Taksim 9: a two-minute taksim" },
+    text:[
+      { tr:"Şimdiye kadar taksimin parçalarını ayrı ayrı çalıştın: cümle, seyir, çeşni, meyan, karar. Bu derste hepsini iki dakikalık tek bir taksimde birleştireceksin. Plan dört bölüm, her biri yaklaşık 30 saniye:",
+        en:"So far you practised the parts of a taksim separately: phrase, seyir, çeşni, meyan, cadence. In this lesson you join them in a single two-minute taksim. The plan has four parts of about 30 seconds each:" },
+      { tr:"1) Giriş: makamın seyrine uygun yerden başla (çıkıcıda durak civarı, inici-çıkıcıda güçlü civarı, inicide tiz). 2) Gelişme: durak ile güçlü arasını gez, güçlüde yarım karar ver. 3) Meyan: üst dörtlüye çık, orada en az bir cümle. 4) Karar: durağa in ve uzunca tut.",
+        en:"1) Opening: start where the makam's seyir starts (near the final in ascending makams, around the dominant in descending-ascending ones, high in descending ones). 2) Development: move between the final and the dominant, make a half cadence on the dominant. 3) Meyan: climb to the upper fourth, at least one phrase there. 4) Cadence: come down to the final and hold it." },
+      { tr:"Uygulama çaldığın süreyi dört eşit parçaya böler ve her bölümü kendi ölçütüyle ayrı puanlar; sonuçta dört satır görürsün. Bu plan bu dersin alıştırmasıdır; ustaların taksimleri böyle bir kalıba uymak zorunda değildir.",
+        en:"The app splits your playing time into four equal parts and scores each part with its own measure; the result shows four lines. This plan is this lesson's exercise; masters' taksims need not fit such a mould." }
+    ],
+    tips:[
+      { tr:"Saati izle: yaklaşık 30, 60 ve 90. saniyede bir sonraki bölüme geç.", en:"Watch the clock: move to the next part at about 30, 60 and 90 seconds." },
+      { tr:"Bölüm geçişlerini nefesle yap; kısa bir sessizlik cümleyi bitirir.", en:"Change parts on a breath; a short silence ends the phrase." }
+    ],
+    steps:[
+      { type:"seyir", makam:"rast", sec:120, min:60, focus:"uzun" },
+      { type:"seyir", makam:"hicaz", sec:120, min:60, focus:"uzun" }
+    ] });
+}
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
@@ -3562,7 +3649,9 @@ function stepTitle(step, lang = "tr"){
       (step.drift != null ? (en ? " · pitch within ±" : " · perde ±") + (step.drift/2).toString().replace(".", en ? "." : ",") + (en ? " comma" : " koma") : "");
     case "seyir": if(step.via){ const a = LLEARN.makamById(step.makam).name, b = LLEARN.makamById(step.via).name;
         return (en ? "Geçki: " : "Geçki: ") + a + " → " + b + " → " + a + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
-      if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
+      if(step.usul){ const u = LLEARN.USULS.find(x => x.id === step.usul);
+        return (en ? "Taksim over a usul: " : "Usullü taksim: ") + mk + " · " + (u ? u.name : step.usul) + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
+      if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"], tiz:["meyan, tiz bölge", "meyan, upper register"], uzun:["dört bölüm", "four parts"] }[step.focus];
         return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + mk + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
       return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + mk + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
     case "sight": return (en ? "Sight-reading: level " : "Deşifre: seviye ") + step.level + " · " + (en ? "at least " + step.min + "% correct notes" : "en az %" + step.min + " doğru nota");

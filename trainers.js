@@ -380,6 +380,20 @@ const TRAINERS = {
 // ======== Serbest çalmada süsleme tanıma ========
 // Seyir sekmesi ve taksim adımı: çalış boyunca ham ses tutulur (SK.pcmCapture), bitince 5 sn'lik parçalar hâlinde
 // (arayüz donmasın) 10 ms adımla çözülür ve skills.js ornamentScan'e verilir. el: sonucun yazılacağı kutu.
+// Usullü taksim adımının darbukası: band.js kalıbı (bandStyle, bandDrum; bas ve ud yok), sec saniye boyunca sabit tempoda
+// önceden kurulur. tempo: usul birimi/dk. Dönen: { bars (usul başları, performance.now ms), unitMs, stop }
+function taksimDrum(ctx, usulId, tempo, sec){
+  const a = ctx.SK.audioCtx(), sty = bandStyle(usulId), unitMs = 60000/tempo, barMs = sty.cells/sty.res*unitMs;
+  const out = a.createGain(); out.gain.value = 0.8; out.connect(a.destination);
+  const o = { freq: () => 0, micSafe: true, minHz: ctx.SK.pitchRange().min, vol:{ drum:1, bass:0, chord:0 } };
+  const startC = a.currentTime + 0.3, n = Math.ceil(sec*1000/barMs), bars = [];
+  for(let k = 0; k < n; k++){
+    bars.push(ctxToPerf(a, startC + k*barMs/1000));
+    for(const ev of bandBarEvents(sty, unitMs, 0, 0, { drum:true, bass:false, chord:false }, bandDrum(sty, k))) bandPlay(a, out, ev, startC + (k*barMs + ev.t)/1000, o);
+  }
+  let done = false;
+  return { bars, unitMs, stop(){ if(done) return; done = true; out.gain.setTargetAtTime(0, a.currentTime, 0.02); setTimeout(() => out.disconnect(), 300); } };
+}
 async function seyirOrnaments(ctx, cap, el){
   const p = cap && cap.stop();
   if(!p || !p.data.length){ el.innerHTML = ""; return null; }
@@ -1011,38 +1025,55 @@ const TRAINER_STEPS = {
     const mk = stepMakam(st), frames = [], t0 = performance.now(), cap = ctx.SK.pcmCapture(st.sec + 5);
     let over = false;
     const gv = st.via ? makamById(st.via) : null, gd = gv ? makamDiff(mk, gv) : null, gp = c => perdeName(c) || "?";
+    const tz = tizZone(mk), usulName = st.usul ? (USULS.find(u => u.id === st.usul) || {}).name : "", tempo = st.tempo || (st.usul ? BAND_TEMPO[st.usul] || 96 : 0);
     stage.innerHTML = `<div class="muted">${mk.name}: ${ctx.esc(seyirText(mk, LANG))}</div>
       ${gd ? `<p class="small"><b>${L("Geçki", "Geçki")}:</b> ${ctx.esc(L(mk.name + " ile başla; " + gv.name + " perdelerine (" + gd.other.map(gp).join(", ") + ") en az iki kez uğra, sonra " + gp(mk.durak) + " perdesinde karar ver.",
         "Start in " + mk.name + "; visit " + gv.name + "'s perdes (" + gd.other.map(gp).join(", ") + ") at least twice, then resolve on " + gp(mk.durak) + "."))}</p>` : ""}
+      ${st.usul ? `<p class="small"><b>${L("Usul", "Usul")}:</b> ${ctx.esc(L("Darbuka " + usulName + " çalıyor (" + tempo + "). Cümlelerin son notasını usulün başına, ilk düme denk getir.",
+        "The darbuka plays " + usulName + " (" + tempo + "). Start the last note of each phrase on the first düm of the cycle."))}</p>` : ""}
+      ${st.focus === "tiz" ? `<p class="small"><b>${L("Meyan", "Meyan")}:</b> ${ctx.esc(L("Üst dörtlüye (" + gp(tz.lo) + "–" + gp(tz.top) + ") çık ve en az bir cümleyi orada çal, sonra " + gp(mk.durak) + " perdesine dön.",
+        "Climb to the upper fourth (" + gp(tz.lo) + "–" + gp(tz.top) + "), play at least one phrase there, then come back to " + gp(mk.durak) + "."))}</p>` : ""}
+      ${st.focus === "uzun" ? `<p class="small">${ctx.esc(L("Dört bölüm, her biri yaklaşık " + Math.round(st.sec/4) + " sn: giriş, gelişme, meyan, karar.", "Four parts, about " + Math.round(st.sec/4) + " s each: opening, development, meyan, cadence."))}</p>` : ""}
       <div class="ltclock lyc">0 <em>/ ${st.sec} ${L("sn", "s")}</em></div>
       <div class="pbar"><button class="stopbtn" type="button" data-fin>${L("Bitir", "Finish")}</button></div><div class="lyr"></div>`;
+    // Usullü taksim (st.usul): Eşlik'in darbuka kalıbı (band.js) sabit tempoda adım boyunca çalar; usul başları
+    // (ölçü başı) hoparlör gecikmesiyle performance.now() saatinde tutulur
+    const drum = st.usul ? taksimDrum(ctx, st.usul, tempo, st.sec + 5) : null;
     const timer = setInterval(() => {
       const el = (performance.now() - t0)/1000;
       const c = stage.querySelector(".lyc"); if(c) c.innerHTML = ctx.num(el, 0) + ` <em>/ ${st.sec} ${L("sn", "s")}</em>`;
       if(el >= st.sec) fin();
     }, 250);
     function fin(){
-      if(over) return; over = true; clearInterval(timer);
+      if(over) return; over = true; clearInterval(timer); if(drum) drum.stop();
       const notes = segmentNotes(frames, 150), res = seyirAnalysis(notes, mk);
       if(!res){ cap.stop(); stage.querySelector(".lyr").innerHTML = `<div class="fb bad">${L("Yeterince nota yok.", "Not enough notes.")}</div>`; done({ v:0 }); return; }
       // Geçki (via): puan geckiAnalysis'in (seyir + uğrayış + dönüş); ölçüt notaları yetmezse düz seyir puanı
       const via = st.via ? makamById(st.via) : null, gk = via ? geckiAnalysis(notes, mk, via) : null;
       // Taksim aşaması (focus: cumle / cesni / karar): puan o aşamanın ölçüsüdür; genel seyir geri bildirimi altta kalır
-      const ph = st.focus ? phraseAnalysis(notes, mk) : null, v = gk ? gk.score : ph ? ph[st.focus] : res.score;
-      const tips = gk ? `<ul class="lstips">${[...geckiFeedback(gk, mk, LANG), ...seyirFeedback(gk.seyir, mk, LANG)].map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`
+      // Taksim 6–9 (S4.5): tiz (üst dörtlüde cümle), uzun (dört bölüm ayrı puan), usul (cümle sonu usul başında)
+      const tzA = st.focus === "tiz" ? tizAnalysis(notes, mk) : null, uz = st.focus === "uzun" ? uzunAnalysis(notes, mk) : null;
+      const us = drum ? usulTaksimAnalysis(notes, mk, drum.bars.map(b => b + ctx.store.get("rhythm.lat", 0)), Math.min(300, drum.unitMs/2)) : null;
+      const S45 = tzA || uz || us;
+      const ph = st.focus && !S45 ? phraseAnalysis(notes, mk) : null, v = gk ? gk.score : S45 ? S45.score : ph ? ph[st.focus] : res.score;
+      const more = `<details class="lsmore"><summary>${L("Genel seyir değerlendirmesi", "General seyir feedback")} · ${res.score}</summary><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul></details>`;
+      const li = xs => `<ul class="lstips">${xs.map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`;
+      const tips = S45 ? li(tzA ? tizFeedback(tzA, mk, LANG) : uz ? uzunFeedback(uz, mk, LANG) : usulTaksimFeedback(us, LANG)) + more
+        : gk ? `<ul class="lstips">${[...geckiFeedback(gk, mk, LANG), ...seyirFeedback(gk.seyir, mk, LANG)].map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`
         : ph ? `<ul class="lstips">${phraseFeedback(ph, mk, st.focus, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
         <details class="lsmore"><summary>${L("Genel seyir değerlendirmesi", "General seyir feedback")} · ${res.score}</summary><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul></details>`
         : `<ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`;
       stage.querySelector(".lyr").innerHTML = `<div class="result"><div class="big">${v}</div><div>${L("puan", "points")}</div></div>${tips}<div class="syorn"></div>`;
       seyirOrnaments(ctx, cap, stage.querySelector(".syorn"));
-      const sh = ctx.store.get("seyir.hist", []); sh.push({ d: dayKey(new Date()), mk: mk.id, score: res.score, src:"ders" }); ctx.store.set("seyir.hist", sh.slice(-100));
+      // Uzun taksimde bölüm puanları da kaydedilir (yol haritası taşı "dört bölüm de tutuyor": roadmap.js roadmapStats)
+      const sh = ctx.store.get("seyir.hist", []); sh.push({ d: dayKey(new Date()), mk: mk.id, score: res.score, src:"ders", ...(uz ? { parts: uz.parts, sec: Math.round(uz.sec) } : {}) }); ctx.store.set("seyir.hist", sh.slice(-100));
       done({ v });
     }
     stage.querySelector("[data-fin]").addEventListener("click", fin);
     return {
       note(r, t){ if(!over) frames.push({ t, written:r.written, comma:r.comma }); },
       silence(t){ if(!over) frames.push({ t, written:null }); },
-      stop(){ if(!over) cap.stop(); over = true; clearInterval(timer); }
+      stop(){ if(!over) cap.stop(); over = true; clearInterval(timer); if(drum) drum.stop(); }
     };
   },
 
