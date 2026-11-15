@@ -264,7 +264,50 @@ function thTopics(L){ return [
       { q:L("Sol klarnet adını nereden alır?", "Where does the G clarinet get its name?"),
         a:[L("Yazılı Do'su Sol duyulduğu için", "Its written C sounds as G"), L("En pes notası Sol olduğu için", "Its lowest note is G"), L("Rast Sol'e yazıldığı için", "Rast is written as G")], ok:0,
         why:L("Transpoze çalgılar, yazılı Do'nun duyulan sesiyle adlandırılır.", "Transposing instruments are named after the sound of their written C.") }
+    ] },
+  // Formlar (docs/BACKLOG.md S3.6). Kaynak: TDV İslâm Ansiklopedisi "Şarkı (Mûsiki)", "Türkü", "Peşrev", "Saz Semâisi",
+  // "Taksim (Mûsiki)", "İlâhi" maddeleri; aranağme ve longa için ayrı madde yok, yalnız Şarkı, Hâne, Fasıl, Nîm-sofyan
+  // maddelerinde geçtiği kadarı (docs/KAYNAKLAR.md). text sırası formInfo'nun paragraf eşlemesiyle aynı kalmalı
+  { id:"form", emo:"📜", title:L("Formlar: şarkı, peşrev, saz semâîsi…", "Forms: şarkı, peşrev, saz semâîsi…"),
+    text:[
+      L("Şarkı: divan şiirine dayanan, din dışı sözlü bir formdur ve küçük usullerle bestelenir. Dörtlüğün 1. mısraı zemindir (genellikle makamın güçlüsünde yarım karar), 2. mısraı nakarat, 3. mısraı meyandır (başka makamlara geçilen yer); 4. mısra nakaratın bestesiyle okunur. Mısralar arasında ara nağme çalınabilir.",
+        "Şarkı: a secular vocal form on classical (divan) poetry, composed in small usuls. In the quatrain, line 1 is the zemin (often a half cadence on the makam's güçlü), line 2 the nakarat (refrain), line 3 the meyan (where other makams are visited); line 4 is sung to the refrain's music. Short instrumental interludes (ara nağme) may be played between the lines."),
+      L("Türkü: ezgiyle söylenen anonim halk şiiridir; çoğu zaman bağlama eşliğinde söylenir. Bölümleri bent ve kavuştaktır. Usulsüz olanlara uzun hava, usullü olanlara kırık hava, oyun havası ya da oturak havası denir.",
+        "Türkü: anonymous folk poetry sung to a melody, often accompanied by the bağlama. Its parts are the bent (verse) and kavuştak (refrain). Those without a usul are uzun hava (free rhythm); those with a usul are kırık hava, dance tunes or oturak havası."),
+      L("Peşrev: belli bir usulle bestelenmiş, Türk müziğinin en büyük saz eseri formudur. Çoğu dört hanelidir; her haneden sonra nağmesi değişmeyen mülâzime gelir ve ilk hanenin makamına dönüp karar verir (bugün buna çoğu zaman teslim denir; asıl teslim, haneyi mülâzimeye bağlayan kısa nağmedir). Genellikle büyük usullerle bestelenir, en çok devr-i kebîr; aksak usuller kullanılmaz. Faslın başında çalınır.",
+        "Peşrev: the largest instrumental form of Turkish music, composed in a set usul. Most have four hanes (sections); after each hane comes the unchanging mülâzime, which returns to the first hane's makam and cadences (today it is often called teslim; strictly, the teslim is the short phrase that links a hane to the mülâzime). Usually in large usuls, most often devr-i kebîr; aksak usuls are not used. It opens the fasıl."),
+      L("Saz semâîsi: peşrevden sonra en önemli saz eseri formudur. Bugün yaygın olanı dört hane ve mülâzimeden oluşur: her hane makamın güçlüsünde yarım karar verir, mülâzime durakta tam karar verir. İlk üç hane aksak semâî usulündedir; 4. hanede yürük semâî, semâî ya da sengin semâî gibi bir semâî usulüne geçilir, mülâzimeyle ilk usule dönülür. Faslın sonunda çalınır.",
+        "Saz semâîsi: the most important instrumental form after the peşrev. The usual form has four hanes and a mülâzime: each hane makes a half cadence on the güçlü, the mülâzime a full cadence on the durak. The first three hanes are in aksak semâî; the 4th hane moves to another semâî usul such as yürük semâî, semâî or sengin semâî, and the mülâzime returns to the first usul. It closes the fasıl."),
+      L("Aranağme: şarkının mısraları arasında çalınan saz nağmesidir; arşivde ayrı eser olarak da yazılmıştır. Longa: saz semâîsi ve sirto gibi faslın saz eserleri ve oyun havaları arasında sayılır ve nîm-sofyan usulüyle birlikte anılır.",
+        "Aranağme: the instrumental phrase played between the lines of a şarkı; the archive also has them as separate pieces. Longa: counted among the fasıl's instrumental pieces and dance tunes, like the saz semâîsi and the sirto, and associated with the nîm-sofyan usul."),
+      L("Taksim: bir usule bağlı kalmadan, icracının o anki ilhamıyla bir ya da birkaç makamda yaptığı doğaçlama seyirdir; giriş, ara ve geçiş taksimi gibi türleri vardır. İlâhi: dinî-tasavvufî sözlü eserlerin genel adıdır; en çok sofyan, düyek, evfer, devr-i hindî gibi usullerle bestelenir.",
+        "Taksim: an improvised melodic journey in one or more makams, without a usul, from the player's inspiration of the moment; there are opening, middle and transition taksims. İlâhi: the general name for sung works with religious-mystical texts; most often in usuls such as sofyan, düyek, evfer and devr-i hindî.")
+    ],
+    links:[{ lesson:"formlar" }, { arch:"sarki", name:L("Şarkılar", "Şarkıs") }, { arch:"pesrev", name:L("Peşrevler", "Peşrevs") },
+      { arch:"sazsemaisi", name:L("Saz semâîleri", "Saz semâîs") }, { arch:"turku", name:L("Türküler", "Türküs") }, { arch:"aranagme", name:L("Aranağmeler", "Aranağmes") }],
+    ek:[
+      { q:L("Şarkıda başka makamlara geçilen bölüm hangisidir?", "Which part of a şarkı visits other makams?"),
+        a:[L("Meyan", "Meyan"), L("Zemin", "Zemin"), L("Nakarat", "Nakarat")], ok:0,
+        why:L("Meyan, dörtlüğün 3. mısraıdır; yakın ya da uzak makamlara geçilen yer.", "The meyan is line 3 of the quatrain, where nearby or distant makams are visited.") },
+      { q:L("Peşrevde her haneden sonra değişmeden gelen bölüm hangisidir?", "In a peşrev, which section comes back unchanged after every hane?"),
+        a:[L("Mülâzime (teslim)", "Mülâzime (teslim)"), L("Meyan", "Meyan"), L("Taksim", "Taksim")], ok:0,
+        why:L("Mülâzime her haneden sonra aynı nağmeyle gelir ve ilk makama dönüp karar verir.", "The mülâzime returns with the same music after each hane and cadences back in the first makam.") },
+      { q:L("Taksimin usulü nedir?", "What is the usul of a taksim?"),
+        a:[L("Usulsüzdür; doğaçlanır", "None; it is improvised freely"), L("Aksak semâî", "Aksak semâî"), L("Devr-i kebîr", "Devr-i kebîr")], ok:0,
+        why:L("Taksim bir usule bağlı kalmadan yapılan doğaçlamadır.", "A taksim is improvised without being tied to a usul.") }
+    ],
+    quiz:[
+      { q:L("Saz semâîsinin ilk üç hanesi hangi usuldedir?", "Which usul are the first three hanes of a saz semâîsi in?"),
+        a:[L("Aksak semâî", "Aksak semâî"), L("Sofyan", "Sofyan"), L("Devr-i kebîr", "Devr-i kebîr")], ok:0,
+        why:L("İlk üç hane aksak semâîdir; 4. hanede başka bir semâî usulüne geçilir.", "The first three hanes are in aksak semâî; the 4th hane moves to another semâî usul.") },
+      { q:L("Fasılda peşrev nerede çalınır?", "Where in a fasıl is the peşrev played?"),
+        a:[L("Başında", "At the start"), L("Sonunda", "At the end"), L("Şarkıların arasında", "Between the şarkıs")], ok:0,
+        why:L("Peşrev faslı açar; saz semâîsi faslı kapatır.", "The peşrev opens the fasıl; the saz semâîsi closes it.") },
+      { q:L("Türküde usulsüz olanlara ne denir?", "What are türküs without a usul called?"),
+        a:[L("Uzun hava", "Uzun hava"), L("Kırık hava", "Kırık hava"), L("Oyun havası", "Dance tune")], ok:0,
+        why:L("Usulsüz türküler uzun hava, usullü olanlar kırık hava ya da oyun havasıdır.", "Türküs without a usul are uzun hava; those with one are kırık hava or dance tunes.") }
     ] }
+
 ]; }
 const TH_TOPICS = thTopics(thL);
 
@@ -394,6 +437,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.teori = function(ctx){
     // Kilitli ders açılamaz (dersler sırayla açılır): kart soluk, yalnız adı görünür
     if(k.lesson){ const l = lessonById(k.lesson), on = SK.lessonOpen(k.lesson); return l ? `<button type="button" class="hcard thlink" data-lesson="${k.lesson}"${on ? "" : " disabled"}><span class="hic">${ART.icon("lessons")}</span><span><small>${L("Ders", "Lesson")}${on ? "" : L(" · kilitli", " · locked")}</small><b>${esc(pick(l.title, LANG))}</b></span></button>` : ""; }
     if(k.tab){ const t = SK.practiceTabs().find(x => x.id === k.tab); return t ? `<button type="button" class="hcard thlink" data-tab="${k.tab}"><span class="hic">${ART.icon(k.tab)}</span><span><small>${esc(t.group)}</small><b>${esc(t.name)}</b></span></button>` : ""; }
+    if(k.arch) return `<button type="button" class="hcard thlink" data-arch="${k.arch}"><span class="hic">${ART.icon("archive")}</span><span><small>${L("Nota arşivi", "Score archive")}</small><b>${esc(k.name)}</b></span></button>`;
     if(k.go === "tune") return `<button type="button" class="hcard thlink" data-go="tune"><span class="hic">${ART.icon("sun")}</span><span><small>${L("Akort", "Tuner")}</small><b>${L("Perdeyi çal, sapmasını gör", "Play a perde, see how far off it is")}</b></span></button>`;
     return "";
   }
@@ -515,6 +559,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.teori = function(ctx){
     else if(d.tr === "k") playNotes([thW(67, 3)], 600, b);
     else if(d.tr === "p") playNotes([thW(67, 3)], 600, b, () => midiToFreq(67));
     else if(d.lesson){ halt(); SK.openLesson(d.lesson); }
+    else if(d.arch){ halt(); SK.archiveByForm && SK.archiveByForm(d.arch); }
     else if(d.tab){ halt(); SK.nav.open(d.tab); }
     else if(d.go){ halt(); SK.go(d.go); }
     else if(d.q !== undefined && answers[+d.q] === undefined){
@@ -539,4 +584,10 @@ if(typeof TRAINERS !== "undefined") TRAINERS.teori = function(ctx){
   };
 };
 
+// Arşiv eser sayfası için: form kimliği (SymbTr) → Formlar konusunun ilgili paragrafı (o anki dilde); yoksa null
+const TH_FORM_PARA = { sarki:0, turku:1, rumeliturkusu:1, pesrev:2, sazsemaisi:3, aranagme:4, longa:4, taksim:5, ilahi:5 };
+function thFormInfo(f){
+  const k = TH_FORM_PARA[f], t = TH_TOPICS.find(x => x.id === "form");
+  return k == null || !t ? null : { title: t.title, text: t.text[k] };
+}
 if(typeof module !== "undefined") module.exports = { thTopics, thCesni };

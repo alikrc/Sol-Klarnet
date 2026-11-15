@@ -201,6 +201,24 @@ Doğrulama 2026-11-15'te yapıldı (sayfalar açılıp okundu).
 Kaynaklarda **olmayan** ve bu yüzden derse yazılmayanlar: geçişte perde ya da ton kayması, baş dönmesi uyarısı,
 çalışma süresi, Türk klarnet icracılarının bu tekniği ne kadar kullandığı.
 
+## 11. Formlar (`teori.js` "form" konusu, `lessons.js` `formlar`, arşiv eser sayfasındaki ⓘ)
+
+Erişim: 15 Kasım 2026. Metin maddelerin söylediğiyle sınırlı tutuldu.
+
+| Form | Kaynak | Kullanılan bilgi |
+|---|---|---|
+| Şarkı | TDV [Şarkı (Mûsiki)](https://islamansiklopedisi.org.tr/sarki--musiki) | Din dışı sözlü form, küçük usuller; zemin (güçlüde yarım karar), nakarat, miyan (başka makamlara geçiş), 4. mısra nakaratın bestesiyle; mısralar arasında ara nağme |
+| Türkü | TDV [Türkü](https://islamansiklopedisi.org.tr/turku) | Anonim, ezgiyle söylenen halk şiiri, çoğu zaman bağlama eşliğinde; bent ve kavuştak; usulsüz (uzun hava) ve usullü (kırık hava, oyun havası, oturak havası) |
+| Peşrev | TDV [Peşrev](https://islamansiklopedisi.org.tr/pesrev) | En büyük saz eseri formu; çoğu dört haneli, her haneden sonra mülâzime; asıl teslim haneyi mülâzimeye bağlayan kısa nağme; genellikle büyük usuller, en çok devr-i kebîr, aksak usuller kullanılmaz; faslın başında |
+| Saz semâîsi | TDV [Saz Semâisi](https://islamansiklopedisi.org.tr/saz-semaisi) | Peşrevden sonra en önemli saz formu; dört hane + mülâzime; hanelerde güçlüde yarım karar, mülâzimede durakta tam karar; ilk üç hane aksak semâî, 4. hanede başka bir semâî usulü; faslın sonunda |
+| Taksim | TDV [Taksim (Mûsiki)](https://islamansiklopedisi.org.tr/taksim--musiki) | Usule bağlı olmayan doğaçlama seyir; giriş, ara, geçiş taksimi |
+| İlâhi | TDV [İlâhi](https://islamansiklopedisi.org.tr/ilahi) | Dinî-tasavvufî sözlü eserlerin genel adı; en çok sofyan, düyek, evfer, devr-i hindî… |
+| Aranağme | TDV'de ayrı madde yok | Yalnız Şarkı maddesindeki "mısralar arasında ara nağme"; arşivde ayrı eser olarak bulunduğu veriden |
+| Longa | TDV'de ayrı madde yok | Hâne ve Fasıl maddelerinde saz eserleri ve oyun havaları arasında sayılır; Nîm-sofyan ve Nikriz maddelerinde nîm-sofyanla anılır |
+
+Örnek eser: III. Selim, Pesendîde Saz Semâîsi (SymbTr; bölüm işaretleri dosyada): ilk üç hane Aksak Semâî, 4. hane
+Yürük Semâî II (6/8), teslim Aksak Semâî. Bu, Saz Semâisi maddesinin tarifiyle uyuşur.
+
 ## Doğrulanamayanlar ve açık kalanlar
 
 - Halk usullerinin (karşılama, Roman havası, Rumeli, çiftetelli, kasap, sirto, zeybek) düm-tek dizileri: yöreden
@@ -210,3 +228,4 @@ Kaynaklarda **olmayan** ve bu yüzden derse yazılmayanlar: geçişte perde ya d
 - Acemaşîran’ın yedeni (Hüseynî Aşîran) çıkarımdır, TDV maddesinde geçmez.
 - Saba dizisindeki Hüseynî / Dik Hisar ayrımı (§2a): TDV’nin perde listesi ile donanımı ve SymbTr notaları ayrışıyor.
 - İcra akordundaki sayılar yaklaşık; ölçüm çalışmaları icracıya göre değişen değerler verir.
+- Aranağme ve longa için TDV'de ayrı madde yok (§11); tanımları başka maddelerdeki geçişlerden.

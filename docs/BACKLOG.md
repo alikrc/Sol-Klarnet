@@ -490,11 +490,19 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   perdede), `sed-3` "Sık kullanılan şed makamlar" (yalnız veride karşılığı olanlar: Hicazkâr = Zirgüleli Hicaz'ın
   Rast'taki şeddi; bu bağ `learn.js` metninde zaten var). Arşiv eser sayfasına "başka perdeden çal" (transpoze)
   düğmesi `shiftOctave`'in yanına; yazılı aralık 52–91 dışına çıkarsa uyarı (`rangeIssues`).
-- [ ] **S3.6 Formlar** (O, E14). Teori'ye 9. konu `form` ve ders `formlar` (Makamlar, `makam-bulma`'dan önce):
+- [x] **S3.6 Formlar** (O, E14). **Yapıldı (15 Kasım 2026).** Teori'ye 9. konu `form` ve ders `formlar` (Makamlar, `makam-bulma`'dan önce):
   şarkı (zemin, nakarat, meyan), türkü, peşrev ve saz semâîsi (hane, teslim), longa, aranağme, taksim, ilâhi; her
   biri 2–3 cümle + arşivden o formda süzülmüş liste bağlantısı (`archive.js` form süzgeci). Adım: `read` ×3, `soru`
   ×6, bir saz semâîsinin teslimini `listen` + ölçüleri işaretli gösterme. Eser sayfasında form adına dokununca bu
   konunun ilgili paragrafı alt panelde açılır. Kaynak: TDV form maddeleri, `KAYNAKLAR.md`'ye.
+  *Uygulanan:* Teori'ye 9. konu `form` (altı paragraf: şarkı; türkü; peşrev; saz semâîsi; aranağme ve longa; taksim ve
+  ilâhi), sınav 3 + derse ek 3 soru, arşiv form süzgecine bağlantılar (`links: { arch }`, `SK.archiveByForm`). Ders
+  `formlar` (`makam-bulma`'dan önce) S3.8'in yardımcılarıyla metni ve soruları konudan okur; III. Selim'in Pesendîde saz
+  semâîsinden 1. hane ve teslim (ölçü 1–6) ile 4. hane ve teslim (19–28; usul Yürük Semâî'ye geçer) dinletilir, iki soru.
+  Eser sayfasında form adının yanında ⓘ (`thFormInfo`) ilgili paragrafı alt panelde açar. **Kaynak:** TDV Şarkı (Mûsiki),
+  Türkü, Peşrev, Saz Semâisi, Taksim (Mûsiki), İlâhi maddeleri okundu (`KAYNAKLAR.md` §11). Aranağme ve longa için TDV'de
+  ayrı madde yok; yalnız başka maddelerde geçtiği kadarı yazıldı. Peşrev maddesine göre "teslim" aslında haneyi
+  mülâzimeye bağlayan kısa nağmedir; metin bunu söyler, uygulamanın ve SymbTr'nin "teslim" kullanımı korunur.
 - [x] **S3.7 Usul 3 ve 4** (O, E15; B1 ile birlikte). **Yapıldı (15 Kasım 2026).** `usul-3` (Teknik, `usul-2`'den sonra): Nîm-sofyan, Ağır
   Aksak, Sengin Semâî; `usul-4` (Makamlar başı): Devr-i Hindî, Müsemmen ve, B1'de çözülürse, Aksak Semâî. Kalıp
   `usul-2` ile aynı (`usultap` mem → `rhythm`), her usulün sonunda arşivden o usulde bir kolay eserin ilk 8 ölçüsü

@@ -276,7 +276,7 @@ TRAINERS.archive = function(ctx){
       <p class="arby">${esc(!e.b || e.b === "Anonim" ? L("Anonim", "Anonymous") : e.b)}${e.g ? " · " + L("Güfte: ", "Lyrics: ") + esc(e.g) : ""}</p>
       <div class="armeta">
         <button type="button" class="chipbtn" data-like="mk">${esc(e.mkn)}</button>
-        <button type="button" class="chipbtn" data-like="f">${esc(e.fn)}</button>
+        <button type="button" class="chipbtn" data-like="f">${esc(e.fn)}</button>${typeof thFormInfo === "function" && thFormInfo(e.f) ? `<button type="button" class="chipbtn" data-forminfo aria-label="${L("Bu form nedir?", "What is this form?")}">ⓘ</button>` : ""}
         <button type="button" class="chipbtn" data-like="u">${esc(e.un)}</button>
         <span>♩ = ${e.tp}</span><span>${archDur(e.s)}</span><span>${e.n + L(" nota", " notes")}</span>
         <em class="arlv lv${e.lv}">${ARCH_LV[e.lv]}</em>
@@ -353,6 +353,13 @@ TRAINERS.archive = function(ctx){
         makam: cur.tr.steps ? null : mkId, source: { site: "SymbTr", url: git } });
     });
     $("arpiece").querySelectorAll("[data-like]").forEach(b => b.addEventListener("click", () => listBy(b.dataset.like, e[b.dataset.like])));
+    // Form bilgisi (teori.js Formlar konusu, S3.6): alt panelde ilgili paragraf ve konuya bağlantı
+    const fi = $("arpiece").querySelector("[data-forminfo]");
+    if(fi) fi.addEventListener("click", () => {
+      const inf = thFormInfo(e.f), el = document.createElement("div");
+      el.innerHTML = `<p>${esc(inf.text)}</p><p class="muted small">${L("Kaynak: TDV İslâm Ansiklopedisi.", "Source: TDV İslâm Ansiklopedisi.")}</p>`;
+      SK.nav.openSheet(e.fn, el);
+    });
     const learn = $("arpiece").querySelector("[data-usul]");
     if(learn) learn.addEventListener("click", () => { stopAll(); store.set("usul.cur", learn.dataset.usul); if(SK.openUsul) SK.openUsul(learn.dataset.usul); ctx.selectTab("usul"); });
     // Benzer eserler; anonim eserler bir bestekâr gibi gruplanmaz
@@ -760,6 +767,8 @@ TRAINERS.archive = function(ctx){
   SK.openArchive = id => { ctx.selectTab("archive"); if(id) loadIndex().then(() => openPiece(id)); };
   // Usuller sayfasından: o usuldeki eserler (SymbTr kimliği uygulamanın usul kimliğiyle aynı)
   // Arşivde eseri olmayan usul (kasap, sirto gibi oyun havası usulleri SymbTr'de yok): boş süzgeç bütün eserleri gösterirdi, "Oyun havaları" listesi açılır
+  // Teori'nin Formlar konusundan: o formdaki eserler
+  SK.archiveByForm = f => { ctx.selectTab("archive"); loadIndex().then(() => listBy("f", f)); };
   SK.archiveByUsul = u => {
     ctx.selectTab("archive");
     loadIndex().then(() => {

@@ -2763,6 +2763,31 @@ insertLessonAfter([...LESSONS].reverse().find(l => l.unit === "ileri").id, { id:
     ] });
 }
 
+// ---- S3.6 Formlar ----
+// Metin ve sorular teori.js "form" konusundan (S3.8 yardımcıları). Örnek: III. Selim'in Pesendîde saz semâîsi; SymbTr'nin
+// bölüm işaretlerine göre 1. hane ölçü 1–5, teslim 5–6, 4. hane 19–27 (Yürük Semâî II, 6/8), teslim 27–28 (Aksak Semâî)
+const PESENDIDE = { arsiv:"pesendide--sazsemaisi--aksaksemai----iii_selim", name:{ tr:"Pesendîde Saz Semâîsi (III. Selim)", en:"Pesendîde Saz Semâîsi (Selim III)" } };
+insertLessonAfter(LESSONS[LESSONS.findIndex(l => l.id === "makam-bulma") - 1].id, thLesson("formlar", "form", { unit:"makam",
+  text:[{ tr:"Arşivde bir eser açınca formunu görürsün: şarkı, türkü, peşrev, saz semâîsi… Her formun kendi bölümleri vardır ve eseri bölüm bölüm çalışmak bu bölümleri tanımakla kolaylaşır.",
+          en:"When you open a piece in the archive you see its form: şarkı, türkü, peşrev, saz semâîsi… Each form has its own sections, and learning a piece section by section is easier once you know them." }],
+  tips:[{ tr:"Arşivde eser sayfasında form adının yanındaki ⓘ ile o formun kısa açıklamasını açabilirsin.", en:"On a piece page in the archive, the ⓘ next to the form name opens a short description of that form." }],
+  steps:[
+    thRead("form", [["text", 0], ["text", 1]]),
+    thRead("form", [["text", 2], ["text", 3]]),
+    thRead("form", [["text", 4], ["text", 5]]),
+    thSoruStep("form", 4),
+    { type:"listen", ...PESENDIDE, from:1, to:6 },
+    { type:"listen", ...PESENDIDE, from:19, to:28 },
+    { type:"soru", items:[
+      { q:{ tr:"Dinlediğin saz semâîsinde 4. hane hangi ölçüdeydi?", en:"In the saz semâîsi you heard, what metre was the 4th hane in?" },
+        opts:[{ tr:"6/8 (Yürük Semâî)", en:"6/8 (Yürük Semâî)" }, { tr:"10/8 (Aksak Semâî)", en:"10/8 (Aksak Semâî)" }, { tr:"4/4 (Sofyan)", en:"4/4 (Sofyan)" }], ok:0,
+        why:{ tr:"İlk üç hane Aksak Semâî (10/8), 4. hane Yürük Semâî (6/8); teslimle Aksak Semâî'ye dönülür.", en:"The first three hanes are Aksak Semâî (10/8), the 4th hane Yürük Semâî (6/8); the teslim returns to Aksak Semâî." } },
+      { q:{ tr:"Teslim (mülâzime) her haneden sonra nasıl gelir?", en:"How does the teslim (mülâzime) come after each hane?" },
+        opts:[{ tr:"Hep aynı nağmeyle", en:"Always with the same music" }, { tr:"Her seferinde başka makamda", en:"In a different makam each time" }, { tr:"Yalnız eserin sonunda bir kez", en:"Only once, at the end" }], ok:0,
+        why:{ tr:"Teslim her haneden sonra değişmeden gelir ve ilk makamda karar verir.", en:"The teslim returns unchanged after each hane and cadences in the first makam." } }
+    ] }
+  ] }));
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
