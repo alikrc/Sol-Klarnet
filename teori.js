@@ -4,7 +4,10 @@
 // ve sonda üç soruluk küçük bir sınav. Konuyu derinleştiren yerlere (Usuller, Dizi, Kulak, dersler) bağlanır, onları tekrarlamaz.
 
 // Örnek notalar: perde (koma; yazılı nota ondan) ya da Batı notası (yazılı MIDI)
-const thP = (c, d = 1) => ({ w: commaToWritten(c), c, d, rest:false });
+// Node'da (lessons.js teori derslerinin metnini buradan okur) learn.js require ile gelir, i18n.js yoktur
+const THLEARN = typeof module !== "undefined" ? require("./learn.js") : { commaToWritten };
+const thL = typeof L === "function" ? L : tr => tr;
+const thP = (c, d = 1) => ({ w: THLEARN.commaToWritten(c), c, d, rest:false });
 const thW = (w, d = 1) => ({ w, c:null, d, rest:false });
 const thR = d => ({ w:71, c:null, d, rest:true });
 // Aralık harfleri (AEU): koma, bakiye, küçük mücenneb, büyük mücenneb, tanini, artık ikili
@@ -12,8 +15,11 @@ const TH_IV = { 1:"F", 4:"B", 5:"S", 8:"K", 9:"T", 12:"A", 13:"A" };
 const thLetters = cs => cs.slice(1).map((c, i) => TH_IV[c - cs[i]] || c - cs[i]).join(" ");
 
 // Konular. text: paragraflar; ex: nota örnekleri { notes, meter?, names?, cap, beat (ms) }; links: { lesson | tab | go };
-// quiz: { q, a, ok, why, score? }. Özel bölümler (aralık tablosu, çeşniler, makam seçici, usul ızgaraları) sec ile.
-const TH_TOPICS = [
+// quiz: { q, a, ok, why, score? }; ek: yalnız derste sorulan ek sorular (aynı biçim, staff?: [yazılı nota]).
+// Özel bölümler (aralık tablosu, çeşniler, makam seçici, usul ızgaraları) sec ile.
+// Metin tek yerde: konular L(tr, en) ile kurulur. Teori sayfası o anki dili (L), dersler (lessons.js teori-* dersleri,
+// docs/BACKLOG.md S3.8) iki dilli nesneyi alır: thTopics((tr, en) => ({ tr, en })).
+function thTopics(L){ return [
   { id:"porte", emo:"🎼", title:L("Dizek ve sol anahtarı", "The staff and the treble clef"),
     text:[
       L("Nota beş çizgili dizeğe (porte) yazılır. Başındaki sol anahtarı (𝄞) ikinci çizgiyi sarar ve o çizgiye Sol adını verir; Türk müziği notasında bu nota Rast perdesidir.",
@@ -33,10 +39,10 @@ const TH_TOPICS = [
         a:[L("Birinci", "First"), L("İkinci", "Second"), L("Üçüncü", "Third")], ok:1,
         why:L("Anahtar ikinci çizgiyi sarar; o çizgi Sol4, yani Rast'tır.", "The clef curls around the second line: that line is G4, Rast.") },
       { q:L("Dizeğin en alt çizgisindeki nota hangisi?", "Which note sits on the bottom line?"),
-        a:["Mi4", "Sol4", "Do4"].map(n => LANG === "en" ? { Mi4:"E4", Sol4:"G4", Do4:"C4" }[n] : n), ok:0,
+        a:[L("Mi4", "E4"), L("Sol4", "G4"), L("Do4", "C4")], ok:0,
         why:L("Çizgiler aşağıdan Mi, Sol, Si, Re, Fa.", "The lines from the bottom are E, G, B, D, F.") },
       { q:L("Bu nota hangisi?", "Which note is this?"), score:[thW(72, 2)],
-        a:LANG === "en" ? ["A4", "C5", "B4"] : ["La4", "Do5", "Si4"], ok:1,
+        a:[L("La4", "A4"), L("Do5", "C5"), L("Si4", "B4")], ok:1,
         why:L("Üçüncü aralıktaki nota Do5'tir (aralıklar Fa, La, Do, Mi).", "The third space is C5 (the spaces are F, A, C, E).") }
     ] },
 
@@ -82,7 +88,15 @@ const TH_TOPICS = [
       { notes:[0, 13, 14, 17, 26, 27, 48].map(c => thP(c)), names:true, beat:520,
         cap:L("Rast, Kürdî ♭5, Dik Kürdî ♭4, Segâh ♭1, Nim Hicaz ♯4, Hicaz ♯5, Evç ♯4", "Rast, Kürdî ♭5, Dik Kürdî ♭4, Segâh ♭1, Nim Hicaz ♯4, Hicaz ♯5, Evç ♯4") }
     ],
-    links:[{ lesson:"okuma-3" }, { tab:"ear" }, { lesson:"rast-giris" }, { lesson:"kulak-1" }],
+    links:[{ lesson:"teori-koma" }, { lesson:"okuma-3" }, { tab:"ear" }, { lesson:"rast-giris" }, { lesson:"kulak-1" }],
+    ek:[
+      { q:L("Bir oktav kaç komadır?", "How many commas is an octave?"), a:["53", "48", "60"], ok:0,
+        why:L("AEU'da oktav 53 komaya bölünür.", "In AEU the octave is divided into 53 commas.") },
+      { q:L("Bakiye kaç komadır?", "How many commas is a bakiye?"), a:["4", "5", "8"], ok:0,
+        why:L("Yarım sesin yerinde iki aralık var: 4 komalık bakiye ve 5 komalık küçük mücenneb.", "Where there is one semitone there are two intervals: the 4-comma bakiye and the 5-comma küçük mücenneb.") },
+      { q:L("Türk notasında düz bemol (♭) kaç koma pesleştirir?", "In Turkish notation, how many commas does a plain flat (♭) lower?"), a:["5", "4", "1"], ok:0,
+        why:L("Düz bemol küçük mücenneb bemolüdür: −5 koma. Çizgili bemol bakiye bemolüdür: −4.", "The plain flat is the küçük mücenneb flat: −5 commas. The slashed flat is the bakiye flat: −4.") }
+    ],
     quiz:[
       { q:L("Tam ses (tanini) kaç komadır?", "How many commas is a whole tone (tanini)?"), a:["8", "9", "12"], ok:1,
         why:L("AEU'da tam ses 9 koma, oktav 53 komadır.", "In AEU a whole tone is 9 commas, an octave 53.") },
@@ -112,9 +126,23 @@ const TH_TOPICS = [
       { notes:[9, 13, 14, 17, 18, 21, 22, 26, 27, 30, 31].map(c => thP(c)), names:true, beat:520,
         cap:L("Dügâh'tan Nevâ'ya bütün perdeler", "Every perde from Dügâh to Nevâ") }
     ],
-    links:[{ go:"tune" }, { tab:"tablo" }, { lesson:"rast-giris" }],
+    links:[{ lesson:"teori-perde" }, { go:"tune" }, { tab:"tablo" }, { lesson:"rast-giris" }],
+    ek:[
+      { q:L("Bu notanın perde adı nedir?", "What is the perde name of this note?"), staff:[69], a:["Dügâh", "Rast", "Segâh"], ok:0,
+        why:L("Yazılı La4 Dügâh'tır.", "Written A4 is Dügâh.") },
+      { q:L("Bu notanın perde adı nedir?", "What is the perde name of this note?"), staff:[72], a:["Çargâh", "Nevâ", "Segâh"], ok:0,
+        why:L("Yazılı Do5 Çargâh'tır.", "Written C5 is Çargâh.") },
+      { q:L("Dügâh'ın bir oktav tizinin adı nedir?", "What is the octave above Dügâh called?"), a:["Muhayyer", "Gerdâniye", "Hüseynî"], ok:0,
+        why:L("Dügâh'ın tizi Muhayyer, Rast'ın tizi Gerdâniye'dir.", "The octave of Dügâh is Muhayyer, of Rast Gerdâniye.") },
+      { q:L("“Tiz” ön eki ne demek?", "What does the prefix “Tiz” mean?"),
+        a:[L("Bir oktav tiz", "An octave higher"), L("Biraz tiz", "Slightly higher"), L("Yarım", "Half")], ok:0,
+        why:L("“Tiz” bir oktav tiz, “Kaba” bir oktav pes demektir; “Dik” biraz tiz, “Nim” yarım.", "“Tiz” means an octave higher, “Kaba” an octave lower; “Dik” slightly higher, “Nim” half.") },
+      { q:L("Ana perdelerin arasındaki hangi ara perdenin çalınacağını ne belirler?", "What decides which in-between perde is played?"),
+        a:[L("Makam", "The makam"), L("Usul", "The usul"), L("Ölçü işareti", "The time signature")], ok:0,
+        why:L("Hangi ara perdenin çalınacağını makam belirler.", "The makam decides which in-between perde is played.") }
+    ],
     quiz:[
-      { q:L("Nevâ hangi yazılı notadır?", "Which written note is Nevâ?"), a:LANG === "en" ? ["C5", "D5", "E5"] : ["Do5", "Re5", "Mi5"], ok:1,
+      { q:L("Nevâ hangi yazılı notadır?", "Which written note is Nevâ?"), a:[L("Do5", "C5"), L("Re5", "D5"), L("Mi5", "E5")], ok:1,
         why:L("Rast Sol4, Dügâh La4, Segâh Si4, Çargâh Do5, Nevâ Re5.", "Rast G4, Dügâh A4, Segâh B4, Çargâh C5, Nevâ D5.") },
       { q:L("Rast'ın bir oktav tizinin adı nedir?", "What is the octave above Rast called?"), a:["Gerdâniye", "Muhayyer", "Hüseynî"], ok:0,
         why:L("Gerdâniye yazılı Sol5'tir; Muhayyer Dügâh'ın tizidir.", "Gerdâniye is written G5; Muhayyer is the octave of Dügâh.") },
@@ -133,7 +161,16 @@ const TH_TOPICS = [
         "Below, each çeşni comes with the interval and perde that set it apart, then the makams it appears in. An asma karar is a brief stop on a perde; it feels less final than a full cadence.")
     ],
     sec:"cesni",
-    links:[{ tab:"makam" }, { lesson:"makam-bulma" }],
+    links:[{ lesson:"teori-cesni" }, { tab:"makam" }, { lesson:"makam-bulma" }],
+    ek:[
+      { q:L("Bir beşli kaç koma kaplar?", "How many commas does a pentachord span?"), a:["31", "22", "53"], ok:0,
+        why:L("Beşli çoğunlukla bir tam beşliyi (31 koma) kaplar: dörtlüye bir tam ses eklenmiş hâli.", "A pentachord usually spans a perfect fifth (31 commas): a tetrachord plus a whole tone.") },
+      { q:L("Rast dizisi hangi çeşnilerden kurulur?", "Which çeşnis make up the Rast scale?"),
+        a:[L("Rast beşlisi + Nevâ'da Rast dörtlüsü", "Rast pentachord + Rast tetrachord on Nevâ"),
+           L("Dügâh'ta Uşşak dörtlüsü + Nevâ'da Bûselik beşlisi", "Uşşak tetrachord on Dügâh + Bûselik pentachord on Nevâ"),
+           L("Dügâh'ta Kürdî dörtlüsü + Nevâ'da Bûselik beşlisi", "Kürdî tetrachord on Dügâh + Bûselik pentachord on Nevâ")], ok:0,
+        why:L("Rast = Rast beşlisi + Nevâ'da Rast dörtlüsü; Uşşak = Dügâh'ta Uşşak dörtlüsü + Nevâ'da Bûselik beşlisi.", "Rast = Rast pentachord + Rast tetrachord on Nevâ; Uşşak = Uşşak tetrachord on Dügâh + Bûselik pentachord on Nevâ.") }
+    ],
     quiz:[
       { q:L("Hicaz dörtlüsünü ötekilerden ayıran aralık hangisi?", "Which interval sets the Hicaz tetrachord apart?"),
         a:[L("Artık ikili (12 koma)", "Augmented second (12 commas)"), L("Koma (1)", "Koma (1)"), L("Bakiye (4)", "Bakiye (4)")], ok:0,
@@ -158,7 +195,18 @@ const TH_TOPICS = [
         "<b>Seyir</b> (path): the route the melody takes. An ascending seyir starts around the final and rises to the güçlü, a descending one starts high and comes down, a descending-ascending one starts around the güçlü. Makams with the same scale (like Uşşak and Bayâtî) differ by their seyir.")
     ],
     sec:"makam",
-    links:[{ lesson:"makam-bulma" }, { tab:"seyir" }, { tab:"mimic" }],
+    links:[{ lesson:"teori-makam" }, { lesson:"makam-bulma" }, { tab:"seyir" }, { tab:"mimic" }],
+    ek:[
+      { q:L("Durağın hemen altındaki, kararı hazırlayan perdeye ne denir?", "What is the perde just below the final, which prepares the cadence, called?"),
+        a:[L("Yeden", "Yeden"), L("Güçlü", "Güçlü"), L("Durak", "Durak")], ok:0,
+        why:L("Yeden durağın hemen altındaki perdedir; kararı hazırlar.", "The yeden is the perde just below the final; it prepares the cadence.") },
+      { q:L("Ezginin çevresinde dolaştığı, yarım kararların verildiği perde hangisi?", "Which perde does the melody circle, making half cadences there?"),
+        a:[L("Güçlü", "Güçlü"), L("Yeden", "Yeden"), L("Durak", "Durak")], ok:0,
+        why:L("Güçlü duraktan sonra en önemli perdedir; yarım kararlar burada verilir.", "The güçlü is the most important perde after the final; half cadences are made there.") },
+      { q:L("Dizileri aynı olan makamları (Uşşak ve Bayâtî gibi) ne ayırır?", "What tells apart makams with the same scale (like Uşşak and Bayâtî)?"),
+        a:[L("Seyirleri", "Their seyir"), L("Usulleri", "Their usul"), L("Ölçü işaretleri", "Their time signatures")], ok:0,
+        why:L("Dizileri aynı olan makamlar seyirleriyle ayrılır.", "Makams with the same scale differ by their seyir.") }
+    ],
     quiz:[
       { q:L("Ezginin bittiği perdeye ne denir?", "What is the perde where the melody ends called?"), a:[L("Güçlü", "Güçlü"), L("Durak", "Durak"), L("Yeden", "Yeden")], ok:1,
         why:L("Durak, makamın karar perdesidir.", "The durak is the makam's final.") },
@@ -201,23 +249,29 @@ const TH_TOPICS = [
       { notes:[0, 9, 17, 22, 31].map(c => thP(c)), names:true, beat:520, sounding:true,
         cap:L("Yazılı Rast beşlisi", "The Rast pentachord as written") }
     ],
-    links:[{ go:"tune" }, { tab:"tablo" }],
+    links:[{ lesson:"teori-transpoz" }, { go:"tune" }, { tab:"tablo" }],
+    ek:[
+      { q:L("Bolahenk akortta Türk müziği notası nasıl duyulur?", "In Bolahenk, how does Turkish notation sound?"),
+        a:[L("Yazılandan tam dörtlü pes", "A perfect fourth below the written note"), L("Yazıldığı gibi", "As written"), L("Yazılandan bir oktav pes", "An octave below the written note")], ok:0,
+        why:L("En yaygın akort olan Bolahenk'te yazılandan tam dörtlü pes çalınır; Sol klarnetin farkı da tam dörtlü olduğu için Sol klarnetçi notayı olduğu gibi okur.", "In Bolahenk, the most common pitch level, music sounds a perfect fourth below the written note; since the G clarinet is also a fourth, its player reads the score as it is.") }
+    ],
     quiz:[
-      { q:L("Sol klarnette yazılı Sol4 nasıl duyulur?", "How does written G4 sound on the G clarinet?"), a:LANG === "en" ? ["G4", "D4", "C4"] : ["Sol4", "Re4", "Do4"], ok:1,
+      { q:L("Sol klarnette yazılı Sol4 nasıl duyulur?", "How does written G4 sound on the G clarinet?"), a:[L("Sol4", "G4"), L("Re4", "D4"), L("Do4", "C4")], ok:1,
         why:L("Tam dörtlü pes: Sol4 → Re4.", "A perfect fourth lower: G4 → D4.") },
       { q:L("Piyanodaki Do4 sesini çalmak için Sol klarnette hangi notayı okursun?", "To play the piano's C4 on the G clarinet, which note do you read?"),
-        a:LANG === "en" ? ["F4", "G4", "A3"] : ["Fa4", "Sol4", "La3"], ok:0,
+        a:[L("Fa4", "F4"), L("Sol4", "G4"), L("La3", "A3")], ok:0,
         why:L("Duyulan sesten tam dörtlü çık: Do4 → Fa4.", "Go up a perfect fourth from the sound: C4 → F4.") },
       { q:L("Sol klarnet adını nereden alır?", "Where does the G clarinet get its name?"),
         a:[L("Yazılı Do'su Sol duyulduğu için", "Its written C sounds as G"), L("En pes notası Sol olduğu için", "Its lowest note is G"), L("Rast Sol'e yazıldığı için", "Rast is written as G")], ok:0,
         why:L("Transpoze çalgılar, yazılı Do'nun duyulan sesiyle adlandırılır.", "Transposing instruments are named after the sound of their written C.") }
     ] }
-];
+]; }
+const TH_TOPICS = thTopics(thL);
 
 // Çeşniler: ad, başladığı perde, perdeleri (koma), ayırt edici yanı (note; kaynaklar docs/KAYNAKLAR.md §2a).
 // core: makam dizilerinde aranacak perde sayısı (varsayılan 4: dörtlü ve beşli birlikte bulunsun; ayrı adı olan beşlilerde 5).
 // alt: aynı çeşninin öteki aralık biçimleri (koma).
-const TH_CESNI = [
+function thCesni(L){ return [
   { name:L("Rast beşlisi", "Rast pentachord"), on:"Rast", cs:[0, 9, 17, 22, 31],
     note:L("Üçüncü sesi Segâh'tır: taniniden sonra K ve S gelir. Çargâh beşlisinde aynı yerde Bûselik vardır (T ve B); fark 1 komadır. Bir tanini üstte, Dügâh'ta bir Uşşak dörtlüsü durur; bu yüzden Rast seyrinde Dügâh'ta Uşşak çeşnili asma karar yapılır. Segâh'taki segâhlı ya da ferahnâkli asma kararlar da karakteristiktir.",
       "Its third note is Segâh: after the tanini come K and S. The Çargâh pentachord has Bûselik in that place (T and B); the difference is one comma. A tanini higher, on Dügâh, sits an Uşşak tetrachord, so the seyir of Rast makes asma kararlar on Dügâh with Uşşak. Asma kararlar on Segâh, with Segâh or Ferahnâk, are characteristic too.") },
@@ -251,7 +305,8 @@ const TH_CESNI = [
   { name:L("Nikriz beşlisi", "Nikriz pentachord"), on:"Rast", cs:[0, 9, 14, 26, 31], core:5,
     note:L("İlk dört sesi tam değil, 26 komalık bir artık dörtlüdür; beşli de tanini değil S eklenerek tamamlanır. Dügâh'tan yukarısı bir Hicaz dörtlüsüdür, Nikriz'in Hicaz ailesine yakınlığı buradan gelir. Hicaz ailesi makamlarında Rast perdesine düşülünce Nikriz çeşnili asma karar yapılır.",
       "Its first four notes span not a perfect fourth but an augmented one of 26 commas, and the pentachord is completed with S, not a tanini. From Dügâh up it is a Hicaz tetrachord, which is why Nikriz is so close to the Hicaz family. In the Hicaz family, dropping to the Rast perde brings an asma karar with Nikriz.") }
-];
+]; }
+const TH_CESNI = thCesni(thL);
 // Çeşninin makamlarda geçtiği yerler: aralıkları makamın çıkış ya da iniş dizisinde art arda geçiyorsa makam, başladığı perdeyle
 // yazılır. Elle yazılmış liste yok; makam dizileri değişirse liste de değişir. Sonuç: [{ c, mks:[ad, ...] }], pesten tize.
 function cesniYerleri(x){
@@ -269,14 +324,14 @@ function cesniYerleri(x){
 }
 // Aralık tablosu: ad, harf, koma, örnek perde çifti
 const TH_INTERVALS = [
-  ["Koma", "F", 13, 14], ["Bakiye", "B", 9, 13], [L("Küçük mücenneb", "Küçük mücenneb"), "S", 17, 22],
-  [L("Büyük mücenneb", "Büyük mücenneb"), "K", 9, 17], [L("Tanini (tam ses)", "Tanini (whole tone)"), "T", 0, 9], [L("Artık ikili", "Augmented second"), "A", 14, 26]
+  ["Koma", "F", 13, 14], ["Bakiye", "B", 9, 13], [thL("Küçük mücenneb", "Küçük mücenneb"), "S", 17, 22],
+  [thL("Büyük mücenneb", "Büyük mücenneb"), "K", 9, 17], [thL("Tanini (tam ses)", "Tanini (whole tone)"), "T", 0, 9], [thL("Artık ikili", "Augmented second"), "A", 14, 26]
 ];
 const TH_MAKAMS = ["rast", "ussak", "huseyni", "hicaz", "nihavend", "kurdi", "saba", "segah", "huzzam"];
 const TH_USULS = ["semai", "sofyan", "turkaksagi", "aksak"];
-const TH_SEYIR = { cikici:L("Çıkıcı", "Ascending"), inici:L("İnici", "Descending"), "inici-cikici":L("İnici-çıkıcı", "Descending-ascending") };
+const TH_SEYIR = { cikici:thL("Çıkıcı", "Ascending"), inici:thL("İnici", "Descending"), "inici-cikici":thL("İnici-çıkıcı", "Descending-ascending") };
 
-TRAINERS.teori = function(ctx){
+if(typeof TRAINERS !== "undefined") TRAINERS.teori = function(ctx){
   const { SK, $, store, nn, esc, sleep, commaFreq, droneOn } = ctx;
   const P = $("pp-teori");
   P.innerHTML = `
@@ -483,3 +538,5 @@ TRAINERS.teori = function(ctx){
     leave: halt
   };
 };
+
+if(typeof module !== "undefined") module.exports = { thTopics, thCesni };

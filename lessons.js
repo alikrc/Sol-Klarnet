@@ -2354,6 +2354,90 @@ insertLessonAfter(LESSONS[LESSONS.findIndex(l => l.unit === "makam") - 1].id, { 
     ...usulEser("huseyni--turku--musemmen--aglama_yar--anonim", { tr:"Ağlama Yâr", en:"Ağlama Yâr" })
   ] });
 
+// ---- S3.8 Teori dersleri ----
+// Teori sayfasının konuları yola serpilir. Metin ve sorular teori.js'teki konu nesnelerinden gelir (tek yer): konular
+// iki dilli kurulur (thTopics((tr, en) => ({ tr, en }))). Tarayıcıda teori.js bu dosyadan sonra yüklendiği için ders
+// alanları tembel getter'dır; ilk okunduğunda konu kurulur. Ders sorusu = konunun ek soruları + Teori sayfasındaki sınav.
+const LTH = () => typeof module !== "undefined" ? require("./teori.js") : { thTopics, thCesni };
+let thBi = null, thCeBi = null;
+const thBiL = (tr, en) => ({ tr, en });
+const thTopic = id => (thBi || (thBi = LTH().thTopics(thBiL))).find(t => t.id === id);
+const thCesniBi = () => thCeBi || (thCeBi = LTH().thCesni(thBiL));
+const thSoru = q => ({ q:q.q, opts:q.a, ok:q.ok, why:q.why, ...(q.staff ? { staff:q.staff } : {}) });
+// Konudan okuma adımı (paragraflar: [alan, indeks] çiftleri) ve soru adımı; alanlar ilk okunduğunda doldurulur
+function thRead(id, parts, extra = {}){
+  return { type:"read", ...extra, get title(){ return thTopic(id).title; },
+    get body(){ const t = thTopic(id); return parts.flatMap(([k, i]) => i == null ? t[k] : [t[k][i]]); } };
+}
+function thSoruStep(id, min){
+  let items = null;
+  return { type:"soru", ...(min != null ? { min } : {}),
+    get items(){ return items || (items = (t => [...(t.ek || []), ...t.quiz].map(thSoru))(thTopic(id))); } };
+}
+// Ders başlığı konunun başlığıdır
+const thLesson = (id, topic, o) => Object.defineProperty({ id, unit:o.unit, since:2, notes:[], text:o.text, tips:o.tips || [], steps:o.steps },
+  "title", { get(){ return thTopic(topic).title; }, enumerable:true });
+
+// Makamlar'ın başında, ilk makam dersinden (rast-giris) önce
+insertLessonAfter(LESSONS[LESSONS.findIndex(l => l.id === "rast-giris") - 1].id, thLesson("teori-koma", "koma", { unit:"makam",
+  text:[{ tr:"Makamlara başlamadan önce Türk müziğinin aralıklarını tanı: perdeler arasındaki uzaklık komayla ölçülür. Okuduktan sonra birbirine yakın iki perdeyi kulakla ayırt edeceksin.",
+          en:"Before the makams, get to know the intervals of Turkish music: the distance between perdes is measured in commas. After reading, you'll tell two close perdes apart by ear." }],
+  tips:[{ tr:"Aralık tablosunu sesleriyle Teori sayfasının “Aralıklar ve koma” konusunda dinleyebilirsin.", en:"You can listen to the interval table in the Theory page under “Intervals and the comma”." }],
+  steps:[
+    thRead("koma", [["text", 0], ["text2"]]),
+    thSoruStep("koma"),
+    { type:"ear", mode:"abx", level:1, n:8, min:6 }
+  ] }));
+
+// Rast'tan (ve varsa ikinci Rast dersinden) sonra: perde adları iki oktav
+insertLessonAfter(["rast-2", "rast"].find(id => LESSONS.some(l => l.id === id)), thLesson("teori-perde", "perde", { unit:"makam",
+  text:[{ tr:"Rast beşlisini ve Rast makamını çaldın. Şimdi perdelerin adlarını iki oktav boyunca öğren; makam derslerinde notalar hep bu adlarla anılacak.",
+          en:"You've played the Rast pentachord and makam Rast. Now learn the perde names across two octaves; the makam lessons always call the notes by these names." }],
+  steps:[
+    thRead("perde", [["text"], ["text2"]]),
+    thSoruStep("perde", 6),
+    // Ana perdeler, Yegâh'tan Muhayyer'e (Teori sayfasındaki örnekle aynı): çalınca perde adı notanın altında görünür
+    { type:"quiz", notes:[-22, -13, -9, -5, 0, 9, 17, 22, 31, 40, 48, 53, 62].map(c => LLEARN.commaToWritten(c)), mode:"play", n:10, min:7 }
+  ] }));
+
+// Hicaz'dan (ve varsa ikinci Hicaz dersinden) sonra: dörtlü ve beşliler; Dügâh ve Rast'tan başlayan çeşniler çalınır
+insertLessonAfter(["hicaz-2", "hicaz"].find(id => LESSONS.some(l => l.id === id)), thLesson("teori-cesni", "cesni", { unit:"makam",
+  text:[{ tr:"Şimdiye kadar çaldığın makamlar küçük yapı taşlarından kurulu. Bu derste o taşları, çeşnileri, tek tek tanıyıp Dügâh ve Rast perdelerinden çalacaksın.",
+          en:"The makams you've played so far are built from small blocks. In this lesson you get to know those blocks, the çeşnis, one by one and play them from Dügâh and Rast." }],
+  tips:[{ tr:"Her çeşninin ayırt edici perdesi ve geçtiği makamlar Teori sayfasının “Çeşni” konusunda.", en:"Each çeşni's telling perde and the makams it appears in are in the Theory page under “Çeşni”." }],
+  steps:[
+    thRead("cesni", [["text", 0], ["text", 1]]),
+    thSoruStep("cesni"),
+    // Çeşni listesi teori.js'ten (TH_CESNI ile aynı kaynak): Dügâh'ta ve Rast'ta başlayanlar, çıkış ve iniş
+    ...thCesniOn(["Rast", "Dügâh"])
+  ] }));
+function thCesniOn(ons){
+  // Adım sayısı yüklenirken bilinmeli: çeşni listesinin sırası ve başladığı perdeler sabit, çeşniler ilk okunduğunda kurulur
+  const ORDER = { "Rast":[0, 10], "Dügâh":[1, 3, 4, 5] }, ixs = ons.flatMap(o => ORDER[o]);
+  return ixs.map(i => ({ type:"notes", maxMiss:2,
+    get commas(){ const cs = thCesniBi()[i].cs; return [...cs, ...cs.slice(0, -1).reverse()]; },
+    get hint(){ return thCesniBi()[i].name; } }));
+}
+
+// Nihâvend'den (ve varsa ikinci Nihâvend dersinden) sonra: durak, güçlü, yeden, seyir
+insertLessonAfter(["nihavend-2", "nihavend"].find(id => LESSONS.some(l => l.id === id)), thLesson("teori-makam", "makam", { unit:"makam",
+  text:[{ tr:"Beş makam çaldın. Bir makamı tanıtan dört kavramı (durak, güçlü, yeden, seyir) adlarıyla öğren; sonraki makam derslerinde hepsini arayacaksın.",
+          en:"You've played five makams. Learn by name the four ideas that describe a makam (durak, güçlü, yeden, seyir); you'll look for all of them in the next makam lessons." }],
+  tips:[{ tr:"Teori sayfasının “Makam yapısı” konusunda bir makam seçip durağını ve güçlüsünü dizide görebilirsin.", en:"In the Theory page under “How a makam works” you can pick a makam and see its final and güçlü in the scale." }],
+  steps:[
+    thRead("makam", [["text"], ["list"]]),
+    thSoruStep("makam")
+  ] }));
+
+// Temeller'de, nota okumanın son dersinden (okuma-5) sonra: yazılı ve duyulan ses
+insertLessonAfter("okuma-5", thLesson("teori-transpoz", "transpoz", { unit:"temel",
+  text:[{ tr:"Uygulama her yerde yazılı notayı gösteriyor. Piyanoyla ya da başka bir çalgıyla çalmadan önce yazılı ve duyulan sesin farkını öğren.",
+          en:"The app always shows the written note. Before playing with a piano or another instrument, learn the difference between the written and the sounding note." }],
+  steps:[
+    thRead("transpoz", [["text"]], { links:[{ go:"tune", label:{ tr:"Akort ekranını aç", en:"Open the tuner" } }] }),
+    thSoruStep("transpoz")
+  ] }));
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----

@@ -424,13 +424,31 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   yapılmadı ve etütleri bu derslerin usullerinde değil (Düyek, Curcuna, Türk Aksağı, Yürük Semâî); yapılınca `usul`,
   `usul-2`'ye ya da kendi dersine bağlanmalı. Yol haritası: Makamlar aşamasına "12 usulü ezberden vur" (`usul12`,
   var olan `usulMem` ölçümü: `usul.prog`'ta `mem` ≥ 70 olan usuller). Müsemmen şemasındaki belirsizlik (B1 ⚠️) sürüyor.
-- [ ] **S3.8 Teori derslere bağlansın** (O, E6). Teori'nin 8 konusu için 8 kısa ders değil, var olan yola serpilmiş
+- [x] **S3.8 Teori derslere bağlansın** (O, E6). **Yapıldı (15 Kasım 2026).** Teori'nin 8 konusu için 8 kısa ders değil, var olan yola serpilmiş
   `soru` adımlı 5 ders: `teori-koma` (Makamlar başı, `rast-giris`'ten önce: tanini, bakiye, mücenneb, 53 koma;
   `ear` `abx` seviye 1), `teori-perde` (`rast`'tan sonra: perde adları iki oktav, `soru` ×8 + `quiz` perde adıyla),
   `teori-cesni` (`hicaz`'dan sonra: dörtlü ve beşliler; `notes` her çeşni Dügâh ve Rast'tan), `teori-makam`
   (`nihavend`'den sonra: durak, güçlü, yeden, seyir türleri; `soru` ×6), `teori-transpoz` (Temeller sonu: yazılı ve
   duyulan ses). Metin Teori sayfasındakiyle aynı kaynaktan (`teori.js` konu nesnesi dışa aktarılır, ders ondan okur;
   metin iki yerde yazılmaz).
+  *Uygulanan:* `teori.js` konuları ve çeşni listesi işlevle kurulur: `thTopics(L)`, `thCesni(L)`. Teori sayfası o anki
+  dili (`L`), dersler iki dilli nesneyi alır (`(tr, en) => ({ tr, en })`); `LANG === "en" ? … : …` ile yazılmış seçenekler
+  `L(…)`'e çevrildi. Konulara `ek` alanı eklendi: yalnız derste sorulan ek sorular (konunun metnindeki bilgiden; Teori
+  sayfası göstermez). `teori.js` Node'da da yüklenir (`module.exports`; `learn.js` require ile, `TRAINERS` yoksa
+  sayfa kurulmaz). `lessons.js` "S3.8 Teori dersleri" bloğu: ders başlığı, okuma adımının başlık ve paragrafları ve
+  soru adımının soruları (ek + Teori sınavı) tembel getter; tarayıcıda `teori.js` sonra yüklendiği için ilk okunuşta
+  kurulur. Dersler ve yerleri: `teori-koma` (Makamlar başı, `rast-giris`'ten önce; S3.7'nin `usul-4`'ünden sonra;
+  `read`, `soru` ×6, `ear` `abx` seviye 1), `teori-perde` (`rast`'tan sonra, `rast-2` varsa ondan sonra; `read`,
+  `soru` ×8 ikisi dizekte perde adı, `quiz` `mode:"play"` Yegâh'tan Muhayyer'e ana perdeler; "perde adıyla" ayrı quiz
+  kipi yok, play kipi notanın altında perde adını gösterir), `teori-cesni` (`hicaz`'dan sonra, `hicaz-2` varsa ondan
+  sonra; `read`, `soru` ×5, `notes` ×6: Rast'ta Rast ve Nikriz beşlisi, Dügâh'ta Uşşak, Bûselik, Kürdî, Hicaz
+  dörtlüsü; perdeler `TH_CESNI`'den, başlıkta çeşni adı), `teori-makam` (`nihavend`'den sonra, `nihavend-2` varsa
+  ondan sonra; `read`, `soru` ×6), `teori-transpoz` (Temeller, `okuma-5`'ten sonra, `temel-tekrar`'dan önce; `read`
+  Akort bağlantısıyla, `soru` ×4). Teori sayfasında beş konunun ilk bağlantısı kendi dersi. Bûselik ve Kürdî perdeleri
+  çeşni dersinde ilk kez çalınıyor (makam dersleri daha sonra). İngilizcede sayfa çevirmeni okuma adımında "Durak"
+  sözcüğünü "Tonic (durak)" diye genişletiyor ("Tonic (durak) (final)"); Teori sayfasıyla aynı metin, dokunulmadı.
+  Tarayıcıda 375 px'te iki dilde okuma ve soru adımları denendi (dizekli sorular, yanlışın yeniden gelmesi), Teori
+  bağlantıları açıldı, konsolda hata yok; mikrofonlu adımlar (ear, quiz, notes) panelde denenmedi.
 
 ### S4 — Repertuvar, yöreler, fasıl, taksim (≈ 4 hafta)
 
