@@ -3090,6 +3090,82 @@ insertLessonAfter("dikte-2",
     tips:[{ tr:"Fa♯6 ve Sol6'nın birçok parmağı var; parmak kartında hepsini dene.", en:"F♯6 and G6 have many fingerings; try them all on the fingering card." }],
     steps: altSteps(altPrev, [89, 90, 91]) });
 
+// ---- S4.4 Saz eserleri ----
+// Dört ders (İleri, sed-3'ten sonra): peşrev, saz semâîsi (1.–3. hane, 4. hane), longa. Eserler scripts/eser-sec.js
+// --basamak 6 --form pesrev,sazsemaisi,longa ile (telifsiz). Hane sınırları eser dosyasındaki SymbTr bölüm işaretlerinden
+// (sections, not indeksi) archMeasures ile ölçüye çevrildi; teslimlerin notası her seferinde aynı (node ile karşılaştırıldı),
+// bu yüzden teslim bir kez çalışılır. Hane ve mülâzime anlatımı Teori "form" konusundan (thRead; metin tek yerde).
+// Longanın SymbTr dosyasında bölüm işareti yok: bölümler tekrar eden 4 ölçülük bloklardan (1–16 = 17–32 = 49–64 = 65–80,
+// 33–48 bir kez); hane adı verilmedi. Şehnâz Longa (hane işaretli) Re6'ya çıktığı için alınmadı (öğretilmemiş nota).
+// Aksak Semâî usul verisi yok (B1): saz semâîsinin ilk üç hanesine usul vurma adımı konmadı; 4. hane Sengin Semâî'de.
+const SAZ_PES = { arsiv:"ussak--pesrev--cenber----zurnazen_ibrahim_aga", name:{ tr:"Uşşak Peşrev (Zurnazen İbrahim Ağa)", en:"Uşşak Peşrev (Zurnazen İbrahim Ağa)" } };
+const SAZ_SEM = { arsiv:"ussak--sazsemaisi--aksaksemai----kantemiroglu", name:{ tr:"Uşşak Saz Semâîsi (Kantemiroğlu)", en:"Uşşak Saz Semâîsi (Kantemiroğlu)" } };
+const SAZ_LON = { arsiv:"nikriz--longa--nimsofyan----tanburi_cemil_bey", name:{ tr:"Nikrîz Longa (Tanburî Cemil Bey)", en:"Nikrîz Longa (Tanburî Cemil Bey)" } };
+insertLessonAfter("sed-3",
+  { id:"pesrev-1", unit:"ileri", since:2, notes:[],
+    title:{ tr:"Peşrev 1: ilk hane ve mülâzime", en:"Peşrev 1: the first hane and the mülâzime" },
+    text:[
+      { tr:"Şimdiye kadar çaldığın eserlerin çoğu sözlüydü. Bu ve sonraki üç derste saz eserlerine geçiyorsun: peşrev, saz semâîsi ve longa. İlk eser Zurnazen İbrahim Ağa'nın Uşşak peşrevi; usulü Çenber, notada bir ölçü 24 dörtlük.",
+        en:"Most of the pieces you've played so far had words. In this and the next three lessons you move on to instrumental pieces: peşrev, saz semâîsi and longa. The first is Zurnazen İbrahim Ağa's Uşşak peşrev; its usul is Çenber, and one bar in the score is 24 quarter notes long." },
+      { tr:"Arşivdeki notada 1. hane 1. ölçü, mülâzime 2–3. ölçüler. Önce ikisini ayrı ayrı yavaş tempoda dinleyip çalacaksın, sonra hane ve mülâzimeyi arka arkaya, önce %80 sonra eserin kendi temposunda.",
+        en:"In the archive score the 1st hane is bar 1 and the mülâzime bars 2–3. You'll first listen to and play each one separately at a slow tempo, then the hane and the mülâzime back to back, first at 80% and then at the piece's own tempo." }
+    ],
+    tips:[
+      { tr:"Uzun ölçüde yerini kaybetmemek için cümle sonlarındaki uzun notalarda nefes al.", en:"To keep your place in the long bar, breathe on the long notes at the ends of phrases." },
+      { tr:"Mülâzimeyi iyi öğren: peşrevin her hanesinden sonra aynı nağme geri gelir.", en:"Learn the mülâzime well: the same music comes back after every hane of the peşrev." }
+    ],
+    steps:[
+      thRead("form", [["text", 2]]),
+      ...eserSteps(SAZ_PES.arsiv, SAZ_PES.name, [[1, 1], [2, 3]], { to:3 })
+    ] },
+  { id:"sazsemaisi-1", unit:"ileri", since:2, notes:[],
+    title:{ tr:"Saz semâîsi 1: ilk üç hane", en:"Saz semâîsi 1: the first three hanes" },
+    text:[
+      { tr:"Kantemiroğlu'nun Uşşak saz semâîsi: ilk üç hane ve teslimleri Aksak Semâî usulünde (10/8). Arşivdeki notada 1. hane 1–4. ölçüler, teslim 5–12, 2. hane 13–16, 3. hane 25–28. Teslimin notası her haneden sonra aynı (17–24 ve 29–36), bu yüzden onu bir kez çalışırsın.",
+        en:"Kantemiroğlu's Uşşak saz semâîsi: the first three hanes and their teslims are in the Aksak Semâî usul (10/8). In the archive score the 1st hane is bars 1–4, the teslim 5–12, the 2nd hane 13–16, the 3rd hane 25–28. The teslim's notes are the same after every hane (17–24 and 29–36), so you work on it once." },
+      { tr:"Hane hane yavaş tempoda dinle ve çal; sonunda 1–36. ölçüleri (üç hane, üç teslim) önce %80, sonra eserin kendi temposunda arka arkaya çal. Aksak Semâî'yi uygulamada henüz elle vuramazsın; usulü dinlerken say: 10 zaman.",
+        en:"Listen and play hane by hane at a slow tempo; at the end play bars 1–36 (three hanes, three teslims) straight through, first at 80%, then at the piece's own tempo. You can't tap Aksak Semâî in the app yet; count it while you listen: 10 beats." }
+    ],
+    tips:[
+      { tr:"Her hanenin son ölçüsünü teslimin ilk ölçüsüyle birlikte birkaç kez çal: geçişte durma.", en:"Play the last bar of each hane together with the first bar of the teslim a few times: don't stop at the join." }
+    ],
+    steps:[
+      thRead("form", [["text", 3]]),
+      ...eserSteps(SAZ_SEM.arsiv, SAZ_SEM.name, [[1, 4], [5, 12], [13, 16], [25, 28]], { to:36 })
+    ] },
+  { id:"sazsemaisi-2", unit:"ileri", since:2, notes:[],
+    title:{ tr:"Saz semâîsi 2: dördüncü hane", en:"Saz semâîsi 2: the fourth hane" },
+    text:[
+      { tr:"Aynı Uşşak saz semâîsinin 4. hanesi (37–44. ölçüler) Sengin Semâî usulünde (6/4); teslimle (45–52) Aksak Semâî'ye dönülür. Önce Sengin Semâî'yi ezberden vur, sonra haneyi tek başına ve teslimiyle çal.",
+        en:"The 4th hane of the same Uşşak saz semâîsi (bars 37–44) is in the Sengin Semâî usul (6/4); with the teslim (45–52) it returns to Aksak Semâî. First tap Sengin Semâî from memory, then play the hane on its own and with its teslim." },
+      { tr:"Sonunda eserin tamamını (52 ölçü) önce %80, sonra kendi temposunda çalarsın.",
+        en:"Finally you play the whole piece (52 bars), first at 80%, then at its own tempo." }
+    ],
+    tips:[
+      { tr:"Usul değişince ölçünün uzunluğu da değişir: 4. hanede vuruşu yeniden say.", en:"When the usul changes, the length of the bar changes too: count the beat again in the 4th hane." }
+    ],
+    steps:[
+      { type:"usultap", usul:"senginsemai", mode:"mem", min:70 },
+      ...eserSteps(SAZ_SEM.arsiv, SAZ_SEM.name, [[37, 44], [37, 52]])
+    ] },
+  { id:"longa-1", unit:"ileri", since:2, notes:[],
+    title:{ tr:"Longa: hızlı saz eseri", en:"Longa: a fast instrumental piece" },
+    text:[
+      { tr:"Tanburî Cemil Bey'in Nikrîz longası, Nîm-sofyan usulünde (2/4). Arşivdeki notada hane işareti yok, ama yapısı notadan okunuyor: 1–16. ölçüler eserde dört kez aynen geçiyor (17–32, 49–64, 65–80), 33–48. ölçüler bir kez. Yani bu iki bölümü öğrenince 80 ölçünün tamamını bilirsin.",
+        en:"Tanburî Cemil Bey's Nikrîz longa, in the Nîm-sofyan usul (2/4). The archive score has no hane marks, but its shape can be read from the notes: bars 1–16 come four times unchanged (17–32, 49–64, 65–80), bars 33–48 once. So once you've learned these two sections you know all 80 bars." },
+      { tr:"Tempo üç basamakta artar: bölümler sekizer ölçü %60'ta, eserin tamamı önce %80, sonra %100.",
+        en:"The tempo rises in three steps: the sections eight bars at a time at 60%, then the whole piece at 80% and finally at 100%." }
+    ],
+    tips:[
+      { tr:"Hızlı pasajda parmaklar yükselmesin; önce yavaş ve temiz, hız sonra gelir.", en:"In fast passages keep your fingers low; slow and clean first, the speed comes later." }
+    ],
+    steps:[
+      thRead("form", [["text", 4]]),
+      { type:"usultap", usul:"nimsofyan", mode:"mem", min:70 },
+      ...eserSteps(SAZ_LON.arsiv, SAZ_LON.name, [[1, 8], [9, 16], [33, 40], [41, 48]])
+    ] }
+);
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----

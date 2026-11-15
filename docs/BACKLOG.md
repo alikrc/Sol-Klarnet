@@ -661,10 +661,29 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   beste, ağır semâî, şarkılar, yürük semâî, saz semâîsi; kaynak TDV "Fasıl"), `eslikle-calma` (Eşlik sekmesinde
   darbuka ve bas üstünde iki eser; ölçüt `band.hist` usule oturma ≥ %70; `band` adım türü yoksa eklenir:
   `{ type:"band", arsiv|id, min }`).
-- [ ] **S4.4 Saz eserleri** (O, E19; S3.6 ve B1 Aksak Semâî gerekir). İleri: `pesrev-1` (bir peşrevin 1. hanesi ve
+- [x] **S4.4 Saz eserleri** (O, E19; S3.6 ve B1 Aksak Semâî gerekir). **Yapıldı (15 Kasım 2026).** İleri: `pesrev-1` (bir peşrevin 1. hanesi ve
   teslimi), `sazsemaisi-1` (bir saz semâîsinin 1.–3. haneleri; Aksak Semâî 10/8), `sazsemaisi-2` (4. hane: usul
   değişir; aynı eser), `longa-1` (hızlı 2/4; `tempoPct` 60→80→100). Eserler basamak 5–6'dan, bestecisi kamu malı.
   Her derste hane hane `eserSteps`, sonunda tamamı.
+  *Uygulanan:* `lessons.js` `// ---- S4.4 Saz eserleri ----` bloğu, dördü `since:2`, İleri'de `sed-3`'ten sonra. Eserler
+  `scripts/eser-sec.js --basamak 6 --form pesrev,sazsemaisi,longa` çıktısından (telifsiz; derslerde ve repertuvar
+  merdiveninde kullanılmamış): Uşşak Peşrev (Zurnazen İbrahim Ağa, Çenber 24/4), Uşşak Saz Semâîsi (Kantemiroğlu),
+  Nikrîz Longa (Tanburî Cemil Bey, Nîm-sofyan 2/4). Hane sınırları eser dosyasının `sections` işaretlerinden
+  `archMeasures` ile ölçüye çevrildi; teslimlerin notası her haneden sonra aynı (node ile karşılaştırıldı), bu yüzden
+  teslim bir kez çalışılır. `pesrev-1`: Teori "form" peşrev paragrafı (`thRead`), 1. hane ölçü 1, mülâzime 2–3, tamamı
+  1–3. `sazsemaisi-1`: saz semâîsi paragrafı, 1. hane 1–4, teslim 5–12, 2. hane 13–16, 3. hane 25–28, tamamı 1–36.
+  `sazsemaisi-2`: `usultap senginsemai mem` (4. hane Sengin Semâî 6/4; S3.7'de öğretildi), 4. hane 37–44, hane ve
+  teslim 37–52, eserin tamamı (52 ölçü). `longa-1`: aranağme ve longa paragrafı, `usultap nimsofyan mem`, bölümler %60,
+  tamamı %80 ve %100. **Sapmalar:** (1) Aksak Semâî usul vurma adımı yok (B1 açık); `sazsemaisi-1` metni usulü dinlerken
+  saymayı söyler. B1 çözülünce `sazsemaisi-1`'e değil yeni bir derse (ya da `usul-4`'ün ardına) girer (kural 1).
+  (2) Longanın SymbTr dosyasında bölüm işareti yok; bölümler notadan: 1–16. ölçüler dört kez aynen geçer (17–32, 49–64,
+  65–80), 33–48 bir kez; çalışılan parçalar 1–8, 9–16, 33–40, 41–48, hane adı verilmedi. Hane işaretli tek uygun longa
+  (Şehnâz, Santûrî Ethem Efendi; Sofyan 4/4) Re6'ya çıktığı için alınmadı (`npm run mufredat`: öğretilmemiş nota).
+  (3) Peşrevin bir ölçüsü 24 dörtlük (Çenber); hane tek ölçü. **Bilinen sınır:** `archSlice` dilimin ilk ölçüsünün
+  usulünü verir; usul değişen dilimde (`sazsemaisi-2` 37–52 ve tamamı) ölçü çizgileri ve metronom vurgusu tek usulle
+  çizilir (puanlama nota zamanlarıyla, etkilenmez). Tarayıcıda 375 px'te dört ders açıldı; okuma, usul vurma ve bütün
+  dinleme adımları başlatıldı, 32 arşiv adımının ölçü aralığı `archLessonPiece` ile yüklendi (4. hane 6/4 açılıyor);
+  mikrofon engelliyken çalma adımı izin uyarısı verdi, konsolda hata yok. Çalma puanlanmadı. Müfredat 166 ders (S2.4 ile).
 - [ ] **S4.5 Taksim 6–9** (B, E20). `taksim-gecki` (S3.4'ün `via` ölçütüyle 60 sn: ana makam → geçki → dönüş ve
   karar), `taksim-tiz` (meyan bölgesi: seyir alanının üst dörtlüsüne çık, en az bir cümle orada; `seyirAnalysis`
   ambitus çıktısı), `taksim-usullu` (Eşlik'in darbukası üstünde; ölçüt seyir puanı + cümle sonlarının usul başına
