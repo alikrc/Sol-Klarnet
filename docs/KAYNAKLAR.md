@@ -235,6 +235,23 @@ Erişim: 15 Kasım 2026. Metin maddelerin söylediğiyle sınırlı tutuldu.
 Örnek eser: III. Selim, Pesendîde Saz Semâîsi (SymbTr; bölüm işaretleri dosyada): ilk üç hane Aksak Semâî, 4. hane
 Yürük Semâî II (6/8), teslim Aksak Semâî. Bu, Saz Semâisi maddesinin tarifiyle uyuşur.
 
+## 12. Mertebe ve velvele (`teori.js` "mertebe" konusu, `sozluk.js` `mertebe`, `velvele`)
+
+Erişim: 15 Kasım 2026. TDV'de "Velvele" başlıklı madde ve mûsikiyle ilgili "Mertebe" maddesi **yok** (iki adres de
+arama sayfasına düşüyor); bilgi aşağıdaki maddelerden alındı.
+
+| Bilgi | Kaynak | Durum |
+|---|---|---|
+| Alt rakam usulün mertebesidir; üst rakam zaman sayısı, alt rakam birim. 3/8, 3/4, 3/2 aynı semâî, yürüklükleri farklı; birim sayısı küçüldükçe usul ağırlaşır, kural bütün usullerde geçerli; 10/16, 10/8'den yürük; 6/8 birinci, 6/4 ikinci, 6/2 üçüncü mertebe; sekizlik ve onaltılık mertebeler daha çok şarkı, türkü, oyun havasında | TDV [Usul (Mûsiki)](https://islamansiklopedisi.org.tr/usul--musiki) (İsmail Hakkı Özkan, 2012, c. 42, s. 199–201) | ✅ |
+| Düm ve te sağ elle sağ dize, tek, ke, kâ sol elle sol dize | aynı madde | ✅ |
+| Çenber 24/4, ağır mertebesi 24/2 "ağır çenber"; ikinci sofyanın dördüncü zamanı birimin yarısı (dörtlük) ile "düm, düm" diye velvelelendirilir | TDV [Çenber](https://islamansiklopedisi.org.tr/cenber) (Özkan, 1993, c. 8, s. 268) | ✅ |
+| Devr-i Kebîr 28/4 mertebesinin bazı vuruşları velvelelendirilerek (küçük vuruş parçalarına ayrılarak) çalınır; peşrevde kudümler usulün velvelesini vurur | TDV [Devr-i Kebîr](https://islamansiklopedisi.org.tr/devr-i-kebir) (Özkan, 1994, c. 9, s. 245–246) | ✅ |
+| Zamanla velvelelendirilen vuruşlar bazı usullerin yapısını değiştirmiş (Hafif, Darb-ı fetih) | TDV arama sonucu özetleri (Hafif, Darb-ı fetih maddeleri; metinleri ayrıca okunmadı) | ✅ arama sonucundaki madde alıntısı (Hafif: “bazı vuruşların velvelelendirilmesiyle değişikliğe uğramıştır”); maddelerin tamamı okunmadı, metinde örnek ad verilmedi |
+| Sengin Semâî 6/4, Ağır Aksak 9/4 | bölüm 4'teki satırlar | ✅ |
+
+Kaynaklarda **olmayan** ve bu yüzden yazılmayanlar: velvelenin kesin tanımı (ayrı madde yok; Özkan'ın *Kudüm
+Velveleleri* kitabı okunmadı), velvelenin yalnız ağır mertebelere özgü olduğu, mertebeler için tempo (BPM) değerleri.
+
 ## Doğrulanamayanlar ve açık kalanlar
 
 - Halk usullerinin (karşılama, Roman havası, Rumeli, çiftetelli, kasap, sirto, zeybek) düm-tek dizileri: yöreden

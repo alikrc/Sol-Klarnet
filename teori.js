@@ -235,6 +235,40 @@ function thTopics(L){ return [
         why:L("Sofyan 4/4: düm iki vuruş, ardından iki tek.", "Sofyan is 4/4: a two-beat düm, then two teks.") }
     ] },
 
+  // Kaynak: TDV Usul (Mûsiki), Çenber, Devr-i Kebîr maddeleri (docs/KAYNAKLAR.md bölüm 12, BACKLOG B5)
+  { id:"mertebe", emo:"🐢", title:L("Mertebe ve velvele", "Mertebe and velvele"),
+    text:[
+      L("Usulün ölçü işaretindeki alt rakama usulün mertebesi denir. Üst rakam usulün kaç zamanlı olduğunu, alt rakam her zamanın hangi birimle sayıldığını söyler. 3/8, 3/4 ve 3/2 aynı semâî usulüdür; vuruşları aynıdır, yalnız yürüklükleri farklıdır.",
+        "The bottom number of an usul's time signature is called its mertebe (level). The top number says how many beats the usul has, the bottom one which unit each beat is counted in. 3/8, 3/4 and 3/2 are the same semâî usul: the strokes are the same, only the speed differs."),
+      L("Kural bütün usuller için geçerlidir: alt rakam küçüldükçe birim büyür ve usul ağırlaşır, alt rakam büyüdükçe yürükleşir. 10/16, 10/8'den yürüktür. En yürükten başlayarak sayılır: altı zamanlı usulde 6/8 birinci, 6/4 ikinci, 6/2 üçüncü mertebedir. Sekizlik ve onaltılık mertebeler daha çok şarkı, türkü ve oyun havası gibi küçük formlarda kullanılır.",
+        "The rule holds for every usul: the smaller the bottom number, the larger the unit and the slower the usul; the larger it is, the faster. 10/16 is faster than 10/8. Levels are counted from the fastest: for a six-beat usul 6/8 is the first, 6/4 the second and 6/2 the third mertebe. The eighth and sixteenth levels are used mostly in small forms such as şarkı, türkü and dance tunes."),
+      L("Ağır mertebeye çoğu zaman ayrı bir ad verilir: Sengin Semâî, Yürük Semâî'nin vuruşlarını 6/4'te; Ağır Aksak, Aksak'ınkileri 9/4'te vurur; 24 zamanlı Çenber'in 24/2'lik mertebesine ağır çenber denir. Klarnetçi için sonuç: ölçü rakamının altına bak, vuruşu o birimle say. Ağır Aksak'ta dörtlük, Aksak'ta sekizlik sayılır.",
+        "The slow level often has a name of its own: Sengin Semâî strikes Yürük Semâî's strokes in 6/4, Ağır Aksak strikes Aksak's in 9/4, and the 24/2 level of the 24-beat Çenber is called ağır çenber. For the clarinettist: look at the bottom number and count the beat in that unit. In Ağır Aksak you count quarters, in Aksak eighths."),
+      L("Usul dizlere vurularak öğrenilir: düm ve te sağ elle sağ dize, tek, ke ve kâ sol elle sol dize vurulur. Usulün bazı vuruşları küçük vuruş parçalarına bölünerek de vurulabilir; buna usulü velvelelendirmek, bu süslenmiş vuruşa velvele denir. Çenber'de ikinci sofyanın dördüncü zamanı, birimin yarısı olan dörtlükle “düm, düm” diye ikiye bölünür. Devr-i Kebîr'in 28/4'lük mertebesinde bazı vuruşlar velvelelendirilerek çalınır; peşrevlerde kudümler usulün velvelesini vurur.",
+        "An usul is learned by striking the knees: düm and te with the right hand on the right knee, tek, ke and kâ with the left hand on the left knee. Some strokes of an usul can also be split into smaller strokes; this is called ornamenting the usul (velvelelendirmek), and the ornamented stroke a velvele. In Çenber the fourth beat of the second sofyan is split in two with quarters, half the unit: “düm, düm”. In the 28/4 level of Devr-i Kebîr some strokes are played ornamented; in peşrevs the kudüms strike the usul's velvele."),
+      L("Zamanla velvelelendirilen vuruşlar bazı usullerin yapısını da değiştirmiştir. Usuller sekmesindeki kalıplar usullerin temel vuruşlarıdır; velveleli biçimleri uygulamada yok.",
+        "Over time ornamented strokes have changed the structure of some usuls. The patterns on the Usuls tab are the usuls' basic strokes; their ornamented forms are not in the app.")
+    ],
+    ex:[
+      { notes:[67, 69, 71, 72, 71, 69].map(w => thW(w, 0.5)), meter:[3, 8], beat:500,
+        cap:L("Semâî 3/8: birim sekizlik, yürük", "Semâî in 3/8: the unit is an eighth, fast") },
+      { notes:[67, 69, 71, 72, 71, 69].map(w => thW(w)), meter:[3, 4], beat:500,
+        cap:L("Aynı ezgi 3/4: birim dörtlük, bir mertebe ağır", "The same tune in 3/4: the unit is a quarter, one level slower") }
+    ],
+    links:[{ tab:"usul" }, { lesson:"usul-3" }],
+    quiz:[
+      { q:L("Usulün mertebesi ölçü işaretinin hangi rakamıdır?", "Which number of the time signature is the usul's mertebe?"),
+        a:[L("Üstteki", "The top one"), L("Alttaki", "The bottom one"), L("İkisinin toplamı", "Their sum")], ok:1,
+        why:L("Alt rakam birimi, yani mertebeyi; üst rakam zaman sayısını verir.", "The bottom number gives the unit, the mertebe; the top one the number of beats.") },
+      { q:L("Hangisi daha ağırdır?", "Which is slower?"), a:["10/16", "10/8", "10/4"], ok:2,
+        why:L("Alt rakam küçüldükçe birim büyür, usul ağırlaşır.", "The smaller the bottom number, the larger the unit and the slower the usul.") },
+      { q:L("Velvele nedir?", "What is a velvele?"),
+        a:[L("Usulün bir vuruşunu küçük vuruşlara bölerek süslemek", "Ornamenting an usul by splitting a stroke into smaller strokes"),
+           L("Usulü bir mertebe yürük çalmak", "Playing the usul one level faster"),
+           L("Usulsüz doğaçlama", "Improvising without an usul")], ok:0,
+        why:L("Velvele, vuruşların küçük parçalara bölünerek vurulmasıdır; usulsüz doğaçlama taksimdir.", "A velvele splits strokes into smaller parts; improvising without an usul is a taksim.") }
+    ] },
+
   { id:"transpoz", emo:"🎷", title:L("Sol klarnet ve transpozisyon", "The G clarinet and transposition"),
     text:[
       L("Klarnet transpoze bir çalgıdır: yazılan nota ile duyulan ses farklıdır. Sol klarnette yazılı nota, duyulan sesin tam dörtlü (5 yarım ses) üstüdür. Yazılı Do çalınca Sol duyulur; çalgının adı buradan gelir.",

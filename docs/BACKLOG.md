@@ -1079,7 +1079,14 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü. Hepsi 
   ve 5. seviye (noktalı sekizlik + onaltılık, bağlı nota, 6/8); aynı kalıplar Ritim sekmesinde ve ritim diktesinde
 - [ ] **B4 Usul etütleri** (O, İ6): Düyek, Curcuna, Türk Aksağı, Yürük Semâî'de birer kısa etüt (kendi yazımımız ya da
   kamu malı ezgi)
-- [ ] **B5 Teori: velvele ve mertebe** (K): usulün süslenerek vurulması ve ağır/yürük mertebeler kısa okuma metni
+- [x] **B5 Teori: velvele ve mertebe** (K): usulün süslenerek vurulması ve ağır/yürük mertebeler kısa okuma metni
+  *Uygulanan (15 Kasım 2026):* `teori.js`'te "Usul ve ölçü"den sonra yeni konu `mertebe` ("Mertebe ve velvele", tr/en):
+  mertebe alt rakamdır, alt rakam küçüldükçe usul ağırlaşır (10/16 yürük, 6/8–6/4–6/2 birinci–üçüncü mertebe), ağır
+  mertebe adları (Sengin Semâî 6/4, Ağır Aksak 9/4, ağır çenber 24/2), dizlere vurma, velvele (Çenber "düm, düm",
+  Devr-i Kebîr 28/4, peşrevde kudüm velvelesi); semâî 3/8 ve 3/4 nota örneği, üç soruluk sınav. `sozluk.js`: yeni
+  `mertebe` ve `velvele` girdileri, Sengin Semâî ve Ağır Aksak girdileri konuya bağlandı. TDV'de ayrı Velvele ve
+  Mertebe (mûsiki) maddesi yok; bilgi Usul, Çenber, Devr-i Kebîr maddelerinden (`KAYNAKLAR.md` bölüm 12). Ders
+  eklenmedi (`lessons.js` dokunulmadı). 375 px'te denendi.
 
 **U — Genel sadeleştirme (≈ 1,5 hafta)**
 
