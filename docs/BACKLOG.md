@@ -828,8 +828,8 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   tahmini ders sayısı artınca "36 ay" gibi caydırıcı sayı göstermesin: U-6 ile birlikte yalnız içinde bulunulan
   aşamanın süresi gösterilir.
   *Uygulanan:* aşama–ünite eşlemesi değişmedi: "Hedef müfredat" tablosu ünite sınırlarıyla aynı (`turku` S4.2'den beri
-  Trakya ile aynı aşamada; S4.3 fasıl dersleri `ileri` ünitesinde olduğu için İleri aşamasında). 185 dersin aşamalara
-  dağılımı 38 / 25 / 19 / 53 / 19 / 30 (İleri'de isteğe bağlı `nefes-3` sayılmaz). Aşama hedef metinleri tabloya göre
+  Trakya ile aynı aşamada; S4.3 fasıl dersleri `ileri` ünitesinde olduğu için İleri aşamasında). 187 dersin aşamalara
+  dağılımı 40 / 25 / 19 / 53 / 19 / 30 (İleri'de isteğe bağlı `nefes-3` sayılmaz). Aşama hedef metinleri tabloya göre
   yenilendi (kırılma, iki oktav ve kromatik dizi, otuzu aşkın makam, geçki, şed, fasıl, saz eserleri, ezber). Zaten
   vardı: kromatik ♩=80 (S2.3 `chrom`), 12 usul (S3.7 `usul12`), basamak taşları (S4.1 `rep1–6`), 2 dakikalık taksim
   (S4.5 `taksim4`). **Yeni taşlar (Makamlar aşaması):** `kalip5` "5 makamda karar kalıpları": `<makam>-2` dersinin
