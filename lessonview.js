@@ -81,7 +81,7 @@ TRAINERS.lessons = function(ctx){
   const nextUp = () => { const id = coachLesson(coachSt(), coachOpts()); return id ? lessonById(id) : nextLesson(prog, allOpen); };
   function renderCoach(){
     const day = dayKey(new Date());
-    pickOptNew(); pickRepTip();
+    pickOptNew(); pickRepTip(); pickSelfTip();
     coach = coachNext(coachSt(), { ...coachOpts(), dailyDone: store.get("lesson.dailyDone", []).includes(day) || dailySettled(daily, day),
       due: srsDue(store.get("lesson.srs", {}), day).length, reported: store.get("rm.reported", []) });
     const c = coach, names = xs => xs.map(tx).join(", ");
@@ -128,7 +128,20 @@ TRAINERS.lessons = function(ctx){
       ${optNew ? `<p>${esc(L("İstersen çal: ", "Optional: ") + tx(optNew.title) + ". " + L("Bu dersin ötesine geçtiğin için bitmiş sayıldı; pekiştirmek istersen aç.", "You're already past this lesson, so it counts as done; open it if you want the extra practice."))}</p>
       <button class="stopbtn small" type="button" data-coach="opt">${esc(L("Derse bak", "Open the lesson"))}</button>` : ""}
       ${repTip ? `<p>${esc(L("Bu hafta bir eser: ", "A piece this week: ") + repTip.name + L(" (repertuvar basamağı ", " (repertoire step ") + repTip.b.n + "). " + L("Son eserinden bu yana " + repTip.k + " ders bitirdin; öğrendiklerini bir eserde çal.", "You've finished " + repTip.k + " lessons since your last piece; use what you've learned in a piece."))}</p>
-      <button class="stopbtn small" type="button" data-coach="rep">${esc(L("Sıradaki eserim", "My next piece"))}</button>` : ""}`;
+      <button class="stopbtn small" type="button" data-coach="rep">${esc(L("Sıradaki eserim", "My next piece"))}</button>` : ""}
+      ${selfTip ? `<p>${esc(L("Kayıt değerlendirmen: ", "Your recording review: ") + pick(selfTip.it.name, LANG) + L(" maddesinde kulağınla uygulamanın ölçümü ayrıştı. Bu beceriye kısa bir tur iyi gelir.", ": your ear and the app's measurement differed. A short round on this skill will help."))}</p>
+      <button class="stopbtn small" type="button" data-coach="self">${esc(pick(selfTip.it.go, LANG))}</button>` : ""}`;
+  }
+  // Kayıt öz değerlendirmesi (drills.js selfrate, S4.7): son 14 günde puan ile ölçümün büyük ayrıştığı ilk ölçülebilir
+  // beceri; düğmeye basılınca (self.tipSeen) bir daha önerilmez
+  let selfTip = null;
+  function pickSelfTip(){
+    selfTip = null;
+    if(typeof SELF_ITEMS === "undefined") return;
+    const h = store.get("self.rate", []), last = h[h.length - 1];
+    if(!last || !last.gap || !last.gap.length || store.get("self.tipSeen", "") === last.d || shiftDay(last.d, 14) < dayKey(new Date())) return;
+    const it = SELF_ITEMS.find(x => x.tab && last.gap.includes(x.k));
+    if(it) selfTip = { it, d: last.d };
   }
   // Repertuvar önerisi (repertuvar.js, S4.1): son "çalındı" eserden (hiç yoksa baştan) bu yana gerçekten çalınıp biten ders
   // sayısı 4'ü bulunca ve açık bir basamakta çalınmamış eser varsa kart bir eser önerir
@@ -152,6 +165,7 @@ TRAINERS.lessons = function(ctx){
     if(b.dataset.coach === "side"){ ctx.selectTab(coach.side.tab); return; }
     if(b.dataset.coach === "opt"){ if(optNew) openSub(optNew); return; }
     if(b.dataset.coach === "rep"){ ctx.selectTab("repertuvar"); return; }
+    if(b.dataset.coach === "self"){ if(selfTip){ store.set("self.tipSeen", selfTip.d); ctx.selectTab(selfTip.it.tab); } return; }
     // Eski kayıtlar korunur: yeniden ölçmede geri açılıp tekrar biten kademenin raporu ikinci kez gelmesin
     if(coach.kind === "report"){ store.set("rm.reported", [...new Set([...store.get("rm.reported", []), ...coach.all])]); renderCoach(); return; }
     if(coach.kind === "lesson") openSub(lessonById(coach.id));
@@ -220,6 +234,7 @@ TRAINERS.lessons = function(ctx){
       case "hece": return st.mode === "say" ? L("söylendi", "done") : st.mode === "quiz" ? r.v + "/" + st.n : r.v + L(" puan", " points");
       case "usultap": return st.mode === "listen" ? L("dinlendi", "done") : r.v + L(" puan", " points");
       case "dynamics": return r.v ? L("geçti", "passed") : L("tekrar", "retry");
+      case "selfrate": return L("puanlandı", "rated");
       case "ear": case "dictation": return r.v + "/" + st.n;
       case "sight": return "%" + r.v;
       case "piece": return st.mode === "free" ? r.v + L(" hata", " mistakes") : st.mode === "ladder" ? "%" + r.v + L(" tempo", " tempo") : "%" + r.v;

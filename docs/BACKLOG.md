@@ -784,11 +784,40 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   `min:75`. Üçünün sonunda "Kulaktan çıkar aracını aç". Tarayıcıda 375 px'te üç ders açıldı; gizli dinleme ve gizli
   çalma (mikrofon sessiz akışla taklit edildi) denendi, nota çalış bitince işaretli açıldı; konsolda hata yok. Gerçek
   mikrofonla denenmedi.
-- [ ] **S4.7 Ezber ve icra hazırlığı** (O, E22). `piece` adımına `mode:"mem"` (nota 4 ölçü önden silinir, sonra
+- [x] **S4.7 Ezber ve icra hazırlığı** (O, E22). **Yapıldı (15 Kasım 2026).** `piece` adımına `mode:"mem"` (nota 4 ölçü önden silinir, sonra
   tümü gizli; değerlendirme aynı). Dersler (İleri sonu): `ezber` (basamak 3'ten bir eser: bölüm bölüm ezber),
   `kayit-dinle` (bir eseri kaydet, dinle, öz değerlendirme listesi: ton, perde, ritim, cümle; her madde 1–5;
   uygulamanın ölçtüğü `recSummary` değerleriyle yan yana; fark büyükse hoca kartı o beceriyi önerir), `program`
   (10 dakikalık program: taksim + iki eser, arka arkaya durmadan; ölçüt her parçanın kendi eşiği).
+  *Uygulanan:* **`mode:"mem"`** (`pieces.js` `memRounds`, S4.6'nın `.scorehid` gizli notasının üstüne; etüt ve arşiv
+  adımında): iki tempolu tur. 1. turda notanın baştan 4 ölçüsü silinir (`.sn.memhid`; ölçü çizgileri kalır, perde adları
+  ve parmak kartı da gizli), kalanına bakarak çalınır; tur `min`'i geçince 2. turda nota tümüyle gizlenir. Her tur bitince
+  nota açılır, `alignPerformance` işaretleri üstünde kalır. Adım tümü gizli turun sonucuyla biter (`stepOk` tempolu kiple
+  aynı). "4 ölçü önden silinir" böyle okundu: önce baştaki 4 ölçü, sonra tümü (bölüm 4 ölçü ya da kısaysa doğrudan tümü
+  gizli). `mem` + `hidden:true`: doğrudan tümü gizli tek tur (ezberlenmiş eser; nota başlamadan da gizli). Nota silinmesi
+  mikrofon izni alındıktan sonra başlar. Dersler `lessons.js` `// ---- S4.7 Ezber ve icra ----`, üçü `since:2`, İleri'nin
+  isteğe bağlı olmayan son dersinden sonra (`nefes-3` sonda kalır): **`ezber`**: Dostun Senden Irak Değil (Ali Rıfat
+  Çağatay, Uşşak ilâhî, Düyek, 31 ölçü; basamak 3) dört bölüm 1–8, 9–16, 17–23, 24–31 (ezgi ve söz sınırlarından); her
+  bölüm `listen` → `piece` %80 tempolu `min:70` → `mem` %80 `min:65`; iki soruluk `soru`; tamamı `mem` %100 `min:70`.
+  **`kayit-dinle`**: Âkıbet Bezdirdi (Hacı Ârif Bey, Uşşak şarkı, Curcuna, 33 ölçü; basamak 3) `eserSteps` 1–8, 9–16,
+  17–24, sonra yeni adım türü **`selfrate`** (`drills.js`): öğrenci Kayıt sekmesinde kaydedip dinler (adımda "Kayıt
+  sekmesini aç"), dört maddeyi 1–5 puanlar. Uygulamanın ölçtüğü yan yana: ton `recSummary.clarity`, perde
+  `recSummary.pct` (bugünkü son kayıt, IndexedDB), ritim bugünkü son tempolu eser çalışının zamanlama dağılımı
+  (`piece.last.sd`; `pieces.js` her tempolu çalışta yazar); cümleyi uygulama ölçmez. Ölçüm 1–5'e uygulamanın kendi
+  eşikleriyle çevrilir (`SELF_ITEMS`). Fark ≥ 2 ise adım farkı söyler ve alıştırma düğmesi verir (ton → Uzun ton, perde →
+  Akort, ritim → Ritim); kayıt `self.rate`. **Hoca kartı** (`lessonview.js` `pickSelfTip`): son değerlendirmede fark varsa
+  14 gün boyunca yan öneri; düğmeye basılınca (`self.tipSeen`) bir daha çıkmaz. `selfrate` beceri ölçmez: `gatedStep`
+  dışında (tekrara ve sınava girmez); `stepOk` dört madde puanlanınca. **`program`** (`makam:"ussak"`): `seyir` Uşşak 180
+  sn `min:60` → Âkıbet Bezdirdi %100 tempolu `min:75` → Dostun Senden Irak Değil `mem` + `hidden` `min:75`.
+  **Yapılamayan / sapma:** (1) "Arka arkaya durmadan" denetlenmez: üç adım ayrı başlatılır, ders metni ara vermeden
+  çalmayı söyler; adımları zincirleyen bir "program" kipi (bir adım bitince sonrakini kendiliğinden başlatan, aradaki
+  süreyi ölçen) ayrı iş. (2) Süre 10 değil yaklaşık 7 dakika: basamak 3 eserleri 1–2 dakika (taksim 3 dk + 104 sn +
+  124 sn); 10 dakika için basamak 4–5'ten uzun eser (peşrev, saz semâîsi) S4.4'ten sonra eklenebilir. (3) Cümle maddesi
+  ölçülmediği için onun için hoca önerisi yok. Tarayıcıda 375 px'te üç ders açıldı; mikrofon engelli olduğundan sessiz
+  akışla: arşiv `mem` 1. turda 57 notanın ilk 4 ölçüsü (28 nota) silindi, geçmeyen tur notayı işaretli açtı, geçen tur
+  (değerlendirme taklit edildi) tümü gizli tura geçti ve adım bitti; etüt `mem` (`e-nefes`) aynı; `selfrate` sahte kayıtla
+  ton 3, perde 4, ritim 5 gösterdi, fark uyarısı ve hoca kartı yan önerisi çıktı ve Ritim sekmesine götürdü; konsolda hata
+  yok. Gerçek mikrofonla denenmedi.
 
 ### S5 — Akış, ölçme ve bitiş (≈ 1,5 hafta; içerik PBI'larıyla birlikte)
 

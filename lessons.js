@@ -1239,7 +1239,10 @@ const arsivWhat = (st, lang) => { const en = lang === "en";
   return pick(st.name, lang) + (st.from || st.to ? (en ? " · bars " : " · ölçü ") + (st.from || 1) + "–" + (st.to || "") : "") +
     (st.tempoPct && st.tempoPct !== 100 ? (en ? " · " + st.tempoPct + "% tempo" : " · %" + st.tempoPct + " tempo") : "") +
     (st.oct ? (en ? " · an octave " + (st.oct < 0 ? "lower" : "higher") : " · bir oktav " + (st.oct < 0 ? "pes" : "tiz")) : "") +
-    (st.hidden ? (en ? " · score hidden" : " · nota gizli") : ""); };
+    (st.hidden && st.mode !== "mem" ? (en ? " · score hidden" : " · nota gizli") : ""); };
+// Ezber adımının başlığı (pieces.js memRounds): iki tur ya da (hidden) doğrudan tümü gizli
+const memWhat = (st, en) => st.hidden ? (en ? "from memory, score hidden · at least " + st.min + "% correct" : "ezberden, nota gizli · en az %" + st.min + " doğru")
+  : (en ? "memory: first 4 bars erased, then all hidden · at least " + st.min + "% correct" : "ezber: önce ilk 4 ölçü silinir, sonra tümü gizli · en az %" + st.min + " doğru");
 const techSteps = (pattern, start, target) => [{ type:"listen", pattern, tempo:target }, { type:"tech", pattern, start, target }];
 const HIZ = [
   { id:"hiz-metronom", unit:"hiz", notes:[],
@@ -3566,6 +3569,78 @@ insertLessonAfter("sed-3",
       { type:"band", ...AGLAMAZ, usul:"aksak", makam:"ussak", tempo:120, min:70 }
     ] }
 );
+// ---- S4.7 Ezber ve icra ----
+// İleri'nin sonu (isteğe bağlı nefes-3'ten önce gelen son dersten sonra): ezber (repertuvar basamak 3'ten Dostun Senden Irak
+// Değil, bölüm bölüm; piece mode:"mem": önce ilk 4 ölçü silinir, sonra tümü gizli; pieces.js memRounds), kayit-dinle (basamak
+// 3'ten Âkıbet Bezdirdi öğrenilir, kaydedilir, dinlenir; selfrate adımı: ton, perde, ritim, cümle 1–5, uygulamanın ölçtükleri
+// yan yana, fark büyükse hoca kartı o beceriyi önerir; drills.js), program (Uşşak taksim + iki eser arka arkaya; her parçanın
+// kendi eşiği). Program durmadan çalınmayı denetlemez: adımlar ayrı başlatılır (docs/BACKLOG.md S4.7).
+const EZBER_ID = "ussak--ilahi--duyek--dostun_senden--ali_rifat_cagatay", EZBER_NAME = { tr:"Dostun Senden Irak Değil", en:"Dostun Senden Irak Değil" };
+const KAYIT_ID = "ussak--sarki--curcuna--akibet_bezdirdi--haci_arif_bey", KAYIT_NAME = { tr:"Âkıbet Bezdirdi", en:"Âkıbet Bezdirdi" };
+const ezberPart = (from, to) => [
+  { type:"listen", arsiv:EZBER_ID, name:EZBER_NAME, from, to, tempoPct:80 },
+  { type:"piece", arsiv:EZBER_ID, name:EZBER_NAME, from, to, tempoPct:80, mode:"tempo", min:70 },
+  { type:"piece", arsiv:EZBER_ID, name:EZBER_NAME, from, to, tempoPct:80, mode:"mem", min:65 }
+];
+insertLessonAfter([...LESSONS].reverse().find(l => l.unit === "ileri" && !l.optional).id, { id:"ezber", unit:"ileri", since:2, notes:[],
+  title:{ tr:"Ezber: notasız çalmak", en:"Memorising: playing without the score" },
+  text:[
+    { tr:"Ezberden çalınan eser kulağa ve parmaklara yerleşir: göz notadan kalkınca dinlemeye ve cümleye yer açılır. Bu derste Ali Rıfat Çağatay'ın Uşşak ilâhîsi Dostun Senden Irak Değil'i (Düyek, 31 ölçü) dört bölümde ezberleyeceksin: 1–8, 9–16, 17–23, 24–31.",
+      en:"A piece played from memory settles in the ear and the fingers: once the eyes leave the score there is room for listening and phrasing. In this lesson you memorise Ali Rıfat Çağatay's Uşşak ilâhî Dostun Senden Irak Değil (Düyek, 31 bars) in four sections: 1–8, 9–16, 17–23, 24–31." },
+    { tr:"Her bölümde: dinle, notaya bakarak tempolu çal, sonra ezber adımı. Ezber adımının ilk turunda notanın baştan 4 ölçüsü silinir, kalanına bakarak çalarsın; bu turu geçince ikinci turda notanın tamamı gizlenir. Her tur bitince nota açılır, nerede şaştığını görürsün. En sonda eserin tamamı ezberden.",
+      en:"In each section: listen, play it in tempo reading the score, then the memory step. In its first round the first 4 bars of the score are erased and you read the rest; pass that and in the second round the whole score is hidden. After each round the score opens and you see where you slipped. At the end, the whole piece from memory." },
+    { tr:"Benzeyen yerleri bilmek ezberi kısaltır: 5–8, 1–4'e çok benzer; 13–16, 9–12'yi tekrarlar; 21–23 de 17–19'a benzer. Neyin tekrar ettiğini, neyin değiştiğini ayır; ezberlemen gereken asıl yer değişen notalardır.",
+      en:"Knowing what repeats shortens the work: bars 5–8 are very like 1–4, 13–16 repeat 9–12, and 21–23 are like 17–19. Tell apart what repeats and what changes; the changing notes are what you really have to memorise." }
+  ],
+  tips:[
+    { tr:"Ezberi çalgısız da sına: ezgiyi içinden söyle, parmakları sessizce oynat.", en:"Test the memory without the clarinet too: sing the tune in your head and move your fingers silently." },
+    { tr:"Takıldığın yerden değil bölüm başından yeniden başla; ezber cümleyle birlikte kurulur.", en:"Restart from the start of the section, not from where you got stuck; memory is built together with the phrase." }
+  ],
+  steps:[
+    ...ezberPart(1, 8), ...ezberPart(9, 16), ...ezberPart(17, 23), ...ezberPart(24, 31),
+    { type:"soru", items:[
+      { q:{ tr:"Ezber adımının ilk turunda ne olur?", en:"What happens in the first round of the memory step?" },
+        opts:[{ tr:"Notanın ilk 4 ölçüsü silinir, kalanına bakarak çalınır", en:"The first 4 bars are erased; you read the rest" }, { tr:"Notanın tamamı gizlenir", en:"The whole score is hidden" }, { tr:"Eser yavaş çalınır, nota açık kalır", en:"The piece is played slowly with the score open" }], ok:0,
+        why:{ tr:"İlk turda yalnız baştaki 4 ölçü silinir; tümü ikinci turda gizlenir.", en:"Only the first 4 bars are erased in round 1; everything is hidden in round 2." } },
+      { q:{ tr:"Ezberde takılınca nereden yeniden başlamak iyidir?", en:"When you get stuck memorising, where is it best to restart?" },
+        opts:[{ tr:"Bölümün başından", en:"From the start of the section" }, { tr:"Takıldığın notadan", en:"From the note where you got stuck" }, { tr:"Eserin sonundan", en:"From the end of the piece" }], ok:0,
+        why:{ tr:"Ezber cümleyle kurulur; bölüm başından başlamak cümleyi bütün tutar.", en:"Memory is built with the phrase; restarting at the section keeps the phrase whole." } }
+    ] },
+    { type:"piece", arsiv:EZBER_ID, name:EZBER_NAME, mode:"mem", min:70 }
+  ] });
+insertLessonAfter("ezber", { id:"kayit-dinle", unit:"ileri", since:2, notes:[],
+  title:{ tr:"Kendini kaydet ve dinle", en:"Record yourself and listen back" },
+  text:[
+    { tr:"Çalarken kendi sesini olduğu gibi duymak zordur: dikkat parmaklarda ve notadadır. Kayıt bu yüzden hocasız çalışmanın en güçlü aracıdır. Bu derste Hacı Ârif Bey'in Uşşak şarkısı Âkıbet Bezdirdi'yi (Curcuna, 33 ölçü) öğrenip kendini kaydedecek ve kaydı dört maddede puanlayacaksın: ton, perde, ritim, cümle.",
+      en:"While playing it is hard to hear yourself as you are: your attention is on the fingers and the score. That is why recording is the strongest tool for learning without a teacher. In this lesson you learn Hacı Ârif Bey's Uşşak şarkı Âkıbet Bezdirdi (Curcuna, 33 bars), record yourself and rate the recording on four items: tone, pitch, rhythm, phrasing." },
+    { tr:"Son tempolu adımdan sonra Kayıt sekmesinde eserin tamamını kaydet ve dinle. Puanlama adımında uygulamanın ölçtükleri yanında görünür: ton ve perde bugünkü son kaydından, ritim son tempolu çalışından. Cümleyi uygulama ölçmez, onu yalnız sen değerlendirirsin. Puanınla ölçüm arasında 2 ya da daha çok fark varsa kulağın o maddede seni yanıltıyor olabilir: adım ve hoca kartı o becerinin alıştırmasını önerir.",
+      en:"After the last in-tempo step, record the whole piece in the Recording tab and listen to it. In the rating step the app's measurements appear next to each item: tone and pitch from today's latest recording, rhythm from your latest in-tempo run. The app doesn't measure phrasing; only you judge that. If your score and the measurement differ by 2 or more, your ear may be misleading you on that item: the step and the coach card suggest an exercise for that skill." }
+  ],
+  tips:[
+    { tr:"Kaydı hemen değil bir gün sonra dinlersen daha tarafsız duyarsın.", en:"You hear more objectively if you listen to the recording a day later rather than right away." },
+    { tr:"Kayıt sekmesinde eski bir kaydını bugünküyle yan yana dinle; ilerlemeyi kulağınla duyarsın.", en:"In the Recording tab, play an old recording next to today's; you'll hear your progress." }
+  ],
+  steps:[
+    ...eserSteps(KAYIT_ID, KAYIT_NAME, [[1, 8], [9, 16], [17, 24]]),
+    { type:"selfrate" }
+  ] });
+insertLessonAfter("kayit-dinle", { id:"program", unit:"ileri", since:2, notes:[], makam:"ussak",
+  title:{ tr:"Program: taksim ve iki eser", en:"A programme: taksim and two pieces" },
+  text:[
+    { tr:"Bir icra, parçaların tek tek çalınmasından fazlasıdır: aradaki sessizlik, nefes ve dikkat de programın parçasıdır. Bu derste Uşşak'ta kısa bir program çalacaksın: önce 3 dakikalık taksim, sonra Âkıbet Bezdirdi (nota açık, kendi temposunda), en sonda Dostun Senden Irak Değil (ezberden). Toplam yaklaşık 7 dakika.",
+      en:"A performance is more than its pieces played one by one: the silence between them, the breath and the attention are part of the programme too. In this lesson you play a short Uşşak programme: first a 3-minute taksim, then Âkıbet Bezdirdi (score open, at its own tempo), and finally Dostun Senden Irak Değil (from memory). About 7 minutes in all." },
+    { tr:"Üç adımı arka arkaya çal: bir adım bitince ara vermeden sonrakini başlat, bir sonuç kötü olsa da programı sonuna kadar götür. Her parçanın kendi eşiği var; geçmeyeni programdan sonra ayrıca çalış. Taksim aynı makamda olduğu için kulağın eserlere hazır girer: Dügâh'ta karar ver, sonra ilk eseri başlat.",
+      en:"Play the three steps back to back: when one ends start the next without a break, and carry the programme to the end even if a result is poor. Each piece has its own threshold; work on the one that fails separately afterwards. Since the taksim is in the same makam, your ear enters the pieces ready: resolve on Dügâh, then start the first piece." }
+  ],
+  tips:[
+    { tr:"Programı kaydet: Kayıt sekmesini açık tutup baştan sona çal, sonra dinle.", en:"Record the programme: keep the Recording tab running and play it start to finish, then listen back." },
+    { tr:"Parçalar arasında yalnız bir nefes kadar dur.", en:"Pause between pieces only as long as a breath." }
+  ],
+  steps:[
+    { type:"seyir", makam:"ussak", sec:180, min:60 },
+    { type:"piece", arsiv:KAYIT_ID, name:KAYIT_NAME, mode:"tempo", min:75 },
+    { type:"piece", arsiv:EZBER_ID, name:EZBER_NAME, mode:"mem", hidden:true, min:75 }
+  ] });
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
@@ -3577,7 +3652,8 @@ const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] 
 // adımı, ünite kimliğinden türeyen sırayla karışık. Sınav ders zincirine girmez (sonraki dersleri kilitlemez);
 // ünitenin bütün dersleri bitince açılır, geçilince ünitenin rozeti kazanılır (roadmap.js badgeList).
 const EXAM_STEPS = 6;
-const gatedStep = st => st.type !== "listen" && st.type !== "read" && !(st.type === "piece" && st.mode === "ladder");
+// Kayıt öz değerlendirmesi (selfrate) beceri ölçmez: tekrara ve sınava girmez
+const gatedStep = st => st.type !== "listen" && st.type !== "read" && st.type !== "selfrate" && !(st.type === "piece" && st.mode === "ladder");
 // Adımı dersinden kopyalar: makam dersinin adımı makamını yanında taşır (günlük planda ve sınavda ders bağlamı yok)
 const stepFrom = (l, st) => ({ ...st, ...(l.makam && !st.makam ? { makam: l.makam } : {}) });
 function makeExam(u){
@@ -3737,14 +3813,17 @@ function stepTitle(step, lang = "tr"){
     case "soru": { const n = soruItems(step).length;
       return n === 1 ? (en ? "Question: " : "Soru: ") + pick(step.q || step.items[0].q, lang)
         : (en ? "Questions: " + n + " · at least " + soruMin(step) + " right first time" : "Sorular: " + n + " soru · en az " + soruMin(step) + " ilk seferde doğru"); }
+    case "selfrate": return en ? "Listen back and rate: tone, pitch, rhythm, phrasing" : "Kaydını dinle ve puanla: ton, perde, ritim, cümle";
     case "piece": { if(step.arsiv) return (en ? "Piece: " : "Eser: ") + arsivWhat(step, lang) + " · " +
         (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
+         : step.mode === "mem" ? memWhat(step, en)
                               : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru"));
       const e = LREP().etudeById(step.id), cue = step.cue ? " · " + pick(step.cue, lang) : "";
       if(step.mode === "ladder") return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + (en ? " · tempo ladder · up to " + step.min + "%" : " · tempo merdiveni · %" + step.min + "'e kadar");
       const shD = step.shift && e.makam ? LLEARN.perdeName(LLEARN.makamById(e.makam).durak + step.shift) : null;
       const shTr = !step.shift ? "" : shD ? (en ? " (from " + shD + ")" : " (" + LLEARN.ablTr(shD) + ")") : (en ? " · moved " + step.shift + " commas" : " · " + step.shift + " koma kaydırılmış");
       return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + shTr + cue + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
+        : step.mode === "mem" ? memWhat(step, en)
         : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru")); }
     case "rhythm": {
       const what = step.usul ? "Usul " + LLEARN.USULS.find(u => u.id === step.usul).name : pick(RHYTHM_NAMES[step.pattern], lang);
@@ -3796,6 +3875,7 @@ function stepOk(step, res){
     case "hece": return v >= (step.mode === "say" ? 1 : step.min);
     case "usultap": return v >= (step.mode === "listen" ? 1 : step.min);
     case "dynamics": return v >= 1;
+    case "selfrate": return v >= 4;
     case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
     case "band": return v >= step.min;
     case "tech": return v >= step.target;

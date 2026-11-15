@@ -890,6 +890,75 @@ TRAINERS.rec = function(ctx){
   return { enter(){ histRender(); }, stop(){ addTok = null; const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); }, leave(){ addTok = null; if(rec) stopRec(); const a = $("rcaudio"); if(a && !a.paused) a.pause(); if(curve) curve.stop(); } };
 };
 
+// ---- Ders adımı: kaydını dinle ve puanla (S4.7 kayit-dinle) ----
+// { type:"selfrate" }. Öğrenci Kayıt sekmesinde çalışını kaydedip dinler, adımda dört maddeyi 1–5 puanlar: ton, perde,
+// ritim, cümle. Uygulamanın ölçtüğü yan yana: ton ve perde bugünkü son kaydın özeti (recSummary: clarity, pct), ritim bugünkü
+// son tempolu eser çalışının zamanlama dağılımı (pieces.js piece.last sd). Cümleyi uygulama ölçmez. Puan ile ölçüm arasında
+// SELF_GAP ya da daha çok fark varsa adım o becerinin alıştırmasını önerir; kayıt self.rate'e yazılır ve hoca kartı
+// (lessonview.js) bir kez yan öneri yapar. Ölçek eşikleri uygulamanın kendi ölçeğidir (pieceClean ve toneQuality ile aynı yön).
+const SELF_GAP = 2;
+const selfUp = (v, cuts) => v == null ? null : 1 + cuts.filter(c => v >= c).length;      // büyük iyi
+const selfDown = (v, cuts) => v == null ? null : 1 + cuts.filter(c => v <= c).length;    // küçük iyi
+const SELF_ITEMS = [
+  { k:"ton", tab:"long", name:{ tr:"Ton", en:"Tone" }, ask:{ tr:"Ses temiz, dolu ve eşit miydi? Hava sesi, cızırtı var mıydı?", en:"Was the sound clean, full and even? Any air noise or buzz?" },
+    go:{ tr:"Uzun ton çalış", en:"Practise long tones" }, m: x => x.rec ? { s: selfUp(x.rec.clarity, [40, 60, 75, 90]), t: L("ses netliği ", "clarity ") + x.rec.clarity } : null },
+  { k:"perde", tab:"tune", name:{ tr:"Perde", en:"Pitch" }, ask:{ tr:"Perdeler yerinde miydi? Pes ya da tiz kalan notalar var mıydı?", en:"Were the perdes in tune? Any notes flat or sharp?" },
+    go:{ tr:"Akort'ta çalış", en:"Work in the Tuner" }, m: x => x.rec ? { s: selfUp(x.rec.pct, [50, 65, 80, 90]), t: L("yerinde nota %" + x.rec.pct, x.rec.pct + "% notes in tune") } : null },
+  { k:"ritim", tab:"rhythm", name:{ tr:"Ritim", en:"Rhythm" }, ask:{ tr:"Tempo sabit miydi, notalar vuruşun üstünde miydi?", en:"Was the tempo steady, were the notes on the beat?" },
+    go:{ tr:"Ritim çalış", en:"Practise rhythm" }, m: x => x.piece ? { s: selfDown(x.piece.sd, [130, 90, 60, 40]), t: L("zamanlama ±" + x.piece.sd + " ms", "timing ±" + x.piece.sd + " ms") } : null },
+  { k:"cumle", tab:null, name:{ tr:"Cümle", en:"Phrasing" }, ask:{ tr:"Cümlelerin nerede başlayıp bittiği belli miydi, nefesler yerinde miydi?", en:"Could you hear where each phrase starts and ends; were the breaths in the right places?" },
+    go:null, m: () => null }
+];
+TRAINER_STEPS.selfrate = function(st, stage, done, ctx){
+  const { esc, store } = ctx, today = dayKey(new Date());
+  let alive = true, rates = {}, meas = { rec:null, piece:null };
+  stage.innerHTML = `<p class="muted small">${L("Önce Kayıt sekmesinde eserin tamamını kaydet ve kaydı baştan sonra dinle. Sonra buraya dön: her maddeyi 1 (zayıf) ile 5 (çok iyi) arasında puanla. Uygulamanın ölçtüğü değer yanında görünür.",
+      "First record the whole piece in the Recording tab and listen to it from start to end. Then come back: rate each item from 1 (weak) to 5 (very good). What the app measured is shown next to it.")}</p>
+    <div class="pbar"><button class="stopbtn small" type="button" data-rec>${L("Kayıt sekmesini aç", "Open the Recording tab")}</button><span class="muted small" data-src></span></div>
+    <div data-items></div>
+    <div class="pbar"><button class="primary small" type="button" data-fin disabled>${L("Değerlendirmeyi bitir", "Finish the review")}</button></div><div data-res></div>`;
+  const q = s => stage.querySelector(s);
+  q("[data-rec]").addEventListener("click", () => ctx.selectTab("rec"));
+  function draw(){
+    q("[data-src]").textContent = meas.rec ? L("Bugünkü son kayıt ölçüldü.", "Today's latest recording measured.") : L("Bugün kayıt yok: ton ve perde ölçülemedi.", "No recording today: tone and pitch not measured.");
+    q("[data-items]").innerHTML = SELF_ITEMS.map(it => { const m = it.m(meas);
+      return `<div class="selfit" data-k="${it.k}"><div><b>${esc(pick(it.name, LANG))}</b> <span class="muted small">${esc(pick(it.ask, LANG))}</span></div>
+        <div class="selfrow" role="group" aria-label="${esc(pick(it.name, LANG))}">${[1, 2, 3, 4, 5].map(v => `<button class="opt${rates[it.k] === v ? " sel" : ""}" type="button" data-v="${v}" aria-pressed="${rates[it.k] === v}">${v}</button>`).join("")}</div>
+        <div class="muted small">${L("Uygulama: ", "App: ")}${m && m.s ? m.s + " · " + esc(m.t) : it.k === "cumle" ? L("ölçmüyor", "doesn't measure this") : L("ölçüm yok", "no measurement")}</div></div>`; }).join("");
+    q("[data-fin]").disabled = SELF_ITEMS.some(it => !rates[it.k]);
+  }
+  q("[data-items]").addEventListener("click", e => {
+    const b = e.target.closest("[data-v]"); if(!b) return;
+    rates[b.closest("[data-k]").dataset.k] = +b.dataset.v; draw();
+  });
+  q("[data-fin]").addEventListener("click", () => {
+    const rows = SELF_ITEMS.map(it => { const m = it.m(meas), s = m && m.s;
+      return { it, r: rates[it.k], s, gap: s ? rates[it.k] - s : null }; });
+    const big = rows.filter(x => x.gap != null && Math.abs(x.gap) >= SELF_GAP);
+    const hist = store.get("self.rate", []);
+    hist.push({ d: today, r: rates, m: Object.fromEntries(rows.filter(x => x.s).map(x => [x.it.k, x.s])), gap: big.map(x => x.it.k) });
+    store.set("self.rate", hist.slice(-50));
+    q("[data-res]").innerHTML = `<div class="fb ${big.length ? "bad" : "good"}">${big.length
+      ? esc(L("Kulağınla uygulamanın ölçümü şu maddelerde ayrışıyor: ", "Your ear and the app's measurement differ on: ") + big.map(x => pick(x.it.name, LANG) + " (" + L("sen ", "you ") + x.r + ", " + L("uygulama ", "app ") + x.s + ")").join(", ") + ". " +
+          L("Kendini olduğundan " + (big[0].gap > 0 ? "iyi" : "zayıf") + " duyuyorsun; kaydı bu maddeye odaklanarak bir kez daha dinle.", "You hear yourself as " + (big[0].gap > 0 ? "better" : "weaker") + " than measured; listen to the recording again focusing on this."))
+      : esc(L("Kulağın ve uygulama aynı yönde. Kayıt dinlemek kendi hocan olmanın yolu: her eserde tekrarla.", "Your ear and the app agree. Listening back is how you become your own teacher: repeat it with every piece."))}</div>
+      ${big.filter(x => x.it.tab).map(x => `<button class="stopbtn small" type="button" data-tab="${x.it.tab}">${esc(pick(x.it.go, LANG))}</button>`).join(" ")}`;
+    q("[data-res]").querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => ctx.selectTab(b.dataset.tab)));
+    done({ v: SELF_ITEMS.length });
+  });
+  // Ölçümler: bugünkü son kayıt (IndexedDB) ve son tempolu çalış
+  const pl = store.get("piece.last", null);
+  if(pl && pl.d === today && pl.sd != null) meas.piece = pl;
+  draw();
+  RECDB.list().then(xs => {
+    if(!alive) return;
+    const r = xs.filter(x => dayKey(new Date(x.ts)) === today && x.sum).sort((a, b) => b.ts - a.ts)[0];
+    if(r) meas.rec = r.sum;
+    draw();
+  }).catch(() => {});
+  return { stop(){ alive = false; } };
+};
+
 // ======== İlerleme ========
 TRAINERS.progress = function(ctx){
   const { $, store, num, sgn, esc, label, days, daysMk, intStats, paintHeat, goalText, markResetting, makamState: ms } = ctx;
