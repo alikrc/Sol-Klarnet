@@ -191,6 +191,9 @@ function badgeList(st){
     const p = st.prog[ex.id];
     out.push({ id:"unit-" + u.id, group:"unit", name:u.badge, got: !!(p && p.d), v: p && p.d ? 1 : 0, target:1, unit:u.id });
   }
+  // Bitirme sınavı (lessons.js sinav-ustalik, S5.5)
+  { const f = RMLESSONS.EXAMS.find(e => e.final), p = f && st.prog[f.id];
+    if(f) out.push({ id:"final", group:"unit", name:f.badge, got: !!(p && p.d), v: p && p.d ? 1 : 0, target:1, unit:f.unit }); }
   const val = { streak: bestStreak(st.days), daily: (st.dailyDone || []).length,
                 hours: Object.values(st.days).reduce((a, b) => a + b, 0)/3600 };
   for(const [g, t] of Object.entries(RM_TIERS)) for(const n of t.days)

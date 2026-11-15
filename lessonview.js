@@ -59,6 +59,11 @@ TRAINERS.lessons = function(ctx){
         items += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === ex ? " cur" : ""}" data-id="${ex.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
           <span><i class="lsemo" aria-hidden="true">🏅</i>${L("Ünite sınavı", "Unit test")}${done ? " · " + esc(tx(u.badge)) : ""}</span><small>${!open ? L("dersler bitince", "after the lessons") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`;
       }
+      // Bitirme sınavı İleri'nin ünite sınavının ardından listelenir (S5.5)
+      const fin = EXAMS.find(e => e.final && e.unit === u.id);
+      if(fin){ const open = unlocked(fin, prog, allOpen), done = lessonDone(fin, prog), lp = lessonProgress(fin, prog);
+        items += `<button type="button" class="lsitem exam${done ? " done" : ""}${cur === fin ? " cur" : ""}" data-id="${fin.id}"${open ? "" : ' data-locked aria-disabled="true"'}>
+          <span><i class="lsemo" aria-hidden="true">🎓</i>${esc(tx(fin.title))}</span><small>${!open ? L("ünite sınavından sonra", "after the unit test") : done ? "★" : lp.done ? lp.done + "/" + lp.total : ""}</small></button>`; }
       const head = `<i class="lsemo" aria-hidden="true">${ART.UNIT_EMOJI[u.id] || ""}</i>${esc(tx(u.name))}`;
       const finished = ls.every(l => lessonDone(l, prog)) && (!ex || lessonDone(ex, prog));
       const closed = !ls.some(l => unlocked(l, prog, allOpen));
@@ -294,6 +299,16 @@ TRAINERS.lessons = function(ctx){
     const el = $("lsnext"); if(!el || !cur) return;
     if(!lessonDone(cur, progFor(cur))){ el.innerHTML = ""; return; }
     if(cur.daily){ el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🎉</i>Bugünün çalışması tamam.</strong> <i class="lsemo" aria-hidden="true">🔥</i>Seri: ${streak(days)} gün.</div>`; return; }
+    if(cur.final){
+      // Bitirme: rozet ve ilk gerçekten çalınan dersten bugüne gelişim (roadmap.js stageGrowth)
+      const st = coachSt(), ds = Object.values(prog).filter(p => p.d && !p.placed).map(p => p.d).sort();
+      const g = ds.length ? stageGrowth(st, ds[0], dayKey(new Date())) : [];
+      el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🏆</i>${L("Bitirme sınavını geçtin!", "Final test passed!")}</strong> ${L("Rozet", "Badge")}: ★ ${esc(tx(cur.badge))}
+        <p>${esc(L("Uygulamanın ölçebildiği her şeyi tuttun; bundan sonrası dinlemek, usta icracılardan çıkarmak ve başkalarıyla çalmak.", "You've met everything the app can measure; from here on it's listening, learning from master players and playing with others."))}</p>
+        ${g.length ? `<p class="muted small">${esc(L("Başlangıçtan bugüne: ", "From the start to today: ") + g.map(x => tx(x.title) + " " + num(x.from, x.low ? 2 : 0) + " → " + num(x.to, x.low ? 2 : 0) + tx(x.unit)).join(" · "))}</p>` : ""}
+        <button class="stopbtn small" type="button" data-act="tab" data-tab="videos">${L("Videolar", "Videos")}</button> <button class="stopbtn small" type="button" data-act="tab" data-tab="kulaktan">${L("Kulaktan çıkar", "Learn by ear")}</button> <button class="stopbtn small" type="button" data-act="tab" data-tab="roadmap">${L("Rozetlerim", "My badges")}</button></div>`;
+      return;
+    }
     if(cur.exam){
       const u = UNITS.find(x => x.id === cur.unit);
       el.innerHTML = `<div class="lsdone"><strong><i class="lsemo" aria-hidden="true">🏆</i>${L("Sınavı geçtin!", "Test passed!")}</strong> ${L("Rozet", "Badge")}: ★ ${esc(tx(u.badge))} <button class="stopbtn small" type="button" data-act="tab" data-tab="roadmap">${L("Rozetlerim", "My badges")}</button></div>`;

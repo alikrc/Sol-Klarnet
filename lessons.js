@@ -3725,7 +3725,28 @@ function makeExam(u){
     steps };
 }
 const EXAMS = UNITS.map(makeExam).filter(e => e.steps.length);
-const examFor = unitId => EXAMS.find(e => e.unit === unitId) || null;
+const examFor = unitId => EXAMS.find(e => e.unit === unitId && !e.final) || null;
+// ---- Bitirme sınavı (docs/BACKLOG.md S5.5) ----
+// İleri ünitesinin sınavı geçilince açılır; uygulamanın ölçebildiği becerilerin hepsinden bir adım. Geçince "Usta yolunda"
+// rozeti (roadmap.js badgeList) ve başlangıçtan bugüne gelişim raporu (lessonview.js). Adımlar derslerde kullanılan biçimde:
+// eser, derste öğrenilen Uşşak saz semâîsi (sazsemaisi-1); oyun havası repertuvar basamak 6'dan, telifsiz
+const USTA_SAZ = { arsiv:"ussak--sazsemaisi--aksaksemai----kantemiroglu", name:{ tr:"Uşşak Saz Semâîsi (Kantemiroğlu)", en:"Uşşak Saz Semâîsi (Kantemiroğlu)" } };
+const USTA_DANS = { arsiv:"huseyni--oyunhavasi--nimsofyan--cecen_kizi--tanburi_cemil_bey", name:{ tr:"Çeçen Kızı (Tanburî Cemil Bey)", en:"Çeçen Kızı (Tanburî Cemil Bey)" } };
+EXAMS.push({ id:"sinav-ustalik", unit:"ileri", exam:true, final:true, notes:[],
+  title:{ tr:"Bitirme sınavı: Usta yolunda", en:"Final test: On the master's path" },
+  badge:{ tr:"Usta yolunda", en:"On the master's path" },
+  text:[{ tr:"Uygulamanın ölçebildiği her şeyden bir adım: iki dakikalık taksim, öğrendiğin saz semâîsini ezberden ve kendi temposunda, eşlikle bir oyun havası, makam tanıma, deşifre ve metronomsuz iki aksak usul. Hepsini geçince “Usta yolunda” rozetini ve başlangıçtan bugüne gelişim raporunu alırsın.",
+          en:"One step from everything the app can measure: a two-minute taksim, the saz semâîsi you learned from memory at its own tempo, a dance tune with the band, makam recognition, sight-reading and two aksak usuls without a click. Pass them all to earn the “On the master's path” badge and a report of your growth from the start." }],
+  tips:[{ tr:"Takıldığın adımın dersine dönüp orayı tekrar çalış; sınav hiçbir dersi kilitlemez.", en:"If a step stops you, go back to its lesson and practise there; the test locks no lesson." }],
+  steps:[
+    { type:"seyir", makam:"hicaz", sec:120, min:60, focus:"uzun" },
+    { type:"piece", ...USTA_SAZ, to:36, tempoPct:100, mode:"mem", min:80 },
+    { type:"band", ...USTA_DANS, usul:"nimsofyan", makam:"huseyni", tempo:96, min:70 },
+    { type:"ear", mode:"makam", pool:["rast", "ussak", "huseyni", "hicaz", "nihavend", "kurdi", "saba", "segah", "huzzam"], n:8, min:7 },
+    { type:"sight", level:4, min:70 },
+    { type:"rhythm", usul:"aksak", tempo:180, bars:3, silent:true, min:55 },
+    { type:"rhythm", usul:"curcuna", tempo:150, bars:3, silent:true, min:55 }
+  ] });
 const lessonById = id => LESSONS.find(l => l.id === id) || EXAMS.find(l => l.id === id) || null;
 
 // ---- Aralıklı tekrar ----
@@ -4044,6 +4065,7 @@ function unlocked(lesson, prog, all = false){
   if(lessonDone(lesson, prog)) return true;          // bitmiş ders hep açık (yeni dersler araya eklense de)
   if(LPREM().premiumUnit(lesson.unit)) return false; // premium ünite (premium.js; satış açık değilse hiçbir şey kilitlenmez)
   if(all) return true;
+  if(lesson.final) return examPassed(lesson.unit, prog);   // bitirme sınavı: İleri sınavı geçilince
   if(lesson.exam) return LESSONS.filter(l => l.unit === lesson.unit && !l.optional).every(l => lessonDone(l, prog));
   if(gateFor(lesson.unit, prog).length) return false;
   let i = LESSONS.indexOf(lesson);

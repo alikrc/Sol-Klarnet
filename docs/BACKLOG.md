@@ -4,6 +4,12 @@ Kodla bitmeyen işlerin güncel listesi: [DENEME-LISTESI.md](DENEME-LISTESI.md) 
 
 ## Sıfırdan ileriye müfredat denetimi ve içerik PBI'ları (15 Kasım 2026)
 
+**Durum (15 Kasım 2026): S0–S5 maddelerinin hepsi uygulandı** (her maddenin altında "Uygulanan" notu; sapmalar orada).
+Müfredat 187 ders, 10 ünite, 32 makam, bitirme sınavı. Açık kalanlar: B1 (Aksak Semâî usul verisi; S3.7 ve S4.4'te usul
+vurma adımı bu yüzden yok), Acemkürdî (TDV maddesinde dizi yok), telefonda kamera izni (S5.6), ve bütün mikrofonlu
+adımların gerçek Sol klarnetle denenmesi; eşiklerin çoğu tahmin ya da Si♭ klarnet kayıtlarıyla ayarlı
+([DENEME-LISTESI.md](DENEME-LISTESI.md)).
+
 Proje sahibi (15 Kasım): "İçeriği artır, eksik her şeyi çıkar, uygulanabilecek ayrıntıda PBI yaz. Hoca test etmeyecek.
 Uygulama hiçbir şey bilmeyen birini sıfırdan ileri seviyeye götürmeli." Bu bölüm o denetimin sonucu. Yalnız **içerik
 ve öğrenme yolu**; arayüz işleri (U grubu) ve teknik işler aşağıdaki bölümlerde duruyor.
@@ -926,11 +932,18 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   denetler: kimlik tekil, iki dil dolu, kategori ve bağlantılar veride. Tarayıcıda 375 px'te denendi: segment, arama,
   ders metninde ve okuma adımında işaretli terim → alt panel → Teori bağlantısı, geri tuşu paneli kapatır; Türkçe ve
   İngilizce; konsolda hata yok.
-- [ ] **S5.5 Bitirme sınavı** (O, E28). `sinav-ustalik` (İleri ünite sınavının yerine değil, ardından): 2 dakikalık
+- [x] **S5.5 Bitirme sınavı** (O, E28). **Yapıldı (15 Kasım 2026).** `sinav-ustalik` (İleri ünite sınavının yerine değil, ardından): 2 dakikalık
   taksim (dört bölüm), basamak 5'ten bir saz eseri ezberden `tempoPct:100` `min:80`, bir oyun havası eşlikle, makam
   tanıma 8'de 7, deşifre seviye 4 %70, Aksak ve Curcuna'da metronomsuz ritim. Geçince rozet "Usta yolunda" ve son
   kademe raporu (başlangıçtan bugüne `stageGrowth`). Metin: "uygulamanın ölçebildiği her şeyi tuttun; bundan sonrası
   dinlemek, usta icracılardan çıkarmak ve başkalarıyla çalmak" (videolar ve Kulaktan çıkar bağlantısı).
+  *Uygulanan:* `lessons.js` `EXAMS`'e `sinav-ustalik` (`final:true`; `examFor` onu ünite sınavı saymaz), İleri sınavı
+  geçilince açılır; listede İleri sınavının ardından. Adımlar: uzun taksim (S4.5 biçimi, Hicaz 120 sn), Uşşak saz
+  semâîsi (Kantemiroğlu) ezberden %100 `min:80`, eşlikle oyun havası (Çeçen Kızı, Tanburî Cemil Bey; repertuvar
+  basamak 6; `band` `min:70`), makam tanıma 8'de 7, deşifre seviye 4 %70, metronomsuz Aksak ve Curcuna. **Sapma:**
+  backlog "basamak 5'ten bir saz eseri" diyor; derste öğrenilmeyen eseri ezberden istemek yerine `sazsemaisi-1`'de
+  öğrenilen saz semâîsi seçildi. Geçince "Usta yolunda" rozeti (`badgeList`) ve ilk gerçekten çalınan dersten bugüne
+  `stageGrowth` raporu, videolar ve Kulaktan çıkar bağlantıları. Tarayıcıda liste, kilit ve geçiş ekranı denendi.
 - [x] **S5.6 Hoca yerine öz denetim adımları** (K). **Yapıldı (15 Kasım 2026).** Ölçülemeyen şeyler (duruş, dudak, parmak yüksekliği, omuz)
   için `check` adımı: 4–5 maddelik liste + "ön kamerayla kendine bak" (kamera yalnız ekranda ayna, kayıt yok; izin
   istenir, reddedilirse liste tek başına çalışır). Var olan `durus-nefes` listesi bu türe taşınmaz (adım sırası

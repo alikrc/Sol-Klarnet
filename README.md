@@ -2,7 +2,7 @@
 
 Türk Sol klarneti (Albert sistem, 13 mandal, 2 halka) için akort, parmak pozisyonu, makam, ritim ve kulak eğitimi
 uygulaması. Klarneti ilk kez eline alan birini taksim yapabilecek, Trakya ve Roman oyun havalarını eşlikle çalabilecek
-seviyeye kadar götüren 187 derslik bir müfredatı, ünite sınavları ve rozetler, aralıklı tekrar ve altı aşamalı bir yol haritası var.
+seviyeye kadar götüren 187 derslik bir müfredatı, ünite sınavları ve rozetler, aralıklı tekrar, altı aşamalı bir yol haritası ve bir bitirme sınavı var.
 Mikrofondan çalınan sesi dinler; ses, resim ve dosyalar yalnızca cihazda işlenir. İnternete yalnızca **Nota bul** çıkar
 (yalnızca arama sözcüğünü ve indirilecek dosyanın adresini gönderir); başka hiçbir özellik dışarıya veri göndermez.
 
