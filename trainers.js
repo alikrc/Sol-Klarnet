@@ -1005,7 +1005,10 @@ const TRAINER_STEPS = {
   seyir(st, stage, done, ctx){
     const mk = makamById(st.makam), frames = [], t0 = performance.now(), cap = ctx.SK.pcmCapture(st.sec + 5);
     let over = false;
+    const gv = st.via ? makamById(st.via) : null, gd = gv ? makamDiff(mk, gv) : null, gp = c => perdeName(c) || "?";
     stage.innerHTML = `<div class="muted">${mk.name}: ${ctx.esc(seyirText(mk, LANG))}</div>
+      ${gd ? `<p class="small"><b>${L("Geçki", "Geçki")}:</b> ${ctx.esc(L(mk.name + " ile başla; " + gv.name + " perdelerine (" + gd.other.map(gp).join(", ") + ") en az iki kez uğra, sonra " + gp(mk.durak) + " perdesinde karar ver.",
+        "Start in " + mk.name + "; visit " + gv.name + "'s perdes (" + gd.other.map(gp).join(", ") + ") at least twice, then resolve on " + gp(mk.durak) + "."))}</p>` : ""}
       <div class="ltclock lyc">0 <em>/ ${st.sec} ${L("sn", "s")}</em></div>
       <div class="pbar"><button class="stopbtn" type="button" data-fin>${L("Bitir", "Finish")}</button></div><div class="lyr"></div>`;
     const timer = setInterval(() => {
@@ -1017,9 +1020,12 @@ const TRAINER_STEPS = {
       if(over) return; over = true; clearInterval(timer);
       const notes = segmentNotes(frames, 150), res = seyirAnalysis(notes, mk);
       if(!res){ cap.stop(); stage.querySelector(".lyr").innerHTML = `<div class="fb bad">${L("Yeterince nota yok.", "Not enough notes.")}</div>`; done({ v:0 }); return; }
+      // Geçki (via): puan geckiAnalysis'in (seyir + uğrayış + dönüş); ölçüt notaları yetmezse düz seyir puanı
+      const via = st.via ? makamById(st.via) : null, gk = via ? geckiAnalysis(notes, mk, via) : null;
       // Taksim aşaması (focus: cumle / cesni / karar): puan o aşamanın ölçüsüdür; genel seyir geri bildirimi altta kalır
-      const ph = st.focus ? phraseAnalysis(notes, mk) : null, v = ph ? ph[st.focus] : res.score;
-      const tips = ph ? `<ul class="lstips">${phraseFeedback(ph, mk, st.focus, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
+      const ph = st.focus ? phraseAnalysis(notes, mk) : null, v = gk ? gk.score : ph ? ph[st.focus] : res.score;
+      const tips = gk ? `<ul class="lstips">${[...geckiFeedback(gk, mk, LANG), ...seyirFeedback(gk.seyir, mk, LANG)].map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`
+        : ph ? `<ul class="lstips">${phraseFeedback(ph, mk, st.focus, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>
         <details class="lsmore"><summary>${L("Genel seyir değerlendirmesi", "General seyir feedback")} · ${res.score}</summary><ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul></details>`
         : `<ul class="lstips">${seyirFeedback(res, mk, LANG).map(t => `<li>${ctx.esc(t)}</li>`).join("")}</ul>`;
       stage.querySelector(".lyr").innerHTML = `<div class="result"><div class="big">${v}</div><div>${L("puan", "points")}</div></div>${tips}<div class="syorn"></div>`;

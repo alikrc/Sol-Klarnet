@@ -131,14 +131,17 @@ function scaleMap(mk){
   for(const c of [...mk.asc, ...mk.desc]){ const k = ((c % 53) + 53) % 53; if(!m.has(k)) m.set(k, c); }
   return m;
 }
+// İki makamın dizi farkı (similarMakams'ın hesabı; geçki adımı seyir { via } de bunu kullanır): only yalnız mk'de,
+// other yalnız o'da olan perdeler, ayıran perdeler
+function makamDiff(mk, o){
+  const a = scaleMap(mk), b = scaleMap(o);
+  const only = [...a].filter(([k]) => !b.has(k)).map(([, c]) => c).sort((x, y) => x - y);
+  const other = [...b].filter(([k]) => !a.has(k)).map(([, c]) => c).sort((x, y) => x - y);
+  return { mk:o, only, other, n:Math.max(only.length, other.length), guclu:o.guclu !== mk.guclu, seyir:o.seyirType !== mk.seyirType };
+}
 function similarMakams(mk, maxDiff = 3){
-  const a = scaleMap(mk);
-  return MAKAMS.filter(o => o !== mk && o.durak === mk.durak).map(o => {
-    const b = scaleMap(o);
-    const only = [...a].filter(([k]) => !b.has(k)).map(([, c]) => c).sort((x, y) => x - y);
-    const other = [...b].filter(([k]) => !a.has(k)).map(([, c]) => c).sort((x, y) => x - y);
-    return { mk:o, only, other, n:Math.max(only.length, other.length), guclu:o.guclu !== mk.guclu, seyir:o.seyirType !== mk.seyirType };
-  }).filter(x => x.n <= maxDiff).sort((x, y) => x.n - y.n || x.mk.name.localeCompare(y.mk.name, "tr"));
+  return MAKAMS.filter(o => o !== mk && o.durak === mk.durak).map(o => makamDiff(mk, o))
+    .filter(x => x.n <= maxDiff).sort((x, y) => x.n - y.n || x.mk.name.localeCompare(y.mk.name, "tr"));
 }
 const seyirText = (mk, lang) => lang === "en" && mk.seyirEn ? mk.seyirEn : mk.seyir;
 // Akort bağlamı: makamın perdeleri ve (icra seçiliyse) düzeltmeler
@@ -485,7 +488,7 @@ function streak(days, today = new Date()){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  MAKAMS, makamById, similarMakams, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
+  MAKAMS, makamById, similarMakams, makamDiff, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
   GB_ORDER, GB_START, GB_LEVELS, GB_FAST, gbState, gbNote, gbActive, gbMastered, gbPick, gbRecord,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,

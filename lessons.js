@@ -45,7 +45,7 @@ const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : 
 const LSK = () => typeof module !== "undefined" ? require("./skills.js") : { techPattern, patternKey };
 const LPREM = () => typeof module !== "undefined" ? require("./premium.js") : { premiumUnit };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
-  : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS, makamCadences, similarMakams, seyirText, ICRA_INFO };
+  : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS, makamCadences, similarMakams, makamDiff, seyirText, ICRA_INFO };
 
 const UNITS = [
   { id:"baslangic", name:{ tr:"Başlarken", en:"Getting started" }, badge:{ tr:"Yola çıktın", en:"On the road" } },
@@ -2788,6 +2788,128 @@ insertLessonAfter(LESSONS[LESSONS.findIndex(l => l.id === "makam-bulma") - 1].id
     ] }
   ] }));
 
+// ---- S3.4 Geçki ----
+// Üç ders (Makamlar sonu, makam-bulma'dan sonra): Rast'ta Sûzinak rengi, Dügâh'ta komşu makamlar, arşiv eserinde geçkiyi
+// bulmak. Anlatılan bütün farklar learn.js dizilerinden hesaplanır (makamDiff); "bu makam şuna geçer" türünden gelenek
+// bilgisi yazılmadı. Seyir adımı via: geçilen makamın ayıran perdelerine en az iki uğrayış ve ana makamın durağında
+// karar (skills.js geckiAnalysis). Eserler scripts/gecki-sec.js ile (telifsiz; ilk iki ölçü makamın dizisinde, sonra
+// ölçüden ölçüye arıza değişir, geri dönülür, durakta biter). Veri yalnız learn.js'ten okunur.
+{ const P = c => LLEARN.perdeName(c), M = id => LLEARN.makamById(id);
+  const diff = (a, b) => LLEARN.makamDiff(M(a), M(b)), names = cs => cs.map(P).join(", ");
+  const opt = xs => xs.map(x => ({ tr:x, en:x }));
+  const rs = diff("rast", "suzinak");                        // Rast: Hüseynî, Acem · Sûzinak: Hisar
+  const uk = diff("ussak", "kurdi"), hu = diff("hicaz", "ussak"), hk = diff("huseyni", "karcigar");
+  const gap = 48 - 36;                                       // Sûzinak'ta Hisar–Eviç (koma)
+  const GOR = "mahur--sarki--aksak--gor_nitti_cana--dede_efendi", AGY = "hicaz--sarki--senginsemai--agyar_ile--bimen_sen";
+  const GORN = { tr:"Gör Nitti Cana", en:"Gör Nitti Cana" }, AGYN = { tr:"Ağyâr İle Sen", en:"Ağyâr İle Sen" };
+  insertLessonAfter("makam-bulma",
+  { id:"gecki-1", unit:"makam", since:2, notes:[], makam:"rast",
+    title:{ tr:"Geçki 1: çeşni değiştirmek", en:"Geçki 1: changing the çeşni" },
+    text:[
+      { tr:"Bir ezgi kendi makamının dizisiyle başlar, bir süre başka bir makamın perdelerini kullanır, sonra geri dönüp kendi durağında karar verir: buna geçki denir. Geçkide makamın çoğu yerinde kalır; yalnız birkaç perde değişir ve ezginin rengi o perdelerle değişir.",
+        en:"A melody starts in its own makam's scale, uses the perdes of another makam for a while, then comes back and resolves on its own final: this is called geçki (modulation). Most of the makam stays in place; only a few perdes change, and the colour of the melody changes with them." },
+      { tr:"Bu derslerde yalnız uygulamadaki dizilerden hesaplanan geçkiler var: iki makamın dizisini yan yana koyup hangi perdelerin değiştiğine bakıyoruz. Hangi makamın gelenekte hangi makama geçtiği burada anlatılmıyor; onu eserleri dinleyerek öğrenirsin.",
+        en:"These lessons only use modulations computed from the app's scales: we put two makams' scales side by side and look at which perdes change. Which makam traditionally modulates to which is not taught here; you learn that by listening to pieces." },
+      { tr:"Rast ile Sûzinak'ın durağı (" + P(0) + ") ve güçlüsü (" + P(31) + ") aynı, alt yarıları da aynı. Nevâ'nın üstü ayrılır: Rast'ta " + names(rs.only) + ", Sûzinak'ta " + names(rs.other) + ". Sûzinak'ta Hisar ile Eviç arasındaki " + gap + " komalık artık ikili, Nevâ üstündeki Hicaz dörtlüsünün rengidir.",
+        en:"Rast and Sûzinak share the final (" + P(0) + ") and the dominant (" + P(31) + "), and their lower halves are the same. Above Nevâ they part: Rast has " + names(rs.only) + ", Sûzinak has " + names(rs.other) + ". In Sûzinak the " + gap + "-comma augmented second between Hisar and Eviç is the colour of the Hicaz tetrachord on Nevâ." }
+    ],
+    tips:[
+      { tr:"Geçkiye girerken ve çıkarken güçlüde (Nevâ) bir an dinlen: iki dizinin ortak perdesi kapı gibidir.", en:"Rest briefly on the dominant (Nevâ) going in and coming out: the perde both scales share works like a door." },
+      { tr:"Hisar'ı göstergede izle; Hüseynî'ye kayarsa renk Rast'a döner.", en:"Watch Hisar on the display; if it slides up to Hüseynî the colour returns to Rast." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Geçki nedir?", en:"What is geçki?" }, body:[
+        { tr:"Geçki, ezginin bir süre başka bir makamın perdeleriyle gezinip yeniden kendi makamına dönmesidir. Geçkiyi izlemek için üç şeye bak: hangi perdeler değişti, ezgi ne kadar orada kaldı, geri dönüp kendi durağında karar verdi mi.",
+          en:"Geçki is the melody moving for a while with another makam's perdes and then returning to its own makam. To follow it, check three things: which perdes changed, how long the melody stayed there, and whether it came back to resolve on its own final." },
+        { tr:"Rast dizisi Nevâ'nın üstünde " + names(rs.only) + " kullanır, Sûzinak dizisi " + names(rs.other) + ". Rast ezgisinde Hisar duyulunca Sûzinak rengine geçilmiş olur; Hüseynî ya da Acem yeniden duyulunca Rast'a dönülmüştür. Sıradaki iki dinleme adımında önce Rast cümlesi, sonra Hisar'a uğrayıp Rast'a dönen cümle var.",
+          en:"Above Nevâ the Rast scale uses " + names(rs.only) + ", the Sûzinak scale " + names(rs.other) + ". When Hisar sounds in a Rast melody it has moved into Sûzinak's colour; when Hüseynî or Acem sounds again it is back in Rast. The next two listening steps play a Rast phrase, then a phrase that visits Hisar and returns to Rast." }
+      ] },
+      { type:"soru", items:[
+        { q:{ tr:"Sûzinak'ta Nevâ'nın üstünde Rast'ta olmayan hangi perde var?", en:"Which perde above Nevâ is in Sûzinak but not in Rast?" },
+          opts:opt([P(36), P(40), P(17), P(22)]), ok:0, why:{ tr:"Hisar: Sûzinak'ın Nevâ üstündeki Hicaz dörtlüsünün perdesi.", en:"Hisar: the perde of Sûzinak's Hicaz tetrachord on Nevâ." } },
+        { q:{ tr:"Rast'tan Sûzinak rengine geçip dönen bir ezgi hangi perdede karar verir?", en:"A melody that moves from Rast into Sûzinak's colour and back resolves on which perde?" },
+          opts:opt([P(0), P(31), P(36), P(9)]), ok:0, why:{ tr:"Rast: geçkiden sonra ana makamın durağında karar verilir.", en:"Rast: after the geçki the melody resolves on the main makam's final." } },
+        { q:{ tr:"Sûzinak'ta Hisar ile Eviç arası kaç koma?", en:"How many commas lie between Hisar and Eviç in Sûzinak?" },
+          opts:opt(["12", "9", "5", "8"]), ok:0, why:{ tr:"12 koma (artık ikili): Hicaz dörtlüsünün rengi.", en:"12 commas (augmented second): the colour of the Hicaz tetrachord." } }
+      ], min:2 },
+      { type:"listen", makam:"rast", commas:[0, 9, 17, 22, 31, 40, 48, 40, 31, 22, 17, 9, 0] },
+      { type:"listen", makam:"rast", commas:[0, 9, 17, 22, 31, 36, 48, 36, 31, 40, 31, 22, 17, 9, 0] },
+      { type:"notes", makam:"suzinak", commas:[22, 31, 36, 48, 36, 31], maxMiss:2, hint:{ tr:"Nevâ üstünde Hicaz", en:"Hicaz on Nevâ" } },
+      { type:"notes", makam:"rast", commas:[31, 40, 31, 22, 17, 9, 0], maxMiss:2, hint:{ tr:"Rast'a dönüş", en:"back to Rast" } },
+      { type:"seyir", makam:"rast", via:"suzinak", sec:60, min:60 }
+    ] },
+  { id:"gecki-2", unit:"makam", since:2, notes:[], makam:"ussak",
+    title:{ tr:"Geçki 2: aynı durakta komşu makam", en:"Geçki 2: a neighbouring makam on the same final" },
+    text:[
+      { tr:"Uşşak, Hicaz ve Kürdî üçü de Dügâh'ta karar verir ve güçlüleri Nevâ'dır; ayrıldıkları yer Dügâh ile Nevâ arasındaki perdelerdir. Uşşak ile Kürdî arasında tek perde değişir: Uşşak'ta " + names(uk.only) + ", Kürdî'de " + names(uk.other) + ". Hicaz'da Uşşak'ın " + names(hu.other) + " perdeleri yerine " + names(hu.only) + " çalınır.",
+        en:"Uşşak, Hicaz and Kürdî all resolve on Dügâh with Nevâ as the dominant; they differ in the perdes between Dügâh and Nevâ. Between Uşşak and Kürdî only one perde changes: Uşşak has " + names(uk.only) + ", Kürdî " + names(uk.other) + ". Hicaz plays " + names(hu.only) + " instead of Uşşak's " + names(hu.other) + "." },
+      { tr:"Hüseynî ile Karcığar da Dügâh'ta karar verir. Alt yarıları aynı; Nevâ'nın üstünde Hüseynî'nin " + names(hk.only) + " perdeleri yerine Karcığar'da " + names(hk.other) + " var. Geçki adımlarında ana makamla başla, komşu makamın perdelerine iki kez uğra, sonra ana makamın durağında bitir.",
+        en:"Hüseynî and Karcığar also resolve on Dügâh. Their lower halves are the same; above Nevâ, Karcığar has " + names(hk.other) + " where Hüseynî has " + names(hk.only) + ". In the geçki steps start in the main makam, visit the neighbour's perdes twice, then finish on the main makam's final." }
+    ],
+    tips:[
+      { tr:"Kürdî perdesi Segâh'tan dört koma pestir; göstergede ikisini ayırt et.", en:"The Kürdî perde is four commas below Segâh; tell them apart on the display." },
+      { tr:"Hicaz'dan Uşşak'a geçerken Çargâh'ı açıkça çal: Segâh ile Dik Kürdî birbirine yakın, Çargâh ile Nim Hicaz arası daha belirgin.", en:"Going from Hicaz to Uşşak, play Çargâh clearly: Segâh and Dik Kürdî are close together, Çargâh and Nim Hicaz are further apart." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Dügâh'ta üç dörtlü", en:"Three tetrachords on Dügâh" }, body:[
+        { tr:"Uşşak: " + names([9, 17, 22, 31]) + ". Kürdî: " + names([9, 13, 22, 31]) + ". Hicaz: " + names([9, 14, 26, 31]) + ". Üçü de Dügâh'tan Nevâ'ya çıkar; değişen yalnız aradaki perdeler. Her dinleme adımında ana makamla başlayan, komşu dörtlüye uğrayıp geri dönen bir cümle var; ardından aynısını kendin serbestçe çal.",
+          en:"Uşşak: " + names([9, 17, 22, 31]) + ". Kürdî: " + names([9, 13, 22, 31]) + ". Hicaz: " + names([9, 14, 26, 31]) + ". All three climb from Dügâh to Nevâ; only the perdes in between change. Each listening step plays a phrase that starts in the main makam, visits the neighbouring tetrachord and comes back; then you play the same freely." }
+      ] },
+      { type:"soru", items:[
+        { q:{ tr:"Uşşak'tan Kürdî'ye geçince hangi perde değişir?", en:"Going from Uşşak to Kürdî, which perde changes?" },
+          opts:opt([P(17) + " → " + P(13), P(22) + " → " + P(26), P(31) + " → " + P(36), P(40) + " → " + P(44)]), ok:0,
+          why:{ tr:"Segâh yerine Kürdî çalınır; öteki perdeler aynı.", en:"Kürdî is played instead of Segâh; the other perdes stay." } },
+        { q:{ tr:"Hicaz'dan Uşşak'a geçince hangi perdeler gelir?", en:"Going from Hicaz to Uşşak, which perdes come in?" },
+          opts:opt([names(hu.other), names(hu.only), P(13), P(36)]), ok:0,
+          why:{ tr:"Uşşak'ın " + names(hu.other) + " perdeleri Hicaz dizisinde yok.", en:"Uşşak's " + names(hu.other) + " are not in the Hicaz scale." } },
+        { q:{ tr:"Hüseynî'den Karcığar'a geçince Nevâ'nın üstünde hangi perde gelir?", en:"Going from Hüseynî to Karcığar, which perde comes in above Nevâ?" },
+          opts:opt([names(hk.other), P(40), P(48), P(13)]), ok:0,
+          why:{ tr:"Karcığar'da " + names(hk.other) + " var, Hüseynî'nin " + names(hk.only) + " perdeleri yok.", en:"Karcığar has " + names(hk.other) + " and lacks Hüseynî's " + names(hk.only) + "." } }
+      ], min:2 },
+      { type:"listen", makam:"ussak", commas:[9, 17, 22, 31, 22, 13, 9, 13, 22, 31, 22, 17, 9] },
+      { type:"seyir", makam:"ussak", via:"kurdi", sec:60, min:60 },
+      { type:"listen", makam:"hicaz", commas:[9, 14, 26, 31, 26, 14, 9, 17, 22, 31, 22, 17, 9, 14, 26, 14, 9] },
+      { type:"seyir", makam:"hicaz", via:"ussak", sec:60, min:60 },
+      { type:"listen", makam:"huseyni", commas:[9, 22, 31, 40, 48, 40, 31, 36, 48, 36, 31, 22, 17, 9] },
+      { type:"seyir", makam:"huseyni", via:"karcigar", sec:60, min:60 }
+    ] },
+  { id:"gecki-3", unit:"makam", since:2, notes:[],
+    title:{ tr:"Geçki 3: eserde geçkiyi bul", en:"Geçki 3: find the geçki in a piece" },
+    text:[
+      { tr:"Eserlerin çoğunda ezgi bir yerde başka bir makamın perdelerine uğrar. Notada bunu arızaların değişmesinden görürsün: birkaç ölçü boyunca yeni bir arıza belirir, sonra eski arızalar geri gelir. Bu derste arşivden iki eserde bunu dinleyerek bulacaksın, sonra eserleri çalacaksın.",
+        en:"In most pieces the melody visits another makam's perdes somewhere. In the score you see it as a change of accidentals: a new accidental appears for a few bars, then the old ones come back. In this lesson you find this by ear in two pieces from the archive, then play them." },
+      { tr:"Eserler bir betikle seçildi: makamının dizisiyle başlıyor, bir ölçüde makamın dizisinde olmayan perdeler giriyor, bu perdelerin hepsi aynı durakta karar veren bir makamın dizisinde var ve ezgi sonra kendi dizisine dönüp durakta bitiyor.",
+        en:"The pieces were chosen by a script: each starts in its makam's scale, then in one bar perdes outside the scale come in, all of them belong to a makam with the same final, and the melody then returns to its own scale and ends on the final." }
+    ],
+    tips:[
+      { tr:"Dinlerken ölçüleri say; nota ekranında ölçü çizgilerini takip et.", en:"Count the bars while listening; follow the bar lines on the score." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Mâhur'da Hisar", en:"Hisar in Mâhur" }, body:[
+        { tr:"Gör Nitti Cana (Dede Efendi, Aksak, Mâhur). Mâhur'un durağı Rast'tır; Nevâ'nın üstünde Hüseynî ve Acem kullanır. Sûzinak'ın Hisar'ı Mâhur dizisinde yok. İlk on ölçüyü dinle: Hisar kaçıncı ölçüde giriyor?",
+          en:"Gör Nitti Cana (Dede Efendi, Aksak, Mâhur). Mâhur resolves on Rast and uses Hüseynî and Acem above Nevâ. Sûzinak's Hisar is not in the Mâhur scale. Listen to the first ten bars: in which bar does Hisar come in?" }
+      ] },
+      { type:"listen", arsiv:GOR, name:GORN, from:1, to:10, tempoPct:80 },
+      { type:"soru", items:[
+        { q:{ tr:"Gör Nitti Cana'da Hisar (Sûzinak rengi) kaçıncı ölçüde giriyor?", en:"In Gör Nitti Cana, in which bar does Hisar (Sûzinak's colour) come in?" },
+          opts:opt(["3", "5", "7", "9"]), ok:2,
+          why:{ tr:"7. ölçüde (“Yok mu…”): 7–10. ölçüler Hisar'la; 11. ölçüde Hüseynî ve Acem geri gelir, eser Rast'ta biter.", en:"Bar 7 (“Yok mu…”): bars 7–10 use Hisar; in bar 11 Hüseynî and Acem return and the piece ends on Rast." } }
+      ] },
+      ...eserSteps(GOR, GORN, [[1, 6], [7, 14]], { min80:60, min:65 }),
+      { type:"read", title:{ tr:"Hicaz'da Segâh ve Çargâh", en:"Segâh and Çargâh in Hicaz" }, body:[
+        { tr:"Ağyâr İle Sen (Bîmen Şen, Sengin Semâî, Hicaz). İlk sekiz ölçü saz arası, söz 9. ölçüde başlar. Hicaz dizisinde Dügâh ile Nevâ arasında " + names(hu.only) + " var; Uşşak ve Hüseynî dizisindeki " + names(hu.other) + " yok. 9. ölçüden 18. ölçüye kadar dinle: bu iki perde kaçıncı ölçüde giriyor?",
+          en:"Ağyâr İle Sen (Bîmen Şen, Sengin Semâî, Hicaz). The first eight bars are an instrumental interlude; the words start in bar 9. Between Dügâh and Nevâ the Hicaz scale has " + names(hu.only) + "; the " + names(hu.other) + " of the Uşşak and Hüseynî scales are absent. Listen from bar 9 to 18: in which bar do these two perdes come in?" }
+      ] },
+      { type:"listen", arsiv:AGY, name:AGYN, from:9, to:18, tempoPct:80 },
+      { type:"soru", items:[
+        { q:{ tr:"Ağyâr İle Sen'de Segâh ve Çargâh kaçıncı ölçüde giriyor?", en:"In Ağyâr İle Sen, in which bar do Segâh and Çargâh come in?" },
+          opts:opt(["11", "13", "15", "17"]), ok:2,
+          why:{ tr:"15. ölçüde: ezgi Segâh'ta dinlenir; 17. ölçüde Dik Kürdî ve Nim Hicaz geri gelir, cümle Dügâh'ta biter.", en:"Bar 15: the melody rests on Segâh; in bar 17 Dik Kürdî and Nim Hicaz return and the phrase ends on Dügâh." } }
+      ] },
+      ...eserSteps(AGY, AGYN, [[1, 8], [9, 20], [21, 35]], { min80:65, min:70 })
+    ] });
+}
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -2976,7 +3098,9 @@ function stepTitle(step, lang = "tr"){
     case "artik": return pick(artikName(step.style), lang) + ": " + seq() + " · ♩=" + step.tempo + " · " + (en ? "at least " + step.min + " points" : "en az " + step.min + " puan");
     case "dynamics": return (en ? "Dynamics: " : "Dinamik: ") + nn(step.note) + " · " + pick(DYN_NAMES[step.shape], lang) + " · " + step.sec + (en ? " s" : " sn") +
       (step.drift != null ? (en ? " · pitch within ±" : " · perde ±") + (step.drift/2).toString().replace(".", en ? "." : ",") + (en ? " comma" : " koma") : "");
-    case "seyir": if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
+    case "seyir": if(step.via){ const a = LLEARN.makamById(step.makam).name, b = LLEARN.makamById(step.via).name;
+        return (en ? "Geçki: " : "Geçki: ") + a + " → " + b + " → " + a + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
+      if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
         return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
       return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
     case "sight": return (en ? "Sight-reading: level " : "Deşifre: seviye ") + step.level + " · " + (en ? "at least " + step.min + "% correct notes" : "en az %" + step.min + " doğru nota");

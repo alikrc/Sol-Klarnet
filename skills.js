@@ -3,7 +3,7 @@
 // Tarayıcıda lessons.js'ten sonra <script src="skills.js"> ile, Node'da require("./skills.js") ile yüklenir.
 
 const SCORE = typeof module !== "undefined" ? require("./core.js") : { PERDES, nearestPerde, perdeNameAt, detectPitch, freqToMidi, noteName, contextPerde };
-const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, similarMakams, tuningCtx, mean, sd, commaToWritten, perdeName, vibrato };
+const SLEARN = typeof module !== "undefined" ? require("./learn.js") : { MAKAMS, makamById, similarMakams, makamDiff, tuningCtx, mean, sd, commaToWritten, perdeName, vibrato };
 
 // ---- Nota başı (onset) bulma ----
 // Her ölçümde { t (ms), rms, on (perde bulundu mu), tOn? (pencere içinde enerjinin yükseldiği an) } gelir.
@@ -173,6 +173,45 @@ function seyirAnalysis(notes, mk){
   res.score = Math.round(100*(0.3*res.inScale + 0.3*(finalOk ? 1 : 0) + 0.2*(gucluRank >= 0 && gucluRank <= 2 ? 1 : gucluRank >= 0 ? 0.5 : 0) + 0.2*(res.openingOk ? 1 : 0)));
   res.ok = res.inScale >= 0.8 && finalOk && gucluRank >= 0;
   return res;
+}
+// Geçki (ders adımı seyir + via; docs/BACKLOG.md S3.4): ana makamda çalarken via makamının ana makamdan ayıran
+// perdelerine (learn.js makamDiff other) en az iki kez uğra, sonra ana makamın durağında karar ver. Seyir analizi ana
+// makamın dizisine ayıran perdeler eklenerek yapılır (geçki notaları dizi dışı sayılmaz). Bir uğrayış: ayıran perdede
+// uzun (≥ 120 ms) nota; önceki uğrayıştan en az 1 sn sonra başlayan yeni bir uğrayış sayılır (aradaki süslemeler ve
+// perdeyle komşusu arasında gidip gelmek tek uğrayış). Dönüş: son uzun nota durakta ve son uğrayıştan sonra.
+// Puan: %60 seyir puanı, %25 uğrayış (iki uğrayışta tam), %15 dönüş. Eşikler (1 sn, ağırlıklar) tahmindir; gerçek
+// çalışla ayarlanmadı.
+function geckiAnalysis(notes, mk, via){
+  const d = SLEARN.makamDiff(mk, via);
+  if(!d.other.length) return null;
+  const ext = { ...mk, asc:[...mk.asc, ...d.other], desc:mk.desc };
+  const res = seyirAnalysis(notes, ext);
+  if(!res) return null;
+  res.drift = null;                                      // geçki perdeleri bilerek çalınır
+  const m53 = c => ((c % 53) + 53) % 53, oth = d.other.map(m53);
+  const long = notes.filter(n => n.end - n.start >= 120).map(n => ({ ...n, p: mapToScale(n.comma, ext), dur: n.end - n.start }));
+  let visits = 0, lastEnd = -1e9, lastIdx = -1;
+  long.forEach((n, i) => {
+    if(n.p === null || !oth.includes(m53(n.p))) return;
+    if(n.start - lastEnd >= 1000) visits++;
+    lastEnd = n.end; lastIdx = i;
+  });
+  let finIdx = -1;
+  for(let i = long.length - 1; i >= 0; i--) if(long[i].dur >= 400){ finIdx = i; break; }
+  if(finIdx < 0) finIdx = long.length - 1;
+  const back = res.finalOk && lastIdx >= 0 && finIdx > lastIdx;
+  const score = Math.round(0.6*res.score + 25*Math.min(1, visits/2) + (back ? 15 : 0));
+  return { seyir:res, via, other:d.other, visits, back, score, ok: visits >= 2 && back };
+}
+function geckiFeedback(g, mk, lang = "tr"){
+  const en = lang === "en", pn = c => SLEARN.perdeName(c) || "?", oth = g.other.map(pn).join(", ");
+  return [
+    g.visits >= 2 ? (en ? "You visited " + g.via.name + "'s perdes (" + oth + ") " + g.visits + " times." : g.via.name + " perdelerine (" + oth + ") " + g.visits + " kez uğradın.")
+      : g.visits === 1 ? (en ? "You visited " + g.via.name + "'s perdes (" + oth + ") once; go there again after a phrase back in " + mk.name + "." : g.via.name + " perdelerine (" + oth + ") bir kez uğradın; " + mk.name + " cümlesinden sonra bir kez daha git.")
+      : (en ? "You didn't play " + g.via.name + "'s perdes (" + oth + "); the colour changes only when you play them." : g.via.name + " perdelerini (" + oth + ") çalmadın; renk ancak onlarla değişir."),
+    g.back ? (en ? "You came back and resolved on " + pn(mk.durak) + "." : "Geri dönüp " + pn(mk.durak) + " perdesinde karar verdin.")
+      : (en ? "End in " + mk.name + ": after the last visit come back and resolve on " + pn(mk.durak) + "." : mk.name + " ile bitir: son uğrayıştan sonra geri dön ve " + pn(mk.durak) + " perdesinde karar ver.")
+  ];
 }
 // Taksim aşamaları (ders adımı seyir + focus): notalar sessizlikle (en az gapMs boşluk) cümlelere bölünür; her cümlenin
 // son notası kalış yeridir. Puanlar 0–100 ve yalnız ölçülebileni sayar (ezginin güzelliğini değil):
@@ -1309,5 +1348,5 @@ if(typeof module !== "undefined") module.exports = {
   ornamentTrack, microNotes, ORN, ornamentNeighbor, ornamentScan, ornamentScanFeedback, ORN_SCAN_NAMES, ornamentEval, ornamentNotes, ornamentScore, ornamentUnmeasured, ornamentAmbiguous,
   techPattern, patternKey, runNotes, audioNotes, joinAudioChunk, tuningOffset, quantizeRun, runPlayed, alignRun, runVerdict, TempoLadder, patternFromKey, runVoicedRatio, ladderLoop, pcmRises, ARTIK, artikStyles, artikEval,
   OnsetDetector, matchOnsets, rhythmScore, RHYTHM_PATTERNS, usulStrokeTimes, expectedTimes,
-  toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, phraseAnalysis, phraseFeedback, Staircase, perdePairs, makamChoices, makamPhrase
+  toneQuality, dynamicsEval, mapToScale, seyirAnalysis, seyirFeedback, geckiAnalysis, geckiFeedback, phraseAnalysis, phraseFeedback, Staircase, perdePairs, makamChoices, makamPhrase
 };

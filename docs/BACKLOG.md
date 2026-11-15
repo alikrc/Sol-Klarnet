@@ -473,7 +473,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   usulde. `ilk-eserler-*` ve `usul-3/4`'teki eserler tekrar kullanılmadı (Saba dışında: başka aday yok). Tarayıcıda
   375 px'te dersler açıldı; okuma, soru ve arşiv dinleme adımları denendi, konsolda hata yok; çalma adımları mikrofon
   engelli olduğu için başlatılamadı.
-- [ ] **S3.4 Geçki: üç ders** (B, E12). Yeni adım parametresi: `seyir { makam, via, sec, min }`: `via` makamının
+- [x] **S3.4 Geçki: üç ders** (B, E12). **Yapıldı (15 Kasım 2026).** Yeni adım parametresi: `seyir { makam, via, sec, min }`: `via` makamının
   ana makamdan **ayıran perdelerine** (`similarMakams`'ın fark hesabı) en az iki kez uğra, sonra ana makamın
   durağında karar ver; puan `seyirAnalysis` + bu iki koşul. Dersler (Makamlar sonu, `makam-bulma`'dan sonra):
   `gecki-1` "Çeşni değiştirmek" (`read` + `soru`; Rast'ta Nevâ üstünde Hicaz = Sûzinak rengi: `listen` iki cümle,
@@ -481,6 +481,26 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Karcığar), `gecki-3` "Eserde geçkiyi bul" (arşivden geçkili 2 eser; betik arızaların ölçü ölçü değiştiği eserleri
   aday gösterir; `listen` + "hangi ölçüde renk değişti" `soru`, sonra `eserSteps`). Yalnız uygulamadaki dizilerden
   hesaplanabilen geçkiler anlatılır; "bu makam şuna geçer" türünden gelenek iddiası kaynaksız yazılmaz.
+  *Uygulanan:* `learn.js` `makamDiff(mk, o)` (`similarMakams`'ın fark hesabı ayrıldı; ayıran perdeler `only`/`other`).
+  `skills.js` `geckiAnalysis(notes, mk, via)` ve `geckiFeedback`: seyir analizi ana makamın dizisine via'nın ayıran
+  perdeleri eklenerek yapılır (geçki notaları dizi dışı sayılmaz, benzer makama kayma uyarısı kapalı). Uğrayış: ayıran
+  perdede ≥ 120 ms nota; önceki uğrayıştan en az 1 sn sonra başlayan yeni uğrayış sayılır. Dönüş: son uzun nota (≥ 400
+  ms) durakta ve son uğrayıştan sonra. Puan %60 seyir puanı + %25 uğrayış (iki uğrayışta tam) + %15 dönüş. **Eşikler
+  (1 sn, ağırlıklar) tahmin**, gerçek çalışla ayarlanmadı. `trainers.js` seyir adımı `st.via` varsa bu puanı kullanır ve
+  sahnede "şu perdelere iki kez uğra" yönergesini gösterir; `stepTitle` "Geçki: Rast → Sûzinak → Rast"; `stepOk`
+  değişmedi (`v >= min`). `lessons.js` `// ---- S3.4 Geçki ----` bloğu, `insertLessonAfter("makam-bulma", …)`, `since:2`;
+  metinlerdeki perde farkları `makamDiff`'ten üretilir. `gecki-1`: read, soru ×3, listen ×2 (Rast cümlesi; Hisar'a
+  uğrayıp Rast'a dönen cümle), notes ×2, `seyir` rast via suzinak 60 sn min 60. `gecki-2`: read, soru ×3, üç listen +
+  seyir (ussak via kurdi, hicaz via ussak, huseyni via karcigar). Uşşak → Hicaz yerine Hicaz → Uşşak seçildi: Uşşak'ta
+  icra Segâh'ı (1,5 koma pes) Dik Kürdî'ye 1,5 koma kalır, uğrayış yanlış sayılabilirdi; Hicaz → Uşşak'ta uğrayışı
+  belirgin Çargâh taşır (pes basılan Segâh orada da Dik Kürdî'ye eşlenebilir).
+  `gecki-3`: yeni betik `scripts/gecki-sec.js` (telif süzgeci `eser-sec.js`'teki gibi): ilk iki ölçü makamın dizisinde,
+  sonra bir ölçüde dizi dışı perdeler girer (süslemesiz, ≥ yarım vuruş, toplam ≥ 2 vuruş), hepsi aynı duraklı ve en çok
+  3 perdeyle ayrılan bir makamın ayıran perdesi; sonra ana makamın ayıran perdesi geri gelir, eser durakta biter. 14 aday;
+  seçilenler "Gör Nitti Cana" (Dede Efendi, Mâhur, Aksak; 7–10. ölçüler Hisar, yani `gecki-1`'in Sûzinak rengi; 11.
+  ölçüde dönüş) ve "Ağyâr İle Sen" (Bîmen Şen, Hicaz, Sengin Semâî; 15. ölçüde Segâh ve Çargâh, 17'de dönüş). Adımlar:
+  read, listen (1–10 / 9–18, %80), "kaçıncı ölçüde" `soru` (doğru cevap betiğin bulduğu ölçü), `eserSteps` (Gör Nitti
+  Cana [[1,6],[7,14]], min80 60, min 65: seviye 3, otuzikilikler var; Ağyâr [[1,8],[9,20],[21,35]]). Müfredat 145 ders.
 - [ ] **S3.5 Şed (göçürme) ve ahenk** (B, E13). *Önce bakılacak:* `core.js` `setTuningContext`/`contextPerde` bir
   makamı başka perdeye taşıyabiliyor mu; taşıyamıyorsa `scale`, `seyir` ve `mimic` adımlarına `shift:<koma>` (53
   TET'te 9 = tanini, 22 = dörtlü, 31 = beşli) eklenir, hedef perdeler `mod53` ile kaydırılır. Dersler (İleri):
