@@ -12,14 +12,14 @@ const RMLEARN = typeof module !== "undefined" ? require("./learn.js") : { dayKey
 const histDays = (key, ok = () => true) => st => st.hist[key].filter(ok).map(x => x.d);
 const RM_STAGES = [
   { id:"baslangic", units:["baslangic","temel"], title:{ tr:"Başlangıç: ilk sesler", en:"Beginner: first sounds" },
-    goal:{ tr:"Klarneti kurar, nefesle temiz ses çıkarır, iki elle Mi3–Sol4 arasını çalarsın.", en:"You assemble the clarinet, make a clean sound and play E3–G4 with both hands." },
+    goal:{ tr:"Klarneti kurar, nefesle temiz ses çıkarır, pes bölgenin notalarını okur ve çalar, kısa ezgiler ve ilk eserleri çalar, dört usulü vurursun.", en:"You assemble the clarinet, make a clean sound, read and play the low-register notes, play short tunes and your first pieces, and tap four usuls." },
     miles:[
       { id:"long67", tab:"long", title:{ tr:"Açık Sol'da uzun ton", en:"Long tone on open G" }, unit:{ tr:" puan", en:" pts" }, target:60, get: st => st.longBest[67] || null, tried: histDays("long", x => x.w === 67 && !x.src) },
       { id:"quiz1", tab:"quiz", title:{ tr:"Parmak testi: klarino bölgesi açıldı", en:"Fingering quiz: clarion region unlocked" }, unit:{ tr:" bölge", en:" regions" }, target:2, get: st => st.quizRegions, tried: histDays("quiz") },
       { id:"usul4", tab:"usul", title:{ tr:"4 usulü ezberden vur", en:"Tap 4 usuls from memory" }, unit:{ tr:" usul", en:" usuls" }, target:4, get: st => st.usulMem || null }
     ] },
   { id:"temel", units:["klarino","teknik"], title:{ tr:"Temel çalgıcı: register, ritim, okuma", en:"Core player: register, rhythm, reading" },
-    goal:{ tr:"Klarino bölgesi, dil vuruşu, dinamik, usuller; notayı ilk görüşte okur ve koma farkını duyarsın.", en:"The clarion register, tonguing, dynamics, usuls; you sight-read and hear comma differences." },
+    goal:{ tr:"Mi3–Do6 arası, kırılmayı temiz geçerek; dil vuruşu, kesik ve bağlı, dinamik, usuller; notayı ilk görüşte okur ve koma farkını duyarsın.", en:"E3–C6, crossing the break cleanly; tonguing, staccato and legato, dynamics, usuls; you sight-read and hear comma differences." },
     miles:[
       { id:"rhythm", tab:"rhythm", title:{ tr:"Ritim puanı", en:"Rhythm score" }, unit:{ tr:" puan", en:" pts" }, target:75, get: st => st.rhythmBest || null, tried: histDays("rhythm", x => !x.src) },
       { id:"ear", tab:"ear", title:{ tr:"Kulak eşiği (tiz mi pes mi)", en:"Ear threshold (higher or lower)" }, unit:{ tr:" koma", en:" commas" }, target:2, lower:true, get: st => st.earPitch },
@@ -29,7 +29,7 @@ const RM_STAGES = [
       { id:"dictr", tab:"dikte", title:{ tr:"Ritim diktesi seviye 2 (10 soruda)", en:"Rhythm dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:7, get: st => st.dictBest.rhythm2 || null, tried: histDays("dict", x => x.m === "rhythm" && +x.lv === 2) }
     ] },
   { id:"orta", units:["hiz","susleme"], title:{ tr:"Orta: hız ve süsleme", en:"Intermediate: speed and ornaments" },
-    goal:{ tr:"Gam ve arpejleri metronomla hızlanarak, çarpma, mordan, tril ve kayışları ölçülü çalarsın.", en:"Scales and arpeggios speeding up with the metronome; grace notes, mordents, trills and slides, measured." },
+    goal:{ tr:"Gam, arpej, kromatik ve iki oktav dizileri metronomla hızlanarak; çarpma, mordan, tril ve kayışları ölçülü çalarsın.", en:"Scales, arpeggios, chromatic and two-octave scales speeding up with the metronome; grace notes, mordents, trills and slides, measured." },
     miles:[
       { id:"tech", tab:"hiz", title:{ tr:"Hız: en iyi temiz tempo", en:"Speed: best clean tempo" }, unit:{ tr:" ♩", en:" ♩" }, target:100, get: st => st.techBest || null, tried: histDays("tech") },
       { id:"chrom", tab:"hiz", title:{ tr:"Kromatik dizi ♩=80 temiz", en:"Chromatic scale clean at ♩=80" }, unit:{ tr:" ♩", en:" ♩" }, target:80, get: st => st.chromBest || null, tried: histDays("chrom") },
@@ -37,12 +37,16 @@ const RM_STAGES = [
       { id:"carpma", tab:"susleme", title:{ tr:"Çarpma başarısı (son 20)", en:"Grace notes (last 20)" }, unit:{ tr:"%", en:"%" }, target:70, get: st => st.carpmaRate, tried: histDays("orn", x => x.kind === "carpma") }
     ] },
   { id:"makam", units:["makam"], title:{ tr:"Makamlar", en:"Makams" },
-    goal:{ tr:"Dokuz temel ve on genişletilmiş makamın dizisini, seyrini ve icra akordunu oturtursun.", en:"You settle the scale, seyir and practice tuning of nine basic and ten extended makams." },
+    goal:{ tr:"Otuzu aşkın makamın dizisini, seyrini, karar kalıplarını ve icra akordunu oturtur; geçki yapar, form ve usul bilgisiyle makam eserleri çalarsın.", en:"You settle the scale, seyir, cadence patterns and practice tuning of over thirty makams; you modulate and play makam pieces knowing their form and usul." },
     miles:[
       { id:"seyir", tab:"seyir", title:{ tr:"Seyir puanı", en:"Seyir score" }, unit:{ tr:" puan", en:" pts" }, target:65, get: st => st.seyirBest || null, tried: histDays("seyir") },
       { id:"makamid", tab:"ear", title:{ tr:"Makam tanıma rekoru", en:"Makam ID record" }, unit:{ tr:" art arda", en:" in a row" }, target:5, get: st => st.earMakam || null },
       { id:"usul12", tab:"usul", title:{ tr:"12 usulü ezberden vur", en:"Tap 12 usuls from memory" }, unit:{ tr:" usul", en:" usuls" }, target:12, get: st => st.usulMem || null },
-      { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null, tried: histDays("dict", x => x.m === "melody" && +x.lv === 2) }
+      { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null, tried: histDays("dict", x => x.m === "melody" && +x.lv === 2) },
+      // S5.1: ders adımlarının kaydından (lesson.prog); soft: sonradan eklendi, dersleri bitmiş kullanıcıyı durdurmaz.
+      // Deneme günü yok: ders adımı yalnız en iyi sonucu tutar, gününü değil
+      { id:"kalip5", tab:"lessons", soft:true, title:{ tr:"5 makamda karar kalıpları", en:"Cadence patterns in 5 makams" }, unit:{ tr:" makam", en:" makams" }, target:5, get: st => st.cadMakams || null },
+      { id:"gecki65", tab:"lessons", soft:true, title:{ tr:"Geçkili seyir puanı", en:"Seyir score with a modulation" }, unit:{ tr:" puan", en:" pts" }, target:65, get: st => st.geckiBest || null }
     ] },
   { id:"trakya", units:["turku", "trakya"], title:{ tr:"Türküler ve oyun havaları", en:"Türküs and dance tunes" },
     goal:{ tr:"Arşivden türküleri ve zeybekleri usulüyle çalar; kasap, karşılama, Roman havası, çiftetelli ve Rumeli havalarını usule oturarak, üslubuyla ve eşlikle çalarsın.", en:"You play türküs and zeybeks from the archive in their usul; and kasap, karşılama, Roman havası, çiftetelli and Rumeli tunes in the groove, in style and with a band." },
@@ -52,7 +56,7 @@ const RM_STAGES = [
       { id:"groove", tab:"band", title:{ tr:"Eşlikle çalarken usule oturma", en:"In the groove with the band" }, unit:{ tr:"%", en:"%" }, target:75, get: st => st.bandGrid, tried: histDays("band") }
     ] },
   { id:"ileri", units:["ileri"], title:{ tr:"İleri: taksim ve ustalık", en:"Advanced: taksim and mastery" },
-    goal:{ tr:"Taksim yapar, bir komayı duyar, metronomsuz tempoyu korur, makam perdeli notayı ilk görüşte okursun.", en:"You play a taksim, hear a single comma, keep tempo without a click and sight-read makam scores." },
+    goal:{ tr:"Geçkili ve usullü taksim yapar, şed ve fasıl çalar, saz eserlerini ve altissimoyu çalar, ezberden icra eder, bir komayı duyar, makam perdeli notayı ilk görüşte okursun.", en:"You play taksims with modulation and in usul, transposed makams and a fasıl, saz pieces and the altissimo, perform from memory, hear a single comma and sight-read makam scores." },
     miles:[
       { id:"ear1", tab:"ear", title:{ tr:"Kulak eşiği 1 koma", en:"Ear threshold 1 comma" }, unit:{ tr:" koma", en:" commas" }, target:1, lower:true, get: st => st.earPitch },
       { id:"seyir3", tab:"seyir", title:{ tr:"Üç makamda seyir puanı 75", en:"Seyir 75 in three makams" }, unit:{ tr:" makam", en:" makams" }, target:3, get: st => st.seyirMakams75, tried: histDays("seyir") },
@@ -65,11 +69,12 @@ const RM_STAGES = [
 // Repertuvar merdiveni taşları (S4.1, repertuvar.js): her aşamaya bir basamak, o basamaktan 6 eser çalınmış olmalı.
 // soft: hoca kartı bu taşı sıradaki dersin önüne koymaz, yalnız yan öneri yapar (taş sonradan eklendi; dersleri bitmiş
 // kullanıcı eser çalmadan yeni derse geçebilsin). repertuvar.js tarayıcıda bu dosyadan sonra yüklenir: sayım çağrı anında
-const RMREP = () => typeof module !== "undefined" ? require("./repertuvar.js") : (typeof repCounts === "function" ? { repCounts } : null);
+const RMREP = () => typeof module !== "undefined" ? require("./repertuvar.js") : (typeof repCounts === "function" ? { repCounts, REP_LADDER } : null);
 const REP_STAGE = { baslangic:1, temel:2, orta:3, makam:4, trakya:5, ileri:6 };
+// tried: o basamaktan çalındı sayılan eserlerin günleri (rep.played d); başarısız deneme kaydı yok
 for(const s of RM_STAGES){ const n = REP_STAGE[s.id]; if(!n) continue;
   s.miles.push({ id:"rep" + n, tab:"repertuvar", soft:true, title:{ tr:"Repertuvar: basamak " + n + "'den 6 eser", en:"Repertoire: 6 pieces from step " + n },
-    unit:{ tr:" eser", en:" pieces" }, target:6, get: st => (st.repCounts || {})[n] || null }); }
+    unit:{ tr:" eser", en:" pieces" }, target:6, get: st => (st.repCounts || {})[n] || null, tried: histDays("rep", x => x.n === n) }); }
 // Hedef tarz: "dance" oyun havalarını makam aşamasından önceye alır
 function stageOrder(style){
   const ids = RM_STAGES.map(s => s.id);
@@ -92,19 +97,31 @@ function roadmapStats(get){
   // Uzun taksim (S4.5, lessons.js taksim-uzun): en az 115 sn çalınmış denemelerde tutan (≥ 60, skills.js TAKSIM_PART_OK) bölüm sayısının en iyisi
   const uz = sy.filter(x => Array.isArray(x.parts) && x.sec >= 115), taksimParts = uz.length ? Math.max(...uz.map(x => x.parts.filter(v => v >= 60).length)) : null;
   const ear = get("ear.best", {}), band = get("band.hist", []).filter(x => x.grid != null && x.bars >= 8);
+  // S5.1 ders adımı taşları: çalınmadan geçilmiş (placed: sınama ya da göç) ders sayılmaz.
+  // Karar kalıbı: <makam>-2 dersinin bütün karar kalıbı (notes) adımları geçilmiş makam sayısı (lessons.js makamSecond).
+  // Geçki: via'lı seyir adımlarının (gecki-1, gecki-2, taksim-gecki) en iyi puanı; adım kaydı geckiAnalysis puanını tutar
+  const prog = get("lesson.prog", {}), real = l => prog[l.id] && !prog[l.id].placed;
+  const cadMakams = RMLESSONS.LESSONS.filter(l => l.makam && l.id === l.makam + "-2" && real(l)).filter(l => {
+    const ks = l.steps.map((s, k) => s.type === "notes" ? k : -1).filter(k => k >= 0);
+    return ks.length && ks.every(k => prog[l.id].s[k] && prog[l.id].s[k].ok); }).length;
+  const geckiBest = [...RMLESSONS.LESSONS, ...RMLESSONS.EXAMS].filter(real).reduce((a, l) => l.steps.reduce((b, s, k) => {
+    const r = s.type === "seyir" && s.via && prog[l.id].s[k]; return r && r.v > b ? r.v : b; }, a), 0);
+  const R = RMREP(), played = get("rep.played", {});
+  const repHist = R && R.REP_LADDER ? R.REP_LADDER.flatMap(b => b.pieces.filter(([id]) => played[id] && played[id].d).map(([id]) => ({ n:b.n, d:played[id].d }))) : [];
   return {
-    prog: get("lesson.prog", {}), days: get("days", {}), goalMin: get("goal.min", 15), dailyDone: get("lesson.dailyDone", []),
+    prog, days: get("days", {}), goalMin: get("goal.min", 15), dailyDone: get("lesson.dailyDone", []),
     longBest, quizRegions: RMLEARN.unlockedLevels(get("quiz.recent", {})),
     rhythmBest: get("rhythm.best", 0), earPitch: ear.pitch != null ? ear.pitch : null, earMakam: ear.makam || 0,
     sightBest: get("sight.best", {}), dictBest: get("dict.best", {}),
     techBest, chromBest, trilBest: get("orn.trilBest", 0), carpmaRate: c.length >= 5 ? Math.round(c.filter(h => h.ok).length/c.length*100) : null,
     seyirBest: sy.reduce((a, x) => Math.max(a, x.score), 0), seyirMakams75: Object.values(syBy).filter(v => v >= 75).length, taksimParts,
+    cadMakams, geckiBest,
     usulMem: Object.values(get("usul.prog", {})).filter(p => p && p.mem >= 70).length, usulQuiz: get("usul.quiz.best", 0),
-    repCounts: (() => { const R = RMREP(); return R ? R.repCounts(get("rep.played", {})) : {}; })(),
+    repCounts: R ? R.repCounts(played) : {},
     pieceBest: get("piece.best", {}), bandGrid: band.length ? Math.max(...band.map(x => x.grid)) : null,
     hist: { long: get("long.hist", []), rhythm: get("rhythm.hist", []), seyir: get("seyir.hist", []), quiz: get("quiz.rounds", []),
       sight: get("sight.hist", []), dict: get("dict.hist", []), band, tech: Object.values(tb).flat().map(x => ({ d: x.day })), chrom: chrom.map(x => ({ d: x.day })),
-      orn: get("orn.hist", []).map(h => ({ kind: h.kind, d: RMLEARN.dayKey(new Date(h.t)) })) }
+      orn: get("orn.hist", []).map(h => ({ kind: h.kind, d: RMLEARN.dayKey(new Date(h.t)) })), rep: repHist }
   };
 }
 // Aşamaların durumu: { stage, lessons:{done,total}, miles:[{m, v, ok}], done, pct }; ilk bitmemiş aşama current
@@ -122,7 +139,7 @@ function roadmapStatus(st, style){
 }
 // Çalışma hızı: son 28 günde bitirilen ders sayısı. Yeterli veri yoksa (2'den az ders ve 5'ten az çalışılan gün) plan
 // hızı: haftada 5 gün günlük hedef kadar, her ders ≈ 3 günlük çalışma. Dönen: { perWeek, basis: "actual"|"plan",
-// minPerDay, activeDays, weeks: [aşama başına kalan hafta], total }
+// minPerDay, activeDays, weeks: [aşama başına kalan hafta], total }. Sekme yalnız içinde bulunulan aşamanın haftasını gösterir
 function roadmapPace(st, status, today = new Date()){
   const from = new Date(today); from.setDate(from.getDate() - 28);
   const fk = RMLEARN.dayKey(from);
@@ -356,8 +373,8 @@ if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
     const all = store.get("lesson.all", false), cl = coachLesson(st, { style, all, guided: store.get("lesson.guided", true) });
     const nx = cl ? lessonById(cl) : nextLesson(st.prog, all);
     const miss = cur ? cur.miles.find(x => !x.ok) : null;
-    const wks = w => w < 1 ? L("1 haftadan az", "under a week") : Math.round(w) + L(" hafta", " weeks");
-    const months = w => w < 6 ? wks(w) : num(w/4.3, 0) + L(" ay", " months");
+    // Tahmin yalnız içinde bulunulan aşamanın süresi (S5.1): 185 derslik bütün yolun toplamı ("36 ay") caydırıcı
+    const wks = w => w < 1 ? L("1 haftadan az", "under a week") : w < 9 ? Math.round(w) + L(" hafta", " weeks") : num(w/4.3, 0) + L(" ay", " months");
     P.innerHTML = `
       <p class="pdesc">${L("Sıfırdan ustalığa altı aşama. Her aşamanın dersleri ve ölçülen kilometre taşları var; taşlar alıştırmalardaki en iyi sonuçlarından hesaplanır. Tahmin son dört haftadaki çalışma hızına göre.",
         "Six stages from zero to mastery. Each stage has lessons and measured milestones, computed from your best results in the exercises. The estimate uses your pace over the last four weeks.")}</p>
@@ -375,7 +392,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.roadmap = function(ctx){
           ${miss ? `<button type="button" class="chipbtn" data-tab="${miss.m.tab}">${esc(tx(miss.m.title))} → ${miss.m.lower ? "≤ " : ""}${miss.m.target}${esc(tx(miss.m.unit))}</button>` : ""}
           ${!nx && !miss ? L("Hepsi tamam!", "All done!") : ""}</div></div>
         <div><span class="label">${L("Tahmin", "Estimate")}</span>
-          <p class="rmest">${cur ? (pace.basis === "plan" ? L("Haftada 5 gün, günde " + st.goalMin + " dk çalışırsan şu anki aşama ", "Practising 5 days a week, " + st.goalMin + " min a day, the current stage takes ") : L("Bu hızla şu anki aşama ", "At this pace the current stage takes ")) + `<b>${wks(pace.weeks[status.indexOf(cur)])}</b>` + L(", hepsi ", ", everything ") + `<b>${months(pace.total)}</b>` + L(" sürer.", ".") : L("Bütün aşamalar tamam.", "All stages complete.")}
+          <p class="rmest">${cur ? (pace.basis === "plan" ? L("Haftada 5 gün, günde " + st.goalMin + " dk çalışırsan şu anki aşama ", "Practising 5 days a week, " + st.goalMin + " min a day, the current stage takes ") : L("Bu hızla şu anki aşama ", "At this pace the current stage takes ")) + `<b>${wks(pace.weeks[status.indexOf(cur)])}</b>` + L(" sürer.", ".") :L("Bütün aşamalar tamam.", "All stages complete.")}
           <small class="muted">${L("Son 4 hafta: günde ort. ", "Last 4 weeks: avg ") + num(pace.minPerDay, 0) + L(" dk, ", " min a day, ") + pace.activeDays + L(" gün çalıştın.", " days practised.")}</small></p></div>
       </div>
       ${weekHtml()}

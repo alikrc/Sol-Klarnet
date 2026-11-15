@@ -9,7 +9,7 @@ Uygulama hiçbir şey bilmeyen birini sıfırdan ileri seviyeye götürmeli." Bu
 ve öğrenme yolu**; arayüz işleri (U grubu) ve teknik işler aşağıdaki bölümlerde duruyor.
 
 **Bakılanlar:** `lessons.js` (89 ders, 9 ünite, sınavlar, kapılar), `repertoire.js` (28 etüt), `learn.js` (20 makam,
-19 usul), `teori.js` (8 konu), `sorunlar.js` (19 sorun), `roadmap.js` (6 aşama, 21 kilometre taşı), `reading.js`
+19 usul), `teori.js` (8 konu), `sorunlar.js` (19 sorun), `roadmap.js` (6 aşama, 32 kilometre taşı), `reading.js`
 (deşifre, dikte, aralık), `videos.js` (122 video, 46 derse bağlı), `core.js` (parmak verisi yazılı 52–99), `notalar/`
 (3037 eser). **Bakılamayanlar:** ders metinlerinin tek tek müzikal doğruluğu ve mikrofonlu adımların gerçek klarnetle
 davranışı. Aşağıdaki eşik ve tempo değerleri var olan benzer derslerden alındı; gerçek çalgıyla ölçülmedi.
@@ -821,12 +821,36 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S5 — Akış, ölçme ve bitiş (≈ 1,5 hafta; içerik PBI'larıyla birlikte)
 
-- [ ] **S5.1 Yol haritası yeniden** (O, E27). `RM_STAGES` "Hedef müfredat" tablosuna göre: yeni üniteler aşamalara
+- [x] **S5.1 Yol haritası yeniden** (O, E27). **Yapıldı (15 Kasım 2026).** `RM_STAGES` "Hedef müfredat" tablosuna göre: yeni üniteler aşamalara
   yazılır (`turku` → Yöreler ve fasıl aşaması, Trakya ile birlikte). Yeni taşlar: okuma (dizek testi 52–84 arası
   %80), eser (basamak taşları), "12 usul", "kromatik ♩=80", "5 makamda karar kalıpları", "geçkili seyir puanı 65",
   "2 dakikalık taksim". `mileStuck` deneme günü kaynaklarına yeni kayıtlar (`rep.hist`) eklenir. `roadmapPace`
   tahmini ders sayısı artınca "36 ay" gibi caydırıcı sayı göstermesin: U-6 ile birlikte yalnız içinde bulunulan
   aşamanın süresi gösterilir.
+  *Uygulanan:* aşama–ünite eşlemesi değişmedi: "Hedef müfredat" tablosu ünite sınırlarıyla aynı (`turku` S4.2'den beri
+  Trakya ile aynı aşamada; S4.3 fasıl dersleri `ileri` ünitesinde olduğu için İleri aşamasında). 185 dersin aşamalara
+  dağılımı 38 / 25 / 19 / 53 / 19 / 30 (İleri'de isteğe bağlı `nefes-3` sayılmaz). Aşama hedef metinleri tabloya göre
+  yenilendi (kırılma, iki oktav ve kromatik dizi, otuzu aşkın makam, geçki, şed, fasıl, saz eserleri, ezber). Zaten
+  vardı: kromatik ♩=80 (S2.3 `chrom`), 12 usul (S3.7 `usul12`), basamak taşları (S4.1 `rep1–6`), 2 dakikalık taksim
+  (S4.5 `taksim4`). **Yeni taşlar (Makamlar aşaması):** `kalip5` "5 makamda karar kalıpları": `<makam>-2` dersinin
+  bütün karar kalıbı (`notes`) adımları geçilmiş makam sayısı; `gecki65` "Geçkili seyir puanı 65": `via`'lı seyir
+  adımlarının (`gecki-1`, `gecki-2`, `taksim-gecki`) `lesson.prog`'daki en iyi puanı (adım `geckiAnalysis` puanını
+  tutar). İkisinde de çalınmadan geçilmiş (`placed`: sınama ya da göç) ders sayılmaz; taşa dokununca Dersler açılır.
+  **Ölçülemediği için eklenmedi: okuma taşı (dizek testi 52–84 %80).** Parmak testinin "Oku" modu turu
+  `quiz.rounds`'a `{ d, mode, right, total }` yazıyor, hangi bölgeden sorulduğunu yazmıyor; `quiz.recent` bölge başına
+  son 20 cevabı tutuyor ama modu ayırmıyor. Ölçmek için `drills.js` `finish()` tur kaydına bölge aralığı (`lo`, `hi`)
+  eklenmeli, taş `mode === "staff"` ve `lo <= 52 && hi >= 84` turlarda `right/total ≥ 0,8` olur (Temel çalgıcı aşaması).
+  **`soft` kararı:** iki yeni taş da `soft`. Gerekçe: sonradan eklendiler; `gecki65` dersin geçme eşiğinden (60) yüksek,
+  `kalip5` sınamayla yerleşen kullanıcıda boş kalır; ikisi de sert olsaydı dersleri bitmiş kullanıcı hoca kartında
+  `mileStuck` süresi dolana kadar beklerdi. Ders adımı kaydından ölçüldükleri için zaten dersin içinde çalışılıyorlar;
+  hoca kartı onları yalnız yan öneri ve dersler bitince kalan taş olarak söyler, aşama yüzdesi ve kademe raporu sayar.
+  **`mileStuck`:** basamak taşlarına deneme günü kaynağı olarak `rep.played` günleri (`st.hist.rep`, basamak başına)
+  eklendi; `rep.hist` diye bir kayıt yok, başarısız eser denemesi kaydedilmiyor. Ders adımı taşlarının deneme günü yok
+  (adım yalnız en iyi sonucu tutar); `soft` taşlarda `mileStuck` zaten çağrılmıyor. **`roadmapPace`:** sekme "hepsi N
+  ay" toplamını göstermiyor, yalnız içinde bulunulan aşamanın süresi (9 haftadan uzunsa ay olarak). Node'da sıfır
+  kullanıcı (ilk ders), yarı yoldaki (sınav), bütün dersleri bitmiş (gerçek ve `placed`) ve her şeyi bitirmiş kayıtta
+  (kademe raporu, sonra `done`) hoca kartı çıkmaza girmedi; tarayıcıda 375 px'te Yol haritası sekmesi 32 taşla çizildi,
+  konsolda hata yok.
 - [ ] **S5.2 Seviye sınaması eşlemesi** (K, E27). `onboard.js`: nota turlarının bitmiş saydığı ders listelerine yeni
   Temeller ve Klarino dersleri eklenir (S1.1, S1.2, S2.1); okuma sınaması 4 sorudan 8'e (ikisi süre, ikisi arıza)
   ve `okuma-2…5`'i ayrı ayrı sayar; ezgi dersleri (`ezgi-*`, `ilk-eserler-*`) sınamayla **bitmiş sayılmaz**
