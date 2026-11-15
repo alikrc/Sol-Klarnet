@@ -851,10 +851,35 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   kullanıcı (ilk ders), yarı yoldaki (sınav), bütün dersleri bitmiş (gerçek ve `placed`) ve her şeyi bitirmiş kayıtta
   (kademe raporu, sonra `done`) hoca kartı çıkmaza girmedi; tarayıcıda 375 px'te Yol haritası sekmesi 32 taşla çizildi,
   konsolda hata yok.
-- [ ] **S5.2 Seviye sınaması eşlemesi** (K, E27). `onboard.js`: nota turlarının bitmiş saydığı ders listelerine yeni
+- [x] **S5.2 Seviye sınaması eşlemesi** (K, E27). **Yapıldı (15 Kasım 2026).** `onboard.js`: nota turlarının bitmiş saydığı ders listelerine yeni
   Temeller ve Klarino dersleri eklenir (S1.1, S1.2, S2.1); okuma sınaması 4 sorudan 8'e (ikisi süre, ikisi arıza)
   ve `okuma-2…5`'i ayrı ayrı sayar; ezgi dersleri (`ezgi-*`, `ilk-eserler-*`) sınamayla **bitmiş sayılmaz**
   ("istersen" önerilir). Makam turları `<makam>-2` derslerini saymaz.
+  *Uygulanan:* Nota grupları beşe çıktı: "Pes ve orta ses" (67, 62, 60, 55, 52 → `sol-el-1`, `sol-el-2`, `sag-el`,
+  `isinma`, `pes`), yeni **"Diyez ve bemoller"** (56, 61 → `ariza-1`, `ariza-2`; S1.2'nin notu: arızalı notalar artık
+  yoklanıyor), "Boğaz notaları", "Register geçişi", "Klarino" (79, **82**, 84; Si♭5 `klarino-ariza`'yı yoklar).
+  Ezgi, pekiştirme ve bilgi dersleri (`ezgi-*`, `ilk-eserler-*`, `temel-tekrar`, `akortlama`, `teori-transpoz`,
+  `kulak-ezgi-1`, `ezgi-klarino`) listelerde yok; arkası bitmişse göçle "istersen" olur (bugünkü durum korundu).
+  Okuma 8 soru: nota adı ×2 (Başlarken `nota-okuma`, hece seçimi, eski biçim), süre ×2 (`okuma-2`), arıza ×2
+  (`okuma-3`), yol işareti (`okuma-4`, dolap), ek çizgi (`okuma-5`). Nota adı dışındakiler dersin kendi `soru`
+  maddeleridir (`soruItems`; şekil `trainers.js` soru adımı gibi çizilir, seçenek sırası sabit karışık). Bir dersin
+  sorularından biri yanlışsa o ders bitmiş sayılmaz, eski placed kaydı silinir ve **göçle de geçilmez** (`migrateCurriculum`'a
+  `seen` olarak `keep` verilir). Doğru bilinen okuma dersi ancak ardındaki çalma grubu da geçildiyse sayılır (`RQ_GATE`:
+  okuma-2 → pes, okuma-3 → arıza, okuma-4 → boğaz, okuma-5 → register); yoksa pes bölgede kalan birinin okuma-4'ü
+  bitmiş sayılır, araya giren ezgiler göçle atlanırdı. Makam turları `<makam>-2`'yi zaten saymıyordu ama göç onları
+  (ör. `rast-2`, `ussak-2`, `huseyni-2`) "istersen" yapıyordu; artık `keep`'te, açık kalırlar (sırası gelince önerilir).
+  Türkü ve İleri: sınama ölçmez, göç dokunmaz (ünitede bitmiş ders yok); `syncExams` yalnız dersleri bütünüyle bitmiş
+  ünitenin sınavını yerleştirdiği için Türkü sınavı yerleşmez, Klarino sınavı yerleşince Türkü kapısı (GATE_AFTER) açılır,
+  ilk dersi `usul` (Teknik) bitince açılır. Sonuç ekranında açık bırakılan okuma dersleri adlarıyla yazılır.
+  *Denendi:* `onboard.js` Node'da sahte DOM'la tarayıcı yükleme sırasında çalıştırıldı (tıklama ve nota olayları,
+  `finish`, ardından `setGuided(true)` ile `unlocked`/`nextLesson`/`gateFor`): hiç geçemeyen → sıradaki `ritim-hece`,
+  Temeller Başlarken sınavından sonra; pes bölgeyi geçen (okuma-2 yanlış) → `okuma-2` ve `okuma-3` açık, ezgiler
+  "istersen"; boğazda kalan → `durus-2`, sonra `ezgi-pes` (S5.6'nın öz denetim dersleri `durus-2`, `el-2` sınamayla
+  sayılmaz, arkası bitmişse göçle "istersen"); her şeyi geçen → Temeller ve Klarino sınavı yerleşik, Teknik ve ilk makam
+  dersi açık, Türkü `usul`'u bekliyor; okuma-3/5 yanlış → ikisi açık, Teknik onlar bitince açılır; makam turlarını
+  geçen → `rast-2`, `ussak-2`, `huseyni-2`, `hicaz-2` açık. Hiçbir ünite çıkmazda değil. Tarayıcıda 375 px'te
+  karşılama ve sekiz okuma sorusu (dizek, süre, yol işaretli satır) çizildi, sonuç ekranı ve yeniden ölçme denendi,
+  konsolda hata yok; notalar mikrofon engelli olduğu için çalınamadı.
 - [x] **S5.3 Ünite sınavları** (O). **Yapıldı (15 Kasım 2026).** Var olan sınavların adım sırası korunur, yeni adımlar sona eklenir (sınavı
   geçmiş kullanıcıda sınav geçilmiş kalır: `examPassed` kaydı adım sayısına değil geçme kaydına bakmalı; bakmıyorsa
   S0.1 göçünde `placed` yapılır). Eklenecekler: Temeller'e `e-t10` ve `soru` ×5 (okuma); Klarino'ya `e-k3` ve kırılma

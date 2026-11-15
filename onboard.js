@@ -16,19 +16,40 @@
   // Notalar gruplar hâlinde sırayla gösterilir; her biri toplam 1,2 sn tutulunca geçilir. "Çalamıyorum" sınamayı
   // bitirir. Baştan itibaren eksiksiz geçilen grupların dersleri bitmiş sayılır. Yalnızca notanın çıkıp çıkmadığı
   // ölçülür; ses kalitesi ve akort ölçülmez (dersler ölçer).
+  // Gruplar Temeller ve Klarino'nun ders sırasını izler. Ezgi, pekiştirme ve bilgi dersleri (ezgi-*, ilk-eserler-*,
+  // temel-tekrar, akortlama, teori-transpoz, kulak-ezgi-1, ezgi-klarino) listede yok: sınama onları bitmiş saymaz,
+  // finish'teki göç arkası bitmiş olanı "istersen" yapar. Okuma dersleri (okuma-2…5) okuma sorularından gelir (RQ_GATE)
   const CHECK = [
-    { name: () => L("Pes ve orta ses", "Low and middle register"), notes: [67, 62, 60, 55, 52], lessons: ["sol-el-1", "sol-el-2", "sag-el", "pes", "ariza-1", "ariza-2"] },
+    { name: () => L("Pes ve orta ses", "Low and middle register"), notes: [67, 62, 60, 55, 52], lessons: ["sol-el-1", "sol-el-2", "sag-el", "isinma", "pes"] },
+    { name: () => L("Diyez ve bemoller", "Sharps and flats"), notes: [56, 61], lessons: ["ariza-1", "ariza-2"] },
     { name: () => L("Boğaz notaları", "Throat tones"), notes: [69, 70], lessons: ["bogaz"] },
     { name: () => L("Register geçişi", "Crossing the break"), notes: [71, 72, 74], lessons: ["onikili", "register", "kirilma-1"] },
-    { name: () => L("Klarino", "Clarion"), notes: [79, 84], lessons: ["klarino-1", "klarino-2", "klarino-ariza", "klarino"] }
+    { name: () => L("Klarino", "Clarion"), notes: [79, 82, 84], lessons: ["klarino-1", "klarino-2", "klarino-ariza", "klarino"] }
   ];
   const CHECK_NOTES = CHECK.flatMap((g, gi) => g.notes.map(w => ({ w, gi })));
   const HOLD_MS = 1200;
   // state: intro | run | done; k: sıradaki nota; held: tutulan süre (ms); passed: geçilen grup sayısı
-  // Önce nota okuma: dizekte 4 nota, adı seçilir (mikrofonsuz). 3'ten azı doğruysa Başlarken'in "Nota okuma" dersi
-  // bitmiş sayılmaz (kulaktan çalan ama okuyamayan biri o dersi atlamasın)
-  const READ = [64, 69, 72, 77], SYL = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"], READ_OK = 3;
+  // Önce nota okuma (mikrofonsuz), 8 soru; her soru bir okuma dersini yoklar: nota adı ×2 (Başlarken "Nota okuma"),
+  // süre ×2 (okuma-2), arıza ×2 (okuma-3), yol işareti (okuma-4), ek çizgi (okuma-5). Nota adı soruları hece seçtirir;
+  // ötekiler dersin kendi soru maddesidir (lessons.js soru adımı) ve aynı biçimde çizilir. Bir dersin sorularından biri
+  // yanlışsa o ders bitmiş sayılmaz (kulaktan çalan ama okuyamayan biri o dersi atlamasın) ve göçle de geçilmez (finish keep)
+  const SYL = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" })[c]);
+  const soruOf = (id, k) => { const l = lessonById(id); return l ? l.steps.filter(s => s.type === "soru").flatMap(soruItems)[k] : null; };
+  const READ = [
+    { les: "nota-okuma", w: 64 }, { les: "nota-okuma", w: 72 },
+    { les: "okuma-2", item: () => soruOf("okuma-2", 1) }, { les: "okuma-2", item: () => soruOf("okuma-2", 2) },
+    { les: "okuma-3", item: () => soruOf("okuma-3", 0) }, { les: "okuma-3", item: () => soruOf("okuma-3", 1) },
+    { les: "okuma-4", item: () => soruOf("okuma-4", 1) },
+    { les: "okuma-5", item: () => soruOf("okuma-5", 1) }
+  ].filter(q => !q.item || q.item());                     // ders ya da madde yoksa soru düşer (müfredat değişirse)
+  // Temeller'deki okuma dersi, ardından gelen çalma dersinin grubu da geçildiyse bitmiş sayılır (değer: CHECK sırası).
+  // Sınamanın bıraktığı yer bir okuma dersiyle ileri atlamasın: pes bölgeyi geçemeyen birinin okuma-4'ü bitmiş sayılsa
+  // araya giren ezgi dersleri göçle "istersen" olurdu
+  const RQ_GATE = { "okuma-2": 0, "okuma-3": 1, "okuma-4": 2, "okuma-5": 3 };
   const sylOf = w => noteName(w).tr.replace(/[♯♭\d]/g, "");
+  // Madde seçeneklerinin sırası (doğrusu veride hep ilk sırada): soruya göre sabit karışık
+  const itemOrder = (it, k) => it.opts.map((_, j) => j).sort((a, b) => ((a*5 + k*3) % 7) - ((b*5 + k*3) % 7) || a - b);
   const readChoices = (w, k) => { const c = sylOf(w), o = SYL.filter(x => x !== c); return [c, o[(k*2) % 6], o[(k*2 + 3) % 6], o[(k*2 + 5) % 6]].sort((a, b) => ((a.length*7 + k) % 5) - ((b.length*7 + k) % 5) || a.localeCompare(b)); };
   // Notalardan sonra ritim: metronomla iki kısa tur, Başlarken'in "Ritim" dersinin ilk ve son adımıyla aynı tempo ve
   // geçme eşiği. Ölçülen bir tur eşiğin altındaysa o ders bitmiş sayılmaz (kart onu önerir); geçilmeyen tur karar vermez
@@ -49,11 +70,15 @@
   // state: intro | read | run | rhythm | rtrun | makam | mkrun | done; rq/rok: okuma sorusu ve doğru sayısı; rts: ritim
   // turlarının puanı; rtFresh: sıradaki turun giriş ekranı gösterilsin (önceki turun puanı yerine); mks: makam turlarının
   // sonucu (dizide 0–1, seyirde 0–100); mkStage: adımın ekranı, render'lar arasında korunur (sonuç ve öneriler orada kalır)
-  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtRun: null, rtFresh: false, mks: [], mkRun: null, mkFresh: false, mkStage: null };
+  const chk = { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, ra: [], rts: [], rtBeat: null, rtRun: null, rtFresh: false, mks: [], mkRun: null, mkFresh: false, mkStage: null };
   const rtStop = () => { if(chk.rtRun){ chk.rtRun.stop(); chk.rtRun = null; } };
   const mkStop = () => { if(chk.mkRun){ chk.mkRun.stop(); chk.mkRun = null; } };
-  const chkReset = () => { rtStop(); mkStop(); Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, rts: [], rtBeat: null, rtFresh: false, micErr: false, mks: [], mkFresh: false, mkStage: null }); };
-  const readOk = () => chk.rq < READ.length || chk.rok >= READ_OK;   // okuma bölümü bitmediyse karar yok
+  const chkReset = () => { rtStop(); mkStop(); Object.assign(chk, { state: "intro", k: 0, held: 0, lastT: 0, passed: 0, heard: null, rq: 0, rok: 0, ra: [], rts: [], rtBeat: null, rtFresh: false, micErr: false, mks: [], mkFresh: false, mkStage: null }); };
+  // Okuma dersinin sonucu: null karar yok (sorular bitmedi), true hepsi doğru, false biri yanlış
+  const readRes = id => { const ks = READ.map((q, k) => q.les === id ? k : -1).filter(k => k >= 0);
+    return !ks.length || chk.rq < READ.length ? null : ks.every(k => chk.ra[k]); };
+  const readFailed = () => [...new Set(READ.map(q => q.les))].filter(id => readRes(id) === false);
+  const readOk = () => !readFailed().length;
   const rhythmOk = () => chk.rts.every((v, k) => v >= RT[k].min);   // çalınmayan tur karar vermez
   const mkWanted = () => pickd.level === "makam" && chk.passed > 0;
   const mkOk = k => chk.mks[k] >= MK[k].step().min;
@@ -92,18 +117,21 @@
   function checkBody(){
     if(chk.state === "intro") return `<div class="obemo" aria-hidden="true">🎶</div>
       <h2 class="obtitle">${L("Kısa çalma sınaması", "A short playing check")}</h2>
-      <p>${L("Önce dizekte 4 notanın adını soracağız. Sonra sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: notalar orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
-        "First we'll ask the names of 4 notes on the staff. Then we'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the notes stop there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
+      <p>${L("Önce " + READ.length + " kısa okuma sorusu soracağız (nota adı, süre, diyez ve bemol, yol işareti, ek çizgi). Sonra sırayla en çok " + CHECK_NOTES.length + " nota göstereceğiz, pesten tize. Her birini 1–2 saniye düz tut. Çalamadığın notada \"Çalamıyorum\"a bas: notalar orada biter, o noktaya kadarki dersler bitmiş sayılır, gerisini derslerle adım adım çalışırsın.",
+        "First we'll ask " + READ.length + " short reading questions (note names, durations, sharps and flats, repeat signs, ledger lines). Then we'll show up to " + CHECK_NOTES.length + " notes, low to high. Hold each one steadily for 1–2 seconds. Tap \"I can't play it\" on a note you can't play: the notes stop there, the lessons up to that point count as done, and you work through the rest step by step.")}</p>
       <p>${L("En sonda metronomla iki kısa ritim turu çalacaksın (yaklaşık 20'şer saniye).", "Finally you'll play two short rhythm rounds with the metronome (about 20 seconds each).")}</p>
       ${pickd.level === "makam" ? `<p>${L("Makam çalıştığın için sonunda Rast ve Uşşak dizilerini ve kısa bir Hicaz seyrini de soracağız.", "Since you play makams, at the end we'll also ask for the Rast and Uşşak scales and a short Hicaz seyir.")}</p>` : ""}
       <p class="muted">${L("Yalnızca notanın çıkıp çıkmadığına bakılır; ses kalitesi ve akort burada ölçülmez, derslerde ölçülür. İstemezsen geçebilirsin.", "This only checks whether the note sounds; tone and tuning aren't measured here but in the lessons. You can skip it.")}</p>
       <div class="pbar"><button class="primary small" type="button" data-ob="chkstart">${L("Sınamayı başlat", "Start the check")}</button></div>`;
     if(chk.state === "read"){
-      const w = READ[chk.rq];
-      return `<div class="eyebrow">${L("Nota okuma", "Reading")} · ${chk.rq + 1}/${READ.length}</div>
-        <h2 class="obtitle">${L("Bu nota hangisi?", "Which note is this?")}</h2>
+      const q = READ[chk.rq], head = `<div class="eyebrow">${L("Nota okuma", "Reading")} · ${chk.rq + 1}/${READ.length}</div>`;
+      if(q.w != null) return head + `<h2 class="obtitle">${L("Bu nota hangisi?", "Which note is this?")}</h2>
         <div class="obstaff"></div>
-        <div class="seg obread" role="group" aria-label="${L("Nota adı", "Note name")}">${readChoices(w, chk.rq).map(c => `<button type="button" data-read="${c}">${c}</button>`).join("")}</div>`;
+        <div class="seg obread" role="group" aria-label="${L("Nota adı", "Note name")}">${readChoices(q.w, chk.rq).map(c => `<button type="button" data-read="${c}">${c}</button>`).join("")}</div>`;
+      const it = q.item();
+      return head + `<h2 class="obtitle">${esc(pick(it.q, LANG))}</h2>
+        <div class="sqfig obfig"></div>
+        <div class="sqopts" role="group" aria-label="${L("Seçenekler", "Options")}">${itemOrder(it, chk.rq).map(j => `<button type="button" class="opt sqopt" data-rj="${j}">${esc(pick(it.opts[j], LANG))}</button>`).join("")}</div>`;
     }
     if(chk.state === "run"){
       const cur = CHECK_NOTES[chk.k], g = CHECK[cur.gi];
@@ -170,14 +198,14 @@
     const mp = mkPassed(), mkDone = MK.slice(0, mp).flatMap(m => m.lessons).map(id => pick(lessonById(id).title, LANG)).join(", ");
     let advice;
     if(chk.passed === CHECK.length) advice = L("Temeller ve klarino derslerini bitmiş saydık. Teknik ve üslup ile makam dersleri açık; yol haritası seni oradan götürür.", "We've marked the basics and clarion lessons as done. Technique and style and the makam lessons are open; the roadmap takes you on from there.");
-    else if(chk.passed > 0) advice = L("Geçtiğin grupların derslerini bitmiş saydık. \"" + CHECK[chk.passed].name() + "\" dersinden başlayacaksın.", "We've marked the lessons for the groups you passed as done. You'll start with \"" + CHECK[chk.passed].name() + "\".");
+    else if(chk.passed > 0) advice = L("Geçtiğin grupların derslerini bitmiş saydık. \"" + CHECK[chk.passed].name() + "\" notalarına giden derslerden devam edeceksin.", "We've marked the lessons for the groups you passed as done. You'll go on with the lessons leading to \"" + CHECK[chk.passed].name() + "\".");
     else if(chk.k <= 1) advice = L("İlk notalarda zorlandın: Başlarken ünitesinden (kamış, ağızlık, ilk ses) başlamanı öneririz.", "The first notes were hard: we suggest starting with the Getting started unit (reed, embouchure, first sound).");
     else advice = L("Temeller ünitesinden başlayacaksın; çalabildiğin notaları orada hızla geçersin.", "You'll start with the Basics unit and get through the notes you can already play quickly.");
     return `<div class="obemo" aria-hidden="true">🧭</div>
       <h2 class="obtitle">${L("Sınama bitti", "Check finished")}</h2>
       <ul class="obres">${res}</ul>
       <p>${advice}</p>
-      ${!readOk() ? `<p>${L("Nota okumada zorlandın: Başlarken'deki \"Nota okuma\" dersini açık bıraktık, önce onu çalış.", "Reading was hard: we left the \"Reading music\" lesson in Getting started open; work on it first.")}</p>` : ""}
+      ${!readOk() ? `<p>${L("Okuma sorularında zorlandığın dersleri açık bıraktık: ", "We left open the reading lessons whose questions were hard: ") + readFailed().map(id => "\"" + esc(pick(lessonById(id).title, LANG)) + "\"").join(", ") + L(". Sırası gelince önce onları çalış.", ". Work on them first when you reach them.")}</p>` : ""}
       ${!rhythmOk() ? `<p>${L("Ritimde zorlandın: Başlarken'deki \"Ritim: vuruş ve nota değerleri\" dersini açık bıraktık.", "Rhythm was hard: we left the \"Rhythm: the beat and note values\" lesson in Getting started open.")}</p>` : ""}
       ${mp ? `<p>${L("Bitmiş saydığımız makam dersleri: " + mkDone + ". Sınama yalnızca dizi perdelerini ve seyrin ana çizgisini yokladı; makam bilgini bütünüyle ölçmedi.", "Makam lessons we've marked as done: " + mkDone + ". The check only tried the scale perdes and the outline of a seyir; it doesn't measure your makam knowledge as a whole.")}</p>` : ""}
       ${mp && remeasure && store.get("lesson.guided", true) && !store.get("lesson.all", false) ? `<p>${L("İleri ünitesi için Makamlar sınavı gerekir; sınav, ünitenin bütün dersleri bitince gelir ve hoca kartı seni oraya götürür.", "The Advanced unit needs the Makams test; the test comes once every lesson in the unit is finished, and the teacher card takes you there.")}</p>` : ""}
@@ -239,7 +267,22 @@
     if(st){
       const sv = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       sv.setAttribute("viewBox", "0 0 150 108"); sv.setAttribute("class", "staff"); sv.setAttribute("role", "img");
-      SK.drawStaffInto(sv, chk.state === "read" ? READ[chk.rq] : CHECK_NOTES[chk.k].w); st.appendChild(sv);
+      SK.drawStaffInto(sv, chk.state === "read" ? READ[chk.rq].w : CHECK_NOTES[chk.k].w); st.appendChild(sv);
+    }
+    // Okuma maddesinin şekli (trainers.js soru adımıyla aynı): yol işaretli nota metni ya da dizek
+    const fig = root.querySelector(".obfig");
+    if(fig){
+      const it = READ[chk.rq].item();
+      if(it.score){ const r = parseScoreText(it.score); drawScore(fig, r.notes, { meter: it.meter || [4, 4], signs: r.marks }); fig.style.overflowX = "auto"; }
+      else if(it.staff && it.staff.length){
+        const notes = it.staff.map(n => typeof n === "number" ? { w:n, d:1 } : n);
+        if(notes.length === 1 && notes[0].d === 1){
+          const sv = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          sv.setAttribute("viewBox", "0 0 150 108"); sv.setAttribute("class", "staff"); sv.setAttribute("role", "img");
+          SK.drawStaffInto(sv, notes[0].w); fig.appendChild(sv);
+        }
+        else drawScore(fig, notes, it.meter ? { meter: it.meter } : {});
+      }
     }
   }
 
@@ -254,8 +297,9 @@
     if(act === "chkstart"){ chk.state = "read"; render(); return; }
     // Çalma bölümü: mikrofon gerekir (açılamazsa uyarı ve yeniden dene)
     if(act === "chkmic"){ await runMic(); return; }
-    if(b.dataset.read){
-      if(b.dataset.read === sylOf(READ[chk.rq])) chk.rok++;
+    if(b.dataset.read || b.dataset.rj){
+      const q = READ[chk.rq], ok = b.dataset.read ? b.dataset.read === sylOf(q.w) : +b.dataset.rj === q.item().ok;
+      chk.ra[chk.rq] = ok; if(ok) chk.rok++;
       chk.rq++;
       if(chk.rq >= READ.length){ chk.state = "run"; render(); await runMic(); return; }
       render(); return;
@@ -352,7 +396,7 @@
         if(l.since) continue;
         // Okumada ya da ritimde zorlanana o ders açık kalır; önceki bir sınamanın bitmiş saydığı (placed) kayıt da
         // silinir (yeniden ölçmede). Gerçekten çalınmış ders bitmiş kalır
-        if(l.id === "nota-okuma" && !readOk() || l.id === "ritim-temel" && !rhythmOk()){
+        if(l.id === "nota-okuma" && readRes("nota-okuma") === false || l.id === "ritim-temel" && !rhythmOk()){
           if(prog[l.id] && prog[l.id].placed) delete prog[l.id];
           continue;
         }
@@ -369,6 +413,19 @@
         if(l && gi < chk.passed) markDone(prog, l, true);
         else if(gi === chk.passed && noteEnd && prog[id] && prog[id].placed) delete prog[id];
       }));
+      // Temeller'in okuma dersleri: soruları doğruysa ve ardındaki çalma grubu geçildiyse bitmiş sayılır (RQ_GATE). Yanlış
+      // bilinen dersin placed kaydı silinir ve ders göçle de geçilmez (keep): sırası gelince önerilir. Grubu tutmayan okuma
+      // dersinin önceki sınamadan kalan placed kaydı nota gruplarıyla aynı kuralla silinir; sonraki gruplardakiler karar vermez
+      const keep = new Set();
+      for(const [id, gi] of Object.entries(RQ_GATE)){
+        const l = lessonById(id), r = readRes(id), was = prog[id] && prog[id].placed;
+        if(!l) continue;
+        if(r === false){ keep.add(id); if(was) delete prog[id]; }
+        else if(r && gi < chk.passed) markDone(prog, l, true);
+        else if(gi === chk.passed && noteEnd && was) delete prog[id];
+      }
+      // Makam turları <makam>-2 (karar kalıpları) derslerini saymaz; göç de onları geçmez, açık kalırlar (kural: MK)
+      for(const l of LESSONS) if(l.unit === "makam" && l.since && /-2$/.test(l.id)) keep.add(l.id);
       // Makam turları: baştan geçilenlerin dersleri bitmiş sayılır, ölçülüp tutmayan turun placed kaydı silinir (kural: MK)
       const mp = mkPassed();
       MK.forEach((m, k) => m.lessons.forEach(id => {
@@ -378,8 +435,9 @@
       }));
       // Sınamanın bitmiş saydığı derslerin arasına sonradan giren dersler (ezgi, pekiştirme) yolu kesmesin: göç kuralıyla
       // "istersen" olarak geçilir (lessons.js migrateCurriculum). Önceki sınamadan kalan böyle kayıtlar önce silinir
+      // keep'tekiler göçte "daha önce değerlendirilmiş" gibi geçilir: bilerek açık bırakılır
       for(const l of LESSONS) if(l.since && prog[l.id] && prog[l.id].placed && prog[l.id].mig) delete prog[l.id];
-      migrateCurriculum(prog, null, dayKey(new Date()));
+      migrateCurriculum(prog, keep, dayKey(new Date()));
       syncExams(prog);
       store.set("lesson.prog", prog);
       if(chk.state === "done") store.set("onboard.check", { passed: chk.passed, of: CHECK.length, read: chk.rq >= READ.length ? chk.rok : null, rhythm: chk.rts.length ? chk.rts : null, makam: chk.mks.length ? chk.mks.map(v => Math.round(v*100)/100) : null, d: dayKey(new Date()) });
