@@ -303,6 +303,7 @@ TRAINERS.lessons = function(ctx){
       case "usultap": return st.mode === "listen" ? null : { goal:st.min, unit:L(" puan", " points") };
       case "ear": case "sight": case "dictation": case "quiz": return { goal:st.min, unit: st.type === "sight" ? "%" : "/" + st.n };
       case "soru": return { goal:soruMin(st), unit:"/" + soruItems(st).length };
+      case "band": return { goal:st.min, unit:"%" };
     }
     return null;
   }
@@ -402,7 +403,7 @@ TRAINERS.lessons = function(ctx){
   }
 
   // ---- Adım çalıştırma ----
-  const NO_MIC = new Set(["read", "soru", "listen", "ear", "usultap", "hece"]);
+  const NO_MIC = new Set(["read", "soru", "listen", "ear", "usultap", "hece", "band"]);   // band: mikrofonu Eşlik sekmesi açar
   async function startStep(i){
     stopRun();
     const st = cur.steps[i], lesson = cur;
@@ -806,11 +807,20 @@ TRAINERS.lessons = function(ctx){
     return { note(r, t){ if(!over && h.note) h.note(r, t); }, silence(t){ if(!over && h.silence) h.silence(t); }, stop: end };
   };
 
+  // Eşlik'ten "Derse dön" (band adımı, band.js): adım yeniden başlar ve Eşlik'in kaydını okur
+  function resumeBand(){
+    const back = store.get("band.back", null), bl = store.get("band.lesson", null);
+    if(!back) return;
+    store.set("band.back", null);
+    const i = cur && bl && bl.tag === back ? cur.steps.findIndex(st => st.type === "band" && st.arsiv === bl.arsiv && st.usul === bl.usul && (st.from || 0) === (bl.from || 0)) : -1;
+    if(i >= 0) startStep(i);
+  }
+  SK.resumeBandStep = resumeBand;
   // Bağlantıdaki ders (?ders=<id>) kayıtlı dersten önce gelir; kilitliyse sıradaki ders açılır
   const saved = new URLSearchParams(location.search).get("ders") || store.get("lesson.cur", ""), savedL = lessonById(saved);
   open(saved === "daily" ? dailyLesson() : savedL && unlocked(savedL, prog, allOpen) ? savedL : (nextUp() || LESSONS[0]));
   return {
-    enter(){ renderList(); if(cur){ SK.setTempContext(cur.makam || null); markScale(cur.makam ? makamById(cur.makam) : null); } },
+    enter(){ renderList(); if(cur){ SK.setTempContext(cur.makam || null); markScale(cur.makam ? makamById(cur.makam) : null); } resumeBand(); },
     nowTitle: () => cur ? tx(cur.title) : "",
     stop(){ playToken = null; stopRun(); },
     leave(){ stopRun(); SK.setTempContext(null); },

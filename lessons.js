@@ -3453,6 +3453,120 @@ LESSONS.splice(LESSONS.findIndex(l => l.id === "trakya-giris"), 0, ...TURKU);
     ] });
 }
 
+// ---- S4.3 Fasıl ve eşlik ----
+// Dört ders (İleri, şed derslerinden sonra): aranağme, şarkıda söz arası, fasıl sırası, eşlikle çalma.
+// Aranağme ve şarkı tanımı teori.js "form" konusundan (thRead; ikinci kez yazılmaz). Fasıl bilgisi yalnız TDV "Fasıl
+// (Mûsiki)" maddesinden (İsmail Hakkı Özkan, 1995; docs/KAYNAKLAR.md §11). Aranağme: arşivin 77 aranağmesinden 76'sının
+// bestecisi kayıtlı değil (lisans-belirsiz.csv); telifsiz tek aranağme Muallim İsmail Hakkı Bey'in Hicazkâr Aranağmesi.
+// Söz araları scripts/soz-arasi.js ile bulundu (SymbTr hecesi; "Saz" hecesi ve hecesiz ölçü saz arası). band adımı band.js.
+const HICAZKAR_AR = { arsiv:"hicazkar--aranagme--aksak--1--muallim_ismail_hakki_bey", name:{ tr:"Hicazkâr Aranağme (Muallim İsmail Hakkı Bey)", en:"Hicazkâr Aranağme (Muallim İsmail Hakkı Bey)" } };
+const AGLAMAZ = { arsiv:"ussak--sarki--aksak--aglamaz_mi--haci_arif_bey", name:{ tr:"Ağlamaz mı Çeşm-i Hasret (Hacı Ârif Bey)", en:"Ağlamaz mı Çeşm-i Hasret (Hacı Ârif Bey)" } };
+const KALENIN = { arsiv:"ussak--turku--sofyan--kalenin_burcu_muyam--", name:{ tr:"Kalenin Burcu Muyam", en:"Kalenin Burcu Muyam" } };
+insertLessonAfter("sed-3",
+  { id:"aranagme", unit:"ileri", since:2, notes:[], makam:"hicazkar",
+    title:{ tr:"Aranağme", en:"The aranağme" },
+    text:[
+      { tr:"Aranağme, şarkının mısraları arasında ve şarkıları birbirine bağlarken çalınan saz nağmesidir. Önce Teori'deki tanımı oku, sonra arşivden bir aranağmeyi bölüm bölüm çal: Muallim İsmail Hakkı Bey'in Hicazkâr Aranağmesi (Aksak 9/8, 36 ölçü).",
+        en:"An aranağme is the instrumental phrase played between the lines of a şarkı and when linking şarkıs to one another. First read the definition from the Theory page, then play an aranağme from the archive section by section: Muallim İsmail Hakkı Bey's Hicazkâr Aranağme (Aksak 9/8, 36 bars)." },
+      { tr:"Eser dört bölümde çalışılır: ölçü 1–8 (dört ölçülük cümle iki kez), 9–16 (Rast'ta karar), 17–28 ve 29–36. Hicazkâr'ın durağı Rast, güçlüsü Gerdâniye'dir; bölüm sonlarında hangi perdede durduğuna dikkat et.",
+        en:"The piece is learned in four sections: bars 1–8 (a four-bar phrase played twice), 9–16 (cadence on Rast), 17–28 and 29–36. Hicazkâr's final is Rast and its dominant Gerdâniye; notice which perde each section stops on." }
+    ],
+    tips:[{ tr:"Arşivdeki aranağmelerin çoğunun bestecisi kayıtlı değil; arşivde Eserler → Nota arşivi → form süzgecinden hepsini dinleyebilirsin.", en:"Most aranağmes in the archive have no composer on record; you can listen to all of them in Pieces → Score archive with the form filter." }],
+    steps:[
+      thRead("form", [["text", 0], ["text", 4]]),
+      { type:"read", title:{ tr:"Aranağme fasılda", en:"The aranağme in the fasıl" }, body:[
+        { tr:"TDV'nin Fasıl maddesine göre XIX. yüzyılın ikinci yarısından sonra şarkı fasılların merkezine geçti ve ince saz toplulukları şarkıları birbirine ara nağmelerle bağladı. Maddenin yazıldığı yıllardaki fasılda da şarkılar, usulleri ağırdan yürüğe sıralanıp ara nağmelerle bağlanarak okunur.",
+          en:"According to TDV's article on the fasıl, from the second half of the 19th century the şarkı moved to the centre of the fasıl and ince saz ensembles linked the şarkıs with interludes (ara nağme). In the fasıl of the years the article was written, too, şarkıs are sung with their usuls ordered from slow to fast and linked by ara nağmes." }] },
+      { type:"soru", items:[
+        { q:{ tr:"Aranağme nedir?", en:"What is an aranağme?" },
+          opts:[{ tr:"Şarkının mısraları arasında ya da şarkıları bağlarken çalınan saz nağmesi", en:"An instrumental phrase played between a şarkı's lines or to link şarkıs" }, { tr:"Usulsüz doğaçlama", en:"A free improvisation without usul" }, { tr:"Peşrevin her haneden sonra dönen bölümü", en:"The section of a peşrev that returns after each hane" }], ok:0,
+          why:{ tr:"Usulsüz doğaçlama taksimdir; haneden sonra dönen bölüm mülâzimedir.", en:"A free improvisation is a taksim; the section returning after each hane is the mülâzime." } },
+        { q:{ tr:"Fasılda şarkılar nasıl sıralanır?", en:"How are the şarkıs ordered in a fasıl?" },
+          opts:[{ tr:"Usulleri ağırdan yürüğe", en:"By usul, from slow to fast" }, { tr:"Yürükten ağıra", en:"From fast to slow" }, { tr:"Her şarkı başka makamda", en:"Each şarkı in a different makam" }], ok:0,
+          why:{ tr:"Fasıl eserleri usul bakımından ağırdan yürüğe sıralanır ve aynı makamdadır.", en:"Fasıl pieces go from slow to fast usuls and are in the same makam." } },
+        { q:{ tr:"Hicazkâr'ın durağı hangi perdedir?", en:"Which perde is Hicazkâr's final?" },
+          opts:["Rast", "Dügâh", "Nevâ", "Gerdâniye"], ok:0,
+          why:{ tr:"Hicazkâr Rast'ta karar verir; güçlüsü Gerdâniye'dir.", en:"Hicazkâr cadences on Rast; its dominant is Gerdâniye." } }
+      ] },
+      ...eserSteps(HICAZKAR_AR.arsiv, HICAZKAR_AR.name, [[1, 8], [9, 16], [17, 28], [29, 36]])
+    ] },
+  { id:"sarki-eslik", unit:"ileri", since:2, notes:[], makam:"ussak",
+    title:{ tr:"Şarkıda söz arası", en:"Filling between the lines of a şarkı" },
+    text:[
+      { tr:"Hanende şarkıyı okurken saz ezgiyi onunla birlikte sade çalar; söz bitince, sesin sustuğu ölçülerde nağme sazdadır. Bu derste Hacı Ârif Bey'in Uşşak şarkısı Ağlamaz mı Çeşm-i Hasret'i (Aksak 9/8) bu iki rolle çalışacaksın.",
+        en:"While the singer sings the şarkı, the instrument plays the tune along plainly; when the words stop, in the bars where the voice is silent, the melody belongs to the instrument. In this lesson you work through Hacı Ârif Bey's Uşşak şarkı Ağlamaz mı Çeşm-i Hasret (Aksak 9/8) in these two roles." },
+      { tr:"SymbTr notasındaki hecelere göre sözlü ölçüler 1–3, 6–8, 11–14, 17–19, 22–24 ve 27–30; söz araları (hecesiz ya da \"Saz\" yazılı ölçüler) 4–5, 9–10, 15–16, 20–21, 25–26 ve 31. 22–31. ölçüler 6–15'in tekrarıdır. Sözlü ölçüleri sade, süslemeden çal; söz aralarını önce dinle, en sonda eserin tamamında onları sen doldur.",
+        en:"From the syllables in the SymbTr score, the sung bars are 1–3, 6–8, 11–14, 17–19, 22–24 and 27–30; the gaps (bars with no syllable or marked \"Saz\") are 4–5, 9–10, 15–16, 20–21, 25–26 and 31. Bars 22–31 repeat 6–15. Play the sung bars plainly, without ornaments; listen to the gaps first, and in the whole piece at the end you fill them yourself." }
+    ],
+    tips:[{ tr:"Sözlü ölçülerde hanendenin önüne geçme: uzun notaları tam tut, nefesini mısra sonlarında al.", en:"In the sung bars don't run ahead of the singer: hold the long notes full length and breathe at the ends of lines." }],
+    steps:[
+      { type:"listen", ...AGLAMAZ, tempoPct:80 },
+      { type:"piece", ...AGLAMAZ, from:1, to:3, tempoPct:60, mode:"free", min:4 },
+      { type:"listen", ...AGLAMAZ, from:4, to:5, tempoPct:60 },
+      { type:"piece", ...AGLAMAZ, from:6, to:8, tempoPct:60, mode:"free", min:4 },
+      { type:"listen", ...AGLAMAZ, from:9, to:10, tempoPct:60 },
+      { type:"piece", ...AGLAMAZ, from:11, to:14, tempoPct:60, mode:"free", min:4 },
+      { type:"listen", ...AGLAMAZ, from:15, to:16, tempoPct:60 },
+      { type:"piece", ...AGLAMAZ, from:17, to:19, tempoPct:60, mode:"free", min:4 },
+      { type:"listen", ...AGLAMAZ, from:20, to:21, tempoPct:60 },
+      { type:"piece", ...AGLAMAZ, tempoPct:80, mode:"tempo", min:70 }
+    ] },
+  { id:"fasil-sirasi", unit:"ileri", since:2, notes:[],
+    title:{ tr:"Fasıl ve sırası", en:"The fasıl and its order" },
+    text:[
+      { tr:"Fasıl, aynı makamdaki eserlerin belli bir sırayla çalınıp okunduğu konserdir. Bu derste TDV İslâm Ansiklopedisi'nin Fasıl maddesinden klasik faslın sırasını ve bugünkü fasılın nasıl değiştiğini okuyacaksın.",
+        en:"A fasıl is a concert in which pieces in the same makam are played and sung in a set order. In this lesson you read, from the TDV İslâm Ansiklopedisi article on the fasıl, the order of the classical fasıl and how today's fasıl has changed." }
+    ],
+    tips:[{ tr:"Arşivde aynı makamdan bir peşrev, bir şarkı ve bir saz semâîsi seçip arka arkaya dinle: küçük bir fasıl kurmuş olursun.", en:"In the archive, pick a peşrev, a şarkı and a saz semâîsi in the same makam and listen to them in a row: you've built a small fasıl." }],
+    steps:[
+      { type:"read", title:{ tr:"Fasıl ve sırası", en:"The fasıl and its order" }, body:[
+        { tr:"Fasıl, hepsi aynı makamda olan, form bakımından büyükten küçüğe, usul bakımından ağırdan yürüğe sıralanmış eserlerle verilen konserdir; çalıp söyleyen topluluğa fasıl heyeti denir. Eski güfte mecmualarında bir makamın eserlerinin toplandığı bölüme de fasıl denirdi (rast faslı gibi).",
+          en:"A fasıl is a concert of pieces all in the same makam, ordered from large to small forms and from slow to fast usuls; the ensemble that plays and sings it is the fasıl heyeti. In old lyric anthologies the section collecting one makam's pieces was also called a fasıl (the rast faslı, for example)." },
+        { tr:"Klasik sıra (XIX. yüzyıla kadar): taksim, peşrev, kâr, birinci beste, ikinci beste, ağır semâî, yürük semâî, saz semâîsi. Fasılda şarkı da okunacaksa şarkılar ağırdan yürüğe sıralanıp ağır semâî ile yürük semâî arasına girer. Peşrev ile saz semâîsi saz eserleridir: biri taksimden sonra faslı açar, öteki kapatır.",
+          en:"The classical order (up to the 19th century): taksim, peşrev, kâr, first beste, second beste, ağır semâî, yürük semâî, saz semâîsi. If şarkıs are sung too, they go from slow to fast between the ağır semâî and the yürük semâî. The peşrev and the saz semâîsi are instrumental: one opens the fasıl after the taksim, the other closes it." },
+        { tr:"XIX. yüzyılın ikinci yarısından sonra şarkı fasılların merkezine geçti, büyük formlar ihmal edildi ve şarkılar ara nağmelerle bağlandı. Maddenin yazıldığı yıllarda (1995) kâr, beste ve semâî çoğu zaman çalınmaz: şarkılar usulleri ağırdan yürüğe sıralanıp ara nağmelerle bağlanır, ortada bir saz taksim yapar; sonda bazen saz semâîsi, bazen longa, sirto ya da bir oyun havası çalınır.",
+          en:"From the second half of the 19th century the şarkı moved to the centre of the fasıl, the large forms were neglected and the şarkıs were linked with ara nağmes. In the years the article was written (1995) the kâr, beste and semâî are mostly left out: şarkıs are sung from slow to fast usuls linked by ara nağmes, an instrument plays a taksim in the middle, and at the end sometimes a saz semâîsi, sometimes a longa, a sirto or a dance tune is played." },
+        { tr:"İleri ünitesinin dersleri bu parçalara hazırlar: aranağme, şarkıda söz arası, taksim ve eşlikle çalma.",
+          en:"The lessons of the Advanced unit prepare you for these parts: the aranağme, filling between a şarkı's lines, the taksim and playing with the band." }] },
+      { type:"soru", min:5, items:[
+        { q:{ tr:"Fasıldaki eserler nasıl sıralanır?", en:"How are the pieces in a fasıl ordered?" },
+          opts:[{ tr:"Aynı makamda, büyük formdan küçüğe, ağır usulden yürüğe", en:"Same makam, large forms to small, slow usuls to fast" }, { tr:"Her eser başka makamda, küçükten büyüğe", en:"Each piece in another makam, small to large" }, { tr:"Yürük usulden ağıra", en:"From fast usuls to slow" }], ok:0,
+          why:{ tr:"TDV: hepsi aynı makamda, form bakımından büyükten küçüğe, usul bakımından ağırdan yürüğe.", en:"TDV: all in the same makam, large to small in form, slow to fast in usul." } },
+        { q:{ tr:"Klasik fasılda taksimden sonra ilk eser hangisidir?", en:"In the classical fasıl, which piece comes first after the taksim?" },
+          opts:[{ tr:"Peşrev", en:"Peşrev" }, { tr:"Saz semâîsi", en:"Saz semâîsi" }, { tr:"Yürük semâî", en:"Yürük semâî" }, { tr:"Şarkı", en:"Şarkı" }], ok:0,
+          why:{ tr:"Sıra taksim, peşrev, kâr, besteler… diye başlar.", en:"The order begins taksim, peşrev, kâr, the bestes…" } },
+        { q:{ tr:"Klasik fasıl hangi eserle biter?", en:"Which piece ends the classical fasıl?" },
+          opts:[{ tr:"Saz semâîsi", en:"Saz semâîsi" }, { tr:"Ağır semâî", en:"Ağır semâî" }, { tr:"Kâr", en:"Kâr" }], ok:0,
+          why:{ tr:"Yürük semâîden sonra saz semâîsi faslı kapatır.", en:"After the yürük semâî, the saz semâîsi closes the fasıl." } },
+        { q:{ tr:"Klasik fasılda şarkı okunacaksa nereye girer?", en:"If şarkıs are sung in a classical fasıl, where do they go?" },
+          opts:[{ tr:"Ağır semâî ile yürük semâî arasına", en:"Between the ağır semâî and the yürük semâî" }, { tr:"Peşrevden önce", en:"Before the peşrev" }, { tr:"Saz semâîsinden sonra", en:"After the saz semâîsi" }], ok:0,
+          why:{ tr:"Şarkılar ağırdan yürüğe sıralanıp ağır semâî ile yürük semâî arasında okunur.", en:"The şarkıs are ordered slow to fast and sung between the ağır semâî and the yürük semâî." } },
+        { q:{ tr:"Bugünkü fasılda şarkılar birbirine neyle bağlanır?", en:"In today's fasıl, what links the şarkıs?" },
+          opts:[{ tr:"Ara nağmelerle", en:"Ara nağmes (instrumental interludes)" }, { tr:"Peşrevlerle", en:"Peşrevs" }, { tr:"Hiçbir şeyle; aralarda susulur", en:"Nothing; there's silence between them" }], ok:0,
+          why:{ tr:"Şarkılar usulleri ağırdan yürüğe sıralanıp ara nağmelerle bağlanır.", en:"The şarkıs are ordered from slow to fast usuls and linked by ara nağmes." } },
+        { q:{ tr:"Maddeye göre bugünkü fasılda taksim nerede yapılır?", en:"According to the article, where is the taksim in today's fasıl?" },
+          opts:[{ tr:"Faslın ortasında, bir saz", en:"In the middle of the fasıl, by an instrument" }, { tr:"Hiç yapılmaz", en:"It isn't played at all" }, { tr:"Yalnız en sonda, hanende", en:"Only at the very end, by the singer" }], ok:0,
+          why:{ tr:"Faslın ortasında bir saz taksim yapar; sonda saz semâîsi, longa, sirto ya da oyun havası çalınabilir.", en:"An instrument plays a taksim in the middle; at the end a saz semâîsi, longa, sirto or dance tune may be played." } }
+      ] }
+    ] },
+  { id:"eslikle-calma", unit:"ileri", since:2, notes:[], makam:"ussak",
+    title:{ tr:"Eşlikle çalmak", en:"Playing with the band" },
+    text:[
+      { tr:"Toplu çalışta ezgi usulün üstüne oturur: darbukanın düm ve tekleri seni bekleyen bir metronom değildir, grup kendi temposunda gider. Bu derste iki Uşşak eserini önce notadan öğrenecek, sonra Eşlik sekmesinde darbuka, bas ve udla çalacaksın: Kalenin Burcu Muyam (anonim türkü, Sofyan; SymbTr notasında 1–8. ölçüler \"aranağme\" diye işaretli) ve Şarkıda söz arası dersindeki Ağlamaz mı Çeşm-i Hasret (Aksak).",
+        en:"When playing together the tune sits on the usul: the darbuka's düm and tek are not a metronome that waits for you; the band keeps its own tempo. In this lesson you first learn two Uşşak pieces from the score, then play them in the Band tab with darbuka, bass and oud: Kalenin Burcu Muyam (anonymous türkü, Sofyan; bars 1–8 are marked \"aranağme\" in the SymbTr score) and Ağlamaz mı Çeşm-i Hasret (Aksak) from the lesson Filling between the lines of a şarkı." },
+      { tr:"Eşlik, nota başlarının usulün vuruşlarına ne kadar oturduğunu ölçer (usule oturma, %). Adım, Eşlik'te değerlendirilen çalışların en iyisi en az %70 olunca geçer. Kulaklık tak ya da Ayarlar'da Hoparlör modunu aç; yoksa mikrofon grubu da duyar.",
+        en:"The Band measures how well your note starts sit on the usul's strokes (in the groove, %). The step passes when your best assessed run in the Band reaches at least 70%. Wear headphones or turn on Speaker mode in Settings; otherwise the mic hears the band too." }
+    ],
+    tips:[{ tr:"Grubun ilk ölçüsünü çalmadan dinle ve düm'leri içinden say; eseri bir sonraki ölçünün düm'üyle başlat.", en:"Listen to the band's first bar without playing and count the düms in your head; start the piece on the next bar's düm." }],
+    steps:[
+      { type:"listen", ...KALENIN, from:1, to:24 },
+      { type:"piece", ...KALENIN, from:1, to:24, mode:"free", min:4 },
+      { type:"band", ...KALENIN, from:1, to:24, usul:"sofyan", makam:"ussak", tempo:90, min:70 },
+      { type:"listen", ...AGLAMAZ },
+      { type:"band", ...AGLAMAZ, usul:"aksak", makam:"ussak", tempo:120, min:70 }
+    ] }
+);
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
@@ -3619,6 +3733,7 @@ function stepTitle(step, lang = "tr"){
     case "vibrato": return (en ? "Vibrato: " : "Vibrato: ") + nn(step.note) + " · " + step.sec + (en ? " s of even vibrato" : " sn düzenli vibrato");
     case "glide": return (en ? "Glissando: " : "Glissando: ") + nn(step.from) + " → " + nn(step.to) + " · " + step.n + (en ? " times" : " kez");
     case "read": return (en ? "Read: " : "Oku: ") + pick(step.title, lang);
+    case "band": return (en ? "With the band: " : "Eşlikle: ") + arsivWhat(step, lang) + " · " + (en ? "at least " + step.min + "% in the groove" : "usule oturma en az %" + step.min);
     case "soru": { const n = soruItems(step).length;
       return n === 1 ? (en ? "Question: " : "Soru: ") + pick(step.q || step.items[0].q, lang)
         : (en ? "Questions: " + n + " · at least " + soruMin(step) + " right first time" : "Sorular: " + n + " soru · en az " + soruMin(step) + " ilk seferde doğru"); }
@@ -3682,6 +3797,7 @@ function stepOk(step, res){
     case "usultap": return v >= (step.mode === "listen" ? 1 : step.min);
     case "dynamics": return v >= 1;
     case "piece": return step.mode === "free" ? v <= step.min : v >= step.min;
+    case "band": return v >= step.min;
     case "tech": return v >= step.target;
     case "notes": return v <= step.maxMiss;
     case "quiz": return v >= step.min;

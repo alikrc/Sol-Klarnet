@@ -66,6 +66,13 @@ for(const l of LS.LESSONS){
       });
       if(LS.soruMin(st) > items.length) err(w, "min soru sayısından büyük");
     }
+    if(st.type === "band"){
+      if(!st.arsiv || !notalar.has(st.arsiv)) err(w, "arşivde yok: " + st.arsiv);
+      if(!usulIds.has(st.usul)) err(w, "band adımında usul yok ya da bilinmiyor");
+      if(!makamIds.has(st.makam)) err(w, "band adımında makam yok ya da bilinmiyor");
+      if(!(st.tempo >= 40 && st.tempo <= 320)) err(w, "band temposu 40–320 dışında");
+      if(!(st.min > 0 && st.min <= 100)) err(w, "band min 1–100 olmalı");
+    }
     if(st.type === "piece"){
       if(st.arsiv != null){ if(!notalar.has(st.arsiv)) err(w, "arşivde yok: " + st.arsiv); return; }
       const e = REP.etudeById(st.id);

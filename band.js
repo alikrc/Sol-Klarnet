@@ -286,6 +286,7 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
     <div class="pbar"><button class="primary small" id="bdgo" type="button">${L("Başlat", "Start")}</button>
       <button class="stopbtn" id="bdtaksim" type="button">${L("Taksimle başla", "Start with a taksim")}</button>
       <button class="stopbtn" id="bdpiece" type="button">${L("Bu usulde etüt çal", "Play an étude in this usul")}</button></div>
+    <div class="bdlesson" id="bdlesson" hidden></div>
     <div class="slots bdslots" id="bdslots" aria-hidden="true"></div>
     <div class="muted" id="bdinfo"></div>
     <div class="stage" id="bdstage"><div class="muted">${L("Kulaklık kullanırsan ya da Ayarlar'da Hoparlör modunu açarsan mikrofon grubu değil seni duyar.", "Use headphones or turn on Speaker mode in Settings so the mic hears you, not the band.")}</div></div>`;
@@ -482,8 +483,10 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
     const onGrid = devs.length ? Math.round(devs.filter(d => Math.abs(d) <= Math.min(60, cellMs*0.3)).length/devs.length*100) : null;
     if(!res && onGrid === null){ stage.innerHTML = `<div class="muted">${L("Yeterince nota duyulmadı; mikrofon açık mı?", "Not enough notes heard; is the mic on?")}</div>`; return; }
     const ts = r.tempos.slice(1), tmin = ts.length ? Math.min(...ts) : null, tmax = ts.length ? Math.max(...ts) : null;
+    // Dersten açıldıysa (band adımı) ve usul ile makam değiştirilmediyse kayıt o adımın etiketini taşır (ls)
+    const bl = lessonFor(), ls = bl && bl.usul === usul().id && bl.makam === m.id ? bl.tag : undefined;
     const hist = store.get("band.hist", []); hist.push({ d: dayKey(new Date()), u: usul().id, mk: m.id, bars: r.bar, seyir: res ? res.score : null, grid: onGrid,
-      follow: r.follow || undefined, waits: r.follow ? r.waits : undefined, tmin: r.follow ? tmin : undefined, tmax: r.follow ? tmax : undefined }); store.set("band.hist", hist.slice(-100));
+      follow: r.follow || undefined, waits: r.follow ? r.waits : undefined, tmin: r.follow ? tmin : undefined, tmax: r.follow ? tmax : undefined, ls }); store.set("band.hist", hist.slice(-100));
     const folTxt =
       (r.follow && tmin !== null ? L("Grubun temposu " + tmin + "–" + tmax + " arasında gezindi", "The band's tempo ranged " + tmin + "–" + tmax) +
         (tmax - tmin > r.base*0.12 ? L(" (tempon epey değişti; metronomla iç tempo çalış)", " (your tempo drifted a lot; practise inner tempo with the metronome)") : "") +
@@ -493,6 +496,10 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
         <div><span class="label">${L("Usule oturma", "In the groove")}</span><span class="big2">${onGrid === null ? "—" : "%" + onGrid}</span></div>
         <div><span class="label">Seyir</span><span class="big2">${res ? res.score : "—"}</span></div>
         <div><span class="label">${L("Ölçü", "Bars")}</span><span class="big2">${r.bar}</span></div></div>
+      ${ls ? `<p class="fb ${onGrid !== null && onGrid >= bl.min ? "good" : "bad"}">${onGrid !== null && onGrid >= bl.min
+        ? L("Dersin ölçütü tuttu: usule oturma %" + onGrid + " (en az %" + bl.min + "). Derse dönebilirsin.", "The lesson goal is met: in the groove " + onGrid + "% (at least " + bl.min + "%). You can go back to the lesson.")
+        : L("Dersin ölçütü: usule oturma en az %" + bl.min + ". Bir kez daha çal ya da derse dön.", "The lesson goal: at least " + bl.min + "% in the groove. Play once more or go back to the lesson.")}</p>
+        <div class="pbar"><button class="primary small" type="button" data-bdback>${L("Derse dön", "Back to the lesson")}</button></div>` : ""}
       ${folTxt ? `<p class="muted">${esc(folTxt)}</p>` : ""}
       ${onGrid !== null ? `<p class="muted">${onGrid >= 75 ? L("Nota başların usulün vuruşlarına oturuyor.", "Your note starts sit on the usul's strokes.") : L("Nota başlarının bir kısmı vuruşların arasında kaldı; tempoyu düşürüp darbukanın düm ve teklerine yaslan.", "Some of your note starts fell between the strokes; lower the tempo and lean on the darbuka's düm and tek.")}</p>` : ""}
       ${res ? `<ul class="lstips">${seyirFeedback(res, m, LANG).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
@@ -517,8 +524,70 @@ if(typeof TRAINERS !== "undefined") TRAINERS.band = function(ctx){
   });
   SK.on("silence", d => { if(run){ run.frames.push({ t:d.t, written:null }); run.ns.silence(); taksimSilence(run); } });
   document.addEventListener("visibilitychange", () => { if(document.hidden && run) stop(false); });
+  // ---- Dersten açılış (band adımı; band.lesson kaydı) ----
+  // Adım usulü, makamı ve tempoyu kurar; panelde eserin notası, ölçüt ve "Derse dön" görünür. Kayıt 6 saat geçerli.
+  function lessonFor(){ const b = store.get("band.lesson", null); return b && Date.now() - b.t < 6*3600e3 ? b : null; }
+  // Bölümler arası geçişte sekmenin enter()'ı ilk dokunuşa kadar bekler (practice.js takeOver): kutu ve dönüş doğrudan çağrılır
+  function back(){ const b = lessonFor(); if(b) store.set("band.back", b.tag); ctx.selectTab("lessons"); if(SK.resumeBandStep) SK.resumeBandStep(); }
+  $("bdstage").addEventListener("click", e => { if(e.target.closest("[data-bdback]")) back(); });
+  let shownTag = null;
+  function lessonBox(){
+    const b = lessonFor(), box = $("bdlesson");
+    if(!b){ box.hidden = true; box.innerHTML = ""; shownTag = null; return; }
+    if(shownTag === b.tag) return;
+    shownTag = b.tag;
+    $("bdusul").value = b.usul; $("bdmk").value = b.makam; $("bdtempo").value = b.tempo; setUnit();
+    $("bdeval").checked = true; $("bdfollow").checked = false; $("bdprog").checked = false;
+    box.hidden = false;
+    const bars = b.from ? L(" (ölçü " + b.from + "–" + (b.to || "") + ")", " (bars " + b.from + "–" + (b.to || "") + ")") : "";
+    box.innerHTML = `<div class="label">${esc(L("Ders adımı: ", "Lesson step: ") + (b.name && (b.name[LANG] || b.name.tr) || ""))}</div>
+      <p class="muted small">${esc(L("Başlat'a bas; sayım yok: grubun ilk ölçüsünü dinle, sonraki ölçünün başında eseri çal" + bars + ". Bitince Durdur'a bas. Ölçüt: usule oturma en az %" + b.min + ". “Grup beni izlesin” kapalı, tempo sabit kalır.",
+        "Press Start; there's no count-in: listen to the band's first bar and start the piece at the next bar" + bars + ". When you finish press Stop. Goal: at least " + b.min + "% in the groove. “Band follows me” is off, so the tempo stays fixed."))}</p>
+      <div class="scorewrap"></div>
+      <div class="pbar"><button class="stopbtn small" type="button" data-bdback>${L("Derse dön", "Back to the lesson")}</button>
+        <button class="linkbtn small" type="button" data-bdquit>${L("Dersten çık (serbest eşlik)", "Leave the lesson (free play)")}</button></div>`;
+    box.querySelector("[data-bdback]").addEventListener("click", back);
+    box.querySelector("[data-bdquit]").addEventListener("click", () => { store.set("band.lesson", null); lessonBox(); });
+    if(b.arsiv && typeof archLessonPiece === "function")
+      archLessonPiece(b).then(p => { if(shownTag === b.tag) drawScore(box.querySelector(".scorewrap"), p.notes, { meter:p.meter, base:0 }); })
+        .catch(() => { const w = box.querySelector(".scorewrap"); if(w) w.innerHTML = `<p class="muted small">${L("Nota açılamadı.", "The score couldn't be opened.")}</p>`; });
+  }
+  SK.bandLessonBox = () => { lessonBox(); info(); };
   info();
-  return { enter(){ SK.setTempContext(mk().id); info(); }, leave(){ if(run) stop(false); SK.setTempContext(null); } };
+  return { enter(){ lessonBox(); SK.setTempContext(mk().id); info(); }, leave(){ if(run) stop(false); SK.setTempContext(null); } };
+};
+
+// ---- Ders adımı: eşlikle çal (docs/BACKLOG.md S4.3) ----
+// { type:"band", arsiv, name, from?, to?, usul, makam, tempo (usul birimi/dk), min }: Eşlik sekmesini bu ayarlarla açar
+// (band.lesson kaydı, her açılışta yeni etiket). Ölçüm Eşlik'in kendi kaydı: band.hist'te bu etiketi taşıyan çalışların
+// en iyi "usule oturma" değeri (grid, %). Eşlik'te "Derse dön" adımı yeniden başlatır (band.back, lessonview.js enter).
+if(typeof TRAINER_STEPS !== "undefined") TRAINER_STEPS.band = function(st, stage, done, ctx){
+  const { store, esc } = ctx, b = store.get("band.lesson", null);
+  const mine = b && b.arsiv === st.arsiv && b.usul === st.usul && (b.from || 0) === (st.from || 0) && Date.now() - b.t < 6*3600e3;
+  const runs = mine ? store.get("band.hist", []).filter(h => h.ls === b.tag && h.grid != null) : [];
+  if(runs.length){
+    const best = Math.max(...runs.map(h => h.grid));
+    store.set("band.lesson", null);
+    stage.innerHTML = `<p class="muted">${L("Eşlik'teki en iyi çalışın: usule oturma %" + best + ".", "Your best run with the band: " + best + "% in the groove.")}</p>`;
+    setTimeout(() => done({ v: best }), 0);
+    return { stop(){} };
+  }
+  const u = BLEARN.USULS.find(x => x.id === st.usul), m = BLEARN.makamById(st.makam), nm = st.name && (st.name[LANG] || st.name.tr) || "";
+  stage.innerHTML = `<div class="label">${esc(nm)}</div>
+    <p class="muted small">${esc((u ? u.name + " " + u.meter : st.usul) + " · " + (m ? m.name : st.makam) + " · tempo " + st.tempo)}</p>
+    <p>${esc(L("Eşlik sekmesi bu eserin usulü, makamı ve temposuyla açılır; nota da orada görünür. Kulaklık tak (ya da Ayarlar'da Hoparlör modunu aç), Başlat'a bas ve eseri grupla çal. Bitince Durdur'a, sonra “Derse dön”e bas: adım Eşlik'in ölçtüğü usule oturma değeriyle kapanır (en az %" + st.min + ").",
+      "The Band tab opens with this piece's usul, makam and tempo; the score is shown there too. Put on headphones (or turn on Speaker mode in Settings), press Start and play the piece with the band. When you finish press Stop, then “Back to the lesson”: the step closes with the in-the-groove value the Band measured (at least " + st.min + "%)."))}</p>
+    ${mine ? `<p class="fb bad">${L("Eşlik'te değerlendirilmiş bir çalış yok (mikrofon açık mıydı, “değerlendir” işaretli miydi?).", "No assessed run with the band yet (was the mic on and “assess” ticked?).")}</p>` : ""}
+    <div class="pbar"><button class="primary small" type="button" data-bdopen>${L("Eşlik'i aç", "Open the Band")}</button></div>`;
+  stage.querySelector("[data-bdopen]").addEventListener("click", () => {
+    const tag = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    store.set("band.lesson", { tag, t: Date.now(), arsiv: st.arsiv, name: st.name, from: st.from, to: st.to, usul: st.usul, makam: st.makam, tempo: st.tempo, min: st.min });
+    store.set("band.usul", st.usul); store.set("band.mk", st.makam);
+    const all = store.get("band.tempos", {}); all[st.usul] = st.tempo; store.set("band.tempos", all);
+    ctx.selectTab("band");
+    if(ctx.SK.bandLessonBox) ctx.SK.bandLessonBox();
+  });
+  return { stop(){} };
 };
 
 // ---- Eser çalarlar için: bir ölçü dizisinin eşlik olayları ----

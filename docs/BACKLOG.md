@@ -679,13 +679,41 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   "istersen" olur; sıfır kullanıcıda ilk ders aynı. Tarayıcıda 375 px'te ünite listesi, okuma, soru, usul, dinleme
   adımları, 70 arşiv adımının hepsinin yüklenmesi, yol haritası ve rozet denendi, konsolda hata yok; mikrofonlu adımlar
   (çalma, süsleme) denenmedi.
-- [ ] **S4.3 Fasıl ve eşlik pratiği** (B, E18). İleri üniteye 4 ders: `aranagme` (arşivdeki 77 aranağmeden Rast,
+- [x] **S4.3 Fasıl ve eşlik pratiği** (B, E18). **Yapıldı (15 Kasım 2026).** İleri üniteye 4 ders: `aranagme` (arşivdeki 77 aranağmeden Rast,
   Hicaz, Nihâvend, Uşşak; aranağme nedir, nerede çalınır; `eserSteps`), `sarki-eslik` (şarkıyı solistle çalmak:
   sözlü eserde ezgiyi sade çal, söz arasını doldur; `piece` adımı eserin sözlü ölçülerinde `mode:"free"`, söz
   aralarında `listen`; SymbTr söz hizası notalarda var: `notes[i][3]`), `fasil-sirasi` (`read` + `soru`: peşrev,
   beste, ağır semâî, şarkılar, yürük semâî, saz semâîsi; kaynak TDV "Fasıl"), `eslikle-calma` (Eşlik sekmesinde
   darbuka ve bas üstünde iki eser; ölçüt `band.hist` usule oturma ≥ %70; `band` adım türü yoksa eklenir:
   `{ type:"band", arsiv|id, min }`).
+  *Uygulanan:* `lessons.js` `// ---- S4.3 Fasıl ve eşlik ----` bloğu, dördü `since:2`, İleri'de `sed-3`'ten sonra.
+  `aranagme`: Teori "form" konusunun şarkı ve aranağme paragrafları (`thRead`, metin ikinci kez yazılmadı) + TDV Fasıl'dan
+  ince saz ve ara nağme okuması, 3 soru, `eserSteps` dört bölüm (1–8, 9–16, 17–28, 29–36). **Sapma:** Rast, Hicaz,
+  Nihâvend, Uşşak aranağmesi yok: arşivin 77 aranağmesinden 76'sının bestecisi kayıtlı değil (`lisans-belirsiz.csv`),
+  `eser-sec.js --form aranagme` hiçbirini vermiyor. Telifsiz tek aranağme kullanıldı: Muallim İsmail Hakkı Bey'in Hicazkâr
+  Aranağmesi (Aksak, 36 ölçü). Belirsizlerin bestecisi (çoğu anonim olabilir) bulunursa ders dört makama genişletilebilir
+  (yeni ders, kural 1). `sarki-eslik`: Hacı Ârif Bey, Ağlamaz mı Çeşm-i Hasret (Uşşak, Aksak). Söz araları yeni betikle,
+  `scripts/soz-arasi.js` (`<id>`: ölçü ölçü hece; `--ara`: telifsiz sözlü eserlerden içeride söz arası olanlar): SymbTr
+  hecesiz ölçüyü ve **"Saz" hecesini** saz arası sayar (SymbTr saz yerini hece alanına "Saz" yazıyor). Sözlü 1–3, 6–8, 11–14,
+  17–19 `piece` %60 `free`; söz araları 4–5, 9–10, 15–16, 20–21 `listen`; sonda tamamı %80 `tempo` `min:70` (söz aralarını
+  öğrenci doldurur; 22–31 6–15'in tekrarı). `fasil-sirasi`: TDV "Fasıl (Mûsiki)" okundu (`KAYNAKLAR.md` §11): `read` dört
+  paragraf (tanım; klasik sıra taksim, peşrev, kâr, iki beste, ağır semâî, [şarkılar], yürük semâî, saz semâîsi; bugünkü
+  fasıl: şarkılar ara nağmeyle, ortada taksim, sonda saz semâîsi/longa/sirto/oyun havası) + `soru` ×6 (`min:5`).
+  `eslikle-calma`: Kalenin Burcu Muyam (anonim Uşşak türkü, Sofyan; SymbTr 1–8'i "ARANAĞME" diye işaretli; S4.2'nin
+  `turku-ussak` dersinde de var, burada eşlikle çalınır) ölçü 1–24 ve
+  Ağlamaz mı; `listen` → (`piece free`) → `band`. **Yeni adım `band`** (`band.js` `TRAINER_STEPS.band`):
+  `{ type:"band", arsiv, name, from?, to?, usul, makam, tempo, min }` (usul, makam, tempo usul birimi/dk adımda açık
+  yazılır; `id` ile etüt desteklenmedi, gerek olmadı). "Eşlik'i aç" `band.lesson` kaydını (her açılışta yeni etiket)
+  yazar, Eşlik'i usul, makam, tempoyla açar; Eşlik panelinde ders kutusu: eserin notası (`archLessonPiece`), ölçüt,
+  "Derse dön", "Dersten çık"; "grup beni izlesin" kapalı (tempo sabit), değerlendir açık. Eşlik `band.hist` kaydına
+  etiketi (`ls`) yazar (usul ve makam değiştirilmediyse) ve sonuçta ölçütü gösterir. "Derse dön" adımı yeniden başlatır
+  (`band.back`, `lessonview.js` `resumeBand`; bölümler arası geçişte sekme `enter()`'ı ilk dokunuşa kadar beklediği için
+  iki yön de doğrudan çağrılır: `SK.bandLessonBox`, `SK.resumeBandStep`); adım o etiketli çalışların en iyi `grid`
+  değeriyle kapanır, eşik `min:70`. `lessons.js` `stepTitle`/`stepOk`, `lessonview.js` `stepGoal`, mikrofonsuz başlar;
+  `npm run mufredat` band adımının eserini, usulünü, makamını, temposunu denetler. Müfredat 182 ders (S2.4, S4.2, S4.4, S4.5 ile). Tarayıcıda 375 px'te
+  dört ders açıldı; okuma, soru, dinleme adımları ve Eşlik'e gidiş-dönüş (ders kutusu, nota, ayarlar; sahte `band.hist`
+  kaydıyla adımın %82 ile kapanması) denendi, konsolda hata yok. Mikrofon engelli olduğu için çalma adımları ve
+  Eşlik'in gerçek ölçümü denenmedi.
 - [x] **S4.4 Saz eserleri** (O, E19; S3.6 ve B1 Aksak Semâî gerekir). **Yapıldı (15 Kasım 2026).** İleri: `pesrev-1` (bir peşrevin 1. hanesi ve
   teslimi), `sazsemaisi-1` (bir saz semâîsinin 1.–3. haneleri; Aksak Semâî 10/8), `sazsemaisi-2` (4. hane: usul
   değişir; aynı eser), `longa-1` (hızlı 2/4; `tempoPct` 60→80→100). Eserler basamak 5–6'dan, bestecisi kamu malı.
