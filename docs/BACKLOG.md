@@ -405,11 +405,25 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   biri 2–3 cümle + arşivden o formda süzülmüş liste bağlantısı (`archive.js` form süzgeci). Adım: `read` ×3, `soru`
   ×6, bir saz semâîsinin teslimini `listen` + ölçüleri işaretli gösterme. Eser sayfasında form adına dokununca bu
   konunun ilgili paragrafı alt panelde açılır. Kaynak: TDV form maddeleri, `KAYNAKLAR.md`'ye.
-- [ ] **S3.7 Usul 3 ve 4** (O, E15; B1 ile birlikte). `usul-3` (Teknik, `usul-2`'den sonra): Nîm-sofyan, Ağır
+- [x] **S3.7 Usul 3 ve 4** (O, E15; B1 ile birlikte). **Yapıldı (15 Kasım 2026).** `usul-3` (Teknik, `usul-2`'den sonra): Nîm-sofyan, Ağır
   Aksak, Sengin Semâî; `usul-4` (Makamlar başı): Devr-i Hindî, Müsemmen ve, B1'de çözülürse, Aksak Semâî. Kalıp
   `usul-2` ile aynı (`usultap` mem → `rhythm`), her usulün sonunda arşivden o usulde bir kolay eserin ilk 8 ölçüsü
   (`piece` `arsiv`, `mode:"tempo"`). B4'ün dört usul etüdü bu derslere bağlanır. Yeni taş: "12 usulü ezberden vur".
   Büyük usuller (Devr-i Kebîr 45 eser, Hafîf 28, Muhammes 25, Evfer 24) ayrı PBI: kalıpları TDV'den okununca.
+  *Uygulanan:* `lessons.js` `// ---- S3.7 Usul 3 ve 4 ----` bloğu, ikisi `since:2`. `usul-3` `usul-2`'nin arkasında;
+  `usul-4` Makamlar'ın ilk dersi (`insertLessonAfter` Makamlar'ın ilk dersinden önceki derse, bugün `sus-makam`; ünitenin ilk
+  dersi `unlocked`'ta `base()` ister, `rast-giris` artık `usul-4`'ü ister, eski kullanıcıda göç "istersen" yapar). Kalıp:
+  bilinen usule dayananlarda (Nîm-sofyan, Ağır Aksak = Aksak, Sengin Semâî = Yürük Semâî) `usultap` `mem` → `rhythm`;
+  yeni kalıplarda (Devr-i Hindî, Müsemmen) önce `tap`. Her usulün sonunda yardımcı `usulEser`: `listen` + `piece`
+  (`from:1, to:8, mode:"tempo", min:65`). Metinler `usuller.js` `USUL_INFO`'dan (TDV). Eserler `scripts/eser-sec.js
+  --makam hepsi --oktav 0 --aralik 52-84 --sn 300` ile; her usulde telifsiz ve ölçütü geçen tek eser çıktı, Müsemmen'de
+  dört (en kolayı, en kısa değeri sekizlik olan seçildi): Pınar Başı Burma Burma (Sabâ türkü, anonim), Sarı Zeybek
+  (Hüseynî, Osman Pehlivan), Gelse Nesîm-i Subh İle (Beyâtî yürük semâî), Şemsiyemin Ucu Kare (Hüseynî türkü, notası
+  7/4), Ağlama Yâr (Hüseynî türkü, anonim). **Aksak Semâî eklenmedi:** B1 hâlâ açık (şemadaki değerler 9 zaman veriyor,
+  usul 10 zamanlı); B1 çözülünce `usul-4`'ün sonuna değil yeni bir derse girer (kural 1). **B4'e bağlanmadı:** B4
+  yapılmadı ve etütleri bu derslerin usullerinde değil (Düyek, Curcuna, Türk Aksağı, Yürük Semâî); yapılınca `usul`,
+  `usul-2`'ye ya da kendi dersine bağlanmalı. Yol haritası: Makamlar aşamasına "12 usulü ezberden vur" (`usul12`,
+  var olan `usulMem` ölçümü: `usul.prog`'ta `mem` ≥ 70 olan usuller). Müsemmen şemasındaki belirsizlik (B1 ⚠️) sürüyor.
 - [ ] **S3.8 Teori derslere bağlansın** (O, E6). Teori'nin 8 konusu için 8 kısa ders değil, var olan yola serpilmiş
   `soru` adımlı 5 ders: `teori-koma` (Makamlar başı, `rast-giris`'ten önce: tanini, bakiye, mücenneb, 53 koma;
   `ear` `abx` seviye 1), `teori-perde` (`rast`'tan sonra: perde adları iki oktav, `soru` ×8 + `quiz` perde adıyla),

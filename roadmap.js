@@ -40,6 +40,7 @@ const RM_STAGES = [
     miles:[
       { id:"seyir", tab:"seyir", title:{ tr:"Seyir puanı", en:"Seyir score" }, unit:{ tr:" puan", en:" pts" }, target:65, get: st => st.seyirBest || null, tried: histDays("seyir") },
       { id:"makamid", tab:"ear", title:{ tr:"Makam tanıma rekoru", en:"Makam ID record" }, unit:{ tr:" art arda", en:" in a row" }, target:5, get: st => st.earMakam || null },
+      { id:"usul12", tab:"usul", title:{ tr:"12 usulü ezberden vur", en:"Tap 12 usuls from memory" }, unit:{ tr:" usul", en:" usuls" }, target:12, get: st => st.usulMem || null },
       { id:"dictm", tab:"dikte", title:{ tr:"Ezgi diktesi seviye 2 (10 soruda)", en:"Melodic dictation level 2 (of 10)" }, unit:{ tr:" doğru", en:" right" }, target:6, get: st => st.dictBest.melody2 || null, tried: histDays("dict", x => x.m === "melody" && +x.lv === 2) }
     ] },
   { id:"trakya", units:["trakya"], title:{ tr:"Oyun havaları: Trakya ve Roman", en:"Dance tunes: Thracian and Romani" },

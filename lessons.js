@@ -2294,6 +2294,66 @@ insertLessonAfter("ilk-eserler-1", { id:"ilk-eserler-2", unit:"temel", since:2, 
     ...eserSteps("rast--sugul--duyek--ya_men--tanburi_ali_efendi", { tr:"Yâ Men Yuhibbu", en:"Yâ Men Yuhibbu" }, [[1, 4], [5, 8]], { oct:-1 })
   ] });
 
+// ---- S3.7 Usul 3 ve 4 ----
+// Veride olup dersi olmayan usuller (learn.js USULS, açıklamalar usuller.js USUL_INFO; TDV şemaları, docs/KAYNAKLAR.md).
+// Her usul: usultap (yeni kalıpta önce tap) → mem → rhythm → arşivden o usulde bir eserin ilk 8 ölçüsü (dinle, çal).
+// Eserler scripts/eser-sec.js ile (--makam hepsi --oktav 0 --aralik 52-84 --sn 300; telifsiz). Aksak Semâî yok: B1'de
+// şeması çözülmedi (docs/BACKLOG.md)
+const usulEser = (arsiv, name, min = 65) => [
+  { type:"listen", arsiv, name, from:1, to:8 },
+  { type:"piece", arsiv, name, from:1, to:8, mode:"tempo", min }
+];
+insertLessonAfter("usul-2", { id:"usul-3", unit:"teknik", since:2, notes:[],
+  title:{ tr:"Nîm-sofyan, Ağır Aksak ve Sengin Semâî", en:"Nîm-sofyan, Ağır Aksak and Sengin Semâî" },
+  text:[
+    { tr:"Üç usul daha; üçü de bildiğin bir usule dayanır. Nîm-sofyan iki zamanlıdır (2/4): düm tek. Dört zamanlı Sofyan'ın yarısı olduğu için “yarım sofyan” denmiştir; sirto, longa, marş ve bazı türkülerde.",
+      en:"Three more usuls, each built on one you know. Nîm-sofyan has two beats (2/4): düm tek. It is called “half sofyan” because it is half the four-beat Sofyan; in sirtos, longas, marches and some türküs." },
+    { tr:"Ağır Aksak, Aksak'ın bir mertebe ağırıdır: aynı vuruşlar, dokuz dörtlük (9/4). Zeybek de bu vuruşlarla çalınır. Sengin Semâî de Yürük Semâî'nin vuruşlarını bir mertebe ağır vurur (6/4): düm tek tek, düm tek.",
+      en:"Ağır Aksak is Aksak one level slower: the same strokes in nine quarters (9/4). Zeybek is played with these strokes too. Sengin Semâî likewise takes Yürük Semâî's strokes one level slower (6/4): düm tek tek, düm tek." },
+    { tr:"Her usulü ezberden vur, sonra metronomla klarnette çal; en sonda arşivden o usulde bir eserin ilk sekiz ölçüsü. Türküde (Sabâ) iki koma perdesi var, Si ve Do♯ yazılı: şimdilik yazıldığı gibi çal, gerçek perdelerini Makamlar'da öğreneceksin.",
+      en:"Tap each usul from memory, then play it on the clarinet with the metronome; at the end, the first eight bars of an archive piece in that usul. The türkü (Sabâ) has two comma perdes, written B and C♯: play them as written for now, you'll learn their real pitch in Makams." }
+  ],
+  tips:[
+    { tr:"Ağır usullerde vuruşu dörtlükle say, sekizlikle değil: Ağır Aksak'ı 2+2+2+3 dörtlük diye say.", en:"In slow usuls count the strokes in quarters, not eighths: count Ağır Aksak as 2+2+2+3 quarters." }
+  ],
+  steps:[
+    { type:"usultap", usul:"nimsofyan", mode:"mem", min:70 },
+    { type:"rhythm", usul:"nimsofyan", tempo:100, bars:6, min:60 },
+    ...usulEser("saba--turku--nimsofyan--pinar_basi--", { tr:"Pınar Başı Burma Burma", en:"Pınar Başı Burma Burma" }),
+    { type:"usultap", usul:"agiraksak", mode:"mem", min:70 },
+    { type:"rhythm", usul:"agiraksak", tempo:90, bars:2, min:55 },
+    ...usulEser("huseyni--zeybek--agiraksak--sarizeybek--osman_pehlivan", { tr:"Sarı Zeybek", en:"Sarı Zeybek" }),
+    { type:"usultap", usul:"senginsemai", mode:"mem", min:70 },
+    { type:"rhythm", usul:"senginsemai", tempo:100, bars:3, min:55 },
+    ...usulEser("beyati--yuruksemai--senginsemai--gelse_nesim-i--iv_murad", { tr:"Gelse Nesîm-i Subh İle", en:"Gelse Nesîm-i Subh İle" })
+  ] });
+
+// Makamlar'ın başına: ünitenin ilk dersinden önceki dersin arkasına (unlocked: ünitenin ilk dersi base() ister, sonrakiler
+// bir öncekini; usul-4 bitmeden Makamlar'ın ikinci dersi açılmaz, eski kullanıcıda göç "istersen" yapar)
+insertLessonAfter(LESSONS[LESSONS.findIndex(l => l.unit === "makam") - 1].id, { id:"usul-4", unit:"makam", since:2, notes:[],
+  title:{ tr:"Devr-i Hindî ve Müsemmen", en:"Devr-i Hindî and Müsemmen" },
+  text:[
+    { tr:"Makam eserlerinde sık geçen iki usul. Devr-i Hindî yedi zamanlıdır (7/8): üç zamanlık düm tek tek, sonra iki zamanlık düm ve iki zamanlık tek; bir semâî ile bir sofyanın eklenmesidir. 7/4'lük (ağır) mertebesi de var: bu dersteki türkünün notası 7/4 yazılı.",
+      en:"Two usuls common in makam pieces. Devr-i Hindî has seven beats (7/8): a three-beat düm tek tek, then a two-beat düm and a two-beat tek; a semâî and a sofyan joined. There is a heavier 7/4 form too: this lesson's türkü is written in 7/4." },
+    { tr:"Müsemmen sekiz zamanlıdır (8/8) ama Düyek gibi değil: üç zamanlık düm, iki zamanlık tek, üç zamanlık tek (3+5). Bir semâî ile bir Türk aksağının eklenmesidir; “Katakofti” diye de anılır.",
+      en:"Müsemmen has eight beats (8/8) but unlike Düyek: a three-beat düm, a two-beat tek and a three-beat tek (3+5). A semâî and a Türk aksağı joined; also known as “Katakofti”." },
+    { tr:"Önce kalıbı göre göre vur, sonra ezberden; ardından metronomla klarnette ve sonunda arşivden bir türkünün ilk sekiz ölçüsü. İki türküde de Si koma perdesi var, birincisinde Fa♯ da: bu ünitenin derslerinde öğreneceksin, şimdilik yazıldığı gibi çal.",
+      en:"Tap the pattern first while watching it, then from memory; then with the metronome on the clarinet, and finally the first eight bars of a türkü from the archive. Both türküs have the comma perde B, the first one F♯ too: you'll learn them in this unit, for now play them as written." }
+  ],
+  tips:[
+    { tr:"Devr-i Hindî'yi 3+2+2, Müsemmen'i 3+2+3 diye say; ikisinde de ilk grup üç zamanlıdır.", en:"Count Devr-i Hindî as 3+2+2 and Müsemmen as 3+2+3; both start with a three-beat group." }
+  ],
+  steps:[
+    { type:"usultap", usul:"devrihindi", mode:"tap", min:70 },
+    { type:"usultap", usul:"devrihindi", mode:"mem", min:70 },
+    { type:"rhythm", usul:"devrihindi", tempo:150, bars:3, min:55 },
+    ...usulEser("huseyni--turku--devrihindi--semsiyemin_ucu--trakya", { tr:"Şemsiyemin Ucu Kare", en:"Şemsiyemin Ucu Kare" }),
+    { type:"usultap", usul:"musemmen", mode:"tap", min:70 },
+    { type:"usultap", usul:"musemmen", mode:"mem", min:70 },
+    { type:"rhythm", usul:"musemmen", tempo:140, bars:3, min:55 },
+    ...usulEser("huseyni--turku--musemmen--aglama_yar--anonim", { tr:"Ağlama Yâr", en:"Ağlama Yâr" })
+  ] });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
