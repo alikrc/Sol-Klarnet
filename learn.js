@@ -442,9 +442,31 @@ function makamExercises(mk){
   const thirds = [];
   for(let i=0;i+2<up.length;i++) thirds.push(up[i], up[i+2]);
   thirds.push(up[up.length-1]);
+  const cad = makamCadences(mk);
   return [
     { name: mk.name + " — çıkış ve iniş", notes: [...up, ...down.slice(1)] },
-    { name: mk.name + " — üçlü atlamalar", notes: thirds }
+    { name: mk.name + " — üçlü atlamalar", notes: thirds },
+    ...cad.map(k => ({ name: mk.name + " — " + k.name.tr, kind: k.kind, commas: k.commas, notes: k.commas.map(commaToWritten) }))
+  ];
+}
+// Karar kalıpları (docs/BACKLOG.md S3.3): dizinin perdelerinden, durak, güçlü ve yedenden üretilir; elle yazılmaz.
+//   inis:  güçlüden durağa iniş (inerken desc perdeleri); üç perdeden kısaysa güçlünün üst komşusuna uğranır
+//   yeden: durağın iki üst perdesinden durağa, yedene inip durağa dönüş (yeden dizide olmasa da karar perdesidir)
+//   yarim: durak civarından çıkıp güçlüde yarım karar (çıkarken asc perdeleri); kısaysa güçlünün üst komşusuna uğranır
+function makamCadences(mk){
+  const up = [...new Set(mk.asc)].sort((a, b) => a - b), dn = [...new Set(mk.desc)].sort((a, b) => a - b);
+  const gIn = (s, g) => s.includes(g) ? g : s.reduce((p, c) => Math.abs(c - g) < Math.abs(p - g) ? c : p, s[0]);
+  const above = (s, g) => s.find(c => c > g);
+  const gd = gIn(dn, mk.guclu), gu = gIn(up, mk.guclu);
+  let inis = dn.filter(c => c >= mk.durak && c <= gd).reverse();
+  if(inis.length < 4 && above(dn, gd) != null) inis = [gd, above(dn, gd), ...inis];
+  const i = dn.indexOf(mk.durak), yeden = [dn[i + 2], dn[i + 1], mk.durak, mk.yeden, mk.durak].filter(c => c != null);
+  let yarim = up.filter(c => c >= mk.durak && c <= gu).slice(-5);
+  if(yarim.length < 4 && above(up, gu) != null) yarim = [...yarim, above(up, gu), gu];
+  return [
+    { kind:"inis", name:{ tr:"güçlüden durağa iniş", en:"from the dominant down to the final" }, commas: inis },
+    { kind:"yeden", name:{ tr:"yedenli karar", en:"cadence with the leading tone" }, commas: yeden },
+    { kind:"yarim", name:{ tr:"güçlüde yarım karar", en:"half cadence on the dominant" }, commas: yarim }
   ];
 }
 
@@ -467,5 +489,5 @@ if(typeof module !== "undefined") module.exports = {
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
   GB_ORDER, GB_START, GB_LEVELS, GB_FAST, gbState, gbNote, gbActive, gbMastered, gbPick, gbRecord,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,
-  makeMotif, parseMelody, makamExercises, dayKey, streak
+  makeMotif, parseMelody, makamExercises, makamCadences, dayKey, streak
 };

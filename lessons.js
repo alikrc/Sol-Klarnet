@@ -41,7 +41,7 @@ const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : 
 const LSK = () => typeof module !== "undefined" ? require("./skills.js") : { techPattern, patternKey };
 const LPREM = () => typeof module !== "undefined" ? require("./premium.js") : { premiumUnit };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
-  : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS };
+  : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS, makamCadences, similarMakams, seyirText, ICRA_INFO };
 
 const UNITS = [
   { id:"baslangic", name:{ tr:"Başlarken", en:"Getting started" }, badge:{ tr:"Yola çıktın", en:"On the road" } },
@@ -1216,14 +1216,14 @@ const SUSLEME = [
 // Arşiv eserinden ders adımları ("eser dersi" kalıbı; docs/BACKLOG.md S0.3): her bölüm önce dinlenir, sonra %60 tempoda
 // serbest takiple çalınır; en sonda eserin tamamı %80 ve %100 tempoda. parts: [[from, to] ölçü aralıkları…] (1 tabanlı,
 // dahil; boşsa yalnız tamamı), name: eserin adı (adım başlığında; dizin derste yüklenmeden okunmaz)
-// o.oct: bütün adımlarda oktav kaydırma (−1: bir oktav pes)
+// o.oct: bütün adımlarda oktav kaydırma (−1: bir oktav pes); o.to: tamamı adımları bu ölçüde biter (tekrarlanan ikinci kıta çalınmaz)
 function eserSteps(arsiv, name, parts = [], o = {}){
-  const base = { arsiv, name, ...(o.oct ? { oct:o.oct } : {}) };
+  const base = { arsiv, name, ...(o.oct ? { oct:o.oct } : {}) }, whole = { ...base, ...(o.to ? { to:o.to } : {}) };
   return [
     ...parts.flatMap(([from, to]) => [{ type:"listen", ...base, from, to, tempoPct:60 }, { type:"piece", ...base, from, to, tempoPct:60, mode:"free", min: o.freeMin || 4 }]),
-    ...(parts.length ? [] : [{ type:"listen", ...base, tempoPct:80 }]),
-    { type:"piece", ...base, tempoPct:80, mode:"tempo", min: o.min80 || 70 },
-    { type:"piece", ...base, tempoPct:100, mode:"tempo", min: o.min || 75 }
+    ...(parts.length ? [] : [{ type:"listen", ...whole, tempoPct:80 }]),
+    { type:"piece", ...whole, tempoPct:80, mode:"tempo", min: o.min80 || 70 },
+    { type:"piece", ...whole, tempoPct:100, mode:"tempo", min: o.min || 75 }
   ];
 }
 // Arşiv adımının başlığı: "Eserin adı · ölçü 1–8 · %60 tempo"
@@ -2507,6 +2507,102 @@ insertLessonAfter("hiz-makam",
       ...techSteps({ type:"leaps", base:60, mode:"major", iv:5, sub:2, art:"legato" }, 60, 80),
       ...techSteps({ type:"leaps", base:55, mode:"major", iv:8, sub:2, art:"legato" }, 50, 72)
     ] });
+
+// ---- S3.1 + S3.3 Makam ikinci dersleri ----
+// Her temel makama "cümle, karar ve eser" dersi (<makam>-2, makam dersinin hemen arkasında). Kalıp (docs/BACKLOG.md S3.3):
+// read (karar yolu, MAKAMS seyir metni) + soru ×3 (durak, güçlü, yeden) → notes ×3 karar kalıbı (learn.js makamCadences,
+// diziden üretilir) → seyir çeşni 30 sn → ear makam (makam + similarMakams; Segâh ve Hüzzam'da benzer yok, aynı duraklı
+// makam) → etüt (S3.1 etüdü ya da var olan etüt bir üst tempoda) → arşivden eser (scripts/eser-sec.js, telifsiz, asıl
+// yerinde). Segâh ve Hüzzam'da icra perdesi notu ICRA_INFO'dan üretilir.
+// Veri yalnız learn.js'ten okunur (tarayıcıda lessons.js'ten önce yüklenir); repertoire.js ve skills.js çağrılmaz.
+const M2_PERDE = c => LLEARN.perdeName(c);
+const M2_KOMA = (x, en) => en ? String(x) : String(x).replace(".", ",");
+function makamIcraNote(mk){
+  const info = LLEARN.ICRA_INFO[mk.id] || {}, ks = Object.keys(info);
+  if(!ks.length) return { tr:"Akort ekranındaki “icra” ayarında " + mk.name + " makamı için kaynaklı bir düzeltme yok: perdeler AEU değerinde ölçülür. Durak perdesini göstergede izle.",
+    en:"The “practice” tuning on the Tuner screen has no sourced adjustment for makam " + mk.name + ": perdes are measured at their AEU values. Watch the final on the display." };
+  const parts = ks.map(k => { const f = info[k], p = M2_PERDE(+k), up = f.range[0] > 0;
+    return { tr: p + " AEU değerinden " + M2_KOMA(Math.abs(f.range[0])) + "–" + M2_KOMA(Math.abs(f.range[1])) + " koma " + (up ? "tiz" : "pes") + " basılır (" + f.src + ")",
+             en: p + " is played " + M2_KOMA(Math.abs(f.range[0]), 1) + "–" + M2_KOMA(Math.abs(f.range[1]), 1) + " commas " + (up ? "higher" : "lower") + " than its AEU value (" + f.src + ")" }; });
+  return { tr:"İcra perdesi: " + parts.map(x => x.tr).join("; ") + ". Akort ekranında “icra”yı seçersen uygulama bu düzeltmeyle ölçer; yaklaşıktır, icracıya ve ezgiye göre değişir.",
+           en:"Practice pitch: " + parts.map(x => x.en).join("; ") + ". Choose “practice” on the Tuner screen and the app measures with this adjustment; it is approximate and varies with the player and the melody." };
+}
+function makamSecond(mk, o){
+  const m = LLEARN.makamById(mk), D = M2_PERDE(m.durak), G = M2_PERDE(m.guclu), Y = M2_PERDE(m.yeden);
+  const cad = LLEARN.makamCadences(m);
+  const scale = [...new Set([...m.asc, ...m.desc])].sort((a, b) => a - b);
+  const fourth = M2_PERDE(scale.find(c => ![m.durak, m.guclu, m.yeden].includes(c)));
+  const opts = [D, G, Y, fourth].map(x => ({ tr:x, en:x }));
+  const q = (tr, en, ok, why) => ({ q:{ tr, en }, opts, ok, why });
+  const sim = LLEARN.similarMakams(m, 2).slice(0, 3).map(x => x.mk.id);
+  const pool = [mk, ...(sim.length ? sim : LLEARN.MAKAMS.filter(x => x.id !== mk && x.durak === m.durak).slice(0, 3).map(x => x.id))];
+  const etude = o.etude || { type:"piece", id:"e-" + mk, mode:"tempo", min:75, tempo:o.tempo };
+  return { id: mk + "-2", unit:"makam", since:2, notes:[], makam:mk,
+    title:{ tr: m.name + ": cümle, karar ve eser", en: m.name + ": phrase, cadence and piece" },
+    text:[
+      { tr:"İlk " + m.name + " dersinde diziyi öğrendin. Bu derste makamın nasıl cümle kurup karar verdiğini çalışacaksın: önce karar yolu, sonra üç kısa karar kalıbı, çeşnide serbest çalma, kulakla benzer makamdan ayırma, etüt ve en sonda arşivden gerçek bir eser.",
+        en:"In the first " + m.name + " lesson you learned the scale. In this one you work on how the makam builds phrases and cadences: first the path to the final, then three short cadence patterns, free playing in the çeşni, telling it apart from a similar makam by ear, an étude and finally a real piece from the archive." },
+      ...o.text,
+      ...(o.icra ? [makamIcraNote(m)] : [])
+    ],
+    tips: o.tips || [],
+    steps:[
+      { type:"read", title:{ tr:"Karar yolu", en:"The path to the final" }, body:[
+        { tr: LLEARN.seyirText(m, "tr"), en: LLEARN.seyirText(m, "en") },
+        { tr:"Durak " + D + ", güçlü " + G + ", yeden " + Y + ". Cümleler güçlüde yarım kararla dinlenir; durağa çoğu zaman yedenden ya da üstten adım adım inilerek varılır. Sıradaki üç kalıp bu perdelerden kuruldu.",
+          en:"Final " + D + ", dominant " + G + ", leading tone " + Y + ". Phrases rest on the dominant with a half cadence; the final is usually reached from the leading tone or by stepping down from above. The next three patterns are built from these perdes." }
+      ] },
+      { type:"soru", items:[
+        q(m.name + " makamının durağı hangi perde?", "Which perde is the final of makam " + m.name + "?", 0,
+          { tr:"Durak " + D + ": ezgi orada biter.", en:"The final is " + D + ": the melody ends there." }),
+        q(m.name + " makamının güçlüsü hangi perde?", "Which perde is the dominant of makam " + m.name + "?", 1,
+          { tr:"Güçlü " + G + ": yarım kararlar orada verilir.", en:"The dominant is " + G + ": half cadences land there." }),
+        q(m.name + " makamında yeden hangi perde?", "Which perde is the leading tone in makam " + m.name + "?", 2,
+          { tr:"Yeden " + Y + ": durağın hemen altında, karara götürür.", en:"The leading tone is " + Y + ": just below the final, it leads into the cadence." })
+      ], min:2 },
+      ...cad.map(k => ({ type:"notes", commas:k.commas, maxMiss:2, hint:k.name })),
+      { type:"seyir", makam:mk, sec:30, min:60, focus:"cesni" },
+      { type:"ear", mode:"makam", pool, n:6, min:4 },
+      ...(o.etudeFree ? [{ type:"piece", id:"e-" + mk, mode:"free", min:5 }] : []),
+      etude,
+      ...eserSteps(o.eser.id, o.eser.name, o.eser.parts, { to:o.eser.to })
+    ] };
+}
+const M2_ESER = (id, tr, parts, to) => ({ id, name:{ tr, en:tr }, parts, to });
+const M2_EVERY = { tr:"Eser asıl yerinde, klarino bölgesinde çalınır. Önce bölüm bölüm dinle ve yavaş tempoda serbest takiple çal; en sonda tamamı %80 ve kendi temposunda.",
+  en:"The piece is played at its real pitch, in the clarion register. Listen section by section and play it slowly in follow mode; at the end the whole piece at 80% and at its own tempo." };
+const MAKAM_SECOND = [
+  makamSecond("rast", { tempo:88, eser:M2_ESER("rast--nefes--bektasidevrirevani--al_dokeyim--", "Al Dökeyim Gevheri", [[1, 3], [4, 6]]),
+    text:[{ tr:"Eser anonim bir Bektaşî nefesi, Bektâşî Devr-i Revânı usulünde (13/8): ölçüyü 13 sekizlik say. " + M2_EVERY.tr, en:"The piece is an anonymous Bektashi nefes in the usul Bektâşî Devr-i Revânı (13/8): count 13 eighths to the bar. " + M2_EVERY.en }] }),
+  makamSecond("ussak", { tempo:88, eser:M2_ESER("ussak--turku--devrisureyyasofyani--su_dereden--", "Şu Dereden Gece Geçtim", [[1, 5], [6, 11]]),
+    text:[{ tr:"Eser anonim bir türkü, Devr-i Süreyyâ Sofyanı usulünde (10/16). " + M2_EVERY.tr, en:"The piece is an anonymous türkü in the usul Devr-i Süreyyâ Sofyanı (10/16). " + M2_EVERY.en }] }),
+  makamSecond("huseyni", { tempo:88, eser:M2_ESER("huseyni--seyir--semai--1--rauf_yekta", "Hüseynî Seyir", [[1, 16], [17, 32]]),
+    text:[{ tr:"Eser Rauf Yektâ'nın Hüseynî seyri, Semâî usulünde (3/4): makamın gezinişini kısa bir ezgide gösterir. " + M2_EVERY.tr, en:"The piece is Rauf Yektâ's Hüseynî seyir in Semâî (3/4): it shows how the makam moves in a short melody. " + M2_EVERY.en }] }),
+  makamSecond("hicaz", { tempo:84, eser:M2_ESER("hicaz--ninni--yuruksofyan--dere_dibi--", "Dere Dibi Saz Olur", [[1, 11], [12, 22]]),
+    text:[{ tr:"Eser anonim bir ninni, Yürük Sofyan usulünde (2/4). " + M2_EVERY.tr, en:"The piece is an anonymous lullaby in Yürük Sofyan (2/4). " + M2_EVERY.en }] }),
+  makamSecond("nihavend", { tempo:88, eser:M2_ESER("nihavent--mars--sofyan--yilmam_olumden--ali_rifat_cagatay", "Yılmam Ölümden", [[1, 11], [12, 22]]),
+    text:[{ tr:"Eser Ali Rıfat Çağatay'ın bir marşı, Sofyan usulünde (4/4). " + M2_EVERY.tr, en:"The piece is a march by Ali Rıfat Çağatay in Sofyan (4/4). " + M2_EVERY.en }] }),
+  makamSecond("kurdi", { tempo:88, eser:M2_ESER("kurdi--kupe--musemmen--asik-i--ahmet_avni_konuk", "Âşık-ı Dilhasteye Rahmeyle", [[1, 4], [5, 8]]),
+    text:[{ tr:"Eser Ahmet Avni Konuk'un bir küpesi, Müsemmen usulünde (8/8). " + M2_EVERY.tr, en:"The piece is a küpe by Ahmet Avni Konuk in Müsemmen (8/8). " + M2_EVERY.en }] }),
+  makamSecond("saba", { tempo:80, eser:M2_ESER("saba--turku--nimsofyan--pinar_basi--", "Pınar Başı Burma Burma", [[1, 18], [19, 34]], 34),
+    text:[{ tr:"Eser anonim bir türkü, Nîm Sofyan usulünde (2/4); ilk sekiz ölçüsünü Usul 3 dersinde çaldın. Burada ilk kıtanın tamamı (34 ölçü; ikinci kıta aynı ezgi). " + M2_EVERY.tr, en:"The piece is an anonymous türkü in Nîm Sofyan (2/4); you played its first eight bars in Usul 3. Here the whole first verse (34 bars; the second verse has the same tune). " + M2_EVERY.en }] }),
+  makamSecond("segah", { tempo:80, icra:true, eser:M2_ESER("segah--turku--ciftesofyan--bir_findigin--", "Bir Fındığın İçini", [[1, 12], [13, 24]], 24),
+    text:[{ tr:"Eser anonim bir türkü, Çifte Sofyan usulünde (9/8); burada ilk kıta (24 ölçü; ikinci kıta aynı ezgi). " + M2_EVERY.tr, en:"The piece is an anonymous türkü in Çifte Sofyan (9/8); here the first verse (24 bars; the second verse has the same tune). " + M2_EVERY.en }] }),
+  makamSecond("huzzam", { tempo:80, icra:true, eser:M2_ESER("huzzam--seyir--semai--1--rauf_yekta", "Hüzzam Seyir", [[1, 16], [17, 32]]),
+    text:[{ tr:"Eser Rauf Yektâ'nın Hüzzam seyri, Semâî usulünde (3/4): makamın gezinişini kısa bir ezgide gösterir. " + M2_EVERY.tr, en:"The piece is Rauf Yektâ's Hüzzam seyir in Semâî (3/4): it shows how the makam moves in a short melody. " + M2_EVERY.en }] }),
+  makamSecond("karcigar", { etudeFree:true, etude:{ type:"piece", id:"e-karcigar", mode:"tempo", min:75 },
+    eser:M2_ESER("karcigar--mandra--devrituran--karadeniz_oyunhavasi--", "Karadeniz Oyunhavası", [[1, 12], [13, 24]], 24),
+    text:[{ tr:"Karcığar, Trakya ve Roman oyun havalarında da öne çıkan makamlardandır; bu dersteki Karcığar etüdü o ünitede işine yarar. Eser anonim bir Karadeniz oyun havası (mandra), Devr-i Turan usulünde (7/8); burada ilk yarısı (24 ölçü; ikinci yarı aynı ezgi). " + M2_EVERY.tr,
+      en:"Karcığar is also one of the leading makams of Thracian and Romani dance tunes; the Karcığar étude in this lesson helps you in that unit. The piece is an anonymous Black Sea dance (mandra) in Devr-i Turan (7/8); here the first half (24 bars; the second half has the same tune). " + M2_EVERY.en }] })
+];
+for(const l of MAKAM_SECOND) insertLessonAfter(l.makam, l);
+// S3.1: S3.3 dışında kalan dokuz makamın etüdü o makam dersinin SONUNA (kural 1; eski kullanıcıda ders "4/5" görünür)
+for(const mk of ["bayati", "humayun", "uzzal", "zirguleli", "suzinak", "hicazkar", "kurdilihicazkar", "mahur", "acemasiran"]){
+  const l = LESSONS.find(x => x.id === mk);
+  if(l && !l.steps.some(s => s.id === "e-" + mk)) l.steps.push({ type:"piece", id:"e-" + mk, mode:"tempo", min:65 });
+}
+{ const t = LESSONS.find(x => x.id === "trakya-giris");
+  if(t) t.tips.push({ tr:"Karcığar'ın etüdü Makamlar'daki “Karcığar: cümle, karar ve eser” dersinde.", en:"The Karcığar étude is in the Makams lesson “Karcığar: phrase, cadence and piece”." }); }
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 

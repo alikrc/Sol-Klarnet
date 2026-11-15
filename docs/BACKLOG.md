@@ -367,12 +367,22 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S3 — Makam, usul ve teori derinliği (Makam aşaması; ≈ 4 hafta)
 
-- [ ] **S3.1 Etüdü olmayan 10 makama etüt** (B, E9; eski C1'in yerine). `e-bayati`, `e-karcigar`, `e-humayun`,
+- [x] **S3.1 Etüdü olmayan 10 makama etüt** (B, E9; eski C1'in yerine). **Yapıldı (15 Kasım 2026).** `e-bayati`, `e-karcigar`, `e-humayun`,
   `e-uzzal`, `e-zirguleli`, `e-suzinak`, `e-hicazkar`, `e-kurdilihicazkar`, `e-mahur`, `e-acemasiran`: 8 ölçü, 4/4,
   tempo 76–84, `level:3`, kural 5'e göre. İnici makamlarda (Hicazkâr, Kürdîli Hicazkâr, Mâhur, Acemaşîran) etüt
   tiz durak çevresinden başlar. Ders adımına **sona** `piece` eklenir (bu on dersin adım sayısı 4'ten 5'e çıkar; eski
   kullanıcıda ders "4/5" görünür, kabul edilir ve sürüm notuna yazılır) ya da S3.3'ün ikinci derslerine konur
   (tercih: S3.3). Karcığar etüdü Trakya girişindeki "Karcığar öne çıkar" cümlesine bağlanır.
+  *Uygulanan:* `repertoire.js` `ETUDES` sonunda "S3.1" bloğu, on etüt; hepsi 8 ölçü 4/4, `level:3`, tempo 76–80, yalnız
+  `asc/desc` perdeleri (makamın dizisinde olmayan yeden kullanılmadı: Bayâtî, Karcığar vb. Rast'a inmez), 4. ölçüde
+  güçlüde yarım karar, 8. ölçüde durakta karar; inici makamlar Gerdâniye (Acemaşîran'da Acem) çevresinden başlar.
+  **Yer: iki yol birlikte.** S3.3'ün on makamından yalnız Karcığar'ın etüdü yoktu; `e-karcigar` `karcigar-2`'de (önce
+  serbest, sonra tempolu). Kalan dokuz makamın (Bayâtî, Hümâyun, Uzzâl, Zirgüleli Hicaz, Sûzinak, Hicazkâr, Kürdîli
+  Hicazkâr, Mâhur, Acemaşîran) ikinci dersi yok; etütleri o makam dersinin **sonuna** `piece` (`tempo`, `min:65`) olarak
+  eklendi. Bu dersler 4 adımdan 5 adıma çıktı: **eski kullanıcıda bu dokuz ders "4/5" görünür** (sürüm notuna yazılmalı);
+  ikinci ders açmak bu dokuz makam için S3.3'ün ikinci dalgasıdır. Trakya girişine (`trakya-giris`) Karcığar
+  etüdünün yerini söyleyen ipucu eklendi (adım değil). Günlük çalışmanın "makamın etüdü" adımı (`e-<makam>`) yeni
+  etütleri kendiliğinden alır.
 - [ ] **S3.2 13 yeni makam** (B, E10; eski C2'nin yerine). Sıra arşiv sıklığına göre, iki dalga:
   **Dalga 1:** Muhayyer (78), Bûselik (73), Muhayyer Kürdî (50), Acemkürdî (46), Evç (37), Tâhir (35).
   **Dalga 2:** Neveser (42), Sûzidil (37), Gerdâniye (32), Nişâburek (32), Şehnaz (32), Yegâh (30),
@@ -386,7 +396,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Sûzidil ve Acemkürdî'nin karar perdeleri kaynaktan teyit edilmeden yazılmaz.
   *Kabul:* arşivden bu makamlardaki bir eser açılınca makam bilgisi kutusu dolu; S0.4 temiz; makam tanıma havuzu
   yeni makamları ancak dersleri bitince sorar.
-- [ ] **S3.3 Her temel makama ikinci ders: "cümle, karar ve eser"** (B, E11). Önce 10 makam: Rast, Uşşak, Hüseynî,
+- [x] **S3.3 Her temel makama ikinci ders: "cümle, karar ve eser"** (B, E11). **Yapıldı (15 Kasım 2026).** Önce 10 makam: Rast, Uşşak, Hüseynî,
   Hicaz, Nihâvend, Kürdî, Saba, Segâh, Hüzzam, Karcığar. Kimlik `<makam>-2`, yeri o makamın dersinden hemen sonra
   (S0.1 göçü gerekir). Kalıp, 7 adım:
   1. `read`: makamın karar yolu (yeden, asma karar perdeleri; `MAKAMS[x].seyir` metninden) + `soru` ×3 (durak,
@@ -398,6 +408,27 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   5. `piece` S3.1 etüdü ya da var olan etüt `mode:"tempo"` `min:75` (bir üst tempo).
   6–7. `eserSteps`: arşivden o makamda bir kolay eser (S1.6 betiği, makam süzgeciyle; seviye 1–2).
   Segâh ve Hüzzam'da icra perdesi notu (`ICRA_INFO`) derste gösterilir.
+  *Uygulanan:* `lessons.js` `// ---- S3.1 + S3.3 Makam ikinci dersleri ----` bloğu, `makamSecond(mk, o)` on dersi
+  kurar (`since:2`, `insertLessonAfter(<makam>)`). Ders verisi yalnız `learn.js`'ten okunur (tarayıcıda önce yüklenir).
+  Okuma adımı `seyirText` + durak/güçlü/yeden cümlesi; soruların seçenekleri bu üç perde ve diziden bir dördüncü.
+  Karar kalıpları `learn.js` `makamCadences` (yeni; `makamExercises` de döndürür): güçlüden durağa iniş (desc), yedenli
+  karar (durağın iki üst perdesi, durak, yeden, durak), güçlüde yarım karar (asc); kısa kalırsa güçlünün üst komşusuna
+  uğranır (Saba, Segâh, Hüzzam). Adım başlığında kalıbın adı (`hint`). Kulak havuzu makam + `similarMakams(mk, 2)`'den
+  en çok üç; **Segâh ve Hüzzam'da benzer makam çıkmıyor** (fark 2 perdeden çok), havuz aynı duraklı makam (Segâh ↔
+  Hüzzam). Etüt adımı var olan etütte `tempo` ile bir üst tempo (Rast, Uşşak, Hüseynî, Nihâvend, Kürdî 88; Hicaz 84;
+  Saba, Segâh, Hüzzam 80). İcra notu `makamIcraNote` ile `ICRA_INFO`'dan üretilir; Segâh makamının kaydı yok, ders
+  "kaynaklı düzeltme yok, AEU" der. `eserSteps`'e `o.to` eklendi (tamamı adımları o ölçüde biter).
+  **Eserler** (`eser-sec.js --usul hepsi --oktav 0 --aralik 52-84 --sn 120`, telifsiz, asıl yerinde): Rast "Al Dökeyim
+  Gevheri" (anonim nefes, 13/8), Uşşak "Şu Dereden Gece Geçtim" (anonim türkü), Hüseynî "Hüseynî Seyir" (Rauf
+  Yektâ), Hicaz "Dere Dibi Saz Olur" (anonim ninni), Nihâvend "Yılmam Ölümden" (Ali Rıfat Çağatay), Kürdî "Âşık-ı
+  Dilhasteye Rahmeyle" (Ahmet Avni Konuk), Saba "Pınar Başı Burma Burma" (anonim; ilk sekiz ölçüsü `usul-3`'te de
+  var, burada ilk kıta 1–34), Segâh "Bir Fındığın İçini" (anonim; ilk kıta 1–24), Hüzzam "Hüzzam Seyir" (Rauf Yektâ),
+  Karcığar "Karadeniz Oyunhavası" (anonim mandra; ilk yarı 1–24). Saba, Segâh ve Karcığar'da ikinci yarı ölçü ölçü
+  birincinin tekrarı (betikle denetlendi), bu yüzden `to`. Ölçütten iki sapma: Hüzzam'da koma ölçütüyle (≤ 2) hiç eser
+  kalmadı, seyir 4 koma perdesiyle seçildi (Si5 Si4'ün oktavı, Do6'ya çıkar); Rast'ta telifsiz tek kısa eser 13/8
+  usulde. `ilk-eserler-*` ve `usul-3/4`'teki eserler tekrar kullanılmadı (Saba dışında: başka aday yok). Tarayıcıda
+  375 px'te dersler açıldı; okuma, soru ve arşiv dinleme adımları denendi, konsolda hata yok; çalma adımları mikrofon
+  engelli olduğu için başlatılamadı.
 - [ ] **S3.4 Geçki: üç ders** (B, E12). Yeni adım parametresi: `seyir { makam, via, sec, min }`: `via` makamının
   ana makamdan **ayıran perdelerine** (`similarMakams`'ın fark hesabı) en az iki kez uğra, sonra ana makamın
   durağında karar ver; puan `seyirAnalysis` + bu iki koşul. Dersler (Makamlar sonu, `makam-bulma`'dan sonra):

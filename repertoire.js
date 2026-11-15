@@ -355,7 +355,32 @@ const ETUDES = [
     text:"Nevâ:1:k Nevâ:0.5:ç+ Nevâ:0.5:ç+ Acem:0.5 Nevâ:0.5 Çargâh:1.5 | Çargâh:0.5 Çargâh:0.5:ç+ Nevâ:0.5 Çargâh:0.5 Kürdî Dügâh:1.5 | " +
          "Hüseynî Hüseynî:0.5:ç+ Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Nevâ:1.5:m+ | Acem:0.5 Hüseynî:0.5 Nevâ:0.5 Çargâh:0.5 Kürdî:0.5 Çargâh:0.5 Nevâ:1.5:d | " +
          "Gerdâniye:1:k Gerdâniye:0.5:ç+ Acem:0.5 Hüseynî:0.5 Acem:0.5 Hüseynî:1.5 | Nevâ:0.5 Nevâ:0.5:ç+ Çargâh:0.5 Kürdî:0.5 Çargâh Dügâh:1.5 | " +
-         "Kürdî:0.5:ç+ Çargâh:0.5 Kürdî:0.5 Dügâh:0.5 Kürdî Dügâh:1.5 | Dügâh:4.5:d" }
+         "Kürdî:0.5:ç+ Çargâh:0.5 Kürdî:0.5 Dügâh:0.5 Kürdî Dügâh:1.5 | Dügâh:4.5:d" },
+  // ---- S3.1 Etüdü olmayan on makamın etütleri ----
+  // 8 ölçü, 4/4, level 3; yalnız MAKAMS[x].asc/desc perdeleri (makamın dışındaki yeden kullanılmaz). Seyir: giriş bölgesi,
+  // 4. ölçüde güçlüde yarım karar, 8. ölçüde durakta karar. İnici makamlar (Hicazkâr, Kürdîli Hicazkâr, Mâhur,
+  // Acemaşîran) tiz güçlü çevresinden başlar; inici-çıkıcılar güçlü civarından.
+  { id:"e-bayati", name:{ tr:"Bayâtî etüdü", en:"Bayâtî étude" }, level:3, makam:"bayati", tempo:80, meter:[4,4],
+    text:"Nevâ:2 Hüseynî Nevâ | Çargâh Segâh Çargâh Nevâ | Hüseynî Acem Hüseynî Çargâh | Nevâ:4 | Çargâh Nevâ Hüseynî Nevâ | Çargâh:2 Segâh Çargâh | Segâh Dügâh Segâh:1.5 Çargâh:0.5 | Segâh:0.5 Dügâh:3.5" },
+  // Trakya ve Roman ünitesinin girişindeki "Karcığar öne çıkar" cümlesi bu etüde bağlanır (lessons.js karcigar-2)
+  { id:"e-karcigar", name:{ tr:"Karcığar etüdü", en:"Karcığar étude" }, level:3, makam:"karcigar", tempo:80, meter:[4,4],
+    text:"Nevâ Hisar Evç Hisar | Nevâ:2 Çargâh Segâh | Çargâh Nevâ Hisar Çargâh | Nevâ:4 | Hisar Evç Gerdâniye Evç | Hisar Nevâ Çargâh Segâh | Çargâh:1.5 Segâh:0.5 Dügâh Segâh | Dügâh:4" },
+  { id:"e-humayun", name:{ tr:"Hümâyun etüdü", en:"Hümâyun étude" }, level:3, makam:"humayun", tempo:80, meter:[4,4],
+    text:"Dügâh Dik_Kürdî Nim_Hicaz Nevâ | Hüseynî:2 Acem Hüseynî | Nevâ Hüseynî Acem Gerdâniye | Acem Hüseynî Nevâ:2 | Nim_Hicaz Nevâ Hüseynî Nevâ | Nim_Hicaz:2 Dik_Kürdî Nim_Hicaz | Nim_Hicaz:1.5 Dik_Kürdî:0.5 Nim_Hicaz Dik_Kürdî | Dügâh:4" },
+  { id:"e-uzzal", name:{ tr:"Uzzâl etüdü", en:"Uzzâl étude" }, level:3, makam:"uzzal", tempo:80, meter:[4,4],
+    text:"Nevâ Hüseynî Nevâ Nim_Hicaz | Nevâ:2 Hüseynî:2 | Evç Gerdâniye Acem Hüseynî | Hüseynî:4 | Nevâ Hüseynî Nevâ Nim_Hicaz | Dik_Kürdî Nim_Hicaz Nevâ:2 | Nim_Hicaz:1.5 Dik_Kürdî:0.5 Nim_Hicaz Dik_Kürdî | Dügâh:4" },
+  { id:"e-zirguleli", name:{ tr:"Zirgüleli Hicaz etüdü", en:"Zirgüleli Hicaz étude" }, level:3, makam:"zirguleli", tempo:76, meter:[4,4],
+    text:"Hüseynî Dik_Acem Nim_Şehnâz Dik_Acem | Hüseynî:2 Nevâ Hüseynî | Dik_Acem Nim_Şehnâz Muhayyer Nim_Şehnâz | Dik_Acem Hüseynî:3 | Nevâ Hüseynî Nevâ Nim_Hicaz | Dik_Kürdî Nim_Hicaz Nevâ:2 | Nim_Hicaz Dik_Kürdî Nim_Hicaz:1.5 Dik_Kürdî:0.5 | Dügâh:4" },
+  { id:"e-suzinak", name:{ tr:"Sûzinak etüdü", en:"Sûzinak étude" }, level:3, makam:"suzinak", tempo:80, meter:[4,4],
+    text:"Nevâ Hisar Evç Hisar | Nevâ:2 Çargâh Nevâ | Hisar Evç Gerdâniye Evç | Hisar Nevâ:3 | Çargâh Segâh Çargâh Nevâ | Çargâh Segâh Dügâh Segâh | Segâh:1.5 Çargâh:0.5 Segâh Dügâh | Rast:4" },
+  { id:"e-hicazkar", name:{ tr:"Hicazkâr etüdü", en:"Hicazkâr étude" }, level:3, makam:"hicazkar", tempo:76, meter:[4,4],
+    text:"Gerdâniye:2 Evç Gerdâniye | Evç Hisar Evç Gerdâniye | Evç Hisar Nevâ Hisar | Evç Gerdâniye:3 | Evç Hisar Nevâ:2 | Çargâh Segâh Zirgüle Segâh | Segâh Çargâh Segâh Zirgüle | Rast:4" },
+  { id:"e-kurdilihicazkar", name:{ tr:"Kürdîli Hicazkâr etüdü", en:"Kürdîli Hicazkâr étude" }, level:3, makam:"kurdilihicazkar", tempo:76, meter:[4,4],
+    text:"Gerdâniye:2 Acem Gerdâniye | Acem Nim_Hisar Acem Gerdâniye | Acem Nim_Hisar Nevâ Nim_Hisar | Acem Gerdâniye:3 | Acem Nim_Hisar Nevâ:2 | Çargâh Nevâ Çargâh Kürdî | Çargâh:2 Kürdî Nim_Zirgüle | Rast:4" },
+  { id:"e-mahur", name:{ tr:"Mâhur etüdü", en:"Mâhur étude" }, level:3, makam:"mahur", tempo:80, meter:[4,4],
+    text:"Gerdâniye:2 Mâhûr Gerdâniye | Mâhûr Hüseynî Mâhûr Gerdâniye | Hüseynî Nevâ Hüseynî Mâhûr | Gerdâniye:4 | Mâhûr Hüseynî Nevâ Hüseynî | Nevâ Çargâh Bûselik Çargâh | Bûselik:1.5 Çargâh:0.5 Bûselik Dügâh | Rast:4" },
+  { id:"e-acemasiran", name:{ tr:"Acemaşîran etüdü", en:"Acemaşîran étude" }, level:3, makam:"acemasiran", tempo:76, meter:[4,4],
+    text:"Acem:2 Hüseynî Acem | Hüseynî Nevâ Hüseynî Acem | Hüseynî Nevâ Çargâh Nevâ | Hüseynî Acem:3 | Nevâ Çargâh Kürdî Dügâh | Kürdî Çargâh:3 | Kürdî Dügâh Kürdî:0.5 Dügâh:0.5 Rast | Acem_Aşîran:4" }
 ];
 // Etüdün notaları (bir kez ayrıştırılır)
 const etudeCache = new Map();
