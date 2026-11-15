@@ -45,7 +45,7 @@ const LREP = () => typeof module !== "undefined" ? require("./repertoire.js") : 
 const LSK = () => typeof module !== "undefined" ? require("./skills.js") : { techPattern, patternKey };
 const LPREM = () => typeof module !== "undefined" ? require("./premium.js") : { premiumUnit };
 const LLEARN = typeof module !== "undefined" ? require("./learn.js")
-  : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS, makamCadences, similarMakams, makamDiff, seyirText, ICRA_INFO };
+  : { MAKAMS, makamById, perdeName, commaToWritten, quizWeight, USULS, makamCadences, similarMakams, makamDiff, seyirText, ICRA_INFO, ablTr };
 
 const UNITS = [
   { id:"baslangic", name:{ tr:"Başlarken", en:"Getting started" }, badge:{ tr:"Yola çıktın", en:"On the road" } },
@@ -2909,6 +2909,106 @@ insertLessonAfter(LESSONS[LESSONS.findIndex(l => l.id === "makam-bulma") - 1].id
       ...eserSteps(AGY, AGYN, [[1, 8], [9, 20], [21, 35]], { min80:65, min:70 })
     ] });
 }
+// ---- S3.5 Şed ve ahenk ----
+// Şed (göçürme): scale, seyir, mimic ve listen adımlarında shift (koma, 53'lük sistem; learn.js makamShifted), etüt adımında
+// piece shift (repertoire.js transposeAll "koma"). İleri ünitesinde, taksim-2'den sonra üç ders. Âhenk bilgisi yalnız TDV
+// "Âhenk" maddesinin müzik bölümünden (Haydar Sanal, 1988; docs/KAYNAKLAR.md): madde âhenkler arasında perde ya da koma
+// farkı vermez, ders de vermez. sed-3'teki bağlar uygulamanın dizilerinden hesaplanır (Hicazkâr = Zirgüleli Hicaz'ın
+// Rast'a göçürülmüşü learn.js metninde ve TDV Hicazkâr'da; Kürdîli Hicazkâr = Kürdî'nin Rast'taki şeddi TDV Kürdî'de, KAYNAKLAR §2);
+// Mâhur → Acemaşîran yalnız dizi eşliği olarak anlatılır, "şeddidir" denmez.
+insertLessonAfter("taksim-2",
+  { id:"sed-1", unit:"ileri", since:2, notes:[], makam:"rast",
+    title:{ tr:"Şed 1: aynı makam, başka perde", en:"Şed 1: the same makam from another perde" },
+    text:[
+      { tr:"Şed ya da göçürme, bir makamın bütün perdelerini aynı aralıkla kaydırıp makamı başka bir perdeden çalmaktır. Aralıklar korunduğu için makamın rengi aynı kalır; yalnız yükseklik, perde adları ve parmaklar değişir.",
+        en:"Şed, or göçürme, means moving every perde of a makam by the same interval and playing the makam from another perde. Because the intervals stay the same, the makam keeps its colour; only the pitch, the perde names and the fingerings change." },
+      { tr:"53 komalık sistemde kaydırma koma ile ölçülür: tanini 9, tam dörtlü 22, tam beşli 31 koma. Rast'ı Çargâh'tan (yazılı Do5) çalmak bütün perdeleri 22 koma, Nevâ'dan (yazılı Re5) çalmak 31 koma yukarı taşır. Rast Çargâh'tan: Çargâh, Nevâ, Dik Hisar, Acem, Gerdâniye, Muhayyer, Tiz Segâh, Tiz Çargâh. Asıl dizideki Segâh'ın yerini Dik Hisar, Evç'in yerini Tiz Segâh alır.",
+        en:"In the 53-comma system the shift is counted in commas: a whole tone is 9, a perfect fourth 22, a perfect fifth 31 commas. Playing Rast from Çargâh (written C5) moves every perde up 22 commas; from Nevâ (written D5), 31 commas. Rast from Çargâh: Çargâh, Nevâ, Dik Hisar, Acem, Gerdâniye, Muhayyer, Tiz Segâh, Tiz Çargâh. Dik Hisar takes the place of Segâh in the original scale, and Tiz Segâh that of Evç." },
+      { tr:"Hicaz'ı da iki yerden çalacaksın: Nevâ'dan (22 koma tiz: Nevâ, Hisar, Evç, Gerdâniye…) ve Rast'tan (9 koma pes: Rast, Zirgüle, Segâh, Çargâh…). Ölçüm her adımda kaydırılmış diziye göre yapılır. Son adımda Hicaz'ı Nevâ'dan serbest çal: durak artık Nevâ, güçlü Gerdâniye.",
+        en:"You'll play Hicaz from two places too: from Nevâ (22 commas higher: Nevâ, Hisar, Evç, Gerdâniye…) and from Rast (9 commas lower: Rast, Zirgüle, Segâh, Çargâh…). Each step is measured against the shifted scale. In the last step play Hicaz freely from Nevâ: the final is now Nevâ and the dominant Gerdâniye." }
+    ],
+    tips:[
+      { tr:"Yeni yerde parmaklara değil kulağa güven: önce \"Örneği dinle\" ile diziyi duy, aralıkları asıl dizidekiyle karşılaştır.", en:"In the new place trust your ear rather than your fingers: hear the scale with \"Hear example\" first and compare the steps with the original scale." }
+    ],
+    steps:[
+      { type:"listen", makam:"rast", shift:22, commas:[22, 31, 39, 44, 53, 44, 39, 31, 22] },
+      { type:"scale", makam:"rast", shift:22, min:0.7 },
+      { type:"scale", makam:"rast", shift:31, min:0.7 },
+      { type:"scale", makam:"hicaz", shift:22, min:0.7 },
+      { type:"scale", makam:"hicaz", shift:-9, min:0.7 },
+      { type:"mimic", makam:"rast", shift:22, len:5 },
+      { type:"seyir", makam:"hicaz", shift:22, sec:45, min:50 }
+    ] },
+  { id:"sed-2", unit:"ileri", since:2, notes:[], makam:"ussak",
+    title:{ tr:"Şed 2: solistin perdesine uymak (âhenk)", en:"Şed 2: following the soloist's pitch (âhenk)" },
+    text:[
+      { tr:"Toplu çalışta herkesin aynı perdede buluşması gerekir. Hanende eseri notasına bağlı kalır ama sesinin uyduğu âhenge göçürerek okur; sazendeler de aynı notayı izleyerek göçürme yapar. Klarnetçi için bu, eseri yazıldığı yerden değil solistin perdesinden çalmak demektir.",
+        en:"When playing together, everyone has to meet on the same pitch. The singer keeps to the written score but sings it shifted to the âhenk that suits their voice; the instrumentalists follow the same score and shift it too. For a clarinettist this means playing the piece from the soloist's perde rather than from where it is written." },
+      { tr:"Bu derste Uşşak etüdünü iki yerden çalacaksın: önce Nevâ'dan (22 koma tiz), sonra Rast'tan (9 koma pes). Notalar aynı aralıklarla kayar; uygulama perdeleri AEU'ya göre değerlendirir, arşivdeki aktarmada olduğu gibi.",
+        en:"In this lesson you play the Uşşak étude from two places: first from Nevâ (22 commas higher), then from Rast (9 commas lower). The notes move by the same intervals; the app judges the perdes against AEU, as with transposing in the archive." }
+    ],
+    tips:[
+      { tr:"Eserlerde aynısını arşivde yapabilirsin: eser sayfasında \"Başka perdeden çal\" ile eseri perde perde kaydır.", en:"You can do the same with pieces in the archive: on a piece's page use \"Play from another perde\" to move it perde by perde." }
+    ],
+    steps:[
+      { type:"read", title:{ tr:"Âhenk", en:"Âhenk" }, body:[
+        { tr:"TDV İslâm Ansiklopedisi'ne göre âhenk, müzikte düzen, akort demektir: çalgıların, özellikle neyin, belli sabit bir perdeye göre düzenlenmiş hâli. Toplu icrada sabit perde yüksekliği farklı uzunluktaki neylerle sağlanmış. Ney, hangi perdesi sabit sese (440 titreşim/saniye) denk gelirse o âhengin adını alır: Dügâh'ı denk gelen ney Mansûr, Nevâ'sı denk gelen ney Bolâhenk neydir. Maddenin aktardığına göre (İsmail Hakkı Özkan) Türk musikisinde esas akort Bolâhenk'tir.",
+          en:"According to the TDV Encyclopaedia of Islam, âhenk in music means order, tuning: the state of instruments, above all the ney, set to a fixed pitch. In ensembles a fixed pitch level was given by neys of different lengths. A ney takes the name of the âhenk whose perde falls on the fixed pitch (440 vibrations per second): the ney whose Dügâh falls there is the Mansûr, the one whose Nevâ falls there the Bolâhenk. The article reports (after İsmail Hakkı Özkan) that the standard tuning in Turkish music is Bolâhenk." },
+        { tr:"Maddedeki yedi ana ney ve sabit sese denk gelen perdeleri: Kız ney → Rast · Mansûr → Dügâh · Şah → Segâh (sonraki listede Bûselik) · Dâvud → Çargâh · Bolâhenk → Nevâ · Süpürde → Hüseynî · Müstahsen → Acem (önceki listede Evç). İki âhengin arasındakilere \"mâbeyn\" denir: Bolâhenk ile Süpürde arasındaki Mehtâbiye gibi.",
+          en:"The article's seven main neys and the perde of each that falls on the fixed pitch: Kız ney → Rast · Mansûr → Dügâh · Şah → Segâh (Bûselik in a later list) · Dâvud → Çargâh · Bolâhenk → Nevâ · Süpürde → Hüseynî · Müstahsen → Acem (Evç in an earlier list). Those in between two âhenks are called \"mâbeyn\", like Mehtâbiye between Bolâhenk and Süpürde." },
+        { tr:"Neyzen, aynı âhenkte neyi varsa notayı ve parmak yerini değiştirmeden çalar; yoksa aynı notayı izleyip parmak yerini değiştirerek göçürür. Madde âhenkler arasındaki farkı perde ya da koma olarak vermez; bu yüzden burada sayı yazılmadı. Klarnette yazılı ve duyulan ses farkı için Teori'deki transpozisyon konusuna bak: Sol klarnet yazıldığından tam dörtlü pes duyulur.",
+          en:"If the neyzen has a ney in the same âhenk, they play without changing the score or the fingering; if not, they follow the same score and shift it by changing the fingering. The article doesn't give the distance between âhenks in perdes or commas, so no numbers are given here. For the written and sounding pitch of the clarinet see the transposition topic in Theory: the G clarinet sounds a perfect fourth lower than written." }
+      ] },
+      { type:"soru", items:[
+        { q:{ tr:"Âhenk ne demektir?", en:"What does âhenk mean?" },
+          opts:[{ tr:"Çalgıların sabit bir perdeye göre düzeni (akort)", en:"Instruments set to a fixed pitch (tuning)" }, { tr:"Bir usulün adı", en:"The name of an usul" }, { tr:"Makamın güçlü perdesi", en:"The dominant of a makam" }, { tr:"Bir süsleme türü", en:"A kind of ornament" }], ok:0,
+          why:{ tr:"Âhenk müzikte düzen, akort demektir: çalgıların, özellikle neyin, sabit bir perdeye göre düzenlenmesi.", en:"In music âhenk means order, tuning: instruments, above all the ney, set to a fixed pitch." } },
+        { q:{ tr:"TDV maddesine göre sabit ses (ney için) kaç titreşim/saniyedir?", en:"According to the TDV article, what is the fixed pitch for the ney, in vibrations per second?" },
+          opts:["440", "880", "432", "415"], ok:0,
+          why:{ tr:"440: Mansûr neyin Dügâh'ı bu sese denk gelir. Nısfiyelerde 880 (bir oktav tiz).", en:"440: the Mansûr ney's Dügâh falls on it. For the nısfiye it is 880 (an octave higher)." } },
+        { q:{ tr:"Bolâhenk neyde sabit sese (440) hangi perde denk gelir?", en:"On the Bolâhenk ney, which perde falls on the fixed pitch (440)?" },
+          opts:["Nevâ", "Rast", "Dügâh", "Hüseynî"], ok:0,
+          why:{ tr:"Bolâhenk → Nevâ. Rast Kız ney, Dügâh Mansûr, Hüseynî Süpürde.", en:"Bolâhenk → Nevâ. Rast is the Kız ney, Dügâh the Mansûr, Hüseynî the Süpürde." } },
+        { q:{ tr:"Kız neyde sabit sese hangi perde denk gelir?", en:"Which perde of the Kız ney falls on the fixed pitch?" },
+          opts:["Rast", "Çargâh", "Segâh", "Acem"], ok:0,
+          why:{ tr:"Kız ney → Rast. Çargâh Dâvud, Segâh Şah, Acem Müstahsen.", en:"Kız ney → Rast. Çargâh is the Dâvud, Segâh the Şah, Acem the Müstahsen." } },
+        { q:{ tr:"Hanende eseri notasına bağlı kalarak nasıl okur?", en:"How does the singer sing a piece while keeping to the score?" },
+          opts:[{ tr:"Sesinin uyduğu âhenge göçürerek", en:"Shifted to the âhenk that suits their voice" }, { tr:"Her zaman Mansûr âhenginde", en:"Always in the Mansûr âhenk" }, { tr:"Makamı değiştirerek", en:"By changing the makam" }, { tr:"Notayı bir oktav tiz okuyarak", en:"Reading the score an octave higher" }], ok:0,
+          why:{ tr:"Hanende notaya bağlı kalır ama sesinin uyduğu âhenge göçürür; makam ve aralıklar değişmez.", en:"The singer keeps to the score but shifts it to the âhenk that suits their voice; the makam and the intervals stay the same." } }
+      ], min:4 },
+      { type:"piece", id:"e-ussak", shift:22, mode:"free", min:4 },
+      { type:"piece", id:"e-ussak", shift:22, mode:"tempo", min:65 },
+      { type:"piece", id:"e-ussak", shift:-9, mode:"tempo", min:65 }
+    ] },
+  { id:"sed-3", unit:"ileri", since:2, notes:[], makam:"hicazkar",
+    title:{ tr:"Şed 3: aynı dizi, başka ad", en:"Şed 3: the same scale, another name" },
+    text:[
+      { tr:"Bazı makamların dizisi başka bir makamın göçürülmüş dizisidir. Uygulamanın Hicazkâr kaydı bunu söyler: Hicazkâr, Zirgüleli Hicaz'ın Rast'a göçürülmüşüdür. Zirgüleli Hicaz'ın bütün perdelerini 9 koma pes çalınca dizi Rast, Zirgüle, Segâh, Çargâh, Nevâ, Hisar, Evç, Gerdâniye olur: Hicazkâr dizisinin ta kendisi.",
+        en:"Some makams have a scale that is another makam's scale shifted. The app's Hicazkâr entry says so: Hicazkâr is Zirgüleli Hicaz moved to Rast. Play every perde of Zirgüleli Hicaz 9 commas lower and the scale becomes Rast, Zirgüle, Segâh, Çargâh, Nevâ, Hisar, Evç, Gerdâniye: exactly the Hicazkâr scale." },
+      { tr:"İkinci bir çift TDV'nin Kürdî maddesinde: Kürdîli Hicazkâr, Kürdî'nin Rast'taki şeddidir; Kürdî dizisini 9 koma pes çalınca Kürdîli Hicazkâr dizisi çıkar. Uygulamanın dizilerinde bir çift daha var: Mâhur dizisi 9 koma pes çalınınca Acemaşîran dizisi çıkar. Ama makam yalnız dizi değildir: Zirgüleli Hicaz'ın güçlüsü Hüseynî Rast'a göçürülünce Nevâ'ya düşer, Hicazkâr'ın güçlüsü ise Gerdâniye (Nevâ ikinci güçlü); Kürdî çıkıcı, Kürdîli Hicazkâr inicidir. Mâhur'un güçlüsü Gerdâniye ise göçürülünce Acem olur, Acemaşîran'ın güçlüsü de Acem'dir.",
+        en:"A second pair is in the TDV article on Kürdî: Kürdîli Hicazkâr is the şed of Kürdî on Rast; play the Kürdî scale 9 commas lower and you get the Kürdîli Hicazkâr scale. The app's scales show one more pair: the Mâhur scale 9 commas lower gives the Acemaşîran scale. But a makam is more than its scale: Zirgüleli Hicaz's dominant Hüseynî lands on Nevâ when moved to Rast, while Hicazkâr's dominant is Gerdâniye (Nevâ is the second dominant); Kürdî ascends, Kürdîli Hicazkâr descends. Mâhur's dominant Gerdâniye becomes Acem when moved, and Acem is Acemaşîran's dominant too." }
+    ],
+    tips:[
+      { tr:"İki diziyi art arda çal: Zirgüleli Hicaz Rast'tan ile Hicazkâr aynı perdeleri ister; farkı seyirde arayacaksın.", en:"Play the two scales one after the other: Zirgüleli Hicaz from Rast and Hicazkâr need the same perdes; look for the difference in the seyir." }
+    ],
+    steps:[
+      { type:"soru", items:[
+        { q:{ tr:"Uygulamanın kaydına göre Hicazkâr hangi makamın Rast'a göçürülmüşüdür?", en:"According to the app's entry, Hicazkâr is which makam moved to Rast?" },
+          opts:["Zirgüleli Hicaz", "Hicaz", "Hümâyun", "Uzzâl"], ok:0,
+          why:{ tr:"Zirgüleli Hicaz: iki Hicaz çeşnisi üst üste; Dügâh'tan Rast'a 9 koma pes.", en:"Zirgüleli Hicaz: two Hicaz çeşnis stacked; 9 commas lower, from Dügâh to Rast." } },
+        { q:{ tr:"Dügâh'tan Rast'a göçürmek perdeleri kaç koma kaydırır?", en:"Moving from Dügâh to Rast shifts the perdes by how many commas?" },
+          opts:[{ tr:"9 koma pes", en:"9 commas lower" }, { tr:"22 koma pes", en:"22 commas lower" }, { tr:"4 koma pes", en:"4 commas lower" }, { tr:"31 koma tiz", en:"31 commas higher" }], ok:0,
+          why:{ tr:"Rast ile Dügâh arası bir tanini, 9 koma.", en:"Rast to Dügâh is a whole tone, 9 commas." } },
+        { q:{ tr:"Zirgüleli Hicaz'ın güçlüsü Hüseynî, Rast'a göçürülünce hangi perdeye düşer?", en:"Zirgüleli Hicaz's dominant is Hüseynî; on which perde does it land when moved to Rast?" },
+          opts:["Nevâ", "Gerdâniye", "Çargâh", "Acem"], ok:0,
+          why:{ tr:"Hüseynî (40) − 9 = 31, Nevâ. Hicazkâr'ın güçlüsü Gerdâniye'dir: dizi aynı, seyir farklı.", en:"Hüseynî (40) − 9 = 31, Nevâ. Hicazkâr's dominant is Gerdâniye: same scale, different seyir." } }
+      ] },
+      { type:"scale", makam:"zirguleli", shift:-9, min:0.7 },
+      { type:"scale", makam:"hicazkar", min:0.7 },
+      { type:"scale", makam:"kurdi", shift:-9, min:0.7 },
+      { type:"scale", makam:"kurdilihicazkar", min:0.7 },
+      { type:"seyir", makam:"hicazkar", sec:45, min:50 }
+    ] });
 
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
@@ -3047,7 +3147,10 @@ function stepTitle(step, lang = "tr"){
     const names = step.commas ? step.commas.map(LLEARN.perdeName) : step.notes.map(nn);
     return names.length <= 9 ? names.join(" ") : names.slice(0, 5).join(" ") + " … (" + names.length + (en ? " notes)" : " nota)");
   };
-  const mk = step.makam ? LLEARN.makamById(step.makam).name : null;
+  // shift: şed adımı, makam adının yanına yeni durağın adı ("Rast (Çargâh'tan)")
+  const shName = () => { if(!step.shift) return ""; const d = LLEARN.perdeName(LLEARN.makamById(step.makam).durak + step.shift);
+    return en ? " (from " + d + ")" : " (" + LLEARN.ablTr(d) + ")"; };
+  const mk = step.makam ? LLEARN.makamById(step.makam).name + shName() : null;
   switch(step.type){
     case "listen": if(step.arsiv) return (en ? "Listen: " : "Dinle: ") + arsivWhat(step, lang);
       if(step.pattern) return (en ? "Listen: " : "Dinle: ") + pick(LSK().techPattern(step.pattern).label, lang) + " · ♩=" + step.tempo;
@@ -3080,7 +3183,9 @@ function stepTitle(step, lang = "tr"){
                               : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru"));
       const e = LREP().etudeById(step.id), cue = step.cue ? " · " + pick(step.cue, lang) : "";
       if(step.mode === "ladder") return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + (en ? " · tempo ladder · up to " + step.min + "%" : " · tempo merdiveni · %" + step.min + "'e kadar");
-      return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + cue + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
+      const shD = step.shift && e.makam ? LLEARN.perdeName(LLEARN.makamById(e.makam).durak + step.shift) : null;
+      const shTr = !step.shift ? "" : shD ? (en ? " (from " + shD + ")" : " (" + LLEARN.ablTr(shD) + ")") : (en ? " · moved " + step.shift + " commas" : " · " + step.shift + " koma kaydırılmış");
+      return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + shTr + cue + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
         : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru")); }
     case "rhythm": {
       const what = step.usul ? "Usul " + LLEARN.USULS.find(u => u.id === step.usul).name : pick(RHYTHM_NAMES[step.pattern], lang);
@@ -3101,8 +3206,8 @@ function stepTitle(step, lang = "tr"){
     case "seyir": if(step.via){ const a = LLEARN.makamById(step.makam).name, b = LLEARN.makamById(step.via).name;
         return (en ? "Geçki: " : "Geçki: ") + a + " → " + b + " → " + a + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
       if(step.focus){ const f = { cumle:["cümle kurma", "phrases"], cesni:["çeşni", "çeşni"], karar:["karar", "cadence"] }[step.focus];
-        return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
-      return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + LLEARN.makamById(step.makam).name + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
+        return (en ? "Taksim (" + f[1] + "): " : "Taksim (" + f[0] + "): ") + mk + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan"); }
+      return (en ? "Free playing (seyir): " : "Serbest çalma (seyir): ") + mk + " · " + step.sec + (en ? " s · at least " : " sn · en az ") + step.min + (en ? " points" : " puan");
     case "sight": return (en ? "Sight-reading: level " : "Deşifre: seviye ") + step.level + " · " + (en ? "at least " + step.min + "% correct notes" : "en az %" + step.min + " doğru nota");
     case "dictation": return (step.mode === "rhythm" ? (en ? "Rhythm dictation" : "Ritim dikte") : (en ? "Melodic dictation" : "Ezgi dikte")) + (en ? ": level " : ": seviye ") + step.level +
       " · " + step.min + "/" + step.n + (en ? " correct" : " doğru");

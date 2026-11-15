@@ -561,12 +561,13 @@ function shiftOctave(notes, idxs, dir){
 }
 // Toptan aktarım (göçürme): bütün notalar aynı koma farkıyla kayar, aralıklar korunur.
 // "perde": ilk notanın komşu AEU Rast dizisi perdesine (Rast Dügâh Segâh Çargâh Nevâ Hüseynî Evç, oktav 53) olan farkı;
-// |steps| kez, her seferinde ilk notanın yeni yerinden. "semitone": w±steps, c ±round(steps*53/12).
+// |steps| kez, her seferinde ilk notanın yeni yerinden. "semitone": w±steps, c ±round(steps*53/12). "koma": c ±steps (şed).
 const RAST_DIZI = [0, 9, 17, 22, 31, 40, 48];
 function transposeAll(notes, steps, unit){
   const cOf = n => n.c !== null && n.c !== undefined ? n.c : Math.round((n.w - 67)*53/12);
   let delta;
   if(unit === "semitone") delta = Math.round(steps*53/12);
+  else if(unit === "koma") delta = Math.round(steps);
   else{
     const first = notes.find(n => !n.rest);
     if(!first) return notes.map(n => ({ ...n }));

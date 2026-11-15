@@ -348,10 +348,10 @@ TRAINERS.lessons = function(ctx){
   }
   const fromNotes = ws => ws.map(w => [w, undefined]);
   // Ders ya da adım bir makama aitse perde sesleri seçili akorda (AEU / icra) göre çalar
-  const lessonMk = st => makamById((st && st.makam) || (cur && cur.makam) || "");
+  const lessonMk = st => st && st.makam ? stepMakam(st) : makamById((cur && cur.makam) || "");
   const fromCommas = (cs, st) => cs.map(c => [commaToWritten(c), mkFreq(lessonMk(st), c)]);
   function itemsOf(st){
-    if(st.type === "scale"){ const mk = makamById(st.makam); return fromCommas([...mk.asc, ...[...mk.desc].reverse().slice(1)], st); }
+    if(st.type === "scale"){ const mk = stepMakam(st); return fromCommas([...mk.asc, ...[...mk.desc].reverse().slice(1)], st); }
     if(st.type === "hold" || st.type === "vibrato") return st.comma != null ? [[st.note, mkFreq(lessonMk(st), st.comma)]] : fromNotes([st.note]);
     return st.commas ? fromCommas(st.commas, st) : fromNotes(st.notes);
   }
@@ -411,7 +411,7 @@ TRAINERS.lessons = function(ctx){
     else if(!NO_MIC.has(st.type) && !(await needMic())) return;
     if(cur !== lesson) return;
     const stage = $("lss"+i); stage.hidden = false; stage.innerHTML = "";
-    if(st.makam) SK.setTempContext(st.makam);           // günlük plandaki makam adımları
+    if(st.makam) SK.setTempContext(st.makam, st.shift);  // günlük plandaki makam adımları; shift: şed
     const me = run = { i, lesson };
     me.h = RUN[st.type](st, stage, res => { if(run === me) finish(me, res); });
     refreshStep(i);
@@ -625,7 +625,7 @@ TRAINERS.lessons = function(ctx){
     },
 
     scale(st, stage, done){
-      const mk = makamById(st.makam), s = [...mk.asc, ...[...mk.desc].reverse().slice(1)], all = [...mk.asc, ...mk.desc];
+      const mk = stepMakam(st), s = [...mk.asc, ...[...mk.desc].reverse().slice(1)], all = [...mk.asc, ...mk.desc];
       const hold = holder(), res = [];
       let i = 0, frames = [];
       markScale(mk);
@@ -650,7 +650,7 @@ TRAINERS.lessons = function(ctx){
         if(i < s.length) return next();
         const avg = mean(res.map(r => Math.abs(r.dev))), clean = res.filter(r => r.ok).length;
         const d = ms.done[mk.id] || { n:0, best:99 };
-        d.n++; d.best = Math.min(d.best, avg); ms.done[mk.id] = d; store.set("makam.done", ms.done);
+        if(!mk.shift){ d.n++; d.best = Math.min(d.best, avg); ms.done[mk.id] = d; store.set("makam.done", ms.done); }   // şed çalışması asıl dizinin kaydına yazılmaz
         q(stage, ".lsn").innerHTML = `${clean}/${res.length} <em>${L("perde temiz (±1 koma) · ortalama sapma " + num(avg) + " koma", "perdes clean (±1 comma) · average deviation " + num(avg) + " commas")}</em>`;
         done({ v: clean / res.length });
       }
@@ -675,7 +675,7 @@ TRAINERS.lessons = function(ctx){
     mimic(st, stage, done){
       // Havuz: makam dizisi, komalar ya da makamsız yazılı notalar (notes; eşit aralıklı çalınır)
       const byNote = !st.makam && !st.commas && Array.isArray(st.notes);
-      const pool = st.makam ? [...makamById(st.makam).asc] : byNote ? st.notes : st.commas, hold = holder();
+      const pool = st.makam ? [...stepMakam(st).asc] : byNote ? st.notes : st.commas, hold = holder();
       const wantOf = x => byNote ? x : commaToWritten(x), nameOf = x => byNote ? nn(x) : perdeName(x);
       let len = 3, motif = null, idx = 0, listening = false, alive = true, timer = null;
       function draw(){

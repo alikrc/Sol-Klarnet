@@ -501,7 +501,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   ölçüde dönüş) ve "Ağyâr İle Sen" (Bîmen Şen, Hicaz, Sengin Semâî; 15. ölçüde Segâh ve Çargâh, 17'de dönüş). Adımlar:
   read, listen (1–10 / 9–18, %80), "kaçıncı ölçüde" `soru` (doğru cevap betiğin bulduğu ölçü), `eserSteps` (Gör Nitti
   Cana [[1,6],[7,14]], min80 60, min 65: seviye 3, otuzikilikler var; Ağyâr [[1,8],[9,20],[21,35]]). Müfredat 145 ders.
-- [ ] **S3.5 Şed (göçürme) ve ahenk** (B, E13). *Önce bakılacak:* `core.js` `setTuningContext`/`contextPerde` bir
+- [x] **S3.5 Şed (göçürme) ve ahenk** (B, E13). **Yapıldı (15 Kasım 2026).** *Önce bakılacak:* `core.js` `setTuningContext`/`contextPerde` bir
   makamı başka perdeye taşıyabiliyor mu; taşıyamıyorsa `scale`, `seyir` ve `mimic` adımlarına `shift:<koma>` (53
   TET'te 9 = tanini, 22 = dörtlü, 31 = beşli) eklenir, hedef perdeler `mod53` ile kaydırılır. Dersler (İleri):
   `sed-1` "Aynı makam, başka perde" (Rast'ı Do'dan ve Re'den: `scale` shift 22 ve 31; Hicaz'ı Nevâ'dan ve Rast'tan),
@@ -510,6 +510,28 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   perdede), `sed-3` "Sık kullanılan şed makamlar" (yalnız veride karşılığı olanlar: Hicazkâr = Zirgüleli Hicaz'ın
   Rast'taki şeddi; bu bağ `learn.js` metninde zaten var). Arşiv eser sayfasına "başka perdeden çal" (transpoze)
   düğmesi `shiftOctave`'in yanına; yazılı aralık 52–91 dışına çıkarsa uyarı (`rangeIssues`).
+  *Uygulanan:* `setTuningContext`/`contextPerde` makamı taşıyamıyordu (bağlam makam kimliğiyle kurulur), `shift` eklendi.
+  `learn.js` `makamShifted(mk, shift)`: durak, güçlü, yeden, `asc/desc` +shift koma; icra (ve "Kendim") düzeltmelerinin
+  anahtarları kaydırılır; seyir metni yeni durak ve güçlünün adını söyler; kopya aynı `id`'yi taşır, önbellekte. `stepMakam(st)`
+  adımın makamını verir. `scale`, `mimic`, `seyir` ve makamlı `listen` adımları `shift` alır; `SK.setTempContext(mk, shift)`
+  akort ekranı bağlamını da kaydırır (etiket "Rast (Çargâh)"). Kaydırılmış dizinin ölçümü `makam.done`'a yazılmaz. Adım
+  başlığında "Rast (Çargâh'tan)" (`learn.js` `ablTr`: Türkçe ayrılma eki). Etüt adımı `piece { id, shift }`: notalar
+  `transposeAll(…, "koma")` ile kayar (yeni birim; iki ayrı aktarma yazılmadı), makam bağlamı yok (arşivdeki aktarma gibi
+  AEU), adımda karar perdesi ve aralık uyarısı. Kaydırılan bütün perdelerin AEU'da adı var (node ile denetlendi).
+  **Dersler** (`lessons.js` `// ---- S3.5 Şed ve ahenk ----`, İleri, `taksim-2`'den sonra, `since:2`): `sed-1` (listen Rast
+  Çargâh'tan; scale Rast +22, +31, Hicaz +22 (Nevâ'dan), −9 (Rast'tan); mimic Rast +22; seyir Hicaz +22), `sed-2` (read
+  âhenk + `soru` ×5; `e-ussak` Nevâ'dan serbest ve tempolu, Rast'tan tempolu), `sed-3` (Hicazkâr = Zirgüleli Hicaz'ın Rast'a
+  göçürülmüşü, Kürdîli Hicazkâr = Kürdî'nin Rast'taki şeddi (ikisi de TDV, KAYNAKLAR §2); Mâhur ve Acemaşîran dizilerinin 9
+  koma eşliği yalnız dizi bağı olarak, "şeddidir" denmeden; güçlü ve seyir farkı; `soru` ×3; scale Zirgüleli −9, Hicazkâr,
+  Kürdî −9, Kürdîli Hicazkâr; seyir Hicazkâr). **Âhenk** TDV "Âhenk" müzik bölümünden (Haydar Sanal, 1988), KAYNAKLAR §5:
+  ney, sabit sese (440) denk gelen perdesinin âhengiyle adlanır (yedi ana ney ve perdeleri), esas akort Bolâhenk (Özkan).
+  **Madde âhenkler arasındaki farkı perde ya da koma olarak vermiyor ve klarneti anmıyor**: "yazılı–duyulan farkı
+  tablosu" âhenk âhenk yazılmadı; derste yalnız Sol klarnetin tam dörtlü farkına (Teori) gönderilir.
+  **Arşiv:** var olan Transpoze seçicisinin (`artr`, `transposeAll(…, "perde")`) üstüne denetim satırında görünür
+  "Başka perdeden çal" (− perde / + perde, ±7, karar perdesi); aralık dışına çıkan nota olursa `rangeIssues` ile kırmızı uyarı
+  (aralık `core.js` `LOW_NOTE`–`HIGH_NOTE`, Mi3–Mi♭7; BACKLOG'daki 52–91 değil). Tarayıcıda 375 px'te üç ders açıldı;
+  dinleme, okuma, soru, dizi, taklit, seyir ve kaydırılmış etüt adımları başlatıldı (mikrofon sessiz akışla taklit edildi,
+  çalma puanlanmadı), arşivde düğmeler ve uyarı denendi, konsolda hata yok. Müfredat 148 ders (S3.4 ve S3.6 ile).
 - [x] **S3.6 Formlar** (O, E14). **Yapıldı (15 Kasım 2026).** Teori'ye 9. konu `form` ve ders `formlar` (Makamlar, `makam-bulma`'dan önce):
   şarkı (zemin, nakarat, meyan), türkü, peşrev ve saz semâîsi (hane, teslim), longa, aranağme, taksim, ilâhi; her
   biri 2–3 cümle + arşivden o formda süzülmüş liste bağlantısı (`archive.js` form süzgeci). Adım: `read` ×3, `soru`

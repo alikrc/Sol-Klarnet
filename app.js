@@ -182,16 +182,16 @@
   let tempCtx = null;
   // Geçici bağlam yalnızca çalışma görünümünde geçerli; akort ekranına dönünce kullanıcının seçimi geri gelir
   const tempOn = () => !!tempCtx && document.body.dataset.view === "practice";
-  const ctxNow = () => tempOn() ? { mk: tempCtx.mk, mode: userCtx.mode } : userCtx;
+  const ctxNow = () => tempOn() ? { mk: tempCtx.mk, shift: tempCtx.shift || 0, mode: userCtx.mode } : userCtx;
   function applyCtx(){
-    const c = ctxNow(), mk = c.mk ? makamById(c.mk) : null;
+    const c = ctxNow(), mk = c.mk ? makamShifted(makamById(c.mk), c.shift || 0) : null;   // şed adımında kaydırılmış dizi
     setTuningContext(tuningCtx(mk, c.mode));
     tMakam.value = c.mk || ""; tMakam.disabled = tempOn();
     markSeg(tuneBtns, "tune", c.mode);
-    $("perdelab").textContent = mk ? mk.name + " · " + (c.mode === "icra" ? L("icra", "practice") : c.mode === "ozel" ? L("kendi perdem", "my reference") : "AEU") : L("Çalınan nota", "Your note");
+    $("perdelab").textContent = mk ? mk.name + (mk.shift ? " (" + perdeName(mk.durak) + ")" : "") + " · " + (c.mode === "icra" ? L("icra", "practice") : c.mode === "ozel" ? L("kendi perdem", "my reference") : "AEU") : L("Çalınan nota", "Your note");
     if(mk){
       // İcra: tek sayı yerine kaynağın aralığı ve varsa çıkış/iniş farkı (ICRA_INFO); sayı aralığın ortası, yaklaşık
-      const info = ICRA_INFO[mk.id] || {}, rng = r => L(fmtKoma(r[0]) + " ile " + fmtKoma(r[1]) + " arası", fmtKoma(r[0]) + " to " + fmtKoma(r[1]));
+      const info = (!mk.shift && ICRA_INFO[mk.id]) || {}, rng = r => L(fmtKoma(r[0]) + " ile " + fmtKoma(r[1]) + " arası", fmtKoma(r[0]) + " to " + fmtKoma(r[1]));
       const fix = Object.entries(mk.icra).map(([k, d]) => { const f = info[k];
         return perdeNameAt(+k) + " " + fmtKoma(d) + (f ? " (" + L("aralık ", "range ") + rng(f.range) +
           (f.asc != null ? L("; çıkarken ≈ ", "; ascending ≈ ") + fmtKoma(f.asc) + L(", inerken ≈ ", ", descending ≈ ") + fmtKoma(f.desc) : "") + ")" : ""); });
@@ -1233,7 +1233,7 @@
     T, inst,
     showView: setView,                                   // nav.js çağırır; SK.go ve SK.setRoute nav.js'te
     // Çalışma bölümü makam dersi/alıştırması sürerken akort bağlamını geçici olarak o makama kurar
-    setTempContext(mkId){ tempCtx = mkId ? { mk: mkId } : null; applyCtx(); },
+    setTempContext(mkId, shift){ tempCtx = mkId ? { mk: mkId, shift: shift || 0 } : null; applyCtx(); },
     tuningMode: () => ctxNow().mode,
     tuningMakam: () => ctxNow().mk,
     markScale: mk => { if(!mk && !tempOn() && userCtx.mk) mk = makamById(userCtx.mk); markRailScale(mk); },

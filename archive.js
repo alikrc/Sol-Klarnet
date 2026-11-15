@@ -299,6 +299,13 @@ TRAINERS.archive = function(ctx){
           <button type="button" class="stopbtn" id="armute" aria-pressed="false">${L("Melodiyi kapat", "Mute melody")}</button>
           <button type="button" class="stopbtn" id="arfull" aria-pressed="false">${L("⛶ Tam ekran", "⛶ Full screen")}</button>
         </div>
+        <div class="pbar arshift" role="group" aria-label="${L("Başka perdeden çal", "Play from another perde")}">
+          <span class="arshl">${L("Başka perdeden çal", "Play from another perde")}</span>
+          <button type="button" class="stopbtn" id="arshd" aria-label="${L("Bir perde pes", "One perde lower")}">− ${L("perde", "perde")}</button>
+          <em id="arshv"></em>
+          <button type="button" class="stopbtn" id="arshu" aria-label="${L("Bir perde tiz", "One perde higher")}">+ ${L("perde", "perde")}</button>
+        </div>
+        <p class="fb bad" id="arshwarn" hidden></p>
         <details class="armic"><summary>${L("🎤 Mikrofonla çal", "🎤 Play with the microphone")}</summary>
           <div class="armodes">
             <button type="button" class="armode" id="arfollow"><b>${L("Beni takip et", "Follow me")}</b><small>${L("Sen çal, nota çaldığın yeri gösterir", "You play; the score shows where you are")}</small></button>
@@ -411,6 +418,9 @@ TRAINERS.archive = function(ctx){
       stopAll(); applyTranspose();
     };
     $("artr").addEventListener("change", trChange); $("aroct").addEventListener("change", trChange);
+    // Başka perdeden çal (şed): Transpoze seçicisini bir perde kaydırır; aktarma aynı (applyTranspose, transposeAll "perde")
+    const shiftBy = d => { const v = Math.max(-7, Math.min(7, +$("artr").value + d)); if(v !== +$("artr").value){ $("artr").value = v; trChange(); } };
+    $("arshd").addEventListener("click", () => shiftBy(-1)); $("arshu").addEventListener("click", () => shiftBy(1));
     $("arlayout").value = S.layout;
     $("arlayout").addEventListener("change", () => { save("layout", $("arlayout").value); render(); });
     const zoomTo = z => { save("zoom", Math.round(Math.max(0.6, Math.min(2.2, z))*10)/10); $("arzv").textContent = "%" + Math.round(S.zoom*100); render(); };
@@ -469,11 +479,16 @@ TRAINERS.archive = function(ctx){
     if(oct) ns = shiftOctave(ns, all, oct);
     ns.forEach((n, i) => { if(cur.base[i].syl) n.syl = cur.base[i].syl; });
     cur.notes = ns; cur.oct = oct;
-    const out = ns.filter(n => !n.rest && (n.w < LOW_NOTE || n.w > HIGH_NOTE)).length;
+    const out = rangeIssues(ns).length;
     const last = [...ns].reverse().find(n => !n.rest);
     cur.karar = last ? last.c : 0;
     $("artrinfo").textContent = (cur.tr.steps || oct ? L("Aktarıldı: ", "Transposed: ") + (cur.tr.steps ? (cur.tr.steps > 0 ? "+" : "−") + Math.abs(cur.tr.steps) + L(" perde", " perde") : "") + (oct ? (cur.tr.steps ? ", " : "") + (oct > 0 ? "+" : "−") + "1 " + L("oktav", "octave") : "") + ". " : "") +
       L("Karar perdesi: ", "Tonic: ") + perdeName(cur.karar) + (out ? L(" · aralık dışında " + out + " nota", " · " + out + " notes out of range") : "");
+    $("arshv").textContent = (cur.tr.steps ? (cur.tr.steps > 0 ? "+" : "−") + Math.abs(cur.tr.steps) + " · " : L("Asıl yeri · ", "Original · ")) + L("karar ", "tonic ") + perdeName(cur.karar);
+    $("arshd").disabled = cur.tr.steps <= -7; $("arshu").disabled = cur.tr.steps >= 7;
+    const w = $("arshwarn"), nn = m => noteName(m)[LANG === "en" ? "en" : "tr"]; w.hidden = !out;
+    if(out) w.textContent = L(out + " nota klarnetin yazılı aralığı dışında kalıyor (" + nn(LOW_NOTE) + "–" + nn(HIGH_NOTE) + "). Başka bir perde ya da \"Görünüm ve transpoze\"den oktav seç.",
+      out + " notes fall outside the clarinet's written range (" + nn(LOW_NOTE) + "–" + nn(HIGH_NOTE) + "). Pick another perde, or an octave under \"View and transpose\".");
     // Ölçüler ve her notanın vuruş konumu (eşlik zamanlaması için)
     cur.ms = archMeasures(ns, cur.meters);
     cur.measOf = new Array(ns.length);

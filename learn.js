@@ -120,9 +120,35 @@ const ICRA_INFO = {
 // { [makam]: { [koma mod 53]: düzeltme } }. Tarayıcıda app.js ayarlardan yükler; verilmemiş makamda icra değerleri geçer.
 let CUSTOM_ICRA = {};
 function setCustomIcra(map){ CUSTOM_ICRA = map || {}; }
-const offsetsFor = (mk, mode) => mode === "icra" ? mk.icra : mode === "ozel" ? (CUSTOM_ICRA[mk.id] || mk.icra) : {};
+const offsetsFor = (mk, mode) => mode === "icra" ? mk.icra : mode === "ozel" ? (CUSTOM_ICRA[mk.id] ? (mk.shift ? shiftKeys(CUSTOM_ICRA[mk.id], mk.shift) : CUSTOM_ICRA[mk.id]) : mk.icra) : {};
 MAKAMS.forEach(m => { m.seyirType = SEYIR_TYPE[m.id]; m.icra = ICRA[m.id] || {}; });
 const makamById = id => MAKAMS.find(m => m.id === id) || null;
+// Şed (göçürme): makamın bütün perdeleri shift koma (53'lük sistem) kaydırılır, aralıklar aynı kalır. Kaydırılmış kopya
+// aynı id'yi taşır (kayıtlar asıl makama yazılır); icra düzeltmeleri de kaydırılır. Seyir metni asıl perde adlarını söylediği
+// için yerine durak ve güçlünün yeni adları yazılır. Kopya önbellekte tutulur (aynı adımda aynı nesne).
+const SHIFTED = new Map();
+const shiftKeys = (o, s) => Object.fromEntries(Object.entries(o || {}).map(([k, d]) => [((+k + s) % 53 + 53) % 53, d]));
+function makamShifted(mk, shift){
+  if(!mk || !shift) return mk;
+  const key = mk.id + ":" + shift;
+  if(SHIFTED.has(key)) return SHIFTED.get(key);
+  const sh = c => c + shift, pn = c => perdeName(c), base = mk;
+  const m = { ...mk, shift, base, durak: sh(mk.durak), guclu: sh(mk.guclu), yeden: sh(mk.yeden), asc: mk.asc.map(sh), desc: mk.desc.map(sh),
+    icra: shiftKeys(mk.icra, shift) };
+  const n = Math.abs(shift);
+  m.seyir = ablTr(pn(m.durak)) + " (şed): durak " + pn(m.durak) + ", güçlü " + pn(m.guclu) + ". Aralıklar ve seyir asıl " + mk.name + " gibi; bütün perdeler " + n + " koma " + (shift > 0 ? "tiz" : "pes") + ".";
+  m.seyirEn = "From " + pn(m.durak) + " (şed): final " + pn(m.durak) + ", dominant " + pn(m.guclu) + ". The intervals and seyir are those of " + mk.name + "; every perde is " + n + " commas " + (shift > 0 ? "higher" : "lower") + ".";
+  SHIFTED.set(key, m);
+  return m;
+}
+// Türkçe ayrılma eki: "Çargâh'tan", "Nevâ'dan", "Hüseynî'den"
+function ablTr(w){
+  const v = (w.toLocaleLowerCase("tr").match(/[aâeıiîoöuüû]/g) || ["a"]).pop(), back = "aâıouû".includes(v);
+  const hard = "çfhkpsşt".includes(w.slice(-1).toLocaleLowerCase("tr"));
+  return w + "'" + (hard ? "t" : "d") + (back ? "an" : "en");
+}
+// Ders adımının makamı: { makam, shift? }
+const stepMakam = st => makamShifted(makamById(st.makam), st.shift || 0);
 // Benzer makamlar: aynı durakta karar veren ve dizisi en çok maxDiff perdeyle ayrılan makamlar. Diziler yukarıdaki
 // tanımlardan hesaplanır (çıkış ve iniş birlikte, oktav farkı yok sayılır). only: yalnız bu makamda olan perdeler,
 // other: yalnız ötekinde olanlar (makamın kendi koma değerleriyle). Dizisi aynı olanlarda (Uşşak/Bayâtî) fark seyirdedir.
@@ -488,7 +514,7 @@ function streak(days, today = new Date()){
 }
 
 if(typeof module !== "undefined") module.exports = {
-  MAKAMS, makamById, similarMakams, makamDiff, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
+  MAKAMS, makamById, makamShifted, stepMakam, ablTr, similarMakams, makamDiff, seyirText, tuningCtx, perdeTarget, SEYIR_TYPE, ICRA, ICRA_INFO, setCustomIcra, perdeName, commaToWritten, commaToMidi, judgePerde,
   USULS, usulSlots, LEVELS, UNLOCK_WINDOW, quizWeight, quizPick, quizRecord, compareNote, unlockedLevels, quizChoices,
   GB_ORDER, GB_START, GB_LEVELS, GB_FAST, gbState, gbNote, gbActive, gbMastered, gbPick, gbRecord,
   mean, sd, longToneScore, NoteStatCollector, statAdd, heatClass, segmentNotes, vibrato, isGlide,

@@ -754,7 +754,11 @@ TRAINER_STEPS.piece = function(st, stage, done, ctx){
   stage.innerHTML = `<div class="scorewrap"></div><div class="fb"></div>
     <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : st.mode === "ladder" ? L("Merdiveni başlat", "Start the ladder") : L("Sayımla başla", "Start with count-in")}</button></div>`;
   // Yol işaretli etüt çalınış sırasıyla açılmış hâliyle çalınır (işaretli hâli okuma dersinin soru adımlarında)
-  const p = { id:e.id, name: pick(e.name, LANG), notes: etudePlayed(e), signs: etudeBreaths(e), tempo: st.tempo || e.tempo, meter: e.meter, makam: e.makam, usul: e.usul };
+  // shift (koma): etüt başka perdeden (şed); arşivdeki aktarma gibi perdeler AEU'ya göre değerlendirilir (makam bağlamı yok)
+  const p = { id:e.id, name: pick(e.name, LANG), notes: st.shift ? transposeAll(etudePlayed(e), st.shift, "koma") : etudePlayed(e), signs: etudeBreaths(e),
+    tempo: st.tempo || e.tempo, meter: e.meter, makam: st.shift ? null : e.makam, usul: e.usul };
+  if(st.shift){ const last = [...p.notes].reverse().find(n => !n.rest && n.c != null);
+    stage.insertAdjacentHTML("afterbegin", `<p class="muted small">${L("Karar perdesi: ", "Final: ") + perdeName(last.c) + (rangeIssues(p.notes).length ? L(" · bazı notalar klarnetin aralığı dışında", " · some notes are outside the clarinet's range") : "")}</p>`); }
   const pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
   stage.querySelector("[data-l]").addEventListener("click", () => pl.listen(1, { band: ctx.store.get("piece.band", false) }));
   stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : st.mode === "ladder" ? pl.startLadder(st.min) : pl.startTempo());

@@ -1003,7 +1003,7 @@ const TRAINER_STEPS = {
   },
 
   seyir(st, stage, done, ctx){
-    const mk = makamById(st.makam), frames = [], t0 = performance.now(), cap = ctx.SK.pcmCapture(st.sec + 5);
+    const mk = stepMakam(st), frames = [], t0 = performance.now(), cap = ctx.SK.pcmCapture(st.sec + 5);
     let over = false;
     const gv = st.via ? makamById(st.via) : null, gd = gv ? makamDiff(mk, gv) : null, gp = c => perdeName(c) || "?";
     stage.innerHTML = `<div class="muted">${mk.name}: ${ctx.esc(seyirText(mk, LANG))}</div>
