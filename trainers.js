@@ -242,8 +242,13 @@ const TRAINERS = {
       await g.play();
       if(game === g) stage.querySelectorAll(".opt").forEach(b => b.disabled = false);
     }
+    // "Bütün makamlar": S3.2'nin yeni makamları (learnFirst) ancak o makamın dersi bitince sorulur
+    function earMakams(){
+      const prog = store.get("lesson.prog", {});
+      return MAKAMS.filter(m => { if(!m.learnFirst) return true; const l = LESSONS.find(x => x.id === m.id); return !!(l && lessonDone(l, prog)); }).map(m => m.id);
+    }
     async function makamRound(){
-      const g = game, pool = $("ealevel").value === "all" ? MAKAMS.map(m => m.id) : MAKAMS.slice(0, 9).map(m => m.id);
+      const g = game, pool = $("ealevel").value === "all" ? earMakams() : MAKAMS.slice(0, 9).map(m => m.id);
       const q = makamChoices(pool), mk = makamById(q.answer), phrase = makamPhrase(mk);
       g.q = { ans: q.answer, done:false };
       stage.innerHTML = `<div class="qcount">${L("Seri ", "Streak ")}${g.right}</div>

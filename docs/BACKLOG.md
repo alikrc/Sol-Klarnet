@@ -427,7 +427,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   ikinci ders açmak bu dokuz makam için S3.3'ün ikinci dalgasıdır. Trakya girişine (`trakya-giris`) Karcığar
   etüdünün yerini söyleyen ipucu eklendi (adım değil). Günlük çalışmanın "makamın etüdü" adımı (`e-<makam>`) yeni
   etütleri kendiliğinden alır.
-- [ ] **S3.2 13 yeni makam** (B, E10; eski C2'nin yerine). Sıra arşiv sıklığına göre, iki dalga:
+- [x] **S3.2 13 yeni makam** (B, E10; eski C2'nin yerine). **Yapıldı (15 Kasım 2026), 12 makam; Acemkürdî kaldı.** Sıra arşiv sıklığına göre, iki dalga:
   **Dalga 1:** Muhayyer (78), Bûselik (73), Muhayyer Kürdî (50), Acemkürdî (46), Evç (37), Tâhir (35).
   **Dalga 2:** Neveser (42), Sûzidil (37), Gerdâniye (32), Nişâburek (32), Şehnaz (32), Yegâh (30),
   Sultânîyegâh (29). Her makam için: `learn.js` `MAKAMS` kaydı (`id, name, durak, guclu, yeden, asc, desc, seyir,
@@ -440,6 +440,26 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   Sûzidil ve Acemkürdî'nin karar perdeleri kaynaktan teyit edilmeden yazılmaz.
   *Kabul:* arşivden bu makamlardaki bir eser açılınca makam bilgisi kutusu dolu; S0.4 temiz; makam tanıma havuzu
   yeni makamları ancak dersleri bitince sorar.
+  *Uygulanan:* `learn.js` `MAKAMS` sonunda "S3.2" bloğu, 12 kayıt (bütün alanlar, `SEYIR_TYPE`), her biri TDV maddesinden
+  (`KAYNAKLAR.md` §2, erişim 15 Kasım 2026). Kimlikler arşiv dosya adındaki kimlikle aynı (`muhayyer`, `buselik`,
+  `muhayyerkurdi`, `evic`, `tahir`, `neveser`, `suzidil`, `gerdaniye`, `nisaburek`, `sehnaz`, `yegah`, `sultaniyegah`), bu
+  yüzden `ARCH_MAKAM`'a ek gerekmedi (`archMakam` kimliği doğrudan bulur; eser sayfasında "makam listede yok" notu çıkmaz,
+  perdeler makama göre değerlendirilir). `PERDES`'te eksik perde yoktu (Yegâh −22, Kaba Nim Hicaz −27, Hüseynî Aşîran,
+  Dik Acem Aşîran, Kaba Nim Hisar −18 zaten vardı). Etütler `repertoire.js` "S3.2" bloğu (`e-<makam>`, 8 ölçü 4/4,
+  `level:3`, kural 5; `barCheck`/`rangeIssues` temiz). Dersler `lessons.js` `// ---- S3.2 Yeni makamlar ----`
+  (`newMakamLesson`: `makamLesson` kalıbı + etüt serbest ve tempolu `min:65`, `since:2`), Acemaşîran'dan sonra, Formlar
+  ve `makam-bulma`'dan önce. Ders metni `MAKAMS`'tan üretilir; "aynı dizi, farkı seyirde" cümlesi yalnız
+  `similarMakams(m, 0)` farksız dizi bulursa yazılır (Muhayyer ↔ Hüseynî ↔ Gerdâniye, Şehnaz ↔ Zirgüleli Hicaz). Akort,
+  Dizi, eşlik, dönüştürücü ve eser seçicileri `MAKAMS`'ı dolaştığı için yeni makamlar kendiliğinden girdi. Makam tanıma
+  oyununun "Bütün makamlar" havuzu `learnFirst` makamlarını ancak o makamın dersi bitince sorar (`trainers.js`
+  `earMakams`; tarayıcıda sınandı: boş kayıtta 20 makam, Muhayyer dersi bitmiş kayıtta Muhayyer de çıkıyor).
+  **Kaynakta eksik, çıkarımla doldurulan:** Bûselik'in yedeni (madde vermiyor; Sultânîyegâh = Bûselik'in Yegâh'a
+  göçürülmüşü, yeden durağın 5 koma altı → Nim Zirgüle) ve Evç'in yedeni (madde vermiyor; Evç Irak dizisinin inici
+  biçimi, Irak maddesi yedeni Acem Aşîran verir). Tâhir ve Sûzidil maddelerinin perde listesinde birer perde (Hüseynî,
+  Dügâh) sayılmamış; maddenin kendi çeşni tarifi o perdeyi içerdiği için dizide var. **Acemkürdî eklenmedi:** TDV
+  maddesi durak (Dügâh), güçlüler (Acem, Çargâh) ve inici seyri verir ama dizinin perdelerini ve yedeni vermez (Acem
+  makamının icrasından sonra Kürdî'ye geçilir); Acem makamı uygulamada yok, dizi iki maddenin yorumuna kalırdı.
+  İleride: Acem maddesi okunup Acem ile birlikte eklenebilir; bu makamlara arşivden eser adımı (S1.6 betiği) ve ikinci ders.
 - [x] **S3.3 Her temel makama ikinci ders: "cümle, karar ve eser"** (B, E11). **Yapıldı (15 Kasım 2026).** Önce 10 makam: Rast, Uşşak, Hüseynî,
   Hicaz, Nihâvend, Kürdî, Saba, Segâh, Hüzzam, Karcığar. Kimlik `<makam>-2`, yeri o makamın dersinden hemen sonra
   (S0.1 göçü gerekir). Kalıp, 7 adım:

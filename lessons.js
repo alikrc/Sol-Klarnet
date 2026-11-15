@@ -3010,6 +3010,47 @@ insertLessonAfter("taksim-2",
       { type:"seyir", makam:"hicazkar", sec:45, min:50 }
     ] });
 
+// ---- S3.2 Yeni makamlar ----
+// Arşivde sık geçen ve uygulamada olmayan makamlar (docs/BACKLOG.md S3.2). Kalıp ileri makam dersleriyle aynı (makamLesson:
+// dinle, dizi, ezgi, taklit) + makamın etüdü (repertoire.js "S3.2" bloğu) serbest ve tempolu. Metin learn.js MAKAMS'tan
+// üretilir (TDV maddeleri, docs/KAYNAKLAR.md); "aynı dizi" cümlesi yalnız similarMakams farksız dizi bulursa yazılır.
+// Acemkürdî eklenmedi: TDV maddesi dizi ve yeden vermiyor (BACKLOG). Makam tanıma oyunu bu makamları ders bitince sorar
+// (learn.js learnFirst, trainers.js earMakams).
+function newMakamLesson(mk, phrase){
+  const m = LLEARN.makamById(mk), P = c => LLEARN.perdeName(c);
+  const same = LLEARN.similarMakams(m, 0);
+  const diff = x => [x.guclu ? ["güçlüsü", "dominant"] : null, x.seyir ? ["seyir yönü", "direction of the seyir"] : null].filter(Boolean);
+  const sameText = same.map(x => { const d = diff(x);
+    return { tr: m.name + " ile " + x.mk.name + " aynı diziyi kullanır; farkı seyirdedir" + (d.length ? " (" + d.map(z => z[0]).join(", ") + " başka)" : "") + ".",
+             en: m.name + " and " + x.mk.name + " use the same scale; the difference is in the seyir" + (d.length ? " (different " + d.map(z => z[1]).join(", ") + ")" : "") + "." }; });
+  const l = makamLesson(mk, mk, [
+    { tr:"Durak " + P(m.durak) + ", güçlü " + P(m.guclu) + ", yeden " + P(m.yeden) + ".", en:"Final " + P(m.durak) + ", dominant " + P(m.guclu) + ", leading tone " + P(m.yeden) + "." },
+    { tr: LLEARN.seyirText(m, "tr"), en: LLEARN.seyirText(m, "en") },
+    ...sameText,
+    { tr:"Derste önce diziyi dinleyip çalacaksın, sonra seyre uygun bir ezgi, taklit ve en sonda makamın etüdü (önce serbest, sonra tempolu).",
+      en:"In this lesson you first listen to and play the scale, then a melody that follows the seyir, imitation and finally the makam's étude (first free, then in tempo)." }
+  ], [], phrase, [
+    { type:"piece", id:"e-" + mk, mode:"free", min:5 },
+    { type:"piece", id:"e-" + mk, mode:"tempo", min:65 }
+  ]);
+  l.since = 2;
+  return l;
+}
+insertLessonAfter("acemasiran",
+  newMakamLesson("muhayyer", [62, 53, 48, 40, 48, 53, 62, 53, 44, 40, 31, 22, 17, 9]),
+  newMakamLesson("buselik", [9, 18, 22, 31, 22, 31, 40, 44, 57, 62, 53, 44, 40, 31, 22, 18, 9]),
+  newMakamLesson("muhayyerkurdi", [62, 53, 48, 40, 53, 62, 53, 44, 40, 31, 22, 13, 22, 13, 9]),
+  newMakamLesson("evic", [48, 40, 48, 40, 31, 22, 17, 9, 17, 22, 17, 9, 0, -5]),
+  newMakamLesson("tahir", [62, 53, 48, 53, 62, 53, 48, 40, 31, 40, 31, 22, 17, 9]),
+  newMakamLesson("neveser", [31, 36, 48, 36, 31, 26, 14, 26, 31, 26, 14, 9, 0]),
+  newMakamLesson("suzidil", [40, 35, 22, 18, 22, 35, 40, 35, 22, 18, 9, 4, -8, -13]),
+  newMakamLesson("gerdaniye", [53, 62, 53, 48, 40, 48, 53, 44, 40, 31, 22, 17, 9]),
+  newMakamLesson("nisaburek", [40, 49, 53, 49, 40, 31, 26, 31, 26, 18, 26, 18, 9]),
+  newMakamLesson("sehnaz", [62, 57, 45, 57, 62, 57, 45, 40, 31, 26, 14, 26, 14, 9]),
+  newMakamLesson("yegah", [31, 22, 17, 22, 31, 26, 18, 9, 0, -5, -13, -22]),
+  newMakamLesson("sultaniyegah", [31, 26, 14, 26, 31, 26, 14, 9, 13, 9, 0, -9, -13, -22])
+);
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
