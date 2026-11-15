@@ -373,12 +373,18 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   kalıpların en iyi temiz temposu, hedef 80. Tarayıcıda 375 px'te dersler, dinleme adımı (9/8 çizim ve vurgular), Hız
   sekmesinde yeni türler ve yol haritası taşı denendi, konsolda hata yok; mikrofonlu `tech` adımları panelde mikrofon
   kapalı olduğu için başlatılamadı, telefonda denenmeli.
-- [ ] **S2.4 Altissimo** (O, E4). İleri üniteye iki ders: `altissimo-1` (Do♯6–Mi6: 85–88), `altissimo-2` (Fa6–Sol6:
+- [x] **S2.4 Altissimo** (O, E4). **Yapıldı (15 Kasım 2026).** İleri üniteye iki ders: `altissimo-1` (Do♯6–Mi6: 85–88), `altissimo-2` (Fa6–Sol6:
   89–91). Adımlar: `read` (hava hızı, dudağı sıkmadan; ağız boşluğu) → her nota için alttaki klarino notasından
   bağlı çıkış `notes` → `hold` 3 sn `min:35` → `quiz` `mode:"find"`. Parmaklar `FINGERINGS`'ten; ders başında "bu
   bölgede çalgıdan çalgıya parmak değişir, alternatiflere bak" notu ve parmak kartı alternatifleri açık. Perde bulucu
   bu bölgede denenmedi: önce `audio-check` ile 85–91 arası Iowa kayıtlarında doğruluk ölçülür; %90'ın altındaysa
   dersler `hold` yerine yalnız "nota çıktı" (`notes`) ölçer.
+  *Uygulanan:* `npm run audio-check` Iowa kayıtlarında (C5B5, C6B6; pp/mf/ff) yazılı 85–91'e denk gelen bütün notaları
+  doğru buldu; tek sorunlu nota (Sol♯6, ff, %34) bu aralığın üstünde. Bu yüzden dersler `hold` kullanır. `altissimo-1`
+  (85–88) ve `altissimo-2` (89–91): okuma (parmakların çalgıdan çalgıya değiştiği, kartta seçenekler) + soru, her nota
+  için bir oktav alttan bağlı çıkış (`notes`) ve 3 sn `hold` `min:35`, `quiz` `mode:"find"`. **Yer:** backlog "İleri
+  üniteye" diyor; ünite sıralı açıldığı için başa konunca taksim derslerini kilitliyordu, sona (`dikte-2`'den sonra)
+  kondu. Kayıtlar Si♭ klarnetin; Sol klarnetin kendi tınısıyla ölçülmedi.
 - [x] **S2.5 Nefes 2 ve 3** (K, E25). **Yapıldı (15 Kasım 2026).** `nefes-2` (Teknik): 4–8–12–16 vuruşluk cümleler, `hold` 12, 16, 20 sn
   `min:50`; nefes yeri işaretleme (`piece` adımında virgül işaretli özgün etüt `e-nefes`; etüt metin biçimine nefes
   işareti gerekiyorsa `parseScoreText`'e `'` belirteci eklenir, çizimde virgül). `nefes-3` "Sürekli nefes" (İleri,

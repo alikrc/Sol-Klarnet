@@ -3051,6 +3051,45 @@ insertLessonAfter("acemasiran",
   newMakamLesson("sultaniyegah", [31, 26, 14, 26, 31, 26, 14, 9, 13, 9, 0, -9, -13, -22])
 );
 
+// ---- S2.4 Altissimo ----
+// Do♯6–Sol6 (yazılı 85–91). Perde bulucu bu bölgede Iowa kayıtlarıyla ölçüldü (npm run audio-check, testdata/README.md):
+// bu notaların hepsi doğru bulunuyor, bu yüzden uzun ton (hold) adımı kullanılır. Parmaklar core.js FINGERINGS'ten;
+// bu bölgede çalgıdan çalgıya değişir, parmak kartında seçenekler var
+const ALT_TEXT = {
+  read:{ tr:"Klarinonun üstündeki notalar (altissimo) tiz ve parmakları karışıktır. Havayı hızlı ve destekli ver; sesi dudağı sıkarak değil, havayla taşı. Her yeni notaya alttaki bildiğin notadan bağlı çıkarak gir.",
+         en:"The notes above the clarion (altissimo) are high and their fingerings are intricate. Give fast, supported air; carry the sound with the air, not by biting. Approach each new note slurred from a note you already know below it." },
+  fing:{ tr:"Bu bölgede aynı nota için birden çok parmak var ve hangisinin iyi çıktığı çalgıdan çalgıya değişir. Parmak kartındaki seçenekleri dene, en temiz çıkanı seç.",
+         en:"In this region a note has several fingerings and which one speaks best varies from instrument to instrument. Try the options on the fingering card and keep the cleanest one." }
+};
+const altSteps = (prev, notes) => [
+  { type:"read", title:{ tr:"Altissimo", en:"Altissimo" }, body:[ALT_TEXT.read, ALT_TEXT.fing] },
+  { type:"soru", items:[
+    { q:{ tr:"Altissimoda bir nota temiz çıkmıyorsa önce ne yaparsın?", en:"If an altissimo note doesn't speak cleanly, what do you try first?" },
+      opts:[{ tr:"Parmak kartındaki başka bir parmağı denerim", en:"Try another fingering from the card" }, { tr:"Dudağı daha çok sıkarım", en:"Bite harder" }, { tr:"Havayı azaltırım", en:"Use less air" }], ok:0,
+      why:{ tr:"Bu bölgede parmak çalgıdan çalgıya değişir; dudağı sıkmak sesi daraltır ve tizleştirir.", en:"Fingerings vary between instruments here; biting thins the sound and pushes it sharp." } }
+  ] },
+  ...notes.flatMap(w => [
+    { type:"notes", notes:[prev(w), w, prev(w), w], maxMiss:2 },
+    { type:"hold", note:w, sec:3, min:35 }
+  ]),
+  { type:"quiz", notes, mode:"find", n:6, min:4 }
+];
+const altPrev = w => w - 12 >= 73 ? w - 12 : 84;        // bir oktav alttaki klarino notasından bağlı çıkış
+// İleri ünitesinin sonunda (dersler sırayla açılır; taksim yolunu zor bir teknik konunun arkasında kilitlemesin)
+insertLessonAfter("dikte-2",
+  { id:"altissimo-1", unit:"ileri", since:2, notes:[85, 86, 87, 88],
+    title:{ tr:"Altissimo 1: Do♯6, Re6, Mi♭6, Mi6", en:"Altissimo 1: C♯6, D6, E♭6, E6" },
+    text:[{ tr:"Klarinonun bittiği yerden (Do6) yukarı dört yarım ses. Her notaya bir oktav alttan bağlı çıkarak girersin, sonra notayı üç saniye tutarsın.",
+            en:"Four semitones up from where the clarion ends (C6). You approach each note slurred from an octave below, then hold it for three seconds." }],
+    tips:[{ tr:"Ses incelip kesiliyorsa hava hızını artır, çeneni gevşet.", en:"If the sound thins out and breaks, speed up the air and relax the jaw." }],
+    steps: altSteps(altPrev, [85, 86, 87, 88]) },
+  { id:"altissimo-2", unit:"ileri", since:2, notes:[89, 90, 91],
+    title:{ tr:"Altissimo 2: Fa6, Fa♯6, Sol6", en:"Altissimo 2: F6, F♯6, G6" },
+    text:[{ tr:"Sol6'ya kadar üç nota daha. Bu notalar çok tizdir; kısa çalış, yorulunca bırak ve ertesi gün devam et.",
+            en:"Three more notes up to G6. These notes are very high; practise briefly, stop when tired and continue the next day." }],
+    tips:[{ tr:"Fa♯6 ve Sol6'nın birçok parmağı var; parmak kartında hepsini dene.", en:"F♯6 and G6 have many fingerings; try them all on the fingering card." }],
+    steps: altSteps(altPrev, [89, 90, 91]) });
+
 const pick = (x, lang) => x == null ? "" : typeof x === "string" ? x : (x[lang] || x.tr);
 
 // ---- Ünite sınavları ----
