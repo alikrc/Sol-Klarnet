@@ -24,19 +24,20 @@
   // Alıştırma ekranında üstte yalnızca ← ve alıştırmanın adı durur (nav.js üst çubuğu).
   const TABS = [["lessons","Dersler"],["roadmap",L("Yol haritası", "Roadmap")],["quiz","Parmak testi"],["gorbas",L("Gör ve bas", "See & press")],["staffmap",L("Dizek haritası", "Staff map")],["tablo",L("Parmak tablosu", "Fingering chart")],["desifre",L("Deşifre", "Sight-reading")],["long","Uzun ton"],["rhythm",L("Ritim", "Rhythm")],["usul",L("Usuller", "Usuls")],["hece",L("Ritim heceleri", "Rhythm syllables")],["hiz",L("Hız", "Speed")],["susleme",L("Süsleme", "Ornaments")],
                 ["makam",L("Dizi", "Scale")],["mimic","Taklit"],["seyir",L("Seyir", "Seyir")],["ear",L("Kulak", "Ear")],["dikte",L("Dikte", "Dictation")],
-                ["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["sorun",L("Sorunlar ve çözümler", "Problems & fixes")],["progress","İlerleme"]];
+                ["repertuvar",L("Sıradaki eserim", "My next piece")],["archive",L("Nota arşivi", "Score archive")],["piece",L("Etüt ve eserler", "Études & pieces")],["band",L("Eşlik", "Play-along")],["kulaktan",L("Kulaktan çıkar", "Learn by ear")],["convert",L("Çevir", "Convert")],["rec","Kayıt"],["videos",L("Videolar", "Videos")],["teori",L("Teori", "Theory")],["sorun",L("Sorunlar ve çözümler", "Problems & fixes")],["progress","İlerleme"]];
   const GROUPS = [["lessons","Dersler",["lessons","teori","roadmap","videos"]],
                   ["finger",L("Parmak ve nota", "Fingers and notes"),["quiz","gorbas","staffmap","tablo","desifre"]],
                   ["ritim",L("Ritim", "Rhythm"),["hece","usul","rhythm"]],
                   ["tech",L("Ses ve teknik", "Tone and technique"),["sorun","long","hiz","susleme"]],
                   ["makam",L("Makam ve kulak", "Makam and ear"),["makam","mimic","seyir","ear","dikte"]],
-                  ["pieces",L("Eserler", "Pieces"),["archive","piece","band","kulaktan","convert"]],
+                  ["pieces",L("Eserler", "Pieces"),["repertuvar","archive","piece","band","kulaktan","convert"]],
                   ["progress",L("Takip", "Tracking"),["rec","progress"]]];
   const groupOf = id => GROUPS.find(g => g[2].includes(id));
   const isLesson = id => GROUPS[0][2].includes(id);
   const tabName = id => TABS.find(t => t[0] === id)[1];
   // Ana sayfa kartlarındaki kısa açıklamalar
   const BLURB = {
+    repertuvar: L("Dereceli eser merdiveni: sıradaki eserin hangisi?", "A graded ladder of pieces: which one is next?"),
     lessons: L("Adım adım dersler, mikrofonla değerlendirilir", "Step-by-step lessons, checked with the microphone"),
     roadmap: L("Sıfırdan ustalığa altı aşama: neredesin, ne kaldı?", "Six stages from zero to mastery: where are you, what's left?"),
     desifre: L("Görmediğin notayı ilk seferde çal", "Play music you've never seen, first time"),
@@ -376,7 +377,7 @@
   const HUB = { finger:["practice", L("Parmak ve nota", "Fingers and notes")], ritim:["practice", L("Ritim", "Rhythm")],
     tech:["practice", L("Ses ve teknik", "Tone and technique")], makam:["practice", L("Makam ve kulak", "Makam and ear")],
     progress:["practice", L("Takip", "Tracking")], pieces:["pieces", L("Araçlar", "Tools")] };
-  const FEAT = ["archive", "band", "sorun"];   // Eserler'in ve Çalış'ın başında öne çıkan satırlar; gruplarında tekrar edilmez
+  const FEAT = ["repertuvar", "archive", "band", "sorun"];   // Eserler'in ve Çalış'ın başında öne çıkan satırlar; gruplarında tekrar edilmez
   root.innerHTML = `
     <div class="phub" id="phub">
       <div class="pstat" data-hub="practice">

@@ -392,7 +392,7 @@ TRAINERS.archive = function(ctx){
     $("armute").addEventListener("click", () => { S.mute = !S.mute; $("armute").setAttribute("aria-pressed", S.mute); if(S.mute && S.acc === "off"){ save("acc", "usul"); $("aracc").value = "usul"; } if(listening) play(); });
     $("arfollow").addEventListener("click", async () => { stopAll(); if(await ctx.needMic()){ cur.player.startFree(); playLabel(true); } });
     $("arwith").addEventListener("click", async () => { stopAll(); if(await ctx.needMic()){ cur.player.startFollow(pct()); playLabel(true); } });
-    $("artempo").addEventListener("click", () => { stopAll(); cur.player.startTempo(pct()); playLabel(true); });
+    $("artempo").addEventListener("click", () => { stopAll(); cur.runPct = pct(); cur.player.startTempo(pct()); playLabel(true); });
     $("arladder").addEventListener("click", () => { stopAll(); cur.player.startLadder(120, p => { $("arpct").value = p; pctLabel(); }); playLabel(true); });
     $("arfull").addEventListener("click", () => setFull(!document.body.classList.contains("arfullbody")));
 
@@ -747,6 +747,12 @@ TRAINERS.archive = function(ctx){
     else if(k === 6){ cur.learnStep = 6; $("arpct").value = 75; $("arpctv").textContent = "%75"; $("arpct100").hidden = false; cur.player.startTempo(0.75); playLabel(true); }
   }
   function learnResult(res){
+    // Repertuvar merdiveni (repertuvar.js): eserin tamamı %100 tempoda %80 ve üstü "çalındı"
+    if(cur && res.mode === "tempo" && cur.learnStep !== 6 && typeof repRecord === "function"){
+      const played = store.get("rep.played", {});
+      if(repRecord(played, cur.e.id, cur.runPct || 0, res.v, dayKey(new Date()))){ store.set("rep.played", played); say("good", L("Repertuvar: eser çalındı sayıldı.", "Repertoire: piece counted as played.")); }
+      else if(cur.runPct >= 1 && repStepOf(cur.e.id) && res.v >= 80){ const p = store.get("rep.played", {}); repRecord(p, cur.e.id, 1, res.v, dayKey(new Date())); store.set("rep.played", p); }
+    }
     if(cur && cur.learnStep === 6 && res.mode === "tempo"){ cur.learnStep = null; if(res.v >= 60) markStep(6); }
   }
 

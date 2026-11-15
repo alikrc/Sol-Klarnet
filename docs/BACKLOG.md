@@ -434,7 +434,12 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
 
 ### S4 — Repertuvar, yöreler, fasıl, taksim (≈ 4 hafta)
 
-- [ ] **S4.1 Dereceli repertuvar merdiveni** (B, E16; S0.3 gerekir). Yeni sayfa Eserler → **"Sıradaki eserim"**
+- [ ] **S4.1 Dereceli repertuvar merdiveni** (B, E16; S0.3 gerekir). **Kısmen yapıldı (15 Kasım 2026):** `repertuvar.js` (6 basamak,
+  `eser-sec.js --basamak N --sec` çıktısı; basamak 1: 9, basamak 2: 8 telifsiz eser bulundu), Eserler → "Sıradaki
+  eserim" sekmesi, "Öğren" eseri arşivin yedi adımıyla açar (basamak 1 bir oktav pes), arşivde tamamı %100 tempoda
+  %80+ çalınınca `rep.played`. **Kalan:** yol haritası taşları (her aşamaya "basamak N'den 6 eser"; hoca kartını
+  kilitlemesin diye `soft` taş önerisi: `coachNext` bekleme döngüsünde yalnız yan öneri), hoca kartında "her 4 dersten
+  sonra bir eser" önerisi (`SK.repNext` hazır), tarayıcıda deneme. Yeni sayfa Eserler → **"Sıradaki eserim"**
   ve `repertuvar.js`: 6 basamak × 10 eser. Basamak ölçütleri betikle (`scripts/eser-sec.js --basamak`):
 
   | Basamak | Aralık (yazılı) | En kısa değer | Usul | Makam | Süre |
