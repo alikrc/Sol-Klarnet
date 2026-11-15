@@ -63,6 +63,28 @@ function archMeasures(notes, meters){
   return ms;
 }
 
+// ---- Derslerdeki arşiv eserleri (lessons.js piece/listen { arsiv, from?, to?, tempoPct? }) ----
+// Eser dosyasının ölçüleri (1 tabanlı, dahil) from–to arası; ölçüler archMeasures ile, eser sayfasıyla aynı bölünür.
+// Arşivdeki notalar tekrarları açılmış hâldedir (SymbTr), ölçü numarası çalınış sırasınındır
+function archSlice(raw, from, to){
+  const notes = raw.notes.map(archNote), meters = raw.meters && raw.meters.length ? raw.meters : [[0, 4, 4, ""]];
+  const ms = archMeasures(notes, meters), a = Math.max(1, Math.min(ms.length, from || 1)), b = Math.max(a, Math.min(ms.length, to || ms.length));
+  const m = ms[a - 1].meter;
+  return { notes: notes.slice(ms[a - 1].from, ms[b - 1].to), meter:[m[1], m[2]], bars: ms.length, from:a, to:b };
+}
+let archIxMeta = null;
+const archMeta = () => archIxMeta || (archIxMeta = fetch("notalar/index.json").then(r => r.json()).then(j => new Map(j.pieces.map(p => [p.id, p])))
+  .catch(err => { archIxMeta = null; throw err; }));
+// Dersin çalacağı eser parçası: piecePlayer'ın beklediği biçimde. Eser yoksa ya da açılamazsa hata fırlatır
+async function archLessonPiece(st){
+  const [ix, raw] = await Promise.all([archMeta(), fetch("notalar/" + encodeURIComponent(st.arsiv) + ".json").then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })]);
+  const e = ix.get(st.arsiv);
+  if(!e) throw new Error("dizinde yok");
+  const s = archSlice(raw, st.from, st.to);
+  return { id:"symbtr:" + st.arsiv, name:e.t, notes:s.notes, meter:s.meter, tempo: Math.round((e.tp || raw.tempo || 80)*(st.tempoPct || 100)/100),
+    makam: archMakam(e.mk), e, from:s.from, to:s.to, bars:s.bars };
+}
+
 TRAINERS.archive = function(ctx){
   const { SK, $, store, esc } = ctx;
   const P = $("pp-archive");

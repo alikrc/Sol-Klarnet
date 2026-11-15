@@ -141,7 +141,7 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   (`chartsheet.js`), `fing:<midi>` parmak kartı gösterir.
   *Kabul:* derste ve ünite sınavında çalışır; `reviewStep` bu adımı tekrara alabilir; ekran okuyucuda seçenekler
   düğme olarak okunur. Var olan `read` adımlarına dokunulmaz; yeni derslerde her `read`'in ardından bir `soru` gelir.
-- [ ] **S0.3 `piece` adımı arşiv eserini çalsın; "eser dersi" kalıbı** (B, E16). Bugün `piece.id` yalnız `etudeById`.
+- [x] **S0.3 `piece` adımı arşiv eserini çalsın; "eser dersi" kalıbı** (B, E16). **Yapıldı (15 Kasım 2026).** Bugün `piece.id` yalnız `etudeById`.
   *Yapılacak:* `{ type:"piece", arsiv:"<notalar kimliği>", from?, to?, tempoPct?, mode, min }`. `from`/`to` ölçü
   numarası (1 tabanlı, dahil); `tempoPct` eserin kendi temposunun yüzdesi (60, 80, 100). Eser `notalar/<id>.json`'dan
   yüklenir (`archive.js` yükleyicisi; çevrimdışı için ders listesindeki eserler `sw.js` ön belleğine eklenir),
@@ -151,6 +151,19 @@ Büyüklük: K ≈ yarım gün, O ≈ 1–2 gün, B ≈ 3 gün ve üstü.
   *Kabul:* 3 örnek eserle (kısa bir türkü, bir şarkı, bir saz semâîsi) ders açılır; bölüm döngüsü doğru ölçülerde
   başlar ve biter; tekrar işaretli eserde bölüm sınırı kaymaz; internet yokken ders açılır; eser arşivden kalkarsa
   ders "eser bulunamadı" der ve geçilebilir olur (çıkmaz yok).
+  *Uygulanan:* `archive.js` `archSlice` (ölçüler eser sayfasıyla aynı `archMeasures` ile; `barsAt` değil) ve
+  `archLessonPiece`; `pieces.js` `archivePieceStep` (`piece` adımında `arsiv` varsa; `listen` adımı `arsiv` ile aynı
+  yükleyiciyi dinleme kipinde kullanır ve çalınınca biter). Adımda `name` zorunlu (başlık, dizin yüklenmeden yazılsın).
+  `lessons.js` `eserSteps(arsiv, name, parts, o)`: her bölüm `listen` + %60 serbest takip, sonra tamamı %80 (`min:70`)
+  ve %100 (`min:75`); bölüm verilmezse önce tamamı dinlenir. Adım üstünde eser künyesi (ölçü aralığı, tempo, bestekâr,
+  form, usul) ve "Eseri arşivde aç". Eser açılamazsa "Adımı geç" (kayıtta `skip`). **Tekrar işaretleri:** arşivdeki
+  SymbTr notaları tekrarları açılmış hâldedir, ölçü numarası çalınış sırasınındır; bölüm sınırı bu yüzden kaymaz.
+  **Çevrimdışı:** `sw.js` `LESSON_NOTALAR` listesi kurulumda önbelleğe alınır; `npm run mufredat` derslerdeki her eserin
+  orada olduğunu ve ölçü aralığının eserin içinde kaldığını denetler. Tarayıcıda üç eserle (anonim türkü, şarkı, saz
+  semâîsi) ve olmayan bir eserle denendi; çalma adımları mikrofon engelli olduğu için panelde başlatılamadı, dinleme
+  adımları ve "Adımı geç" çalıştı. **S1.6 için not:** dosya adındaki bestekâr ile dizindeki (`b`) ayrışabiliyor (ör.
+  `saba--sarki--sofyan--asikina_eylemez--numan_aga` dizinde Yesârî Âsım Arsoy); telif süzgeci dizindeki `b` alanına
+  bakmalı.
 - [x] **S0.4 Müfredat denetim betiği** (K). **Yapıldı (15 Kasım 2026).** `scripts/mufredat-check.js` (`npm run mufredat`), ölçüm betiği; test
   değil. Denetler: ders kimlikleri tekil; her `piece.id` `ETUDES`'te, her `piece.arsiv` `notalar/`'da var; her
   `makam`, `usul`, `pattern` kimliği veride var; her etüt yalnız o derse kadar öğretilmiş notaları kullanıyor

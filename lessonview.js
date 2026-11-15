@@ -419,6 +419,7 @@ TRAINERS.lessons = function(ctx){
   const RUN = {
     ...Object.fromEntries(Object.entries(TRAINER_STEPS).map(([k, fn]) => [k, (st, stage, done) => fn(st, stage, done, ctx)])),
     listen(st, stage, done){
+      if(st.arsiv) return TRAINER_STEPS.piece({ ...st, mode:"listen" }, stage, done, ctx);   // arşiv eseri (pieces.js)
       if(st.pattern){
         stage.innerHTML = `<div class="label">${esc(stepTitle(st, LANG))}</div><div class="scorewrap"></div>`;
         const wrap = stage.querySelector(".scorewrap"), sc = drawScore(wrap, techPattern(st.pattern).notes, { meter:[4,4] });

@@ -103,22 +103,42 @@ for(const s of RM.RM_STAGES) for(const u of s.units) if(!units.has(u)) err("RM_S
 // ---- Tarayıcı yükleme sırası ----
 // Node'da her dosya require ile istendiği an yüklenir; tarayıcıda index.html sırasıyla. lessons.js yüklenirken sonra
 // gelen dosyaların (repertoire.js, skills.js) işlevini çağıran ders verisi Node'da çalışır, tarayıcıda uygulamayı durdurur.
-// Bu yüzden ders verisinin dosyaları index.html sırasıyla, modül sistemi olmadan bir kez daha yüklenir
-{
-  const vm = require("vm"), html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+// Bu yüzden dosyalar index.html sırasıyla, modül sistemi olmadan, archive.js'e kadar bir kez daha yüklenir (aynı bağlam
+// arşiv adımlarının ölçü aralığını denetlemekte de kullanılır: archive.js archSlice)
+const vm = require("vm"), NL = String.fromCharCode(10);
+const bctx = (() => {
+  const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const order = [...html.matchAll(/<script src="([^"]+)"/g)].map(m => m[1]);
-  const upto = order.slice(0, order.indexOf("repertoire.js") + 1);
+  const upto = order.slice(0, order.indexOf("archive.js") + 1);
   const noop = () => {}, any = new Proxy(function(){}, { get: (t, k) => k === Symbol.toPrimitive ? () => "" : any, apply: () => any, construct: () => any });
   const ctx = { console, setTimeout, clearTimeout, navigator:{ language:"tr" }, document:any, location:{ search:"", protocol:"http:" },
     localStorage:{ getItem: () => null, setItem:noop, removeItem:noop, key: () => null, length:0 }, addEventListener:noop,
-    matchMedia: () => ({ matches:false, addEventListener:noop }) };
+    matchMedia: () => ({ matches:false, addEventListener:noop }), performance:{ now: () => 0 } };
   ctx.window = ctx; ctx.self = ctx; vm.createContext(ctx);
-  const NL = String.fromCharCode(10);
-  let code = upto.map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join(NL + ";" + NL);
-  // Denetimin kendisini sınamak için: MUFREDAT_INJECT='LREP().parseScoreText("Do4");' hatayı yakalamalı
-  if(process.env.MUFREDAT_INJECT) code = code.replace("const pick = (x, lang)", process.env.MUFREDAT_INJECT + NL + "const pick = (x, lang)");
-  try{ vm.runInContext(code, ctx, { filename:"tarayici-sirasi" }); }
-  catch(e){ err("tarayıcı yükleme sırası (" + upto.join(", ") + ")", e.message); }
+  for(const f of upto){
+    let code = fs.readFileSync(path.join(ROOT, f), "utf8");
+    // Denetimin kendisini sınamak için: MUFREDAT_INJECT='LREP().parseScoreText("Do4");' hatayı yakalamalı
+    if(f === "lessons.js" && process.env.MUFREDAT_INJECT) code = code.replace("const pick = (x, lang)", process.env.MUFREDAT_INJECT + NL + "const pick = (x, lang)");
+    try{ vm.runInContext(code, ctx, { filename:f }); }
+    catch(e){ err("tarayıcı yükleme sırası (" + f + ")", e.message); return null; }
+  }
+  return ctx;
+})();
+
+// ---- Arşiv eserli adımlar ----
+// Ölçü aralığı eserin içinde mi; eser sw.js'in çevrimdışı listesinde mi (ders internetsiz açılsın)
+{
+  const sw = fs.readFileSync(path.join(ROOT, "sw.js"), "utf8");
+  for(const l of LS.LESSONS) l.steps.forEach((st, k) => {
+    if(!st.arsiv || !notalar.has(st.arsiv)) return;
+    const w = l.id + " adım " + (k + 1) + " (" + st.type + ")";
+    if(!sw.includes('"notalar/' + st.arsiv + '.json"')) err(w, "eser sw.js önbellek listesinde yok: " + st.arsiv);
+    if(!st.name) err(w, "arşiv adımında name yok");
+    if(!bctx || (st.from == null && st.to == null)) return;
+    const raw = JSON.parse(fs.readFileSync(path.join(ROOT, "notalar", st.arsiv + ".json"), "utf8"));
+    const s = bctx.archSlice(raw, st.from, st.to);
+    if((st.from || 1) !== s.from || (st.to != null && st.to !== s.to)) err(w, "ölçü aralığı " + (st.from || 1) + "–" + st.to + " eserde yok (" + s.bars + " ölçü)");
+  });
 }
 
 // ---- Envanter ----

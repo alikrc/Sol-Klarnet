@@ -726,6 +726,7 @@ TRAINERS.piece = function(ctx){
 // Ders adımı: { type:"piece", id, mode:"tempo"|"free"|"ladder", min } — tempoda en az min % doğru nota; serbestte en çok
 // min hata; merdivende temiz çalınan tempo en az %min
 TRAINER_STEPS.piece = function(st, stage, done, ctx){
+  if(st.arsiv) return archivePieceStep(st, stage, done, ctx);
   const e = etudeById(st.id);
   stage.innerHTML = `<div class="scorewrap"></div><div class="fb"></div>
     <div class="pbar"><button class="stopbtn" type="button" data-l>${L("Dinle", "Listen")}</button><button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : st.mode === "ladder" ? L("Merdiveni başlat", "Start the ladder") : L("Sayımla başla", "Start with count-in")}</button></div>`;
@@ -736,3 +737,36 @@ TRAINER_STEPS.piece = function(st, stage, done, ctx){
   stage.querySelector("[data-go]").addEventListener("click", () => st.mode === "free" ? pl.startFree() : st.mode === "ladder" ? pl.startLadder(st.min) : pl.startTempo());
   return { note: (r, t) => pl.note(r, t), silence: t => pl.silence(t), stop(){ pl.stop(); } };
 };
+// Arşiv eseri adımı: { arsiv, from?, to? (ölçü, 1 tabanlı, dahil), tempoPct?, mode:"tempo"|"free"|"listen", min }.
+// Eser archive.js archLessonPiece ile yüklenir. listen kipi dinleme adımıdır (lessonview listen'i buraya yollar), çalınınca
+// biter. Eser açılamazsa (arşivden kalkmış, dosya yok) adım "geç" düğmesiyle geçilebilir: ders çıkmaza girmez
+function archivePieceStep(st, stage, done, ctx){
+  const listenOnly = st.mode === "listen";
+  let pl = null, gone = false;
+  stage.innerHTML = `<p class="muted">${L("Nota açılıyor…", "Opening the score…")}</p>`;
+  archLessonPiece(st).then(p => {
+    if(gone) return;
+    const where = (p.from > 1 || p.to < p.bars ? L("Ölçü " + p.from + "–" + p.to + " / " + p.bars, "Bars " + p.from + "–" + p.to + " of " + p.bars) : L("Tamamı · " + p.bars + " ölçü", "Whole piece · " + p.bars + " bars")) +
+      " · ♩=" + p.tempo + (p.e.b ? " · " + p.e.b : "") + (p.e.fn ? " · " + p.e.fn : "") + (p.e.un ? " · " + p.e.un : "");
+    stage.innerHTML = `<div class="label">${ctx.esc(p.name)}</div><div class="muted small">${ctx.esc(where)}</div><div class="scorewrap"></div><div class="fb"></div>
+      <div class="pbar"><button class="${listenOnly ? "primary small" : "stopbtn"}" type="button" data-l>${L("Dinle", "Listen")}</button>${listenOnly ? "" :
+        `<button class="primary small" type="button" data-go>${st.mode === "free" ? L("Başla", "Start") : L("Sayımla başla", "Start with count-in")}</button>`}
+        <button class="linkbtn small" type="button" data-arch>${L("Eseri arşivde aç", "Open in the archive")}</button></div>`;
+    if(p.makam) ctx.SK.setTempContext(p.makam);
+    pl = piecePlayer(ctx, p, stage.querySelector(".scorewrap"), stage.querySelector(".fb"), res => done({ v: res.v }));
+    stage.querySelector("[data-l]").addEventListener("click", async () => {
+      await pl.listen(1, { band: ctx.store.get("piece.band", false) });
+      if(listenOnly && !gone) done({ v:1 });
+    });
+    const go = stage.querySelector("[data-go]");
+    if(go) go.addEventListener("click", () => st.mode === "free" ? pl.startFree() : pl.startTempo());
+    stage.querySelector("[data-arch]").addEventListener("click", () => ctx.SK.openArchive && ctx.SK.openArchive(st.arsiv));
+  }).catch(() => {
+    if(gone) return;
+    // Geçilebilir sonuç: serbestte 0 hata, tempoda %100 (kayıtta "atlandı" işareti; lessons.js stepOk)
+    stage.innerHTML = `<p class="fb bad">${L("Eser bulunamadı ya da açılamadı. Bu adımı geçebilirsin; dersin geri kalanı seni beklemez.", "The piece couldn't be found or opened. You can skip this step; the rest of the lesson won't wait on it.")}</p>
+      <div class="pbar"><button class="stopbtn" type="button" data-skip>${L("Adımı geç", "Skip the step")}</button></div>`;
+    stage.querySelector("[data-skip]").addEventListener("click", () => done({ v: listenOnly ? 1 : st.mode === "free" ? 0 : 100, skip:true }));
+  });
+  return { note: (r, t) => pl && pl.note(r, t), silence: t => pl && pl.silence(t), stop(){ gone = true; if(pl) pl.stop(); } };
+}

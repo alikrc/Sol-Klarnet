@@ -30,6 +30,8 @@
 //                                             aşamasının puanı ("cumle", "cesni", "karar"; skills.js phraseAnalysis)
 //   ear     { mode: "abx"|"makam", level | pool, n, min }  kulak: perde ayırt ya da makam tanı
 //   piece   { id, mode: "tempo"|"free", min } etüt çal: tempoda en az min % doğru nota, serbestte en çok min hata
+//   piece   { arsiv, name, from?, to?, tempoPct?, mode, min }  nota arşivinden eser (ölçü aralığı, temponun yüzdesi);
+//                                             listen { arsiv, … } aynı eseri dinletir. Kalıp: eserSteps
 //   hold'a quality eklenirse ses temizliği de en az o kadar olmalı
 
 const LCORE = typeof module !== "undefined" ? require("./core.js") : { noteName, nearestPerde };
@@ -1210,6 +1212,22 @@ const SUSLEME = [
 // ---- Hız ve teknik ünitesi ----
 // tech adımı: { pattern (skills.js techPattern), start, target } — tempo merdiveni target'a ulaşınca geçer.
 // Her kalıptan önce dinleme adımı kalıbı hedef tempoda çalar.
+// Arşiv eserinden ders adımları ("eser dersi" kalıbı; docs/BACKLOG.md S0.3): her bölüm önce dinlenir, sonra %60 tempoda
+// serbest takiple çalınır; en sonda eserin tamamı %80 ve %100 tempoda. parts: [[from, to] ölçü aralıkları…] (1 tabanlı,
+// dahil; boşsa yalnız tamamı), name: eserin adı (adım başlığında; dizin derste yüklenmeden okunmaz)
+function eserSteps(arsiv, name, parts = [], o = {}){
+  const base = { arsiv, name };
+  return [
+    ...parts.flatMap(([from, to]) => [{ type:"listen", ...base, from, to, tempoPct:60 }, { type:"piece", ...base, from, to, tempoPct:60, mode:"free", min: o.freeMin || 4 }]),
+    ...(parts.length ? [] : [{ type:"listen", ...base, tempoPct:80 }]),
+    { type:"piece", ...base, tempoPct:80, mode:"tempo", min: o.min80 || 70 },
+    { type:"piece", ...base, tempoPct:100, mode:"tempo", min: o.min || 75 }
+  ];
+}
+// Arşiv adımının başlığı: "Eserin adı · ölçü 1–8 · %60 tempo"
+const arsivWhat = (st, lang) => { const en = lang === "en";
+  return pick(st.name, lang) + (st.from || st.to ? (en ? " · bars " : " · ölçü ") + (st.from || 1) + "–" + (st.to || "") : "") +
+    (st.tempoPct && st.tempoPct !== 100 ? (en ? " · " + st.tempoPct + "% tempo" : " · %" + st.tempoPct + " tempo") : ""); };
 const techSteps = (pattern, start, target) => [{ type:"listen", pattern, tempo:target }, { type:"tech", pattern, start, target }];
 const HIZ = [
   { id:"hiz-metronom", unit:"hiz", notes:[],
@@ -2361,7 +2379,8 @@ function stepTitle(step, lang = "tr"){
   };
   const mk = step.makam ? LLEARN.makamById(step.makam).name : null;
   switch(step.type){
-    case "listen": if(step.pattern) return (en ? "Listen: " : "Dinle: ") + pick(LSK().techPattern(step.pattern).label, lang) + " · ♩=" + step.tempo;
+    case "listen": if(step.arsiv) return (en ? "Listen: " : "Dinle: ") + arsivWhat(step, lang);
+      if(step.pattern) return (en ? "Listen: " : "Dinle: ") + pick(LSK().techPattern(step.pattern).label, lang) + " · ♩=" + step.tempo;
       return (en ? "Listen: " : "Dinle: ") + (step.orn ? pick(ornName(step.orn), lang) + " · " : "") + seq();
     case "tech": return (en ? "Speed: " : "Hız: ") + pick(LSK().techPattern(step.pattern).label, lang) + " · ♩=" + step.start + " → " + step.target;
     case "ornament": {
@@ -2386,7 +2405,10 @@ function stepTitle(step, lang = "tr"){
     case "soru": { const n = soruItems(step).length;
       return n === 1 ? (en ? "Question: " : "Soru: ") + pick(step.q || step.items[0].q, lang)
         : (en ? "Questions: " + n + " · at least " + soruMin(step) + " right first time" : "Sorular: " + n + " soru · en az " + soruMin(step) + " ilk seferde doğru"); }
-    case "piece": { const e = LREP().etudeById(step.id);
+    case "piece": { if(step.arsiv) return (en ? "Piece: " : "Eser: ") + arsivWhat(step, lang) + " · " +
+        (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
+                              : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru"));
+      const e = LREP().etudeById(step.id);
       if(step.mode === "ladder") return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + (en ? " · tempo ladder · up to " + step.min + "%" : " · tempo merdiveni · %" + step.min + "'e kadar");
       return (en ? "Piece: " : "Eser: ") + pick(e.name, lang) + " · " + (step.mode === "free" ? (en ? "follow mode · at most " + step.min + " mistakes" : "serbest takip · en çok " + step.min + " hata")
         : (en ? "in tempo · at least " + step.min + "% correct" : "tempolu · en az %" + step.min + " doğru")); }
@@ -2718,5 +2740,5 @@ function dailySettled(daily, day){
 if(typeof module !== "undefined") module.exports = {
   UNITS, LESSONS, EXAMS, examFor, lessonById, pick, SRS_DAYS, shiftDay, srsSync, srsDue, srsUpdate, reviewStep, stepMargin, stepNotes, stepTitle, stepOk, recordStep, lessonDone, lessonProgress,
   unlocked, nextLesson, knownNotes, choicesFrom, quizPickFrom, glideBetween, seeded, dailyPlan, dailySettled, setGuided, gateFor, examPassed,
-  CURRICULUM_VER, migrateCurriculum, sinceIds, placeLesson, soruItems, soruMin, GATE_AFTER, insertLessonAfter
+  eserSteps, CURRICULUM_VER, migrateCurriculum, sinceIds, placeLesson, soruItems, soruMin, GATE_AFTER, insertLessonAfter
 };
